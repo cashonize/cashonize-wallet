@@ -102,6 +102,29 @@ function publicationOf(transaction: TransactionHistoryItem): DetectedIdentity {
   };
 }
 
+// The listed identities the walk above no longer reaches, which earlier versions held back: a genesis
+// these keys signed into a contract, followed out of it to a coin of this wallet by a settlement.
+// Only where the history holds the link past the contract, so a gap in it is not taken for one, and
+// only for a category this wallet never received any of, so a token the user holds stays held.
+export function contractStateIdentities(
+  history: TransactionHistoryItem[],
+  held: { category: string, authheadTxid: string }[],
+): string[] {
+  const spenders = indexOutput0Spends(history);
+  const transactions = new Map(history.map(transaction => [transaction.hash, transaction]));
+  return held.filter(({ category, authheadTxid }) => {
+    const genesisTxid = spenders.get(category);
+    const genesis = genesisTxid === undefined ? undefined : transactions.get(genesisTxid);
+    if (!genesisTxid || !genesis?.outputs.some(output => output.token?.category === category)) return false;
+    const reached = advanceToAuthhead(genesisTxid, spenders, transactions);
+    if (reached === authheadTxid || spenders.get(reached) === undefined) return false;
+    const received = history.some(transaction => transaction.tokenAmountChanges.some(change =>
+      change.category === category && (change.amount > 0n || change.nftAmount > 0n)
+    ));
+    return !received;
+  }).map(identity => identity.category);
+}
+
 export function detectIdentities(history: TransactionHistoryItem[]): DetectedIdentities {
   const historyTxids = history.map(transaction => transaction.hash);
   const transactions = new Map(history.map(transaction => [transaction.hash, transaction]));

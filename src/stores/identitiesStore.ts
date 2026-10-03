@@ -27,7 +27,7 @@ import {
   clearIdentityList,
 } from "src/utils/tools/identityLists"
 import { checkPublicationUri, fetchVerifiedRegistry, registryAuthbases, type PublicationUriStatus } from "src/utils/tools/registryFile"
-import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
+import { contractStateIdentities, detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
 import type { TransactionHistoryItem } from "mainnet-js"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
@@ -222,6 +222,19 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (match?.authheadTxid) named.push({ authheadTxid: match.authheadTxid, category: match.category, marker: 'publication' });
     }
     return named;
+  }
+
+  // What v0.14.1's detection held back that the walk now stops short of, a prediction market's
+  // payouts in the main, released the way Remove releases them, so it is not listed again
+  async function releaseContractStateIdentities(history: TransactionHistoryItem[]) {
+    const started = mainStore.currentInitializationToken();
+    const held = (identities.value ?? []).flatMap(identity =>
+      identity.authUtxo && identity.authheadTxid ? [{ category: identity.category, authheadTxid: identity.authheadTxid }] : []
+    );
+    for (const category of contractStateIdentities(history, held)) {
+      if (mainStore.walletSwitchedSince(started)) return;
+      await removeIdentity(category);
+    }
   }
 
   // Protection first, so it never waits on naming; the announcement last, so it has names to say
@@ -531,6 +544,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       await refreshIdentities();
       const history = await mainStore.fullWalletHistory();
       if (mainStore.walletSwitchedSince(started)) return;
+      await releaseContractStateIdentities(history);
       await detectWalletIdentities(history);
       await followTokenIdentities(settingsStore.followTokenIdentities ? 'open' : 'keys');
     } catch (error) {

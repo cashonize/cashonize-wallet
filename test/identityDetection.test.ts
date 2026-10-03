@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { InOutput } from 'mainnet-js'
-import { detectIdentities } from '../src/utils/tools/identityDetection'
+import { contractStateIdentities, detectIdentities } from '../src/utils/tools/identityDetection'
 import { authGuardLockingBytecodes } from '../src/utils/tools/authGuard'
 import { historyItem, opReturnOutput, p2pkhOutput, tokenOutput, spendOf } from './mocks/history.mocks'
 
@@ -298,6 +298,62 @@ describe('detectIdentities', () => {
       expect(detectIdentities(history).identities).toEqual([
         { authheadTxid: releaseTxid, category: genesisInputTxid, marker: 'genesis' },
       ])
+    })
+
+    // What v0.14.1 held back before the walk stopped at contracts: a ticket minted into the
+    // contract, a settlement, and a payout at output 0, in BCH or in a token, either way
+    describe('contractStateIdentities', () => {
+      const payoutTxid = 'ef'.repeat(32)
+      const contractHistory = (payout: InOutput) => [
+        fundingItem,
+        historyItem(spenderTxid, [at(tokenOutput(genesisInputTxid, { commitment: '' }), p2shContract)], [spendOf(genesisInputTxid, 0)]),
+        historyItem(
+          settleTxid,
+          [at(tokenOutput(genesisInputTxid, { commitment: 'c8' }), p2shContract)],
+          [at(spendOf(spenderTxid, 0), p2shContract), { ...at(spendOf(otherCategory, 2), p2shContract), token: { category: otherCategory, amount: 344n } }],
+        ),
+        historyItem(payoutTxid, [payout], [at(spendOf(settleTxid, 0), p2shContract)]),
+      ]
+      const heldPayout = [{ category: genesisInputTxid, authheadTxid: payoutTxid }]
+
+      it.each([
+        ['BCH', p2pkhOutput()],
+        ['a token', tokenOutput(otherCategory, { amount: 341n })],
+      ])('releases a payout in %s', (_, payout) => {
+        expect(contractStateIdentities(contractHistory(payout), heldPayout)).toEqual([genesisInputTxid])
+      })
+
+      it('keeps an identity the walk still reaches', () => {
+        const history = [
+          fundingItem,
+          historyItem(spenderTxid, [tokenOutput(genesisInputTxid, { amount: 1000n })], [spendOf(genesisInputTxid, 0)]),
+        ]
+
+        expect(contractStateIdentities(history, [{ category: genesisInputTxid, authheadTxid: spenderTxid }])).toEqual([])
+      })
+
+      // the walk stopping for want of the next link is a gap in the history, not a contract
+      it('keeps an identity whose chain leaves the history at a contract', () => {
+        const history = contractHistory(p2pkhOutput()).slice(0, 2)
+
+        expect(contractStateIdentities(history, heldPayout)).toEqual([])
+      })
+
+      it('keeps an identity whose tokens this wallet received', () => {
+        const history = contractHistory(p2pkhOutput())
+        history.push({
+          ...historyItem('fa'.repeat(32), [tokenOutput(genesisInputTxid, { amount: 5n })]),
+          tokenAmountChanges: [{ category: genesisInputTxid, amount: 5n, nftAmount: 0n }],
+        })
+
+        expect(contractStateIdentities(history, heldPayout)).toEqual([])
+      })
+
+      it('keeps an identity whose genesis is not in this history', () => {
+        const history = contractHistory(p2pkhOutput()).filter(item => item.hash !== spenderTxid)
+
+        expect(contractStateIdentities(history, heldPayout)).toEqual([])
+      })
     })
   })
 })

@@ -70,7 +70,8 @@ spending it is refused at signing: outright for an identity UTXO, unless the use
 lets connected apps spend them, and then only when output 0 provably returns to this
 wallet, with the approval dialog naming the identity and what its output carries before
 and after; a key is signed when the same NFT comes back, since the covenant needs it as an
-input. The only releases are the identity's own transfer and Remove on the identities page.
+input. The only releases are the identity's own transfer and Remove on the identities page,
+and the one the wallet makes itself for a contract's chain, under Spec versus convention.
 
 ## What the wallet does and does not do
 
@@ -189,7 +190,11 @@ identities were held elsewhere last time, and that is the one thing it keeps.
   minting NFT guesses at the contract's design and misses the next pattern (a mutable NFT,
   fungible state, plain BCH at output 0). Revisiting this needs a signal that a link coming
   back out of a contract was the user's own doing; one of this wallet's inputs in that link
-  is not one, since a settlement can spend a user's coin too.
+  is not one, since a settlement can spend a user's coin too. Wallets that ran the walk
+  before the rule have such payouts listed and held back, so the open pass removes a held
+  identity, as Remove does, when its genesis is in this history, the walk now stops at a
+  contract whose next link the history holds, and the wallet never received any of its
+  tokens: whatever the payout carries, BCH or a token, the identity was the contract's.
 - **AuthGuard and AuthKey** are the AuthGuard standard's, which CashTokens Studio
   implements: a covenant holding the identity output, opened by an NFT. The covenant's
   script follows from the key's category, so a guarded identity is recognised the way the
