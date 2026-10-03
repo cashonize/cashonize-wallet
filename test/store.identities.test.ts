@@ -511,6 +511,59 @@ describe('auth reservations follow the authchain', () => {
     expect(identitiesStore.identities?.map(identity => identity.category)).toEqual([categoryA, categoryB])
   })
 
+  // v0.14.1 followed a ticket a dapp minted into its contract to the payout at output 0 and held
+  // it back; the open pass releases it once, so the user adding it back by hand is not undone
+  it('releases a payout earlier detection held back as a contract identity, once', async () => {
+    const contract = `aa20${'03'.repeat(32)}87`
+    const genesisTxid = 'c1'.repeat(32)
+    const payoutTxid = 'c3'.repeat(32)
+    stubAuthheadQueries({ [categoryA]: payoutTxid })
+    listIdentities([categoryA])
+    const payout = utxo(payoutTxid, 0)
+    const { store, identitiesStore } = startStore([payout])
+    await identitiesStore.refreshIdentities()
+    expect(store.reservedUtxos[outpointOf(payout)]).toBe('auth')
+    vi.spyOn(store, 'fullWalletHistory').mockResolvedValue([
+      historyItem(categoryA, [p2pkhOutput()]),
+      historyItem(genesisTxid, [{ ...tokenOutput(categoryA, { commitment: '', capability: 'minting' }), lockingBytecode: contract }], [spendOf(categoryA, 0)]),
+      historyItem(payoutTxid, [p2pkhOutput()], [{ ...spendOf(genesisTxid, 0), lockingBytecode: contract }]),
+    ])
+
+    await identitiesStore.runChecksOnOpen()
+
+    expect(store.reservedUtxos).toEqual({})
+    expect(identitiesStore.identityCategories).toEqual([])
+    expect(identitiesStore.openCheckError).toBeUndefined()
+
+    await identitiesStore.addIdentity(categoryA, await identitiesStore.inspectCategory(categoryA))
+    await identitiesStore.runChecksOnOpen()
+
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(store.reservedUtxos[outpointOf(payout)]).toBe('auth')
+  })
+
+  // An identity whose lookup failed has no coin to check, so a payout among them would be skipped,
+  // and the cleanup only runs once: it waits for an open where every lookup answered
+  it('defers the payout cleanup while an identity is unresolved', async () => {
+    const contract = `aa20${'03'.repeat(32)}87`
+    const genesisTxid = 'c1'.repeat(32)
+    const payoutTxid = 'c3'.repeat(32)
+    stubAuthheadQueries({ [categoryA]: payoutTxid })
+    listIdentities([categoryA, categoryB])
+    const payout = utxo(payoutTxid, 0)
+    const { store, identitiesStore } = startStore([payout])
+    vi.spyOn(store, 'fullWalletHistory').mockResolvedValue([
+      historyItem(categoryA, [p2pkhOutput()]),
+      historyItem(genesisTxid, [{ ...tokenOutput(categoryA, { commitment: '', capability: 'minting' }), lockingBytecode: contract }], [spendOf(categoryA, 0)]),
+      historyItem(payoutTxid, [p2pkhOutput()], [{ ...spendOf(genesisTxid, 0), lockingBytecode: contract }]),
+    ])
+
+    await identitiesStore.runChecksOnOpen()
+
+    expect(store.reservedUtxos[outpointOf(payout)]).toBe('auth')
+    expect(localStorageMock.getItem('identityCleanups-mainnet-testWallet')).toBeNull()
+  })
+
   // the wallet's history is read at open; it failing to load must land on the identities
   // page, not flag a wallet that did load
   it('reports a failed lookup at open on the page rather than as a failed wallet', async () => {

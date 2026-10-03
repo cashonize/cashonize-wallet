@@ -27,7 +27,7 @@ import {
   clearIdentityList,
 } from "src/utils/tools/identityLists"
 import { checkPublicationUri, fetchVerifiedRegistry, registryAuthbases, type PublicationUriStatus } from "src/utils/tools/registryFile"
-import { detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
+import { contractStateIdentities, detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
 import type { TransactionHistoryItem } from "mainnet-js"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
@@ -222,6 +222,28 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (match?.authheadTxid) named.push({ authheadTxid: match.authheadTxid, category: match.category, marker: 'publication' });
     }
     return named;
+  }
+
+  // What v0.14.1's detection held back that the walk now stops short of, a prediction market's
+  // payouts in the main, released the way Remove releases them. Once per wallet per network, after
+  // a resolve that answered for every identity, so an identity the user adds back by hand stays.
+  async function releaseContractStateIdentities(history: TransactionHistoryItem[]) {
+    const cleanup = 'contractState';
+    if (loadIdentityList('cleanups', ...walletKey()).includes(cleanup)) return;
+    // undefined until a resolve has run, which says nothing about what is listed
+    const listed = identities.value;
+    if (!listed || listed.some(identity => identity.status === 'unresolved')) return;
+    const started = mainStore.currentInitializationToken();
+    const held = listed.flatMap(identity =>
+      identity.authUtxo && identity.authheadTxid ? [{ category: identity.category, authheadTxid: identity.authheadTxid }] : []
+    );
+    for (const category of contractStateIdentities(history, held)) {
+      if (mainStore.walletSwitchedSince(started)) return;
+      unseenIdentities.value = removeFromIdentityList('unseen', ...walletKey(), category);
+      await removeIdentity(category);
+    }
+    if (mainStore.walletSwitchedSince(started)) return;
+    addToIdentityList('cleanups', ...walletKey(), cleanup);
   }
 
   // Protection first, so it never waits on naming; the announcement last, so it has names to say
@@ -531,6 +553,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       await refreshIdentities();
       const history = await mainStore.fullWalletHistory();
       if (mainStore.walletSwitchedSince(started)) return;
+      await releaseContractStateIdentities(history);
       await detectWalletIdentities(history);
       await followTokenIdentities(settingsStore.followTokenIdentities ? 'open' : 'keys');
     } catch (error) {

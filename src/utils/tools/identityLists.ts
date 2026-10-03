@@ -15,6 +15,8 @@ const identityListKeys = {
   // the listed identities held elsewhere at the last complete resolve, so that one whose authhead
   // arrives while the app is closed is told as the arrival it is on the next open
   watched: 'watchedIdentities',
+  // one-off cleanups already run, by name, so a later re-add by hand is not undone at the next open
+  cleanups: 'identityCleanups',
 } as const;
 
 export type IdentityList = keyof typeof identityListKeys;
