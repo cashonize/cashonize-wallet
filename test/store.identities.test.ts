@@ -512,11 +512,10 @@ describe('auth reservations follow the authchain', () => {
   })
 
   // v0.14.1 followed a ticket a dapp minted into its contract to the payout at output 0 and held
-  // it back; the open pass releases it and dismisses the ticket so it is not listed again
-  it('releases a payout earlier detection held back as a contract identity', async () => {
+  // it back; the open pass releases it once, so the user adding it back by hand is not undone
+  it('releases a payout earlier detection held back as a contract identity, once', async () => {
     const contract = `aa20${'03'.repeat(32)}87`
     const genesisTxid = 'c1'.repeat(32)
-    const settleTxid = 'c2'.repeat(32)
     const payoutTxid = 'c3'.repeat(32)
     stubAuthheadQueries({ [categoryA]: payoutTxid })
     listIdentities([categoryA])
@@ -527,8 +526,7 @@ describe('auth reservations follow the authchain', () => {
     vi.spyOn(store, 'fullWalletHistory').mockResolvedValue([
       historyItem(categoryA, [p2pkhOutput()]),
       historyItem(genesisTxid, [{ ...tokenOutput(categoryA, { commitment: '' }), lockingBytecode: contract }], [spendOf(categoryA, 0)]),
-      historyItem(settleTxid, [{ ...tokenOutput(categoryA, { commitment: 'c8' }), lockingBytecode: contract }], [{ ...spendOf(genesisTxid, 0), lockingBytecode: contract }]),
-      historyItem(payoutTxid, [p2pkhOutput()], [{ ...spendOf(settleTxid, 0), lockingBytecode: contract }]),
+      historyItem(payoutTxid, [p2pkhOutput()], [{ ...spendOf(genesisTxid, 0), lockingBytecode: contract }]),
     ])
 
     await identitiesStore.runChecksOnOpen()
@@ -536,6 +534,12 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos).toEqual({})
     expect(identitiesStore.identityCategories).toEqual([])
     expect(identitiesStore.openCheckError).toBeUndefined()
+
+    await identitiesStore.addIdentity(categoryA, await identitiesStore.inspectCategory(categoryA))
+    await identitiesStore.runChecksOnOpen()
+
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(store.reservedUtxos[outpointOf(payout)]).toBe('auth')
   })
 
   // the wallet's history is read at open; it failing to load must land on the identities

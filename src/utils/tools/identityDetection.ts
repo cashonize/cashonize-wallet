@@ -13,7 +13,7 @@
 import type { TransactionHistoryItem } from "mainnet-js";
 import { BCMR_OUTPUT_PREFIX } from "src/queryChainGraph";
 import { opReturnHex } from "src/utils/history/txDirection";
-import { isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
+import { isAuthGuardOf } from "src/utils/tools/authGuard";
 
 export type IdentityMarker = 'genesis' | 'publication';
 
@@ -61,12 +61,11 @@ function isP2pkh(lockingBytecode: string) {
 }
 
 // An AuthGuard requires its AuthKey at input 1 of every spend, so the link spending the covenant
-// says which key opened it, and the key's category derives the covenant: a match proves the guard
+// says which key opened it, and the key's category derives the covenant: a match proves the guard,
+// and the covenant already checked the key's shape when the spend was accepted
 function opensAuthGuard(spender: TransactionHistoryItem, covenantBytecode: string) {
-  const keyInput = spender.inputs[1];
-  if (!keyInput?.token) return false;
-  const keyCategory = keyInput.token.category;
-  return isAuthKey(keyInput, keyCategory) && isAuthGuardOf(keyCategory, covenantBytecode);
+  const keyCategory = spender.inputs[1]?.token?.category;
+  return keyCategory !== undefined && isAuthGuardOf(keyCategory, covenantBytecode);
 }
 
 // A marker fires on the link that carries it, which is rarely the chain's last: a mint, a transfer
@@ -103,9 +102,9 @@ function publicationOf(transaction: TransactionHistoryItem): DetectedIdentity {
 }
 
 // The listed identities the walk above no longer reaches, which earlier versions held back: a genesis
-// these keys signed into a contract, followed out of it to a coin of this wallet by a settlement.
-// Only where the history holds the link past the contract, so a gap in it is not taken for one, and
-// only for a category this wallet never received any of, so a token the user holds stays held.
+// these keys signed into a contract as the contract's own NFT, followed out of it to a coin of this
+// wallet by a settlement. Only where the history holds the link past the contract, so a gap in it is
+// not taken for one, and only for a category this wallet never received any of.
 export function contractStateIdentities(
   history: TransactionHistoryItem[],
   held: { category: string, authheadTxid: string }[],
@@ -118,6 +117,8 @@ export function contractStateIdentities(
     if (!genesisTxid || !genesis?.outputs.some(output => output.token?.category === category)) return false;
     const reached = advanceToAuthhead(genesisTxid, spenders, transactions);
     if (reached === authheadTxid || spenders.get(reached) === undefined) return false;
+    const contractOutput = transactions.get(reached)?.outputs[0];
+    if (contractOutput?.token?.category !== category || !contractOutput.token.nft) return false;
     const received = history.some(transaction => transaction.tokenAmountChanges.some(change =>
       change.category === category && (change.amount > 0n || change.nftAmount > 0n)
     ));

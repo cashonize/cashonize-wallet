@@ -225,16 +225,24 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // What v0.14.1's detection held back that the walk now stops short of, a prediction market's
-  // payouts in the main, released the way Remove releases them, so it is not listed again
+  // payouts in the main, released the way Remove releases them. Once per wallet, after a resolve
+  // that answered for every identity, so an identity the user adds back by hand stays.
   async function releaseContractStateIdentities(history: TransactionHistoryItem[]) {
+    const cleanup = 'contractState';
+    if (loadIdentityList('cleanups', ...walletKey()).includes(cleanup)) return;
+    const listed = identities.value ?? [];
+    if (listed.some(identity => identity.status === 'unresolved')) return;
     const started = mainStore.currentInitializationToken();
-    const held = (identities.value ?? []).flatMap(identity =>
+    const held = listed.flatMap(identity =>
       identity.authUtxo && identity.authheadTxid ? [{ category: identity.category, authheadTxid: identity.authheadTxid }] : []
     );
     for (const category of contractStateIdentities(history, held)) {
       if (mainStore.walletSwitchedSince(started)) return;
       await removeIdentity(category);
+      unseenIdentities.value = removeFromIdentityList('unseen', ...walletKey(), category);
     }
+    if (mainStore.walletSwitchedSince(started)) return;
+    addToIdentityList('cleanups', ...walletKey(), cleanup);
   }
 
   // Protection first, so it never waits on naming; the announcement last, so it has names to say

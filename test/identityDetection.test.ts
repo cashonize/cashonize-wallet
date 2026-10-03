@@ -206,8 +206,8 @@ describe('detectIdentities', () => {
   describe('through contracts', () => {
     const at = (inOutput: InOutput, lockingBytecode: string): InOutput => ({ ...inOutput, lockingBytecode })
     const p2shContract = `aa20${'03'.repeat(32)}87`
-    // P2S: the bytecode itself locks the coin, and it has no address form
-    const p2sContract = '51ce8851d0009d6300cdc0c7886851'
+    // P2S: the bytecode itself locks the coin (OP_1 OP_ADD OP_2 OP_EQUAL), with no address form
+    const p2sContract = '51935287'
     const otherWallet = `76a914${'02'.repeat(20)}88ac`
     const keyCategory = 'ab'.repeat(32)
     const guard = authGuardLockingBytecodes(keyCategory).p2sh32
@@ -215,24 +215,22 @@ describe('detectIdentities', () => {
       ...spendOf('ad'.repeat(32), 1),
       token: { category, amount: 0n, nft: { capability: 'none', commitment: '00' } },
     })
-    const settleTxid = 'dd'.repeat(32)
+    const stakeInput = (contract: string): InOutput =>
+      ({ ...at(spendOf(otherCategory, 2), contract), token: { category: otherCategory, amount: 344n } })
+    const payoutTxid = 'dd'.repeat(32)
     const releaseTxid = 'ee'.repeat(32)
 
-    // A dapp has the user sign a genesis minting straight into its covenant, and the contract's
-    // settlement spends that output 0 and pays the user at output 0. By the spec the payout is
-    // the authhead of a token these keys created; it is the contract's state, and not held back.
-    it.each([['P2SH', p2shContract], ['P2S', p2sContract]])('stops where the chain enters a %s contract', (_, contract) => {
-      const history = [
-        fundingItem,
-        historyItem(spenderTxid, [at(tokenOutput(genesisInputTxid, { commitment: '' }), contract)], [spendOf(genesisInputTxid, 0)]),
-        historyItem(
-          settleTxid,
-          [tokenOutput(otherCategory, { amount: 341n })],
-          [at(spendOf(spenderTxid, 0), contract), { ...at(spendOf(otherCategory, 2), contract), token: { category: otherCategory, amount: 344n } }],
-        ),
-      ]
+    // A dapp has the user sign a genesis minting its ticket straight into its covenant, and the
+    // contract settles by spending that output 0 and paying the user at output 0. By the spec the
+    // payout is the authhead of a token these keys created; it is the contract's, not held back.
+    const contractHistory = (contract: string, payout: InOutput = p2pkhOutput()) => [
+      fundingItem,
+      historyItem(spenderTxid, [at(tokenOutput(genesisInputTxid, { commitment: '' }), contract)], [spendOf(genesisInputTxid, 0)]),
+      historyItem(payoutTxid, [payout], [at(spendOf(spenderTxid, 0), contract), stakeInput(contract)]),
+    ]
 
-      expect(detectIdentities(history).identities).toEqual([
+    it.each([['P2SH', p2shContract], ['P2S', p2sContract]])('stops where the chain enters a %s contract', (_, contract) => {
+      expect(detectIdentities(contractHistory(contract)).identities).toEqual([
         { authheadTxid: spenderTxid, category: genesisInputTxid, marker: 'genesis' },
       ])
     })
@@ -272,7 +270,7 @@ describe('detectIdentities', () => {
       ])
     })
 
-    // a key-shaped NFT at input 1 proves nothing unless its category derives this very covenant
+    // a token at input 1 proves nothing unless its category derives this very covenant
     it('does not take a contract for an AuthGuard on a key that does not open it', () => {
       const history = [
         fundingItem,
@@ -300,27 +298,15 @@ describe('detectIdentities', () => {
       ])
     })
 
-    // What v0.14.1 held back before the walk stopped at contracts: a ticket minted into the
-    // contract, a settlement, and a payout at output 0, in BCH or in a token, either way
+    // what v0.14.1 held back before the walk stopped at contracts
     describe('contractStateIdentities', () => {
-      const payoutTxid = 'ef'.repeat(32)
-      const contractHistory = (payout: InOutput) => [
-        fundingItem,
-        historyItem(spenderTxid, [at(tokenOutput(genesisInputTxid, { commitment: '' }), p2shContract)], [spendOf(genesisInputTxid, 0)]),
-        historyItem(
-          settleTxid,
-          [at(tokenOutput(genesisInputTxid, { commitment: 'c8' }), p2shContract)],
-          [at(spendOf(spenderTxid, 0), p2shContract), { ...at(spendOf(otherCategory, 2), p2shContract), token: { category: otherCategory, amount: 344n } }],
-        ),
-        historyItem(payoutTxid, [payout], [at(spendOf(settleTxid, 0), p2shContract)]),
-      ]
       const heldPayout = [{ category: genesisInputTxid, authheadTxid: payoutTxid }]
 
       it.each([
         ['BCH', p2pkhOutput()],
         ['a token', tokenOutput(otherCategory, { amount: 341n })],
       ])('releases a payout in %s', (_, payout) => {
-        expect(contractStateIdentities(contractHistory(payout), heldPayout)).toEqual([genesisInputTxid])
+        expect(contractStateIdentities(contractHistory(p2shContract, payout), heldPayout)).toEqual([genesisInputTxid])
       })
 
       it('keeps an identity the walk still reaches', () => {
@@ -334,23 +320,46 @@ describe('detectIdentities', () => {
 
       // the walk stopping for want of the next link is a gap in the history, not a contract
       it('keeps an identity whose chain leaves the history at a contract', () => {
-        const history = contractHistory(p2pkhOutput()).slice(0, 2)
-
-        expect(contractStateIdentities(history, heldPayout)).toEqual([])
-      })
-
-      it('keeps an identity whose tokens this wallet received', () => {
-        const history = contractHistory(p2pkhOutput())
-        history.push({
-          ...historyItem('fa'.repeat(32), [tokenOutput(genesisInputTxid, { amount: 5n })]),
-          tokenAmountChanges: [{ category: genesisInputTxid, amount: 5n, nftAmount: 0n }],
-        })
-
-        expect(contractStateIdentities(history, heldPayout)).toEqual([])
+        expect(contractStateIdentities(contractHistory(p2shContract).slice(0, 2), heldPayout)).toEqual([])
       })
 
       it('keeps an identity whose genesis is not in this history', () => {
-        const history = contractHistory(p2pkhOutput()).filter(item => item.hash !== spenderTxid)
+        const history = contractHistory(p2shContract).filter(item => item.hash !== spenderTxid)
+
+        expect(contractStateIdentities(history, heldPayout)).toEqual([])
+      })
+
+      // A creator who minted their supply to themselves and parked the identity in a multisig
+      // before taking it back: the genesis credited this wallet, as mainnet-js reports it
+      it('keeps an identity whose tokens the genesis gave this wallet', () => {
+        const history = [
+          fundingItem,
+          {
+            ...historyItem(
+              spenderTxid,
+              [at(tokenOutput(genesisInputTxid, { commitment: '' }), p2shContract), tokenOutput(genesisInputTxid, { amount: 1000n })],
+              [spendOf(genesisInputTxid, 0)],
+            ),
+            tokenAmountChanges: [{ category: genesisInputTxid, amount: 1000n, nftAmount: 0n }],
+          },
+          historyItem(payoutTxid, [p2pkhOutput()], [at(spendOf(spenderTxid, 0), p2shContract)]),
+        ]
+
+        expect(contractStateIdentities(history, heldPayout)).toEqual([])
+      })
+
+      // the ticket shape is the contract holding the category's own NFT; BCH parked in a contract
+      // and brought back is not that, whatever else it is
+      it('keeps an identity whose contract output carries no NFT of its own', () => {
+        const history = [
+          fundingItem,
+          historyItem(
+            spenderTxid,
+            [at(p2pkhOutput(), p2shContract), at(tokenOutput(genesisInputTxid, { amount: 1000n }), otherWallet)],
+            [spendOf(genesisInputTxid, 0)],
+          ),
+          historyItem(payoutTxid, [p2pkhOutput()], [at(spendOf(spenderTxid, 0), p2shContract)]),
+        ]
 
         expect(contractStateIdentities(history, heldPayout)).toEqual([])
       })
