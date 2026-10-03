@@ -7,11 +7,13 @@
 // this history and carries token outputs of the category that outpoint's txid becomes: a genesis
 // names its own authbase by construction. A publication is a transaction carrying the BCMR
 // output, which catches identities received from elsewhere and first updated here. Each is then
-// followed forward to the link the chain has got to.
+// followed forward to the link the chain has got to, through key-held outputs and AuthGuards only
+// (why: docs/bcmr-identities.md, Spec versus convention).
 
 import type { TransactionHistoryItem } from "mainnet-js";
 import { BCMR_OUTPUT_PREFIX } from "src/queryChainGraph";
 import { opReturnHex } from "src/utils/history/txDirection";
+import { isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
 
 export type IdentityMarker = 'genesis' | 'publication';
 
@@ -53,13 +55,32 @@ function indexOutput0Spends(history: TransactionHistoryItem[]) {
   return spenders;
 }
 
+// OP_DUP OP_HASH160 <20 bytes> OP_EQUALVERIFY OP_CHECKSIG
+function isP2pkh(lockingBytecode: string) {
+  return lockingBytecode.length === 50 && lockingBytecode.startsWith("76a914") && lockingBytecode.endsWith("88ac");
+}
+
+// An AuthGuard requires its AuthKey at input 1 of every spend, so the link spending the covenant
+// says which key opened it, and the key's category derives the covenant: a match proves the guard
+function opensAuthGuard(spender: TransactionHistoryItem, covenantBytecode: string) {
+  const keyInput = spender.inputs[1];
+  if (!keyInput?.token) return false;
+  const keyCategory = keyInput.token.category;
+  return isAuthKey(keyInput, keyCategory) && isAuthGuardOf(keyCategory, covenantBytecode);
+}
+
 // A marker fires on the link that carries it, which is rarely the chain's last: a mint, a transfer
 // or a reserve move continues the chain at output 0 and publishes nothing. Whatever spends an
 // identity output continues the chain, and nothing spends an output it creates, so this terminates.
-function advanceToAuthhead(marked: string, spenders: Map<string, string>) {
+function advanceToAuthhead(marked: string, spenders: Map<string, string>, transactions: Map<string, TransactionHistoryItem>) {
   let authhead = marked;
   let next = spenders.get(authhead);
   while (next !== undefined) {
+    // the bytecode comes from the patched mainnet-js too, and without it the walk stops here
+    const lockingBytecode = transactions.get(authhead)?.outputs[0]?.lockingBytecode;
+    const spender = transactions.get(next);
+    if (!lockingBytecode || !spender) break;
+    if (!isP2pkh(lockingBytecode) && !opensAuthGuard(spender, lockingBytecode)) break;
     authhead = next;
     next = spenders.get(authhead);
   }
@@ -83,6 +104,7 @@ function publicationOf(transaction: TransactionHistoryItem): DetectedIdentity {
 
 export function detectIdentities(history: TransactionHistoryItem[]): DetectedIdentities {
   const historyTxids = history.map(transaction => transaction.hash);
+  const transactions = new Map(history.map(transaction => [transaction.hash, transaction]));
   const spenders = indexOutput0Spends(history);
   const detected = new Map<string, DetectedIdentity>();
   const publicationTxids: string[] = [];
@@ -113,7 +135,7 @@ export function detectIdentities(history: TransactionHistoryItem[]): DetectedIde
   // walks to one authhead; the genesis is the more informative marker, so it is the one kept.
   const identities = new Map<string, DetectedIdentity>();
   for (const identity of detected.values()) {
-    const authheadTxid = advanceToAuthhead(identity.authheadTxid, spenders);
+    const authheadTxid = advanceToAuthhead(identity.authheadTxid, spenders, transactions);
     if (identities.get(authheadTxid)?.marker === 'genesis') continue;
     identities.set(authheadTxid, { ...identity, authheadTxid });
   }

@@ -99,7 +99,9 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
   history, since a link is told from an ordinary transaction only by its inputs: splitting
   the tokens off an identity, or emptying its reserve, leaves the chain continuing on a
   plain BCH output that nothing marks. A chain that leaves this history is followed as far
-  as it reaches, and a wallet with no marker decodes nothing. A
+  as it reaches, and a wallet with no marker decodes nothing. The walk also ends at the first
+  link whose output 0 is neither key-held (P2PKH) nor an AuthGuard, which is narrower than the
+  spec; why is under Spec versus convention. A
   publication names its chain by the token on the identity output; when that output carries
   none, an identity received by transfer say, or one that is not a token's, the chain is
   named from the registry the publication commits to: the file is fetched from the first
@@ -154,6 +156,40 @@ identities were held elsewhere last time, and that is the one thing it keeps.
   and reserve moves carry none, and those are the operations this wallet makes, so the
   strict reading would leave an identity without a registry after each of them. See the
   future item on carrying the pointer forward.
+- **History detection ends where the chain enters a contract.** By the spec, whoever holds
+  the identity output holds the identity, however it got there. Detection from the history
+  asks more than that: it follows a chain only while output 0 is key-held (P2PKH) or an
+  AuthGuard, and stops at the first link whose output 0 is anything else: a P2SH contract,
+  or since the 2026 upgrade a P2S one, whose bytecode has no address form at all, so the rule
+  reads the locking bytecode rather than the address (mainnet-js reports it only through this
+  wallet's patch, see `pnpm-workspace.yaml`). The guard is told from
+  the link that spends it: the covenant requires its AuthKey at input 1, so an input 1
+  carrying a key whose category derives that very output's bytecode proves it, from the
+  history alone and the same way the resolve recognises a guard. That keeps the identity's
+  way into CashTokens Studio and back out to this wallet, both directions of which the create
+  page promises, and a Studio genesis, which this wallet signs and which mints straight into
+  the guard. The reason for the rule is contract systems built on token geneses. A dapp can
+  have the user sign a genesis that spends the user's own output 0 and mints straight into a
+  covenant, a per-user ticket or position whose NFT is the contract's state. The contract
+  spends it at input 0 as it settles, and a settlement paying this user at output 0
+  continues the chain onto an ordinary coin of theirs. Read by the spec, that coin is the
+  authhead of a token the user's keys created, which is literally true, so the wallet held
+  it back and announced an identity the user never knew of, together with whatever the coin
+  carried: a payout. A prediction market surfaced this at scale (BCH Guru over CashConnect:
+  one genesis per bet, winnings paid at output 0, so every win was held back). A P2PKH wallet
+  cannot read a contract's intent, so it cannot tell a contract's state from an identity
+  parked in one; between key-held addresses there is no such doubt, and an identity sent to
+  another wallet and back is still found, and an AuthGuard proves itself by the key that
+  opens it. What this gives up: an identity this wallet made that went through any other
+  contract and came back, a multisig say, is no longer found in the history. It still
+  arrives the ways that resolve by the spec: the following, its id, or as a watched
+  identity's arrival. Two other rules were considered. Ending the walk wherever
+  output 0 leaves this wallet's own lockings is simpler, but it loses the ordinary round trip
+  between a person's own wallets. Ending it only where output 0 enters a contract carrying a
+  minting NFT guesses at the contract's design and misses the next pattern (a mutable NFT,
+  fungible state, plain BCH at output 0). Revisiting this needs a signal that a link coming
+  back out of a contract was the user's own doing; one of this wallet's inputs in that link
+  is not one, since a settlement can spend a user's coin too.
 - **AuthGuard and AuthKey** are the AuthGuard standard's, which CashTokens Studio
   implements: a covenant holding the identity output, opened by an NFT. The covenant's
   script follows from the key's category, so a guarded identity is recognised the way the

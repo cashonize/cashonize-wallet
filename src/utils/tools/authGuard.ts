@@ -51,7 +51,7 @@ export const STUDIO_KEY_COMMITMENT = "00";
 // The AuthKey the covenant asks for at input 1: a token of its category carrying no amount, which
 // with a category of 32 bytes on the covenant's side means an NFT without capability. The
 // contract reads no commitment, so any is one unless the caller knows which commitment was minted.
-export function isAuthKey(utxo: Utxo, keyCategory: string, commitment?: string): boolean {
+export function isAuthKey(utxo: Pick<Utxo, 'token'>, keyCategory: string, commitment?: string): boolean {
   const token = utxo.token;
   if (!token || token.category !== keyCategory) return false;
   if (token.amount !== 0n || token.nft?.capability !== "none") return false;

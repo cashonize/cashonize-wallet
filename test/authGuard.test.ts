@@ -89,9 +89,8 @@ describe('isAuthKey', () => {
   })
 
   it('rejects a coin that is not a token at all', () => {
-    expect(isAuthKey({
-      txid: 'aa'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest',
-    }, key)).toBe(false)
+    const coin: Utxo = { txid: 'aa'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest' }
+    expect(isAuthKey(coin, key)).toBe(false)
   })
 })
 
