@@ -32,25 +32,30 @@ export function directionIcon(transaction: TransactionHistoryItem): string {
   return direction === 'received' ? 'arrow_downward' : 'arrow_upward';
 }
 
-// A transaction the wallet coauthored that also spends a contract (P2SH) input is
+// A transaction the wallet coauthored that also spends a contract (P2SH or P2S) input is
 // a dapp interaction. Requiring one of the wallet's own inputs filters out third
 // parties that merely pay us from a P2SH wallet, like exchange withdrawals
 export function isDappInteraction(
   transaction: TransactionHistoryItem,
   hasWalletAddress: (address: string) => boolean
 ): boolean {
-  const hasP2shInput = transaction.inputs.some(input => {
+  const hasContractInput = transaction.inputs.some(input => {
+    if (input.address.startsWith(SCRIPT_ADDRESS_PREFIX)) return true;
     // P2SH cashaddr payloads start with p, or r for the token-aware variant
     const payload = input.address.split(":")[1] ?? "";
     return payload.startsWith("p") || payload.startsWith("r");
   });
-  if (!hasP2shInput) return false;
+  if (!hasContractInput) return false;
   return transaction.inputs.some(input => hasWalletAddress(input.address));
 }
 
 // A history item's OP_RETURN outputs have no address; mainnet-js puts "OP_RETURN: " and the
 // locking bytecode in hex there instead, which is where the protocol announcements are read
 export const OP_RETURN_ADDRESS_PREFIX = "OP_RETURN: ";
+
+// What the patched mainnet-js puts in place of the address of a coin that has none: a P2S contract,
+// and the rarer P2PK and bare multisig
+export const SCRIPT_ADDRESS_PREFIX = "SCRIPT: ";
 
 export function opReturnHex(output: InOutput | undefined) {
   if (!output?.address.startsWith(OP_RETURN_ADDRESS_PREFIX)) return undefined;

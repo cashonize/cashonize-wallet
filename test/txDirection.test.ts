@@ -72,6 +72,12 @@ describe('isDappInteraction', () => {
     expect(isDappInteraction(tx, hasWalletAddress)).toBe(true);
   });
 
+  // a P2S contract has no address; the patched mainnet-js names it by its bytecode instead
+  it('should detect a cosigned transaction spending a P2S input', () => {
+    const tx = makeTx({ inputs: [input("SCRIPT: 51935287"), input(ownAddress)] });
+    expect(isDappInteraction(tx, hasWalletAddress)).toBe(true);
+  });
+
   it('should not flag a third party paying from a P2SH wallet', () => {
     const tx = makeTx({ inputs: [input("bitcoincash:pp1234exchange")] });
     expect(isDappInteraction(tx, hasWalletAddress)).toBe(false);

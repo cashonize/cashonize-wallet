@@ -44,7 +44,7 @@ overrides:
 allowBuilds:
   '@parcel/watcher': true
 
-# Two fixes, both to be removed once they land upstream.
+# Three fixes, all to be removed once they land upstream.
 #
 # Make tokenMint and tokenBurn honor the utxoIds option. The wallet keeps coins out of its own
 # coin selection by narrowing the pool with utxoIds, which send(), sendMax() and tokenGenesis()
@@ -58,5 +58,13 @@ allowBuilds:
 # a second time. Identity detection follows an authchain that way, and with the fields present it
 # does so as a pure function over the history. Removing this patch is a type error, not a silent
 # change: the fields are declared in the same patch that populates them.
+#
+# Don't throw the whole history on an output without a CashAddress, and report every input's and
+# output's locking bytecode. getHistory asserts an address for each output and spent input, which
+# libauth has for P2PKH and P2SH only, so one P2S (standard since the 2026 upgrade), P2PK or bare
+# multisig output anywhere in the history threw the History tab, identity detection and contract
+# asset discovery all at once. Such outputs now get a "SCRIPT: <hex>" placeholder, the way
+# OP_RETURN already gets one, and identity detection reads the bytecode to tell a key-held output
+# from a contract. Upstream: mainnet-cash/mainnet-js#252.
 patchedDependencies:
   'mainnet-js@3.1.7': patches/mainnet-js@3.1.7.patch
