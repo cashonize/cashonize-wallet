@@ -225,7 +225,7 @@ describe('detectIdentities', () => {
     // payout is the authhead of a token these keys created; it is the contract's, not held back.
     const contractHistory = (contract: string, payout: InOutput = p2pkhOutput()) => [
       fundingItem,
-      historyItem(spenderTxid, [at(tokenOutput(genesisInputTxid, { commitment: '' }), contract)], [spendOf(genesisInputTxid, 0)]),
+      historyItem(spenderTxid, [at(tokenOutput(genesisInputTxid, { commitment: '', capability: 'minting' }), contract)], [spendOf(genesisInputTxid, 0)]),
       historyItem(payoutTxid, [payout], [at(spendOf(spenderTxid, 0), contract), stakeInput(contract)]),
     ]
 

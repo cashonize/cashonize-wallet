@@ -12,7 +12,7 @@ export const p2pkhOutput = (address = 'bitcoincash:qtest', value = 1000): InOutp
 
 export const tokenOutput = (
   category: string,
-  token: { amount?: bigint, commitment?: string } = {},
+  token: { amount?: bigint, commitment?: string, capability?: 'none' | 'mutable' | 'minting' } = {},
   address = 'bitcoincash:ztest',
 ): InOutput => ({
   address,
@@ -21,7 +21,7 @@ export const tokenOutput = (
   token: {
     category,
     amount: token.amount ?? 0n,
-    ...(token.commitment === undefined ? {} : { nft: { capability: 'none', commitment: token.commitment } }),
+    ...(token.commitment === undefined ? {} : { nft: { capability: token.capability ?? 'none', commitment: token.commitment } }),
   },
 })
 

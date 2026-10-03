@@ -193,9 +193,10 @@ identities were held elsewhere last time, and that is the one thing it keeps.
     listed and held back, so the open pass removes a held identity, as Remove does, when its
     genesis is in this history, the contract output the walk now stops at carries the
     category's own NFT and the history holds the link past it, and the wallet never received
-    any of its tokens. Keyed on that shape, whatever the payout carries, BCH or a token. It
-    runs once per wallet, after a resolve that answered for every identity, so an identity
-    the user adds back by hand stays.
+    any of its tokens. Keyed on that shape, whatever the payout carries, BCH or a token; the
+    NFT is a condition of this one-off cleanup only, not of the walk. It runs once per wallet
+    per network, after a resolve that answered for every identity, so an identity the user
+    adds back by hand stays.
 - **AuthGuard and AuthKey** are the AuthGuard standard's, which CashTokens Studio
   implements: a covenant holding the identity output, opened by an NFT. The covenant's
   script follows from the key's category, so a guarded identity is recognised the way the
