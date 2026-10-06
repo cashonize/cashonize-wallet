@@ -335,6 +335,12 @@ export const useStore = defineStore('store', () => {
 
   // Lets the 'online' event listener retry an initialization aborted while offline
   let abortedInitOffline = false;
+  // The notice stays up while offline, since the retry on reconnect needs no action from the user
+  let dismissOfflineNotice: undefined | (() => void);
+  function clearOfflineNotice() {
+    dismissOfflineNotice?.();
+    dismissOfflineNotice = undefined;
+  }
 
   async function cancelWalletSubscriptions() {
     const cancelSubscriptionCallbacks = [
@@ -518,9 +524,16 @@ export const useStore = defineStore('store', () => {
       isWizInitDone.value = true;
       walletInitFailed.value = true;
       abortedInitOffline = true;
-      displayAndLogError(new Error(t('store.errors.deviceOffline')));
+      console.warn("Device offline, wallet initialization deferred until the connection returns");
+      dismissOfflineNotice ??= Notify.create({
+        message: t('store.errors.deviceOffline'),
+        icon: 'wifi_off',
+        color: 'grey-7',
+        timeout: 0,
+      });
       return;
     }
+    clearOfflineNotice();
 
     try {
       // // Kick off exchange rate fetch immediately, so it's available as soon as possible for fiat balance display during initialization
@@ -618,6 +631,7 @@ export const useStore = defineStore('store', () => {
   // Only offline-aborted inits are retried: other init failures already ran their
   // dapp inits, so retrying would register duplicate callbacks
   addEventListener('online', () => {
+    clearOfflineNotice();
     if (!abortedInitOffline) return;
     abortedInitOffline = false;
     void retryInitializationAfterOffline();

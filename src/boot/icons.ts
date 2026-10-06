@@ -31,6 +31,7 @@ import {
   matUnarchive,
   matViewList,
   matWarning,
+  matWifiOff,
 } from '@quasar/extras/material-icons'
 import { outlinedInfo } from '@quasar/extras/material-icons-outlined'
 
@@ -69,6 +70,7 @@ const appIcons: Record<string, string> = {
   unarchive: matUnarchive,
   view_list: matViewList,
   warning: matWarning,
+  wifi_off: matWifiOff,
 }
 
 export default defineBoot(({ app }) => {
