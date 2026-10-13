@@ -1464,6 +1464,10 @@
       "clearMetadataCacheButton": "Clear token cache",
       "clearDappConnections": "Disconnect all dApps and clear their connection data (reloads the app)",
       "clearDappConnectionsButton": "Clear connections",
+      "resetSettings": "Reset the options on the settings pages to their defaults, except the language (reloads the app)",
+      "resetSettingsButton": "Reset settings",
+      "resetSettingsTitle": "Reset settings",
+      "resetSettingsConfirm": "Every option on the settings pages goes back to its default, including the servers but not the language. Your wallets and their data, such as notes and labels, and your dApp connections are not affected.",
       "custom": "Custom",
       "default": "(default)"
     },

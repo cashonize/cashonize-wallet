@@ -1464,6 +1464,10 @@
       "clearMetadataCacheButton": "Token-Cache leeren",
       "clearDappConnections": "Alle dApps trennen und Verbindungsdaten löschen (lädt die App neu)",
       "clearDappConnectionsButton": "Verbindungen löschen",
+      "resetSettings": "Die Optionen der Einstellungsseiten auf ihre Standardwerte zurücksetzen, außer der Sprache (lädt die App neu)",
+      "resetSettingsButton": "Einstellungen zurücksetzen",
+      "resetSettingsTitle": "Einstellungen zurücksetzen",
+      "resetSettingsConfirm": "Alle Optionen der Einstellungsseiten werden auf ihre Standardwerte zurückgesetzt, auch die Server, aber nicht die Sprache. Deine Wallets und ihre Daten, wie Notizen und Labels, sowie deine dApp-Verbindungen bleiben erhalten.",
       "custom": "Benutzerdefiniert",
       "default": "(Standard)"
     },

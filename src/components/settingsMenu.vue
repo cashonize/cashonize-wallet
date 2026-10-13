@@ -9,7 +9,7 @@
   import { Connection, type ElectrumNetworkProvider } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useIdentitiesStore } from '../stores/identitiesStore'
-  import { useSettingsStore } from '../stores/settingsStore'
+  import { useSettingsStore, removeSettingsMenuKeys } from '../stores/settingsStore'
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
@@ -441,6 +441,17 @@
       if (key.startsWith('cachedFetch')) localStorage.removeItem(key);
     });
     localStorageSizeMB.value = calculateLocalStorageSizeMB();
+  }
+  async function resetSettings(){
+    const confirmed = await confirmDialog(
+      t('settings.advanced.resetSettingsTitle'),
+      t('settings.advanced.resetSettingsConfirm'),
+      t('settings.advanced.resetSettingsButton'),
+      'red'
+    )
+    if (!confirmed) return;
+    removeSettingsMenuKeys();
+    location.reload();
   }
   async function clearDappConnections(){
     // Best-effort graceful disconnect so connected dApps are notified the session ended.
@@ -874,6 +885,10 @@
       <div style="margin-top:15px; margin-bottom: 15px">
         {{ t('settings.advanced.clearDappConnections') }}
         <input @click="clearDappConnections()" type="button" :value="t('settings.advanced.clearDappConnectionsButton')" class="button" style="display: block;">
+      </div>
+      <div style="margin-top:15px; margin-bottom: 15px">
+        {{ t('settings.advanced.resetSettings') }}
+        <input @click="resetSettings()" type="button" :value="t('settings.advanced.resetSettingsButton')" class="button" style="display: block;">
       </div>
     </div>
     <div v-else-if="settingsSection == 4">

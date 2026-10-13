@@ -28,6 +28,32 @@ const defaultTokenMetadataIndexerChipnet = "https://bcmr-chipnet.paytaca.com/api
 // breaks reads that need them, like the canvas pixel read behind the portfolio chart's icon colors.
 const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 
+// The storage keys of the options on the settings pages. A missing key reads as the default,
+// as on a fresh install, so removing these resets the settings. The language and the active
+// network are kept, and what the store keeps besides is state rather than an option, like the
+// wallet type in walletMetadata. A new option belongs here, read by the store at startup.
+export const settingsMenuKeys = [
+  // user options
+  "darkMode", "confirmBeforeSending", "qrScan", "explorerMainnet", "explorerChipnet", "qrAnimation",
+  "tokenAddressQrDefault", "enableAddressMarking",
+  // token settings
+  "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
+  "allowDappIdentitySpends",
+  // localization, except the language: reset to one the user cannot read, they could not find
+  // their way back to the setting
+  "currency", "unit", "dateFormat",
+  // advanced settings
+  "electrum-mainnet", "electrum-chipnet", "chaingraph-mainnet", "chaingraph-chipnet", "cauldronIndexer",
+  "bcmrIndexerMainnet", "bcmrIndexerChipnet", "ipfsGateway", "exchangeRateProvider",
+  // developer settings
+  "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
+] as const;
+
+// The app reloads afterwards: the servers are applied before the first wallet is constructed
+export function removeSettingsMenuKeys() {
+  for (const key of settingsMenuKeys) localStorage.removeItem(key);
+}
+
 const { width,height } = useWindowSize();
 const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 const isMobileDevice = width.value / height.value < 1.5

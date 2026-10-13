@@ -1464,6 +1464,10 @@
       "clearMetadataCacheButton": "Limpar cache de tokens",
       "clearDappConnections": "Desconectar todas as dApps e limpar os dados de conexão (recarrega o app)",
       "clearDappConnectionsButton": "Limpar conexões",
+      "resetSettings": "Restaurar as opções das páginas de configurações para o padrão, exceto o idioma (recarrega o app)",
+      "resetSettingsButton": "Restaurar configurações",
+      "resetSettingsTitle": "Restaurar configurações",
+      "resetSettingsConfirm": "Todas as opções das páginas de configurações voltam ao padrão, incluindo os servidores, mas não o idioma. Suas carteiras e os dados delas, como notas e rótulos, e suas conexões com dApps não são afetados.",
       "custom": "Personalizado",
       "default": "(padrão)"
     },

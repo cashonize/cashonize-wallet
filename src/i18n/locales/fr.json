@@ -1464,6 +1464,10 @@
       "clearMetadataCacheButton": "Effacer le cache de tokens",
       "clearDappConnections": "Déconnecter toutes les dApps et effacer leurs données de connexion (recharge l'application)",
       "clearDappConnectionsButton": "Effacer les connexions",
+      "resetSettings": "Rétablir les options des pages de paramètres à leur valeur par défaut, sauf la langue (recharge l'application)",
+      "resetSettingsButton": "Réinitialiser les paramètres",
+      "resetSettingsTitle": "Réinitialiser les paramètres",
+      "resetSettingsConfirm": "Toutes les options des pages de paramètres reviennent à leur valeur par défaut, y compris les serveurs mais pas la langue. Vos portefeuilles et leurs données, comme les notes et les étiquettes, ainsi que vos connexions dApp ne sont pas affectés.",
       "custom": "Personnalisé",
       "default": "(par défaut)"
     },
