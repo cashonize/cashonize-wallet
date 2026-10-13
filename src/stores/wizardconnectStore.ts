@@ -35,8 +35,8 @@ import { useIdentitiesStore } from "./identitiesStore";
 import { useSettingsStore } from "./settingsStore";
 import { walletConnectMetadata } from "./constants";
 import { createSignedWizTransaction, chainLockingBytecodes, childLockingBytecode, type WizInputSigningKey } from "src/utils/dapp/wizSigning";
-import { WizSignTransactionRequestSchema, type WizSignTransactionRequest } from "src/utils/zodValidation";
-import { displayAndLogError } from "src/utils/errorHandling";
+import { StrictWizSignTransactionRequestSchema, LooseWizSignTransactionRequestSchema, describeSchemaError, type WizSignTransactionRequest } from "src/utils/zodValidation";
+import { reportInvalidDappRequest } from "src/utils/dapp/invalidRequest";
 import { displayBroadcastError } from "src/utils/wallet/broadcastErrors";
 import { identityRefusal, refusalMessage, type ReservedInputsCheck } from "src/utils/dapp/reservedInputs";
 import { reportDappRefusal } from "src/utils/txHelpers";
@@ -225,20 +225,22 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       if (typeof rawSequence !== "number") return;
       manager?.sendSignError(connectionId, rawSequence, errorMessage).catch(console.error);
     };
-    // the request arrives over the relay from an untrusted source, so validate the schema with zod
-    const parseResult = WizSignTransactionRequestSchema.safeParse(request);
+    // the request arrives over the relay from an untrusted source, so validate the schema with zod.
+    // Strict mirrors the format exactly; loose tolerates known dapp deviations (e.g. FundMe.cash).
+    const schema = settingsStore.strictWcSchema ? StrictWizSignTransactionRequestSchema : LooseWizSignTransactionRequestSchema;
+    const parseResult = schema.safeParse(request);
     if (!parseResult.success) {
-      displayAndLogError(t('wizardConnect.errors.invalidTransactionSchema'));
-      console.error(parseResult.error.message);
-      respondWithError('Transaction signing request aborted with error: invalid request schema');
+      // the dapp gets the same readable description, so a dapp developer sees what to fix
+      const details = describeSchemaError(parseResult.error);
+      reportInvalidDappRequest(t('wizardConnect.errors.invalidTransactionSchema'), details);
+      respondWithError('Transaction signing request aborted with error: ' + details);
       return;
     }
     const validatedRequest = parseResult.data;
     // structural validation that needs the decoded transaction
     const validationError = validateWizTransaction(validatedRequest);
     if (validationError) {
-      displayAndLogError(t('wizardConnect.errors.invalidTransactionSchema'));
-      console.error(validationError);
+      reportInvalidDappRequest(t('wizardConnect.errors.invalidTransactionSchema'), validationError);
       respondWithError('Transaction signing request aborted with error: ' + validationError);
       return;
     }
@@ -355,7 +357,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       throw new Error(refusalMessage(signingCheck, refusal ? useIdentitiesStore().identityNameAt(refusal.outpoint) : undefined));
     }
     const inputKeys = deriveInputKeys(hdNodes, request.inputPaths);
-    // the zod schema already validated and transformed this shape (see WizSignTransactionRequestSchema)
+    // the zod schema already validated and transformed this shape (see StrictWizSignTransactionRequestSchema)
     const wizTransactionObj = request.transaction as WcSignTransactionRequest;
     const encodedTransaction = createSignedWizTransaction(wizTransactionObj, inputKeys);
     const signedTransactionHex = binToHex(encodedTransaction);
@@ -463,7 +465,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
         if (!chain) throw new Error(`Unsupported derivation path: ${path}`);
         // Only the BIP32 non-hardened range is valid here: dapps derive addresses from the
         // shared xpubs, which cannot do hardened derivation. This also keeps the bigint to
-        // Number conversion exact (mirrors the inputPaths cap in WizSignTransactionRequestSchema).
+        // Number conversion exact (mirrors the inputPaths cap in StrictWizSignTransactionRequestSchema).
         if (index < 0n || index >= 0x80000000n) throw new Error(`Unsupported address index: ${index.toString()}`);
         const childNode = deriveHdPrivateNodeChild(chain, Number(index));
         const pubkeyCompressed = secp256k1.derivePublicKeyCompressed(childNode.privateKey);

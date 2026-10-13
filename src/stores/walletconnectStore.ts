@@ -25,11 +25,11 @@ import { useSettingsStore } from 'src/stores/settingsStore';
 import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
-import { displayAndLogError } from "src/utils/errorHandling"
 import { displayBroadcastError } from "src/utils/wallet/broadcastErrors"
 import type { ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
 import { reportDappRefusal } from "src/utils/txHelpers"
-import { WcMessageObjSchema, LooseEncodedWcTransactionObjSchema, StrictEncodedWcTransactionObjSchema } from "src/utils/zodValidation"
+import { WcMessageObjSchema, LooseEncodedWcTransactionObjSchema, StrictEncodedWcTransactionObjSchema, describeSchemaError } from "src/utils/zodValidation"
+import { reportInvalidDappRequest } from "src/utils/dapp/invalidRequest"
 import { walletConnectProjectId, walletConnectMetadata } from "./constants"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -500,11 +500,10 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
       // TODO: consider local VM evaluation (libauth vm.verify with the sourceOutputs) of the fully
       // signed transaction in signTransactionWC as a final check before returning it to the dapp.
     } catch (error) {
-      const userFacingError = t('walletConnect.errors.invalidTransactionSchema')
-      displayAndLogError(userFacingError);
-      if(error instanceof Error) console.error(error.message)
-      const returnError = error instanceof Error ? error.message : userFacingError
-      return returnError
+      // the dapp gets the same readable description, so a dapp developer sees what to fix
+      const details = describeSchemaError(error);
+      reportInvalidDappRequest(t('walletConnect.errors.invalidTransactionSchema'), details);
+      return details;
     }
   }
   // Dapps build their own transactions and pick their own coins, so refusing to sign is the only
@@ -584,11 +583,9 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
       WcMessageObjSchema.parse(wcSignMessageParams);
       return true
     } catch (error) {
-      const userFacingError = t('walletConnect.errors.invalidSignMessageSchema')
-      displayAndLogError(userFacingError);
-      if(error instanceof Error) console.error(error.message)
-      const returnError = error instanceof Error ? error.message : userFacingError
-      return returnError
+      const details = describeSchemaError(error);
+      reportInvalidDappRequest(t('walletConnect.errors.invalidSignMessageSchema'), details);
+      return details;
     }
   }
   async function signMessageWC(signMessageRequestWC: WalletKitTypes.SessionRequest){

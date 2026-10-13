@@ -61,6 +61,10 @@ export function createSignedWcTransaction(
         if (!coveredBytecode) {
           throw new Error("Not enough information provided, please include contract redeemScript");
         }
+        // the loose schema lets a redeemScript through as CashScript chunks, which cannot be signed for
+        if (!(coveredBytecode instanceof Uint8Array)) {
+          throw new Error("The contract redeemScript must be bytecode to sign this input");
+        }
         const sighashPreimage = generateSigningSerializationBch(context, { coveredBytecode, signingSerializationType });
         const sighash = hash256(sighashPreimage);
         const signature = secp256k1.signMessageHashSchnorr(privateKey, sighash);

@@ -1468,8 +1468,8 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Enable mint NFTs",
       "enableMintNftsHint": "Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category",
-      "strictWcSchema": "Strict WalletConnect schema validation",
-      "strictWcSchemaHint": "Enforces the WC2-BCH spec exactly. Enable this when developing a dApp to surface non-compliant payloads.",
+      "strictWcSchema": "Strict dApp request validation",
+      "strictWcSchemaHint": "Checks WalletConnect and WizardConnect requests against their exact formats, and shows the full reason when one is refused. Enable this when developing a dApp to surface non-compliant payloads.",
       "showPrivateKeyWif": "Show WIF private key on backup page",
       "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets.",
       "nonTokenIdentities": "Add identities that are not tokens",
@@ -1915,5 +1915,9 @@
     "clear": "Clear activity",
     "clearTitle": "Clear dApp activity",
     "clearMessage": "This removes the record of what this wallet signed for dApps. The history then no longer shows which dApp a transaction was for, and its search no longer finds them by dApp or request. The transactions themselves stay in the history."
+  },
+  "dappRequestError": {
+    "title": "Invalid dApp request",
+    "okButton": "OK"
   }
 }
