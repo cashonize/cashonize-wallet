@@ -1468,8 +1468,8 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Activer la création de NFTs",
       "enableMintNftsHint": "Ajoute une action de création aux NFTs de création, vous permettant de créer plus de NFTs dans la même catégorie",
-      "strictWcSchema": "Validation stricte du schéma WalletConnect",
-      "strictWcSchemaHint": "Applique la spécification WC2-BCH à la lettre. Activez-le lors du développement d'une dApp pour détecter les payloads non conformes.",
+      "strictWcSchema": "Validation stricte des requêtes dApp",
+      "strictWcSchemaHint": "Vérifie les requêtes WalletConnect et WizardConnect par rapport à leur format exact, et affiche la raison complète lorsqu'une requête est refusée. Activez cette option lors du développement d'une dApp pour repérer les requêtes non conformes.",
       "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
       "nonTokenIdentities": "Ajouter des identités qui ne sont pas des tokens",
@@ -1915,5 +1915,9 @@
     "clear": "Effacer l'activité",
     "clearTitle": "Effacer l'activité dApp",
     "clearMessage": "Cela supprime l'enregistrement de ce que ce portefeuille a signé pour des dApps. L'historique n'indiquera plus pour quelle dApp était une transaction, et la recherche ne les trouvera plus par dApp ou par requête. Les transactions restent dans l'historique."
+  },
+  "dappRequestError": {
+    "title": "Requête dApp invalide",
+    "okButton": "OK"
   }
 }

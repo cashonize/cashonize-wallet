@@ -173,6 +173,13 @@ const wizContractSchema = z.object({
   artifact: z.object({ contractName: z.string() }),
 });
 
+// Loose: the same tolerances for FundMe.cash as the WalletConnect loose contract schema above, since
+// it connects over WizardConnect too and builds its contract source outputs the same way
+const looseWizContractSchema = wizContractSchema.extend({
+  abiFunction: z.union([z.object({ name: z.string() }), z.array(z.any())]),
+  redeemScript: z.union([wizUint8ArraySchema, z.array(z.any())]),
+});
+
 const wizSourceOutputSchema = z.object({
   outpointIndex: nonNegativeIntSchema,
   outpointTransactionHash: wizUint8Array32Schema,
@@ -204,9 +211,13 @@ const wizTransactionSchema = z.object({
   version: nonNegativeIntSchema,
 });
 
+const looseWizSourceOutputSchema = wizSourceOutputSchema.extend({
+  contract: z.optional(looseWizContractSchema),
+});
+
 // A sign_transaction_request message arriving over the WizardConnect relay. The transport
 // (NIP-17 gift wrap) authenticates the sender, but the payload shape is fully untrusted.
-export const WizSignTransactionRequestSchema = z.object({
+export const StrictWizSignTransactionRequestSchema = z.object({
   sequence: nonNegativeIntSchema,
   // [inputIndex, pathName, addressIndex] tuples: which HD key signs each input.
   // addressIndex is capped to the BIP32 non-hardened range.
@@ -226,7 +237,20 @@ export const WizSignTransactionRequestSchema = z.object({
   }),
 });
 
-export type WizSignTransactionRequest = z.infer<typeof WizSignTransactionRequestSchema>;
+export const LooseWizSignTransactionRequestSchema = StrictWizSignTransactionRequestSchema.extend({
+  transaction: StrictWizSignTransactionRequestSchema.shape.transaction.extend({
+    sourceOutputs: z.array(looseWizSourceOutputSchema).min(1),
+  }),
+});
+
+// Type is inferred from the loose schema (superset of strict).
+export type WizSignTransactionRequest = z.infer<typeof LooseWizSignTransactionRequestSchema>;
+
+// A schema failure in words a dapp developer can act on: one line per issue, with the field's path
+export function describeSchemaError(error: unknown): string {
+  if (error instanceof z.ZodError) return z.prettifyError(error);
+  return error instanceof Error ? error.message : String(error);
+}
 
 
 /* BcmrIndexerResponseSchema */

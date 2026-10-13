@@ -1468,8 +1468,8 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Habilitar acuñar NFTs",
       "enableMintNftsHint": "Agrega una acción de acuñar a los NFTs de acuñación, permitiéndote crear más NFTs en la misma categoría",
-      "strictWcSchema": "Validación estricta del esquema WalletConnect",
-      "strictWcSchemaHint": "Aplica la especificación WC2-BCH exactamente. Actívalo al desarrollar una dApp para detectar payloads no conformes.",
+      "strictWcSchema": "Validación estricta de solicitudes de dApps",
+      "strictWcSchemaHint": "Comprueba las solicitudes de WalletConnect y WizardConnect contra su formato exacto y muestra el motivo completo cuando se rechaza una. Actívalo al desarrollar una dApp para detectar solicitudes que no cumplen el formato.",
       "showPrivateKeyWif": "Mostrar la clave privada WIF en la página de respaldo",
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única.",
       "nonTokenIdentities": "Añadir identidades que no son tokens",
@@ -1915,5 +1915,9 @@
     "clear": "Borrar actividad",
     "clearTitle": "Borrar actividad de dApps",
     "clearMessage": "Esto elimina el registro de lo que esta billetera firmó para dApps. El historial ya no mostrará para qué dApp fue una transacción, y la búsqueda ya no las encontrará por dApp o solicitud. Las transacciones siguen en el historial."
+  },
+  "dappRequestError": {
+    "title": "Solicitud de dApp no válida",
+    "okButton": "OK"
   }
 }

@@ -89,6 +89,10 @@ export function createSignedWizTransaction(
         if (!coveredBytecode) {
           throw new Error("Not enough information provided, please include contract redeemScript");
         }
+        // the loose schema lets a redeemScript through as CashScript chunks, which cannot be signed for
+        if (!(coveredBytecode instanceof Uint8Array)) {
+          throw new Error("The contract redeemScript must be bytecode to sign this input");
+        }
         const signature = signInput(index, coveredBytecode, signingKey.privateKey);
         unlockingBytecodeHex = unlockingBytecodeHex.replace(sigPlaceholder, "41" + binToHex(signature));
       }

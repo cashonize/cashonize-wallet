@@ -1468,8 +1468,8 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Habilitar mint de NFTs",
       "enableMintNftsHint": "Adiciona uma ação de mint aos NFTs de minting, permitindo criar mais NFTs na mesma categoria",
-      "strictWcSchema": "Validação estrita do schema WalletConnect",
-      "strictWcSchemaHint": "Aplica a especificação WC2-BCH exatamente. Ative ao desenvolver um dApp para detectar payloads não conformes.",
+      "strictWcSchema": "Validação estrita de pedidos de dApps",
+      "strictWcSchemaHint": "Verifica os pedidos WalletConnect e WizardConnect contra o formato exato e mostra o motivo completo quando um é recusado. Ative ao desenvolver uma dApp para identificar pedidos fora do formato.",
       "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",
       "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único.",
       "nonTokenIdentities": "Adicionar identidades que não são tokens",
@@ -1915,5 +1915,9 @@
     "clear": "Limpar atividade",
     "clearTitle": "Limpar atividade de dApps",
     "clearMessage": "Isso remove o registro do que esta carteira assinou para dApps. O histórico deixa de mostrar para qual dApp foi uma transação, e a busca deixa de encontrá-las por dApp ou pedido. As transações continuam no histórico."
+  },
+  "dappRequestError": {
+    "title": "Pedido de dApp inválido",
+    "okButton": "OK"
   }
 }

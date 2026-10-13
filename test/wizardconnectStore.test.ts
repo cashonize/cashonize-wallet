@@ -43,6 +43,7 @@ class FakeManager {
 vi.mock('src/components/walletconnect/WC2TransactionRequest.vue', () => ({ default: {} }))
 vi.mock('src/components/wizardconnect/WizPairingDialog.vue', () => ({ default: {} }))
 vi.mock('src/components/general/alertDialog.vue', () => ({ default: {} }))
+vi.mock('src/components/general/dappRequestErrorDialog.vue', () => ({ default: {} }))
 
 vi.mock('@wizardconnect/wallet', async (importOriginal) => ({
   ...await importOriginal<typeof WizardconnectWallet>(),

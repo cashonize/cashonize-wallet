@@ -1,4 +1,4 @@
-import { WizSignTransactionRequestSchema } from "../src/utils/zodValidation";
+import { StrictWizSignTransactionRequestSchema as WizSignTransactionRequestSchema, LooseWizSignTransactionRequestSchema, describeSchemaError } from "../src/utils/zodValidation";
 
 // A representative sign_transaction_request payload as produced by the WizardConnect
 // reference serializer: hex strings for bytes, "<bigint: Xn>" for amounts
@@ -106,5 +106,27 @@ describe('WizardConnect sign request schema validation', () => {
       delete (request as Record<string, unknown>).sequence;
     });
     expect(() => WizSignTransactionRequestSchema.parse(request)).toThrow();
+  })
+
+  // FundMe.cash sends the whole abi and the raw CashScript chunks for a contract input, which the
+  // loose schema tolerates as it does over WalletConnect, and strict mode refuses
+  describe('a FundMe.cash style contract source output', () => {
+    const fundMeRequest = () => tamperedRequest((request) => {
+      (request.transaction.sourceOutputs[0] as Record<string, unknown>).contract = {
+        abiFunction: [{ name: "pledge", inputs: [] }, { name: "refund", inputs: [] }],
+        redeemScript: [{ op: 81 }, "<Uint8Array: 0x00>"],
+        artifact: { contractName: "FundMe" },
+      };
+    });
+    it('should be accepted by the loose schema', () => {
+      expect(LooseWizSignTransactionRequestSchema.safeParse(fundMeRequest()).success).toBe(true);
+    })
+    it('should be refused by the strict schema, naming the fields', () => {
+      const result = WizSignTransactionRequestSchema.safeParse(fundMeRequest());
+      expect(result.success).toBe(false);
+      const described = describeSchemaError(result.error);
+      expect(described).toContain('transaction.sourceOutputs[0].contract.abiFunction');
+      expect(described).toContain('transaction.sourceOutputs[0].contract.redeemScript');
+    })
   })
 })
