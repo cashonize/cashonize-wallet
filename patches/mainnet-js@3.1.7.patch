@@ -97,3 +97,15 @@ index 9baa2496b379fc0dd2efb8229d93be9caefdc97f..ca38609c3c9b04195df7f6ed81edde6f
          const tokenUtxos = utxos.filter((val) => val.token?.category === burnRequest.category &&
              val.token?.nft?.capability === burnRequest.nft?.capability &&
              val.token?.nft?.commitment === burnRequest.nft?.commitment);
+diff --git a/dist/module/transaction/Wif.js b/dist/module/transaction/Wif.js
+--- a/dist/module/transaction/Wif.js
++++ b/dist/module/transaction/Wif.js
+@@ -53,7 +53,7 @@ export async function buildP2pkhNonHdTransaction({ inputs, outputs, signingKey,
+     if (!result.success) {
+         throw Error("Error building transaction with fee");
+     }
+-    const tokenValidationResult = verifyTransactionTokens(result.transaction, sourceOutputs, { maximumTokenCommitmentLength: 40 });
++    const tokenValidationResult = verifyTransactionTokens(result.transaction, sourceOutputs, { maximumTokenCommitmentLength: 128 });
+     if (tokenValidationResult !== true && fee > 0) {
+         throw tokenValidationResult;
+     }

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { BaseWallet, ElectrumNetworkProvider, FeePaidByEnum, SendRequest, getHistory } from 'mainnet-js'
+import { BaseWallet, ElectrumNetworkProvider, FeePaidByEnum, NFTCapability, SendRequest, TokenSendRequest, getHistory } from 'mainnet-js'
 import type { Utxo } from 'mainnet-js'
 // not on the package's export surface, so reached by path
-import { getSuitableUtxos } from '../node_modules/mainnet-js/dist/module/transaction/Wif.js'
+import { buildP2pkhNonHdTransaction, getSuitableUtxos, placeholderPrivateKeyBin } from '../node_modules/mainnet-js/dist/module/transaction/Wif.js'
 import { OP_RETURN_ADDRESS_PREFIX } from '../src/utils/history/txDirection'
-import { binToHex, encodeTransaction, hashTransaction, hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
+import { binToHex, encodeTransaction, hashTransaction, hexToBin, lockingBytecodeToCashAddress, privateKeyToP2pkhCashAddress } from '@bitauth/libauth'
 import { electrumTimeoutMessage } from '../src/utils/wallet/broadcastErrors'
 
 // The wallet keeps frozen and reserved coins out of a spend by narrowing mainnet-js's pool with
@@ -126,5 +126,28 @@ describe('mainnet-js still copies the first token output\'s NFT onto its token c
   it('encodeTransaction builds the change with nft: tokenOutputs[0].nft', () => {
     const source = (BaseWallet.prototype as unknown as Record<string, () => unknown>)['encodeTransaction']?.toString()
     expect(source).toContain('nft: tokenOutputs[0].nft')
+  })
+})
+
+// The May 2026 upgrade raised the NFT commitment limit to 128 bytes, but mainnet-js 3.1.7 checks
+// every transaction it builds against the old 40 (see pnpm-workspace.yaml), so a coin with a longer
+// commitment could not be sent at all
+describe('mainnet-js builds a transaction spending an NFT with a commitment over 40 bytes', () => {
+  it('sends a 65-byte commitment NFT that also holds fungible tokens', async () => {
+    const { address } = privateKeyToP2pkhCashAddress({ privateKey: placeholderPrivateKeyBin, prefix: 'bitcoincash', tokenSupport: true })
+    const token = { category: '33'.repeat(32), amount: 500n, nft: { capability: NFTCapability.none, commitment: 'ab'.repeat(65) } }
+    const tokenCoin: Utxo = { txid: '22'.repeat(32), vout: 0, satoshis: 1000n, address, token }
+    const bch: Utxo = { txid: '11'.repeat(32), vout: 0, satoshis: 10_000n, address }
+    const request = new TokenSendRequest({ cashaddr: address, value: 1000n, ...token })
+
+    const built = buildP2pkhNonHdTransaction({
+      inputs: [tokenCoin, bch],
+      outputs: [request],
+      signingKey: placeholderPrivateKeyBin,
+      fee: 500n,
+      walletCache: { get: () => undefined },
+    })
+
+    await expect(built).resolves.toBeDefined()
   })
 })

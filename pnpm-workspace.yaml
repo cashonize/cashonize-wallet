@@ -44,7 +44,7 @@ overrides:
 allowBuilds:
   '@parcel/watcher': true
 
-# Three fixes, all to be removed once they land upstream.
+# Four fixes, all to be removed once they land upstream.
 #
 # Make tokenMint and tokenBurn honor the utxoIds option. The wallet keeps coins out of its own
 # coin selection by narrowing the pool with utxoIds, which send(), sendMax() and tokenGenesis()
@@ -66,5 +66,10 @@ allowBuilds:
 # asset discovery all at once. Such outputs now get a "SCRIPT: <hex>" placeholder, the way
 # OP_RETURN already gets one, and identity detection reads the bytecode to tell a key-held output
 # from a contract. Upstream: mainnet-cash/mainnet-js#252.
+#
+# Allow NFT commitments up to 128 bytes. The May 2026 upgrade raised the consensus limit from 40,
+# but every send still validates its token outputs against 40, so spending any coin with a longer
+# commitment throws. Fixed upstream in mainnet-cash/mainnet-js#244 (3.1.8), which was tagged on
+# GitHub but never published to npm.
 patchedDependencies:
   'mainnet-js@3.1.7': patches/mainnet-js@3.1.7.patch
