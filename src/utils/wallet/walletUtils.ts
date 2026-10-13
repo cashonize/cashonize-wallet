@@ -1,4 +1,5 @@
 import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, Config } from "mainnet-js"
+import { Notify } from "quasar"
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
@@ -408,5 +409,31 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
       return makeError(error, true);
     }
     return makeError(t('walletUtils.errors.invalidSeedPhrase'), false);
+  }
+}
+
+// The most named wallets the UI lets you add
+export const maxWallets = 20;
+
+// Switch to another named wallet from the UI, saying so when its network differs from the current one
+export async function switchWalletWithNotice(walletName: string) {
+  const store = useStore();
+  if (walletName === store.activeWalletName) return;
+  try {
+    const result = await store.switchWallet(walletName);
+    if (result.networkChanged) {
+      useSettingsStore().hasPlayedAnimation = false;
+      Notify.create({
+        message: t('walletsOverview.switchedNetwork', { network: result.networkChanged, name: walletName }),
+        icon: 'info',
+        color: "grey-6"
+      });
+    }
+  } catch (error) {
+    Notify.create({
+      message: t('walletsOverview.switchFailed', { error: error instanceof Error ? error.message : 'Unknown error' }),
+      icon: 'warning',
+      color: "red"
+    });
   }
 }
