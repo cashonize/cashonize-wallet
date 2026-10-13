@@ -32,7 +32,7 @@
   const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
   const applicationVersion = import.meta.env.version
 
-  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6>(0);
+  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(0);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -527,47 +527,22 @@
 
     <backupWallet v-if="settingsSection == 1" />
     <div v-else-if="settingsSection == 2">
-      <div style="margin-bottom:15px;">
+      <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.darkMode') }} <q-toggle v-model="selectedDarkMode" @update:model-value="changeDarkMode()" dense />
       </div>
 
-      <div style="margin-top:15px">
+      <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.confirmPayments') }} <q-toggle v-model="confirmBeforeSending" @update:model-value="toggleConfirmBeforeSending" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.userOptions.confirmPaymentsHint') }}
         </div>
       </div>
 
-      <div style="margin-top:15px">
-        {{ t('settings.userOptions.showCauldronSwap') }} <q-toggle v-model="selectedShowSwap" @update:model-value="toggleShowSwap" dense />
-      </div>
-
-      <div style="margin-top:15px">
-        {{ t('settings.userOptions.showCauldronFTValue') }}
-        <InfoPopup style="margin-right: 6px;">
-          <div style="max-width: 300px;">{{ t('settings.userOptions.showCauldronFTValueHint') }}</div>
-          <div class="info-popup-note">{{ t('settings.userOptions.showCauldronFTValuePortfolioNote') }}</div>
-        </InfoPopup>
-        <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
-      </div>
-
-      <div style="margin-top: 15px; margin-bottom: 15px;">
-        {{ t('settings.userOptions.enableTokenBurn') }} <q-toggle v-model="selectedTokenBurn" @update:model-value="changeTokenBurn()" dense />
-      </div>
-
-      <div v-if="!isCapacitor" style="margin-top: 15px;">
+      <div v-if="!isCapacitor" style="margin-bottom: 15px;">
         {{ t('settings.userOptions.enableQrScan') }} <q-toggle v-model="enableQrScan" @update:model-value="changeQrScan()" dense />
       </div>
 
-      <div style="margin-top:15px;">
-        <label for="selectUnit">{{ t('settings.userOptions.selectUnit') }}</label>
-        <select v-model="selectedUnit" @change="changeUnit()">
-          <option value="bch">{{ t('settings.userOptions.bchUnit') }}</option>
-          <option value="sat">{{ t('settings.userOptions.satUnit') }}</option>
-        </select>
-      </div>
-
-      <div style="margin-top:15px;">
+      <div style="margin-bottom: 15px;">
         <label for="selectExplorer">{{ t('settings.userOptions.blockExplorer') }}</label>
         <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
@@ -588,7 +563,7 @@
         </select>
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px;">
+      <div style="margin-bottom: 15px;">
         <label for="selectQrAnimation">{{ t('settings.userOptions.qrAnimation') }}</label>
         <select v-model="qrAnimation" @change="changeQrAnimation()">
           <option value="MaterializeIn">MaterializeIn</option>
@@ -600,11 +575,11 @@
         </select>
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px;">
+      <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.tokenAddressQrDefault') }} <q-toggle v-model="tokenAddressQrDefault" @update:model-value="toggleTokenAddressQrDefault" dense />
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px;">
+      <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.enableAddressMarking') }}
         <InfoPopup style="margin-right: 6px;">
           <div style="max-width: 300px;">{{ t('settings.userOptions.enableAddressMarkingHint') }}</div>
@@ -612,8 +587,26 @@
         </InfoPopup>
         <q-toggle v-model="enableAddressMarking" @update:model-value="toggleEnableAddressMarking" dense />
       </div>
+    </div>
+    <div v-else-if="settingsSection == 7">
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.showCauldronFTValue') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.showCauldronFTValueHint') }}</div>
+          <div class="info-popup-note">{{ t('settings.userOptions.showCauldronFTValuePortfolioNote') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="selectedShowCauldronFTValue" @update:model-value="toggleShowCauldronFTValue" dense />
+      </div>
 
-      <div style="margin-top:15px">
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.showCauldronSwap') }} <q-toggle v-model="selectedShowSwap" @update:model-value="toggleShowSwap" dense />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.enableTokenBurn') }} <q-toggle v-model="selectedTokenBurn" @update:model-value="changeTokenBurn()" dense />
+      </div>
+
+      <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.followTokenIdentities') }}
         <InfoPopup style="margin-right: 6px;">
           <div style="max-width: 300px;">{{ t('settings.userOptions.followTokenIdentitiesHint') }}</div>
@@ -621,14 +614,13 @@
         <q-toggle v-model="selectedFollowTokenIdentities" @update:model-value="toggleFollowTokenIdentities" dense />
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px;">
+      <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.allowDappIdentitySpends') }}
         <InfoPopup style="margin-right: 6px;">
           <div style="max-width: 300px;">{{ t('settings.userOptions.allowDappIdentitySpendsHint') }}</div>
         </InfoPopup>
         <q-toggle v-model="selectedAllowDappIdentitySpends" @update:model-value="toggleAllowDappIdentitySpends" dense />
       </div>
-
     </div>
     <div v-else-if="settingsSection == 3">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
@@ -943,6 +935,14 @@
       </div>
 
       <div style="margin-bottom: 15px;">
+        <label for="selectUnit">{{ t('settings.userOptions.selectUnit') }}</label>
+        <select v-model="selectedUnit" @change="changeUnit()">
+          <option value="bch">{{ t('settings.userOptions.bchUnit') }}</option>
+          <option value="sat">{{ t('settings.userOptions.satUnit') }}</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 15px;">
         <label for="dateFormat">{{ t('settings.localization.dateFormat') }}</label>
         <select v-model="dateFormat" @change="changeDateFormat()">
           <option value="DD/MM/YY">DD/MM/YY</option>
@@ -970,6 +970,10 @@
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 2">
         ↳ {{ t('settings.menu.userOptions') }}
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 7">
+        ↳ {{ t('settings.menu.tokenSettings') }}
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 6">
