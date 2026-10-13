@@ -1911,8 +1911,6 @@
     },
     "notSeenOnChain": "noch nicht im Verlauf",
     "showMore": "Mehr anzeigen",
-    "clear": "Leeren",
-    "clearTitle": "dApp-Aktivität leeren",
-    "clearMessage": "Die Aufzeichnung dessen, was dieses Wallet für dApps signiert hat, entfernen? Die Transaktionen selbst bleiben im Verlauf."
+    "clear": "Verlauf leeren"
   }
 }

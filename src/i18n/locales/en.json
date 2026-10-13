@@ -1911,8 +1911,6 @@
     },
     "notSeenOnChain": "not in the history yet",
     "showMore": "Show more",
-    "clear": "Clear",
-    "clearTitle": "Clear dApp activity",
-    "clearMessage": "Remove the record of what this wallet signed for dApps? The transactions themselves stay in the history."
+    "clear": "Clear history"
   }
 }

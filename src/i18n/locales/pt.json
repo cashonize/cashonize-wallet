@@ -1911,8 +1911,6 @@
     },
     "notSeenOnChain": "ainda não está no histórico",
     "showMore": "Mostrar mais",
-    "clear": "Limpar",
-    "clearTitle": "Limpar atividade de dApps",
-    "clearMessage": "Remover o registro do que esta carteira assinou para dApps? As transações continuam no histórico."
+    "clear": "Limpar histórico"
   }
 }

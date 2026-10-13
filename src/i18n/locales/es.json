@@ -1911,8 +1911,6 @@
     },
     "notSeenOnChain": "aún no está en el historial",
     "showMore": "Mostrar más",
-    "clear": "Borrar",
-    "clearTitle": "Borrar actividad de dApps",
-    "clearMessage": "¿Eliminar el registro de lo que esta billetera firmó para dApps? Las transacciones siguen en el historial."
+    "clear": "Borrar historial"
   }
 }

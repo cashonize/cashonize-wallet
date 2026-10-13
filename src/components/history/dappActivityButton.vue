@@ -7,7 +7,6 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { copyToClipboard, formatReadableDate } from 'src/utils/utils'
-  import { confirmDialog } from 'src/utils/txHelpers'
   import type { DappActivityEntry } from 'src/utils/dapp/dappActivity'
 
   const props = withDefaults(defineProps<{ iconOnly?: boolean }>(), { iconOnly: false })
@@ -42,11 +41,9 @@
     store.markDappActivitySeen();
   }
 
-  async function clearLog() {
-    const confirmed = await confirmDialog(
-      t('dappActivity.clearTitle'), t('dappActivity.clearMessage'), t('dappActivity.clear'), 'red'
-    );
-    if (confirmed) store.clearActiveDappActivity();
+  // No confirmation: the log is a convenience, the transactions stay in the wallet history
+  function clearLog() {
+    store.clearActiveDappActivity();
   }
 </script>
 
