@@ -652,10 +652,7 @@
     </div>
     <div v-else-if="settingsSection == 3" style="padding-bottom: 15px;">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
-        <InfoPopup>
-          <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.electrumMainnet') }}</label>
-          </template>
+        <label>{{ t('settings.advanced.electrumMainnet') }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }}</div>
         </InfoPopup>
         <select v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')">
@@ -690,10 +687,7 @@
       </div>
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <InfoPopup>
-          <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.electrumChipnet') }}</label>
-          </template>
+        <label>{{ t('settings.advanced.electrumChipnet') }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }}</div>
         </InfoPopup>
         <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')">
@@ -728,10 +722,7 @@
       </div>
 
       <div style="margin-top:15px">
-        <InfoPopup>
-          <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.ipfsGateway') }}</label>
-          </template>
+        <label>{{ t('settings.advanced.ipfsGateway') }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.ipfsGatewayHint') }}</div>
         </InfoPopup>
         <select v-model="selectedIpfsGateway" @change="changeIpfsGateway()">
@@ -762,10 +753,7 @@
       </div>
 
       <div style="margin-top:15px">
-        <InfoPopup>
-          <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.chaingraph') }}</label>
-          </template>
+        <label>{{ t('settings.advanced.chaingraph') }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.chaingraphHint') }}</div>
         </InfoPopup>
         <select v-if="store.network == 'mainnet'" v-model="selectedChaingraphMainnet" @change="changeChaingraph('mainnet')">
@@ -807,10 +795,7 @@
       </div>
 
       <div style="margin-top:15px">
-        <InfoPopup>
-          <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.cauldronIndexer') }}</label>
-          </template>
+        <label>{{ t('settings.advanced.cauldronIndexer') }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.cauldronIndexerHint') }}</div>
         </InfoPopup>
         <select v-model="selectedCauldronIndexer" @change="changeCauldronIndexer()">
@@ -820,10 +805,7 @@
       </div>
 
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
-        <InfoPopup>
-          <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.tokenMetadataIndexer') }}</label>
-          </template>
+        <label>{{ t('settings.advanced.tokenMetadataIndexer') }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.tokenMetadataIndexerHint') }}</div>
         </InfoPopup>
         <select v-model="selectedTokenMetadataIndexer" @change="changeTokenMetadataIndexer('mainnet')">
@@ -845,10 +827,7 @@
       </div>
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <InfoPopup>
-          <template #trigger>
-            <label for="selectNetwork" class="info-popup-text-trigger">{{ t('settings.advanced.tokenMetadataIndexer') }}</label>
-          </template>
+        <label>{{ t('settings.advanced.tokenMetadataIndexer') }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.tokenMetadataIndexerHint') }}</div>
         </InfoPopup>
         <select v-model="selectedTokenMetadataIndexerChipnet" @change="changeTokenMetadataIndexer('chipnet')">
