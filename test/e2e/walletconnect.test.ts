@@ -102,11 +102,14 @@ test.describe.serial('WalletConnect E2E', () => {
     await expect(dappPage.locator('#response')).toContainText('signedTransaction', { timeout: 15_000 })
     await expect(dappPage.locator('#response')).toContainText('signedTransactionHash')
 
-    // Wallet: Dismiss the "Transaction Signed" alert dialog
-    const alertDialog = walletPage.locator('.alertDialog')
-    await alertDialog.waitFor({ timeout: 5_000 })
+    // Wallet: a toast instead of a dialog, and the signing is in the activity log
+    await expect(walletPage.locator('.q-notification').getByText(/transaction signed and returned to the dApp/)).toBeVisible({ timeout: 5_000 })
+    await expect(walletPage.locator('.alertDialog')).toHaveCount(0)
+    await expect(walletPage.locator('.sessions-activity-button .notification-count')).toBeVisible()
+    await walletPage.locator('.sessions-activity-button .activity-trigger').click()
+    await expect(walletPage.locator('.activity-entry').first()).toContainText('Test transaction')
     await walletPage.keyboard.press('Escape')
-    await expect(alertDialog).not.toBeVisible({ timeout: 5_000 })
+    await expect(walletPage.locator('.sessions-activity-button .notification-count')).toHaveCount(0)
   })
 
   test('cancelPendingRequests', async () => {

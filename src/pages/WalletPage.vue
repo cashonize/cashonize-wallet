@@ -5,6 +5,7 @@
   import myTokensView from 'src/components/myTokens.vue'
   import historyView from 'src/components/history/txHistory.vue'
   import settingsMenu from 'src/components/settingsMenu.vue'
+  import DappActivityButton from 'src/components/history/dappActivityButton.vue'
   import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/settings/createTokens.vue'
   import utxoManagement from 'src/components/settings/utxoManagement.vue'
@@ -247,6 +248,9 @@
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ t('nav.tokens') }} </div>
       <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ t('nav.history') }} </div>
       <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ t('nav.connect') }} </div>
+      <div v-if="settingsStore.dappActivityInNav" class="nav-dapp-activity">
+        <DappActivityButton icon-only />
+      </div>
       <div @click="store.changeView(5)" style="width: max-content; position: relative;">
         <img style="vertical-align: text-bottom;" :src="store.displayView == 5 ? 'images/settingsGreen.svg' : (
           settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg')">

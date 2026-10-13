@@ -16,6 +16,7 @@
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
   import CCSessions from 'src/components/cashconnect/CCSessions.vue'
   import WizSessions from 'src/components/wizardconnect/WizSessions.vue'
+  import DappActivityButton from 'src/components/history/dappActivityButton.vue'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -159,12 +160,15 @@
       </div>
     </fieldset>
 
-    <fieldset class="item">
+    <fieldset class="item sessions-fieldset">
       <legend>{{ t('dapp.sessionsTitle') }}</legend>
-      <WCSessions />
-      <CCSessions />
-      <WizSessions />
-      <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
+      <div class="sessions-body">
+        <DappActivityButton class="sessions-activity-button" />
+        <WCSessions />
+        <CCSessions />
+        <WizSessions />
+        <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
+      </div>
     </fieldset>
 
     <i18n-t keypath="dapp.exploreDapps" tag="div" class="explore-dapps-note">
@@ -183,6 +187,21 @@
   .sessions-section-heading {
     font-weight: 600;
     margin: 8px 0 2px;
+  }
+  .sessions-fieldset {
+    padding-bottom: 12px;
+  }
+  /* flow-root keeps the first heading's top margin inside, where the button's offset matches it */
+  .sessions-body {
+    position: relative;
+    display: flow-root;
+  }
+  /* the activity log's entry point, on the first protocol heading's line: the heading's top
+     margin and the session rows' padding line it up with both */
+  .sessions-activity-button {
+    position: absolute;
+    top: 8px;
+    right: 7px;
   }
   /* Styled like the about-page note on the onboarding page */
   .explore-dapps-note {

@@ -53,6 +53,7 @@
   const enableQrScan = ref(settingsStore.qrScan);
   const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
   const enableAddressMarking = ref(settingsStore.enableAddressMarking);
+  const dappActivityInNav = ref(settingsStore.dappActivityInNav);
   // advanced settings
   const predefinedElectrumServersMainnet = [
     "electrum.imaginary.cash",
@@ -389,6 +390,10 @@
     localStorage.setItem("tokenAddressQrDefault", tokenAddressQrDefault.value? "true" : "false");
     settingsStore.tokenAddressQrDefault = tokenAddressQrDefault.value;
   }
+  function toggleDappActivityInNav(){
+    localStorage.setItem("dappActivityInNav", dappActivityInNav.value? "true" : "false");
+    settingsStore.dappActivityInNav = dappActivityInNav.value;
+  }
   function toggleEnableAddressMarking(){
     localStorage.setItem("enableAddressMarking", enableAddressMarking.value? "true" : "false");
     settingsStore.enableAddressMarking = enableAddressMarking.value;
@@ -597,6 +602,10 @@
           <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
         </InfoPopup>
         <q-toggle v-model="enableAddressMarking" @update:model-value="toggleEnableAddressMarking" dense />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.dappActivityInNav') }} <q-toggle v-model="dappActivityInNav" @update:model-value="toggleDappActivityInNav" dense />
       </div>
     </div>
     <div v-else-if="settingsSection == 7">

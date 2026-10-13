@@ -1312,15 +1312,9 @@
       "failedToCompressPublicKey": "Falha ao comprimir chave pública"
     },
     "notifications": {
-      "successfullySignedMessage": "Mensagem assinada com sucesso",
       "failedToSignMessage": "Falha ao assinar mensagem",
       "failedToSignTransaction": "Falha ao assinar transação",
       "sendingTransaction": "Enviando transação...",
-      "sentTransaction": "Transação WalletConnect enviada '{userPrompt}'",
-      "signedTransaction": "Transação WalletConnect assinada '{userPrompt}'. Por favor, retorne ao dApp.",
-      "transactionSignedTitle": "Transação Assinada",
-      "transactionSent": "Transação enviada com sucesso!",
-      "transactionSigned": "Transação assinada e devolvida à dApp",
       "requestExpired": "Requisição expirou, retorne ao {dappName} se deseja tentar novamente"
     }
   },
@@ -1354,11 +1348,6 @@
     },
     "notifications": {
       "sendingTransaction": "Enviando transação...",
-      "sentTransaction": "Transação WizardConnect enviada para {dappName}",
-      "signedTransaction": "Transação WizardConnect para {dappName} assinada. Por favor, retorne ao dApp.",
-      "transactionSignedTitle": "Transação Assinada",
-      "transactionSent": "Transação enviada com sucesso!",
-      "transactionSigned": "Transação assinada e devolvida à dApp",
       "requestCancelled": "A solicitação de assinatura foi cancelada por {dappName}",
       "dappDisconnected": "A sessão WizardConnect foi desconectada por {dappName}"
     }
@@ -1416,6 +1405,7 @@
       "tokenAddressQrDefault": "Mostrar o QR code do endereço de token por padrão",
       "enableAddressMarking": "Ativar gestão avançada de endereços: marcar endereços como usados",
       "enableAddressMarkingHint": "Marcar um endereço como usado faz a carteira mostrar o próximo, assim você pode dar um endereço novo a cada pagador. Aplica-se a carteiras HD.",
+      "dappActivityInNav": "Mostrar o ícone de atividade de dApps na navegação superior",
       "followTokenIdentities": "Seguir as identidades dos tokens que tem",
       "followTokenIdentitiesHint": "A lista de tokens que tem vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligado por defeito: então só é consultada a identidade de um token cuja AuthKey esta carteira tem. Ligar consulta todos os tokens que tem em cada abertura da carteira.",
       "allowDappIdentitySpends": "Permitir que apps ligadas gastem UTXOs de identidade",
@@ -1904,5 +1894,23 @@
     },
     "locationLabel": "No endereço:",
     "locationScriptLabel": "Bloqueado por script:"
+  },
+  "dappActivity": {
+    "title": "Atividade de dApps",
+    "empty": "Nada foi assinado para uma dApp ainda",
+    "toast": {
+      "sent": "{dappName}: transação enviada",
+      "signed": "{dappName}: transação assinada e devolvida à dApp",
+      "messageSigned": "{dappName}: mensagem assinada"
+    },
+    "outcome": {
+      "sent": "Enviada",
+      "signed": "Assinada para a dApp transmitir",
+      "broadcastFailed": "Falha ao enviar",
+      "messageSigned": "Mensagem assinada"
+    },
+    "notSeenOnChain": "ainda não está no histórico",
+    "showMore": "Mostrar mais",
+    "clear": "Limpar atividade"
   }
 }

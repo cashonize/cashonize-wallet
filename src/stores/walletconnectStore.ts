@@ -16,7 +16,7 @@ import {
   decodeTransactionUnsafe
 } from "@bitauth/libauth"
 import { currentExchangeRate, parseExtendedJson } from 'src/utils/utils'
-import alertDialog from 'src/components/general/alertDialog.vue'
+import { notifyDappActivity } from 'src/utils/dapp/notifyDappActivity'
 import { Dialog, Notify } from "quasar";
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue';
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
@@ -539,6 +539,12 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     );
     const hash = binToHex(sha256.hash(sha256.hash(encodedTransaction)).reverse());
     const signedTxObject = { signedTransaction: binToHex(encodedTransaction), signedTransactionHash: hash };
+    const activity = {
+      protocol: 'walletconnect' as const,
+      ...dappForTopic(topic),
+      userPrompt: wcTransactionObj.userPrompt,
+      txid: hash,
+    };
     // send transaction
     if (wcTransactionObj.broadcast) {
       try{
@@ -548,17 +554,11 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
           color: 'grey-5',
           timeout: 750
         })
-        const txId = await mainStore.wallet.submitTransaction(hexToBin(signedTxObject.signedTransaction));
-        const alertMessage = t('walletConnect.notifications.sentTransaction', { userPrompt: wcTransactionObj.userPrompt })
-        Dialog.create({
-          component: alertDialog,
-          componentProps: {
-            alertInfo: { message: alertMessage, txid: txId }
-          }
-        })
+        await mainStore.wallet.submitTransaction(hexToBin(signedTxObject.signedTransaction));
       } catch(error){
         // the dapp still gets the node's own words below, only the user sees them classified
         displayBroadcastError(error);
+        notifyDappActivity({ ...activity, outcome: 'broadcastFailed' });
         const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : t('walletConnect.errors.errorSendingTransaction'))
         // respond with error to dapp
         const wcErrorMessage = 'Transaction failed to send with error: ' + errorMessage;
@@ -568,29 +568,13 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         return
       }
     }
-    if (!wcTransactionObj.broadcast) {
-      const alertMessage = t('walletConnect.notifications.signedTransaction', { userPrompt: wcTransactionObj.userPrompt })
-      Dialog.create({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: {
-            message: alertMessage,
-            txid: hash,
-            title: t('walletConnect.notifications.transactionSignedTitle'),
-            hideExplorerLink: true,
-          }
-        }
-      })
-    }
     const response = { id, jsonrpc: '2.0', result: signedTxObject };
     await web3wallet.value?.respondSessionRequest({ topic, response });
-    const message = wcTransactionObj.broadcast
-      ? t('walletConnect.notifications.transactionSent')
-      : t('walletConnect.notifications.transactionSigned')
-    Notify.create({
-      type: 'positive',
-      message
-    })
+    notifyDappActivity({ ...activity, outcome: wcTransactionObj.broadcast ? 'sent' : 'signed' });
+  }
+  function dappForTopic(topic: string) {
+    const metadata = web3wallet.value?.getActiveSessions()[topic]?.peer.metadata;
+    return { dappName: metadata?.name ?? 'dapp', dappIcon: metadata?.icons[0] };
   }
   function isValidSignMessageRequest(signMessageRequestWC: WalletKitTypes.SessionRequest) {
     try{
@@ -617,10 +601,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const signedMessage = mainStore.wallet.sign(message, privateKey);
     const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
     await web3wallet.value?.respondSessionRequest({ topic, response });
-    Notify.create({
-      color: "positive",
-      message: t('walletConnect.notifications.successfullySignedMessage'),
-    });
+    notifyDappActivity({ protocol: 'walletconnect', ...dappForTopic(topic), outcome: 'messageSigned' });
   }
   function rejectSession(wcSessionProposal: WalletKitTypes.SessionProposal){
     return web3wallet.value?.rejectSession({

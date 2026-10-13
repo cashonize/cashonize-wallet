@@ -86,6 +86,15 @@
   // Predicate for isDappInteraction, which is store-agnostic by design
   const walletHasAddress = (address: string) => store.walletHasAddress(address);
 
+  // A transaction signed through a dapp connection is in the activity log by txid, which also
+  // names the dapp; the heuristic catches the rest, such as those signed in an earlier version
+  function isDappTransaction(transaction: TransactionHistoryItem): boolean {
+    return store.dappActivityByTxid.has(transaction.hash) || isDappInteraction(transaction, walletHasAddress);
+  }
+  function dappBadgeText(transaction: TransactionHistoryItem): string {
+    return store.dappActivityByTxid.get(transaction.hash)?.dappName ?? t('history.dapp');
+  }
+
   // Show confirmation progress toward the customary 6, after that a transaction
   // is considered final and the count is no longer interesting
   function confirmationsProgress(transaction: TransactionHistoryItem): number | undefined {
@@ -99,7 +108,7 @@
     let history = store.walletHistory;
     if (selectedFilter.value === "bchTransactions") history = history?.filter(tx => !tx.tokenAmountChanges.length);
     if (selectedFilter.value === "tokenTransactions") history = history?.filter(tx => tx.tokenAmountChanges.length);
-    if (selectedFilter.value === "dappTransactions") history = history?.filter(tx => isDappInteraction(tx, walletHasAddress));
+    if (selectedFilter.value === "dappTransactions") history = history?.filter(tx => isDappTransaction(tx));
     // The direction pills partition the history: each one shows exactly the rows
     // carrying that label, so combined transactions only appear under Combined
     if (directionFilter.value === "incoming") history = history?.filter(tx => txDirection(tx) === 'received');
@@ -122,6 +131,9 @@
   function txMatchesSearch(tx: TransactionHistoryItem, query: string): boolean {
     if (tx.hash.toLowerCase().includes(query)) return true;
     if (store.txNotes[tx.hash]?.toLowerCase().includes(query)) return true;
+    const dappActivity = store.dappActivityByTxid.get(tx.hash);
+    if (dappActivity?.dappName.toLowerCase().includes(query)) return true;
+    if (dappActivity?.userPrompt?.toLowerCase().includes(query)) return true;
     return tx.tokenAmountChanges.some(tokenChange => {
       if (tokenChange.category.toLowerCase().includes(query)) return true;
       const metadata = store.bcmrRegistries?.[tokenChange.category];
@@ -183,7 +195,7 @@
   function exportCsv() {
     const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value, store.txNotes, tx => ({
       direction: t('history.' + txDirection(tx)),
-      dapp: isDappInteraction(tx, walletHasAddress),
+      dapp: isDappTransaction(tx),
     }));
     const status = exportFile("cashonize-tx-history.csv", csvContent, { mimeType: "text/csv" });
     if (status !== true) $q.notify({ message: t('history.exportFailed'), icon: 'warning', color: "red" });
@@ -267,7 +279,7 @@
               <div class="tx-info">
                 <div class="tx-type">
                   {{ t('history.' + txDirection(transaction)) }}
-                  <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+                  <span v-if="isDappTransaction(transaction)" class="dapp-badge" :title="store.dappActivityByTxid.get(transaction.hash)?.userPrompt">{{ dappBadgeText(transaction) }}</span>
                   <span v-if="identityOperation(transaction)" class="identity-badge">{{ identityOperation(transaction) }}</span>
                   <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
                   <InfoPopup v-if="transaction.blockHeight < 0" class="badge-popup" @click.stop>
@@ -322,8 +334,8 @@
                 {{ t('history.balanceLabel') }} {{ formatBchAmount(transaction.balance) }} {{ bchDisplayUnit }}
               </div>
             </div>
-            <div class="tx-badges-line" v-if="isDappInteraction(transaction, walletHasAddress) || transaction.blockHeight < 0 || isBelowRelayFee(transaction)">
-              <span v-if="isDappInteraction(transaction, walletHasAddress)" class="dapp-badge">{{ t('history.dapp') }}</span>
+            <div class="tx-badges-line" v-if="isDappTransaction(transaction) || transaction.blockHeight < 0 || isBelowRelayFee(transaction)">
+              <span v-if="isDappTransaction(transaction)" class="dapp-badge" :title="store.dappActivityByTxid.get(transaction.hash)?.userPrompt">{{ dappBadgeText(transaction) }}</span>
               <span v-if="identityOperation(transaction)" class="identity-badge">{{ identityOperation(transaction) }}</span>
               <InfoPopup v-if="transaction.blockHeight < 0" @click.stop>
                 <template #trigger>
@@ -547,6 +559,11 @@ fieldset.item {
   vertical-align: middle;
   background-color: rgba(142, 111, 216, 0.18);
   color: #8e6fd8;
+  /* carries the dapp's own name when the activity log knows it */
+  max-width: 12em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* an operation on the wallet's own identity, in the primary colour rather than the dapp purple:
    this one was made here, not by somebody else's contract */

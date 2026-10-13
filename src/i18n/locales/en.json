@@ -1312,15 +1312,9 @@
       "failedToCompressPublicKey": "Failed to compress public key"
     },
     "notifications": {
-      "successfullySignedMessage": "Successfully signed message",
       "failedToSignMessage": "Failed to sign message",
       "failedToSignTransaction": "Failed to sign transaction",
       "sendingTransaction": "Sending transaction...",
-      "sentTransaction": "Sent WalletConnect transaction '{userPrompt}'",
-      "signedTransaction": "Signed WalletConnect transaction '{userPrompt}'. Please return to the dApp.",
-      "transactionSignedTitle": "Transaction Signed",
-      "transactionSent": "Transaction successfully sent!",
-      "transactionSigned": "Transaction signed and returned to the dApp",
       "requestExpired": "Request expired, please return to {dappName} if you would like to retry"
     }
   },
@@ -1354,11 +1348,6 @@
     },
     "notifications": {
       "sendingTransaction": "Sending transaction...",
-      "sentTransaction": "Sent WizardConnect transaction for {dappName}",
-      "signedTransaction": "Signed WizardConnect transaction for {dappName}. Please return to the dApp.",
-      "transactionSignedTitle": "Transaction Signed",
-      "transactionSent": "Transaction successfully sent!",
-      "transactionSigned": "Transaction signed and returned to the dApp",
       "requestCancelled": "Signing request was cancelled by {dappName}",
       "dappDisconnected": "WizardConnect session was disconnected by {dappName}"
     }
@@ -1416,6 +1405,7 @@
       "tokenAddressQrDefault": "Show token address QR code by default",
       "enableAddressMarking": "Enable advanced address management: mark addresses as used",
       "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets.",
+      "dappActivityInNav": "Show the dApp activity icon in the top navigation",
       "followTokenIdentities": "Follow the identities of the tokens you hold",
       "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every held token at every wallet open.",
       "allowDappIdentitySpends": "Let connected apps spend identity UTXOs",
@@ -1904,5 +1894,23 @@
     },
     "locationLabel": "At address:",
     "locationScriptLabel": "Locked by script:"
+  },
+  "dappActivity": {
+    "title": "dApp activity",
+    "empty": "Nothing signed for a dApp yet",
+    "toast": {
+      "sent": "{dappName}: transaction sent",
+      "signed": "{dappName}: transaction signed and returned to the dApp",
+      "messageSigned": "{dappName}: message signed"
+    },
+    "outcome": {
+      "sent": "Sent",
+      "signed": "Signed for the dApp to broadcast",
+      "broadcastFailed": "Broadcast failed",
+      "messageSigned": "Message signed"
+    },
+    "notSeenOnChain": "not in the history yet",
+    "showMore": "Show more",
+    "clear": "Clear activity"
   }
 }
