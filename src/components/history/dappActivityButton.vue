@@ -127,15 +127,16 @@ body.dark .activityDialog {
 .activity-entry {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 6px 0;
   border-bottom: 1px solid var(--color-lightGrey);
 }
+/* the height of an entry's two lines; rounded like the session icons */
 .activity-icon {
   flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   object-fit: cover;
 }
 .activity-icon-fallback {
