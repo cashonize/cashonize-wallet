@@ -1912,6 +1912,8 @@
     },
     "notSeenOnChain": "aún no está en el historial",
     "showMore": "Mostrar más",
-    "clear": "Borrar actividad"
+    "clear": "Borrar actividad",
+    "clearTitle": "Borrar actividad de dApps",
+    "clearMessage": "Esto elimina el registro de lo que esta billetera firmó para dApps. El historial ya no mostrará para qué dApp fue una transacción, y la búsqueda ya no las encontrará por dApp o solicitud. Las transacciones siguen en el historial."
   }
 }

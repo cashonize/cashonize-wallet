@@ -1912,6 +1912,8 @@
     },
     "notSeenOnChain": "pas encore dans l'historique",
     "showMore": "Afficher plus",
-    "clear": "Effacer l'activité"
+    "clear": "Effacer l'activité",
+    "clearTitle": "Effacer l'activité dApp",
+    "clearMessage": "Cela supprime l'enregistrement de ce que ce portefeuille a signé pour des dApps. L'historique n'indiquera plus pour quelle dApp était une transaction, et la recherche ne les trouvera plus par dApp ou par requête. Les transactions restent dans l'historique."
   }
 }

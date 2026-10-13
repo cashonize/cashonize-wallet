@@ -1912,6 +1912,8 @@
     },
     "notSeenOnChain": "not in the history yet",
     "showMore": "Show more",
-    "clear": "Clear activity"
+    "clear": "Clear activity",
+    "clearTitle": "Clear dApp activity",
+    "clearMessage": "This removes the record of what this wallet signed for dApps. The history then no longer shows which dApp a transaction was for, and its search no longer finds them by dApp or request. The transactions themselves stay in the history."
   }
 }

@@ -23,7 +23,7 @@ export interface DappActivityEntry {
 }
 
 // Old entries drop off the end, a ParyonUSD payout claim alone can sign dozens
-const maxEntries = 200;
+const maxEntries = 500;
 
 function dappActivityKey(network: Network, walletName: string): string {
   return `dappActivity-${network}-${walletName}`;
