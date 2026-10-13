@@ -62,6 +62,7 @@ import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { listingsFromHistory, fetchActiveListings, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { hodlContractsFromHistory, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
+import { type DappActivityEntry, loadDappActivity, appendDappActivity, clearDappActivity, removeDappActivity } from "src/utils/dapp/dappActivity"
 import {
   loadAddressMarks,
   saveAddressMark,
@@ -154,6 +155,16 @@ export const useStore = defineStore('store', () => {
   const isHistoryPartial = ref(false);
   // Private notes on the active wallet's transactions, keyed by txid (see utils/txNotes.ts)
   const txNotes = ref({} as Record<string, string>);
+  // What the active wallet signed for dapps, newest first (see utils/dapp/dappActivity.ts)
+  const dappActivity = ref([] as DappActivityEntry[]);
+  // The history labels a dapp transaction with the latest entry for its txid
+  const dappActivityByTxid = computed(() => {
+    const byTxid = new Map<string, DappActivityEntry>();
+    for (const entry of dappActivity.value) {
+      if (entry.txid && !byTxid.has(entry.txid)) byTxid.set(entry.txid, entry);
+    }
+    return byTxid;
+  });
   // Receive addresses the user marked as used and address labels, keyed by cashaddr
   // (see utils/addressManagement.ts)
   const addressMarks = ref([] as string[]);
@@ -394,6 +405,7 @@ export const useStore = defineStore('store', () => {
     _wallet.value = newWallet;
     const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
     txNotes.value = loadTxNotes(newNetwork, newWallet.name);
+    dappActivity.value = loadDappActivity(newNetwork, newWallet.name);
     addressMarks.value = loadAddressMarks(newNetwork, newWallet.name);
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
     reservedUtxos.value = loadReservedUtxos(newNetwork, newWallet.name);
@@ -413,6 +425,14 @@ export const useStore = defineStore('store', () => {
 
   function setTxNote(txid: string, note: string) {
     txNotes.value = saveTxNote(network.value, wallet.value.name, txid, note);
+  }
+
+  function recordDappActivity(entry: Omit<DappActivityEntry, 'time'>) {
+    dappActivity.value = appendDappActivity(network.value, wallet.value.name, { time: Date.now(), ...entry });
+  }
+  function clearActiveDappActivity() {
+    clearDappActivity(network.value, wallet.value.name);
+    dappActivity.value = [];
   }
 
   // Mark a receive address as used so a fresh address is handed out, for when the user shared
@@ -900,6 +920,7 @@ export const useStore = defineStore('store', () => {
     await deleteWalletFromDb(walletName, 'bitcoincash');
     await deleteWalletFromDb(walletName, 'bchtest');
     removeTxNotes(walletName);
+    removeDappActivity(walletName);
     removeAddressManagementData(walletName);
     removeReservedUtxos(walletName);
     removeUtxoLabels(walletName);
@@ -1675,7 +1696,11 @@ export const useStore = defineStore('store', () => {
     walletHistory,
     isHistoryPartial,
     txNotes,
+    dappActivity,
+    dappActivityByTxid,
     setTxNote,
+    recordDappActivity,
+    clearActiveDappActivity,
     addressMarks,
     addressLabels,
     currentAddressIndex,

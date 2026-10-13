@@ -1312,15 +1312,9 @@
       "failedToCompressPublicKey": "Failed to compress public key"
     },
     "notifications": {
-      "successfullySignedMessage": "Successfully signed message",
       "failedToSignMessage": "Failed to sign message",
       "failedToSignTransaction": "Failed to sign transaction",
       "sendingTransaction": "Sending transaction...",
-      "sentTransaction": "Sent WalletConnect transaction '{userPrompt}'",
-      "signedTransaction": "Signed WalletConnect transaction '{userPrompt}'. Please return to the dApp.",
-      "transactionSignedTitle": "Transaction Signed",
-      "transactionSent": "Transaction successfully sent!",
-      "transactionSigned": "Transaction signed and returned to the dApp",
       "requestExpired": "Request expired, please return to {dappName} if you would like to retry"
     }
   },
@@ -1354,11 +1348,6 @@
     },
     "notifications": {
       "sendingTransaction": "Sending transaction...",
-      "sentTransaction": "Sent WizardConnect transaction for {dappName}",
-      "signedTransaction": "Signed WizardConnect transaction for {dappName}. Please return to the dApp.",
-      "transactionSignedTitle": "Transaction Signed",
-      "transactionSent": "Transaction successfully sent!",
-      "transactionSigned": "Transaction signed and returned to the dApp",
       "requestCancelled": "Signing request was cancelled by {dappName}",
       "dappDisconnected": "WizardConnect session was disconnected by {dappName}"
     }
@@ -1904,5 +1893,27 @@
     },
     "locationLabel": "At address:",
     "locationScriptLabel": "Locked by script:"
+  },
+  "dappActivity": {
+    "title": "Recent dApp activity",
+    "empty": "Nothing signed for a dApp yet",
+    "toast": {
+      "sent": "{dappName}: transaction sent",
+      "signed": "{dappName}: transaction signed and returned to the dApp",
+      "messageSigned": "{dappName}: message signed"
+    },
+    "view": "View",
+    "outcome": {
+      "sent": "Sent",
+      "signed": "Signed, returned to the dApp to broadcast",
+      "broadcastFailed": "Broadcast failed",
+      "messageSigned": "Message signed"
+    },
+    "notSeenOnChain": "not in the history yet",
+    "explorer": "Block explorer",
+    "showMore": "Show more",
+    "clear": "Clear",
+    "clearTitle": "Clear dApp activity",
+    "clearMessage": "Remove the record of what this wallet signed for dApps? The transactions themselves stay in the history."
   }
 }

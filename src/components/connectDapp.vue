@@ -16,6 +16,7 @@
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
   import CCSessions from 'src/components/cashconnect/CCSessions.vue'
   import WizSessions from 'src/components/wizardconnect/WizSessions.vue'
+  import DappActivityLog from 'src/components/history/dappActivityLog.vue'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -166,6 +167,8 @@
       <WizSessions />
       <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
     </fieldset>
+
+    <DappActivityLog />
 
     <i18n-t keypath="dapp.exploreDapps" tag="div" class="explore-dapps-note">
       <template #link>

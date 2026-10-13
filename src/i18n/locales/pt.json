@@ -1312,15 +1312,9 @@
       "failedToCompressPublicKey": "Falha ao comprimir chave pública"
     },
     "notifications": {
-      "successfullySignedMessage": "Mensagem assinada com sucesso",
       "failedToSignMessage": "Falha ao assinar mensagem",
       "failedToSignTransaction": "Falha ao assinar transação",
       "sendingTransaction": "Enviando transação...",
-      "sentTransaction": "Transação WalletConnect enviada '{userPrompt}'",
-      "signedTransaction": "Transação WalletConnect assinada '{userPrompt}'. Por favor, retorne ao dApp.",
-      "transactionSignedTitle": "Transação Assinada",
-      "transactionSent": "Transação enviada com sucesso!",
-      "transactionSigned": "Transação assinada e devolvida à dApp",
       "requestExpired": "Requisição expirou, retorne ao {dappName} se deseja tentar novamente"
     }
   },
@@ -1354,11 +1348,6 @@
     },
     "notifications": {
       "sendingTransaction": "Enviando transação...",
-      "sentTransaction": "Transação WizardConnect enviada para {dappName}",
-      "signedTransaction": "Transação WizardConnect para {dappName} assinada. Por favor, retorne ao dApp.",
-      "transactionSignedTitle": "Transação Assinada",
-      "transactionSent": "Transação enviada com sucesso!",
-      "transactionSigned": "Transação assinada e devolvida à dApp",
       "requestCancelled": "A solicitação de assinatura foi cancelada por {dappName}",
       "dappDisconnected": "A sessão WizardConnect foi desconectada por {dappName}"
     }
@@ -1904,5 +1893,27 @@
     },
     "locationLabel": "No endereço:",
     "locationScriptLabel": "Bloqueado por script:"
+  },
+  "dappActivity": {
+    "title": "Atividade recente de dApps",
+    "empty": "Nada foi assinado para uma dApp ainda",
+    "toast": {
+      "sent": "{dappName}: transação enviada",
+      "signed": "{dappName}: transação assinada e devolvida à dApp",
+      "messageSigned": "{dappName}: mensagem assinada"
+    },
+    "view": "Ver",
+    "outcome": {
+      "sent": "Enviada",
+      "signed": "Assinada, devolvida à dApp para transmitir",
+      "broadcastFailed": "Falha ao enviar",
+      "messageSigned": "Mensagem assinada"
+    },
+    "notSeenOnChain": "ainda não está no histórico",
+    "explorer": "Block explorer",
+    "showMore": "Mostrar mais",
+    "clear": "Limpar",
+    "clearTitle": "Limpar atividade de dApps",
+    "clearMessage": "Remover o registro do que esta carteira assinou para dApps? As transações continuam no histórico."
   }
 }

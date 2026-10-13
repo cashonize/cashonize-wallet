@@ -42,7 +42,7 @@ import { identityRefusal, refusalMessage, type ReservedInputsCheck } from "src/u
 import { reportDappRefusal } from "src/utils/txHelpers";
 import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRequest.vue";
 import WizPairingDialog from "src/components/wizardconnect/WizPairingDialog.vue";
-import alertDialog from "src/components/general/alertDialog.vue";
+import { notifyDappActivity } from "src/utils/dapp/notifyDappActivity";
 import { i18n } from "src/boot/i18n";
 const { t } = i18n.global;
 const settingsStore = useSettingsStore();
@@ -360,6 +360,12 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     const encodedTransaction = createSignedWizTransaction(wizTransactionObj, inputKeys);
     const signedTransactionHex = binToHex(encodedTransaction);
     const hash = binToHex(sha256.hash(sha256.hash(encodedTransaction)).reverse());
+    const activity = {
+      protocol: 'wizardconnect' as const,
+      dappName: dappNameForConnection(connectionId),
+      userPrompt: wizTransactionObj.userPrompt,
+      txid: hash,
+    };
     if (request.transaction.broadcast) {
       try {
         Notify.create({
@@ -368,44 +374,18 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
           color: 'grey-5',
           timeout: 750
         });
-        const txId = await mainStore.wallet.submitTransaction(hexToBin(signedTransactionHex));
-        const alertMessage = t('wizardConnect.notifications.sentTransaction', { dappName: dappNameForConnection(connectionId) });
-        Dialog.create({
-          component: alertDialog,
-          componentProps: {
-            alertInfo: { message: alertMessage, txid: txId }
-          }
-        });
+        await mainStore.wallet.submitTransaction(hexToBin(signedTransactionHex));
       } catch (error) {
         // the dapp still gets the node's own words below, only the user sees them classified
         displayBroadcastError(error);
+        notifyDappActivity({ ...activity, outcome: 'broadcastFailed' });
         const errorMessage = typeof error == 'string' ? error : ((error instanceof Error) ? error.message : t('wizardConnect.errors.errorSendingTransaction'));
         await manager.sendSignError(connectionId, request.sequence, 'Transaction failed to send: ' + errorMessage);
         return;
       }
     }
-    if (!request.transaction.broadcast) {
-      const alertMessage = t('wizardConnect.notifications.signedTransaction', { dappName: dappNameForConnection(connectionId) });
-      Dialog.create({
-        component: alertDialog,
-        componentProps: {
-          alertInfo: {
-            message: alertMessage,
-            txid: hash,
-            title: t('wizardConnect.notifications.transactionSignedTitle'),
-            hideExplorerLink: true,
-          }
-        }
-      });
-    }
     await manager.sendSignResponse(connectionId, request.sequence, signedTransactionHex);
-    const message = request.transaction.broadcast
-      ? t('wizardConnect.notifications.transactionSent')
-      : t('wizardConnect.notifications.transactionSigned');
-    Notify.create({
-      type: 'positive',
-      message
-    });
+    notifyDappActivity({ ...activity, outcome: request.transaction.broadcast ? 'sent' : 'signed' });
   }
 
   function dappNameForConnection(connectionId: string): string {

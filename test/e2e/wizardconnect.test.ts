@@ -140,11 +140,10 @@ test.describe.serial('WizardConnect E2E', () => {
     await expect(dappPage.locator('#wiz-response')).toContainText('signedTransaction', { timeout: RELAY_TIMEOUT })
     await expect(dappPage.locator('#wiz-response')).toContainText('"vmVerified":true')
 
-    // Wallet: dismiss the "Transaction Signed" alert dialog
-    const alertDialog = walletPage.locator('.alertDialog')
-    await alertDialog.waitFor({ timeout: 5_000 })
-    await walletPage.keyboard.press('Escape')
-    await expect(alertDialog).not.toBeVisible({ timeout: 5_000 })
+    // Wallet: a toast instead of a dialog, and the signing is in the activity log
+    await expect(walletPage.locator('.q-notification').getByText(/transaction signed and returned to the dApp/)).toBeVisible({ timeout: 5_000 })
+    await expect(walletPage.locator('.alertDialog')).toHaveCount(0)
+    await expect(walletPage.locator('.activity-entry').first()).toContainText('Wiz test transaction')
   })
 
   test('signTransaction — reject', async () => {

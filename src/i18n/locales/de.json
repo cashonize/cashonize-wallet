@@ -1312,15 +1312,9 @@
       "failedToCompressPublicKey": "Öffentlicher Schlüssel konnte nicht komprimiert werden"
     },
     "notifications": {
-      "successfullySignedMessage": "Nachricht erfolgreich signiert",
       "failedToSignMessage": "Nachricht konnte nicht signiert werden",
       "failedToSignTransaction": "Transaktion konnte nicht signiert werden",
       "sendingTransaction": "Transaktion wird gesendet...",
-      "sentTransaction": "WalletConnect-Transaktion '{userPrompt}' gesendet",
-      "signedTransaction": "WalletConnect-Transaktion '{userPrompt}' signiert. Bitte kehren Sie zur dApp zurück.",
-      "transactionSignedTitle": "Transaktion signiert",
-      "transactionSent": "Transaktion erfolgreich gesendet!",
-      "transactionSigned": "Transaktion signiert und an die dApp zurückgesendet",
       "requestExpired": "Anfrage abgelaufen, bitte kehren Sie zu {dappName} zurück, um es erneut zu versuchen"
     }
   },
@@ -1354,11 +1348,6 @@
     },
     "notifications": {
       "sendingTransaction": "Transaktion wird gesendet...",
-      "sentTransaction": "WizardConnect-Transaktion für {dappName} gesendet",
-      "signedTransaction": "WizardConnect-Transaktion für {dappName} signiert. Bitte kehren Sie zur dApp zurück.",
-      "transactionSignedTitle": "Transaktion signiert",
-      "transactionSent": "Transaktion erfolgreich gesendet!",
-      "transactionSigned": "Transaktion signiert und an die dApp zurückgesendet",
       "requestCancelled": "Signieranfrage wurde von {dappName} abgebrochen",
       "dappDisconnected": "WizardConnect-Sitzung wurde von {dappName} getrennt"
     }
@@ -1904,5 +1893,27 @@
     },
     "locationLabel": "An Adresse:",
     "locationScriptLabel": "Durch Skript gesperrt:"
+  },
+  "dappActivity": {
+    "title": "Letzte dApp-Aktivität",
+    "empty": "Noch nichts für eine dApp signiert",
+    "toast": {
+      "sent": "{dappName}: Transaktion gesendet",
+      "signed": "{dappName}: Transaktion signiert und an die dApp zurückgesendet",
+      "messageSigned": "{dappName}: Nachricht signiert"
+    },
+    "view": "Anzeigen",
+    "outcome": {
+      "sent": "Gesendet",
+      "signed": "Signiert, zum Senden an die dApp zurückgegeben",
+      "broadcastFailed": "Senden fehlgeschlagen",
+      "messageSigned": "Nachricht signiert"
+    },
+    "notSeenOnChain": "noch nicht im Verlauf",
+    "explorer": "Blockexplorer",
+    "showMore": "Mehr anzeigen",
+    "clear": "Leeren",
+    "clearTitle": "dApp-Aktivität leeren",
+    "clearMessage": "Die Aufzeichnung dessen, was dieses Wallet für dApps signiert hat, entfernen? Die Transaktionen selbst bleiben im Verlauf."
   }
 }
