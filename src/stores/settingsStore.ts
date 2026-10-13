@@ -34,14 +34,14 @@ const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 // wallet type in walletMetadata. A new option belongs here, read by the store at startup.
 export const settingsMenuKeys = [
   // user options
-  "darkMode", "confirmBeforeSending", "qrScan", "explorerMainnet", "explorerChipnet", "qrAnimation",
+  "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "qrAnimation",
   "tokenAddressQrDefault", "enableAddressMarking", "dappActivityInNav",
   // token settings
   "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
   "allowDappIdentitySpends",
   // localization, except the language: reset to one the user cannot read, they could not find
   // their way back to the setting
-  "currency", "unit", "dateFormat",
+  "currency", "dateFormat",
   // advanced settings
   "electrum-mainnet", "electrum-chipnet", "chaingraph-mainnet", "chaingraph-chipnet", "cauldronIndexer",
   "bcmrIndexerMainnet", "bcmrIndexerChipnet", "ipfsGateway", "exchangeRateProvider",

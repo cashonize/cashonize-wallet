@@ -559,6 +559,14 @@
       </div>
 
       <div style="margin-bottom: 15px;">
+        <label for="selectUnit">{{ t('settings.userOptions.selectUnit') }}</label>
+        <select v-model="selectedUnit" @change="changeUnit()">
+          <option value="bch">{{ t('settings.userOptions.bchUnit') }}</option>
+          <option value="sat">{{ t('settings.userOptions.satUnit') }}</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 15px;">
         <label for="selectExplorer">{{ t('settings.userOptions.blockExplorer') }}</label>
         <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
@@ -937,14 +945,6 @@
           <option value="aud">AUD</option>
           <option value="chf">CHF</option>
           <option value="brl">BRL</option>
-        </select>
-      </div>
-
-      <div style="margin-bottom: 15px;">
-        <label for="selectUnit">{{ t('settings.userOptions.selectUnit') }}</label>
-        <select v-model="selectedUnit" @change="changeUnit()">
-          <option value="bch">{{ t('settings.userOptions.bchUnit') }}</option>
-          <option value="sat">{{ t('settings.userOptions.satUnit') }}</option>
         </select>
       </div>
 
