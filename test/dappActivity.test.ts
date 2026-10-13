@@ -33,11 +33,11 @@ describe('dappActivity', () => {
   });
 
   it('should drop the oldest entries past the cap', () => {
-    for (let i = 0; i < 510; i++) appendDappActivity('mainnet', 'mywallet', entry(`txid${i}`));
+    for (let i = 0; i < 210; i++) appendDappActivity('mainnet', 'mywallet', entry(`txid${i}`));
     const dappActivity = loadDappActivity('mainnet', 'mywallet');
-    expect(dappActivity).toHaveLength(500);
-    expect(dappActivity[0]?.txid).toBe('txid509');
-    expect(dappActivity[499]?.txid).toBe('txid10');
+    expect(dappActivity).toHaveLength(200);
+    expect(dappActivity[0]?.txid).toBe('txid209');
+    expect(dappActivity[199]?.txid).toBe('txid10');
   });
 
   it("should keep another tab's entries when appending", () => {
