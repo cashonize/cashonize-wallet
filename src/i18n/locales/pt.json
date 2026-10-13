@@ -1405,6 +1405,7 @@
       "tokenAddressQrDefault": "Mostrar o QR code do endereço de token por padrão",
       "enableAddressMarking": "Ativar gestão avançada de endereços: marcar endereços como usados",
       "enableAddressMarkingHint": "Marcar um endereço como usado faz a carteira mostrar o próximo, assim você pode dar um endereço novo a cada pagador. Aplica-se a carteiras HD.",
+      "dappActivityInNav": "Mostrar o ícone de atividade de dApps na navegação superior",
       "followTokenIdentities": "Seguir as identidades dos tokens que tem",
       "followTokenIdentitiesHint": "A lista de tokens que tem vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligado por defeito: então só é consultada a identidade de um token cuja AuthKey esta carteira tem. Ligar consulta todos os tokens que tem em cada abertura da carteira.",
       "allowDappIdentitySpends": "Permitir que apps ligadas gastem UTXOs de identidade",
@@ -1895,22 +1896,20 @@
     "locationScriptLabel": "Bloqueado por script:"
   },
   "dappActivity": {
-    "title": "Atividade recente de dApps",
+    "title": "Atividade de dApps",
     "empty": "Nada foi assinado para uma dApp ainda",
     "toast": {
       "sent": "{dappName}: transação enviada",
       "signed": "{dappName}: transação assinada e devolvida à dApp",
       "messageSigned": "{dappName}: mensagem assinada"
     },
-    "view": "Ver",
     "outcome": {
       "sent": "Enviada",
-      "signed": "Assinada, devolvida à dApp para transmitir",
+      "signed": "Assinada para a dApp transmitir",
       "broadcastFailed": "Falha ao enviar",
       "messageSigned": "Mensagem assinada"
     },
     "notSeenOnChain": "ainda não está no histórico",
-    "explorer": "Block explorer",
     "showMore": "Mostrar mais",
     "clear": "Limpar",
     "clearTitle": "Limpar atividade de dApps",

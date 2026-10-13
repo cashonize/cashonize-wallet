@@ -1405,6 +1405,7 @@
       "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen",
       "enableAddressMarking": "Erweiterte Adressverwaltung aktivieren: Adressen als verwendet markieren",
       "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets.",
+      "dappActivityInNav": "Das dApp-Aktivitätssymbol in der oberen Navigation anzeigen",
       "followTokenIdentities": "Die Identitäten der gehaltenen Tokens verfolgen",
       "followTokenIdentitiesHint": "Die Liste der gehaltenen Tokens geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Standardmäßig aus: dann wird nur die Identität eines Tokens nachgeschlagen, dessen AuthKey dieses Wallet hält. Einschalten schlägt bei jedem Öffnen des Wallets jeden gehaltenen Token nach.",
       "allowDappIdentitySpends": "Verbundene Apps dürfen Identitäts-UTXOs ausgeben",
@@ -1895,22 +1896,20 @@
     "locationScriptLabel": "Durch Skript gesperrt:"
   },
   "dappActivity": {
-    "title": "Letzte dApp-Aktivität",
+    "title": "dApp-Aktivität",
     "empty": "Noch nichts für eine dApp signiert",
     "toast": {
       "sent": "{dappName}: Transaktion gesendet",
       "signed": "{dappName}: Transaktion signiert und an die dApp zurückgesendet",
       "messageSigned": "{dappName}: Nachricht signiert"
     },
-    "view": "Anzeigen",
     "outcome": {
       "sent": "Gesendet",
-      "signed": "Signiert, zum Senden an die dApp zurückgegeben",
+      "signed": "Signiert, die dApp sendet sie",
       "broadcastFailed": "Senden fehlgeschlagen",
       "messageSigned": "Nachricht signiert"
     },
     "notSeenOnChain": "noch nicht im Verlauf",
-    "explorer": "Blockexplorer",
     "showMore": "Mehr anzeigen",
     "clear": "Leeren",
     "clearTitle": "dApp-Aktivität leeren",

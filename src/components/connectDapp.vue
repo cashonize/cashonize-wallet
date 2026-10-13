@@ -16,7 +16,7 @@
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
   import CCSessions from 'src/components/cashconnect/CCSessions.vue'
   import WizSessions from 'src/components/wizardconnect/WizSessions.vue'
-  import DappActivityLog from 'src/components/history/dappActivityLog.vue'
+  import DappActivityButton from 'src/components/history/dappActivityButton.vue'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { caughtErrorToString } from 'src/utils/errorHandling';
@@ -160,15 +160,14 @@
       </div>
     </fieldset>
 
-    <fieldset class="item">
+    <fieldset class="item sessions-fieldset">
       <legend>{{ t('dapp.sessionsTitle') }}</legend>
+      <DappActivityButton class="sessions-activity-button" />
       <WCSessions />
       <CCSessions />
       <WizSessions />
       <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
     </fieldset>
-
-    <DappActivityLog />
 
     <i18n-t keypath="dapp.exploreDapps" tag="div" class="explore-dapps-note">
       <template #link>
@@ -186,6 +185,16 @@
   .sessions-section-heading {
     font-weight: 600;
     margin: 8px 0 2px;
+  }
+  .sessions-fieldset {
+    position: relative;
+    padding-bottom: 12px;
+  }
+  /* the activity log's entry point, in the corner rather than on its own line */
+  .sessions-activity-button {
+    position: absolute;
+    top: 4px;
+    right: 8px;
   }
   /* Styled like the about-page note on the onboarding page */
   .explore-dapps-note {

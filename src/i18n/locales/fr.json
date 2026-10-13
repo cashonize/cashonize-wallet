@@ -1405,6 +1405,7 @@
       "tokenAddressQrDefault": "Afficher le code QR de l'adresse de token par défaut",
       "enableAddressMarking": "Activer la gestion avancée des adresses : marquer les adresses comme utilisées",
       "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD.",
+      "dappActivityInNav": "Afficher l'icône d'activité dApp dans la navigation supérieure",
       "followTokenIdentities": "Suivre les identités des tokens que vous détenez",
       "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens détenus à chaque ouverture du portefeuille.",
       "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
@@ -1895,22 +1896,20 @@
     "locationScriptLabel": "Verrouillé par script :"
   },
   "dappActivity": {
-    "title": "Activité dApp récente",
+    "title": "Activité dApp",
     "empty": "Rien n'a encore été signé pour une dApp",
     "toast": {
       "sent": "{dappName} : transaction envoyée",
       "signed": "{dappName} : transaction signée et renvoyée à la dApp",
       "messageSigned": "{dappName} : message signé"
     },
-    "view": "Voir",
     "outcome": {
       "sent": "Envoyée",
-      "signed": "Signée, renvoyée à la dApp pour diffusion",
+      "signed": "Signée, diffusion par la dApp",
       "broadcastFailed": "Échec de l'envoi",
       "messageSigned": "Message signé"
     },
     "notSeenOnChain": "pas encore dans l'historique",
-    "explorer": "Explorateur de blocs",
     "showMore": "Afficher plus",
     "clear": "Effacer",
     "clearTitle": "Effacer l'activité dApp",

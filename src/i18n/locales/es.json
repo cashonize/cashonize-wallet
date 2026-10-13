@@ -1405,6 +1405,7 @@
       "tokenAddressQrDefault": "Mostrar el código QR de la dirección de token por defecto",
       "enableAddressMarking": "Habilitar gestión avanzada de direcciones: marcar direcciones como usadas",
       "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD.",
+      "dappActivityInNav": "Mostrar el icono de actividad de dApps en la navegación superior",
       "followTokenIdentities": "Seguir las identidades de los tokens que tienes",
       "followTokenIdentitiesHint": "La lista de tokens que tienes se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivado por defecto: entonces solo se consulta la identidad de un token cuya AuthKey tiene esta billetera. Activarlo consulta todos los tokens que tienes en cada apertura de la billetera.",
       "allowDappIdentitySpends": "Permitir que las apps conectadas gasten UTXOs de identidad",
@@ -1895,22 +1896,20 @@
     "locationScriptLabel": "Bloqueado por script:"
   },
   "dappActivity": {
-    "title": "Actividad reciente de dApps",
+    "title": "Actividad de dApps",
     "empty": "Todavía no se ha firmado nada para una dApp",
     "toast": {
       "sent": "{dappName}: transacción enviada",
       "signed": "{dappName}: transacción firmada y devuelta a la dApp",
       "messageSigned": "{dappName}: mensaje firmado"
     },
-    "view": "Ver",
     "outcome": {
       "sent": "Enviada",
-      "signed": "Firmada, devuelta a la dApp para que la envíe",
+      "signed": "Firmada para que la dApp la envíe",
       "broadcastFailed": "Error al enviar",
       "messageSigned": "Mensaje firmado"
     },
     "notSeenOnChain": "aún no está en el historial",
-    "explorer": "Explorador de bloques",
     "showMore": "Mostrar más",
     "clear": "Borrar",
     "clearTitle": "Borrar actividad de dApps",

@@ -1405,6 +1405,7 @@
       "tokenAddressQrDefault": "Show token address QR code by default",
       "enableAddressMarking": "Enable advanced address management: mark addresses as used",
       "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets.",
+      "dappActivityInNav": "Show the dApp activity icon in the top navigation",
       "followTokenIdentities": "Follow the identities of the tokens you hold",
       "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every held token at every wallet open.",
       "allowDappIdentitySpends": "Let connected apps spend identity UTXOs",
@@ -1895,22 +1896,20 @@
     "locationScriptLabel": "Locked by script:"
   },
   "dappActivity": {
-    "title": "Recent dApp activity",
+    "title": "dApp activity",
     "empty": "Nothing signed for a dApp yet",
     "toast": {
       "sent": "{dappName}: transaction sent",
       "signed": "{dappName}: transaction signed and returned to the dApp",
       "messageSigned": "{dappName}: message signed"
     },
-    "view": "View",
     "outcome": {
       "sent": "Sent",
-      "signed": "Signed, returned to the dApp to broadcast",
+      "signed": "Signed for the dApp to broadcast",
       "broadcastFailed": "Broadcast failed",
       "messageSigned": "Message signed"
     },
     "notSeenOnChain": "not in the history yet",
-    "explorer": "Block explorer",
     "showMore": "Show more",
     "clear": "Clear",
     "clearTitle": "Clear dApp activity",
