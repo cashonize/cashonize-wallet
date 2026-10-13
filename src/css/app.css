@@ -170,25 +170,26 @@ img {
   transition: transform 0.15s;
 }
 /* Crop the qr's baked-in 4-module quiet zone in dark mode, where the white border
-   around the code is visible: scale the code up inside the frame and scale the frame
-   back down by the same factor, so the modules keep their exact size and the frame
+   around the code is visible: a transparent border insets the white frame, and the code
+   overflows it by the same amount, so the modules keep their exact size and the frame
    keeps the space it took up in light mode. About 2 modules of white padding remain,
-   still scannable. */
+   still scannable. A border rather than a scale transform pair: the transforms resampled
+   the code, which left it soft at rest and blurry whenever the icon's fade composited it. */
 body.dark .qr-frame {
-  --qr-crop: 1.06;
+  --qr-crop: 6.5px;
+  border: var(--qr-crop) solid transparent;
   border-radius: 12px;
-  transform: scale(calc(1 / var(--qr-crop)));
+  background-clip: padding-box;
 }
 body.dark .qr-code {
-  transform: scale(var(--qr-crop));
+  width: calc(100% + 2 * var(--qr-crop));
+  height: calc(100% + 2 * var(--qr-crop));
+  margin: calc(-1 * var(--qr-crop));
 }
 /* press feedback for the copy-on-click, a shrink rather than the copy icon's grow
    because the qr code is far too large to pop up by the same factor */
 .qr-code:active {
   transform: scale(0.97);
-}
-body.dark .qr-code:active {
-  transform: scale(calc(var(--qr-crop) * 0.97));
 }
 .depositAddr,
 .category {

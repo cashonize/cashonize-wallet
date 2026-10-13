@@ -95,15 +95,25 @@ $rippleEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
    The fill is backwards, not both: every preset ends on the element's natural state, so filling
    forwards only leaves a finished animation applying an identity transform or an opacity of one.
    That kept the whole code on a compositing path it does not need, so it settled measurably
-   softer than the same code rendered without an animation. */
+   softer than the same code rendered without an animation.
+   The fades animate the modules' fill-opacity rather than their opacity for the same reason:
+   Chrome composites an opacity animation on svg elements, resampling every module at a
+   subpixel offset, so the whole code renders blurry until the intro ends. A fill-opacity
+   animation repaints in place. The icon is html and keeps opacity. */
 @media (prefers-reduced-motion: no-preference) {
   .qrContainer.animate-FadeInTopDown {
-    :deep(.module), :deep(.position-ring), :deep(.position-center), .iconWrapper {
+    :deep(.module), :deep(.position-ring), :deep(.position-center) {
+      animation: qrFadeInFill 300ms ease backwards;
+    }
+    .iconWrapper {
       animation: qrFadeIn 300ms ease backwards;
     }
   }
   .qrContainer.animate-FadeInCenterOut, .qrContainer.animate-MaterializeIn {
-    :deep(.module), :deep(.position-ring), :deep(.position-center), .iconWrapper {
+    :deep(.module), :deep(.position-ring), :deep(.position-center) {
+      animation: qrFadeInFill 200ms ease backwards;
+    }
+    .iconWrapper {
       animation: qrFadeIn 200ms ease backwards;
     }
   }
@@ -132,6 +142,10 @@ $rippleEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
 @keyframes qrFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+@keyframes qrFadeInFill {
+  from { fill-opacity: 0; }
+  to { fill-opacity: 1; }
 }
 
 /* The ripple offsets and scales come from the underdamped harmonic oscillation the library
