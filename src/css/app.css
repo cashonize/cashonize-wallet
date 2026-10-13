@@ -255,16 +255,16 @@ input[type='number'] {
 .item {
   margin: 10px;
 }
-/* the arrow that switches between the wallet's addresses, on the wallet page and the address list.
-   Flipped around the vertical axis rather than in-plane: the glyph's ink is horizontally centered
-   in its box but sits below the vertical center (text baseline), so rotate(180deg) would visibly
-   displace it. */
+/* the arrows that switch between the wallet's addresses, on the wallet page and the address list:
+   an icon rather than the ⇄ character, which each platform's fallback font draws differently.
+   Mirrored with a 2D scaleX rather than rotateY(180deg): a 3D transform can leave the icon on its
+   own compositing layer, resampled and soft. */
 .switchAddressButton {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 24px;
+  line-height: 1;
 }
 .switchAddressButton.flipped {
-  transform: rotateY(180deg);
+  transform: scaleX(-1);
 }
 
 /* the options/search toggles on the list views (history, tokens, addresses): a grey glyph that

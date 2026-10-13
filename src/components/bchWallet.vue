@@ -324,7 +324,8 @@
       </QrCode>
     </div>
     <div style="text-align: center;">
-      <div class="switchAddressButton icon" :class="{ flipped: !displayBchQr }" @click="switchAddressTypeQr()">⇄
+      <div class="switchAddressButton icon" :class="{ flipped: !displayBchQr }" @click="switchAddressTypeQr()">
+        <q-icon name="swap_horiz" />
       </div>
     </div>
     <div>

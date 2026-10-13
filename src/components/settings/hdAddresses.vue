@@ -302,7 +302,7 @@
         <img class="copyIcon" src="images/copyGrey.svg">
       </div>
       <div class="switch-address" @click="qrDialogTokenAddress = !qrDialogTokenAddress">
-        <span class="switchAddressButton" :class="{ flipped: qrDialogTokenAddress }">⇄</span>
+        <span class="switchAddressButton" :class="{ flipped: qrDialogTokenAddress }"><q-icon name="swap_horiz" /></span>
         {{ qrDialogTokenAddress ? t('hdAddresses.changeToRegularAddress') : t('hdAddresses.changeToTokenAddress') }}
       </div>
     </q-card>
