@@ -32,7 +32,7 @@
   const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
   const applicationVersion = import.meta.env.version
 
-  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(0);
+  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(0);
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -166,7 +166,7 @@
     localStorageSizeMB.value = calculateLocalStorageSizeMB()
   };
 
-  // Loading cache sizes during setup to have the sizes available immediately in the 'advanced settings' submenu.
+  // Loading cache sizes during setup to have the sizes available immediately in the 'data and storage' submenu.
   // Use as fire-and-forget to avoid blocking the setup process.
   void loadCacheSizes()
 
@@ -650,7 +650,7 @@
         <q-toggle v-model="selectedAllowDappIdentitySpends" @update:model-value="toggleAllowDappIdentitySpends" dense />
       </div>
     </div>
-    <div v-else-if="settingsSection == 3">
+    <div v-else-if="settingsSection == 3" style="padding-bottom: 15px;">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
         <InfoPopup>
           <template #trigger>
@@ -869,7 +869,9 @@
         </div>
       </div>
 
-      <div style="margin-top:15px;">{{ t('settings.advanced.deleteAllWallets', { platform: platformString }) }}
+    </div>
+    <div v-else-if="settingsSection == 8">
+      <div>{{ t('settings.advanced.deleteAllWallets', { platform: platformString }) }}
         <div v-if="isPwaMode" style="color: red">
           {{ t('settings.advanced.pwaDeleteWarning') }}
         </div>
@@ -1007,6 +1009,10 @@
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 3">
         ↳ {{ t('settings.menu.advancedSettings') }}
+      </div>
+
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 8">
+        ↳ {{ t('settings.menu.dataAndStorage') }}
       </div>
 
       <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 4">
