@@ -1,4 +1,4 @@
-import { loadDappActivity, appendDappActivity, clearDappActivity, removeDappActivity, type DappActivityEntry } from "../src/utils/dapp/dappActivity";
+import { loadDappActivity, appendDappActivity, clearDappActivity, removeDappActivity, loadDappActivitySeen, saveDappActivitySeen, type DappActivityEntry } from "../src/utils/dapp/dappActivity";
 
 // The global setup stubs localStorage as a no-op; these tests need a working store
 function makeLocalStorage() {
@@ -55,13 +55,24 @@ describe('dappActivity', () => {
     expect(loadDappActivity('mainnet', 'mywallet')).toEqual([]);
   });
 
+  it('should remember when the log was last opened, per wallet per network', () => {
+    expect(loadDappActivitySeen('mainnet', 'mywallet')).toBe(0);
+    saveDappActivitySeen('mainnet', 'mywallet', 1234);
+    expect(loadDappActivitySeen('mainnet', 'mywallet')).toBe(1234);
+    expect(loadDappActivitySeen('chipnet', 'mywallet')).toBe(0);
+    localStorage.setItem('dappActivitySeen-mainnet-mywallet', 'garbage');
+    expect(loadDappActivitySeen('mainnet', 'mywallet')).toBe(0);
+  });
+
   it('should clear one network and remove both on wallet deletion', () => {
     appendDappActivity('mainnet', 'mywallet', entry('txid1'));
     appendDappActivity('chipnet', 'mywallet', entry('txid2'));
     clearDappActivity('mainnet', 'mywallet');
     expect(loadDappActivity('mainnet', 'mywallet')).toEqual([]);
     expect(loadDappActivity('chipnet', 'mywallet')).toHaveLength(1);
+    saveDappActivitySeen('chipnet', 'mywallet', 1234);
     removeDappActivity('mywallet');
     expect(loadDappActivity('chipnet', 'mywallet')).toEqual([]);
+    expect(loadDappActivitySeen('chipnet', 'mywallet')).toBe(0);
   });
 });

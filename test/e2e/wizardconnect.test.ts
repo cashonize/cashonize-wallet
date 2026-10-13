@@ -143,9 +143,11 @@ test.describe.serial('WizardConnect E2E', () => {
     // Wallet: a toast instead of a dialog, and the signing is in the activity log
     await expect(walletPage.locator('.q-notification').getByText(/transaction signed and returned to the dApp/)).toBeVisible({ timeout: 5_000 })
     await expect(walletPage.locator('.alertDialog')).toHaveCount(0)
-    await walletPage.locator('.sessions-activity-button button').click()
+    await expect(walletPage.locator('.sessions-activity-button .notification-count')).toBeVisible()
+    await walletPage.locator('.sessions-activity-button .activity-trigger').click()
     await expect(walletPage.locator('.activity-entry').first()).toContainText('Wiz test transaction')
     await walletPage.keyboard.press('Escape')
+    await expect(walletPage.locator('.sessions-activity-button .notification-count')).toHaveCount(0)
   })
 
   test('signTransaction — reject', async () => {

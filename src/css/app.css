@@ -108,6 +108,20 @@ img {
   background-color: var(--color-primary);
   border-radius: 50%;
 }
+/* the dot with a number in it, for a count of new items */
+.notification-count {
+  display: inline-block;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
 /* two gentle pulse rings when the dot appears, then rest */
 .notification-dot::after {
   content: '';

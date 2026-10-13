@@ -1,6 +1,7 @@
 <script setup lang="ts">
-  // An icon opening the log of what this wallet signed for dapps (see utils/dapp/dappActivity.ts).
-  // On the dapp sessions and, when the user opts in, in the top nav.
+  // Opens the log of what this wallet signed for dapps (see utils/dapp/dappActivity.ts), with a
+  // count of what arrived since it was last opened. Labelled on the dapp sessions; icon-only in the
+  // top nav, where the user can opt in to it.
   import { computed, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
@@ -8,6 +9,8 @@
   import { copyToClipboard, formatReadableDate } from 'src/utils/utils'
   import { confirmDialog } from 'src/utils/txHelpers'
   import type { DappActivityEntry } from 'src/utils/dapp/dappActivity'
+
+  const props = withDefaults(defineProps<{ iconOnly?: boolean }>(), { iconOnly: false })
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -34,6 +37,7 @@
   function openLog() {
     shownCount.value = pageSize;
     showDialog.value = true;
+    store.markDappActivitySeen();
   }
 
   async function clearLog() {
@@ -46,9 +50,15 @@
 
 <template>
   <span>
-    <q-btn icon="receipt_long" flat round dense size="sm" :aria-label="t('dappActivity.title')" @click="openLog">
-      <q-tooltip>{{ t('dappActivity.title') }}</q-tooltip>
-    </q-btn>
+    <span v-if="props.iconOnly" class="activity-trigger" role="button" :aria-label="t('dappActivity.title')" @click="openLog">
+      <q-icon name="receipt_long" size="20px" />
+      <span v-if="store.unseenDappActivityCount" class="notification-count activity-count-corner">{{ store.unseenDappActivityCount }}</span>
+    </span>
+    <span v-else class="activity-trigger activity-link" role="button" @click="openLog">
+      <q-icon name="receipt_long" size="18px" />
+      {{ t('dappActivity.title') }}
+      <span v-if="store.unseenDappActivityCount" class="notification-count">{{ store.unseenDappActivityCount }}</span>
+    </span>
 
     <q-dialog v-model="showDialog">
       <q-card style="width: 500px" class="activityDialog">
@@ -92,6 +102,22 @@
 </template>
 
 <style scoped>
+.activity-trigger {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+.activity-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-grey);
+}
+.activity-count-corner {
+  position: absolute;
+  top: -6px;
+  right: -12px;
+}
 body.dark .activityDialog {
   background-color: var(--bg-color);
 }

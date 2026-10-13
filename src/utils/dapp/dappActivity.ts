@@ -54,8 +54,23 @@ export function clearDappActivity(network: Network, walletName: string) {
   localStorage.removeItem(dappActivityKey(network, walletName));
 }
 
+// When the log was last opened, so its entry points can count what arrived since
+function dappActivitySeenKey(network: Network, walletName: string): string {
+  return `dappActivitySeen-${network}-${walletName}`;
+}
+
+export function loadDappActivitySeen(network: Network, walletName: string): number {
+  return Number(localStorage.getItem(dappActivitySeenKey(network, walletName))) || 0;
+}
+
+export function saveDappActivitySeen(network: Network, walletName: string, time: number) {
+  localStorage.setItem(dappActivitySeenKey(network, walletName), String(time));
+}
+
 // A future wallet created under the same name must not inherit the old wallet's activity
 export function removeDappActivity(walletName: string) {
-  clearDappActivity('mainnet', walletName);
-  clearDappActivity('chipnet', walletName);
+  for (const network of ['mainnet', 'chipnet'] as const) {
+    clearDappActivity(network, walletName);
+    localStorage.removeItem(dappActivitySeenKey(network, walletName));
+  }
 }

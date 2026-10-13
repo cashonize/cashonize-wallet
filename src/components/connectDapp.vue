@@ -162,11 +162,11 @@
 
     <fieldset class="item sessions-fieldset">
       <legend>{{ t('dapp.sessionsTitle') }}</legend>
-      <DappActivityButton class="sessions-activity-button" />
       <WCSessions />
       <CCSessions />
       <WizSessions />
       <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
+      <DappActivityButton class="sessions-activity-button" />
     </fieldset>
 
     <i18n-t keypath="dapp.exploreDapps" tag="div" class="explore-dapps-note">
@@ -187,14 +187,12 @@
     margin: 8px 0 2px;
   }
   .sessions-fieldset {
-    position: relative;
     padding-bottom: 12px;
   }
-  /* the activity log's entry point, in the corner rather than on its own line */
+  /* the activity log's entry point, under the sessions it is about */
   .sessions-activity-button {
-    position: absolute;
-    top: 4px;
-    right: 8px;
+    display: block;
+    margin-top: 12px;
   }
   /* Styled like the about-page note on the onboarding page */
   .explore-dapps-note {

@@ -62,7 +62,7 @@ import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { listingsFromHistory, fetchActiveListings, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { hodlContractsFromHistory, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
-import { type DappActivityEntry, loadDappActivity, appendDappActivity, clearDappActivity, removeDappActivity } from "src/utils/dapp/dappActivity"
+import { type DappActivityEntry, loadDappActivity, appendDappActivity, clearDappActivity, removeDappActivity, loadDappActivitySeen, saveDappActivitySeen } from "src/utils/dapp/dappActivity"
 import {
   loadAddressMarks,
   saveAddressMark,
@@ -157,6 +157,10 @@ export const useStore = defineStore('store', () => {
   const txNotes = ref({} as Record<string, string>);
   // What the active wallet signed for dapps, newest first (see utils/dapp/dappActivity.ts)
   const dappActivity = ref([] as DappActivityEntry[]);
+  const dappActivitySeenAt = ref(0);
+  // what was signed since the log was last opened, counted on its entry points
+  const unseenDappActivityCount = computed(() =>
+    dappActivity.value.filter(entry => entry.time > dappActivitySeenAt.value).length);
   // The history labels a dapp transaction with the latest entry for its txid
   const dappActivityByTxid = computed(() => {
     const byTxid = new Map<string, DappActivityEntry>();
@@ -406,6 +410,7 @@ export const useStore = defineStore('store', () => {
     const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
     txNotes.value = loadTxNotes(newNetwork, newWallet.name);
     dappActivity.value = loadDappActivity(newNetwork, newWallet.name);
+    dappActivitySeenAt.value = loadDappActivitySeen(newNetwork, newWallet.name);
     addressMarks.value = loadAddressMarks(newNetwork, newWallet.name);
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
     reservedUtxos.value = loadReservedUtxos(newNetwork, newWallet.name);
@@ -429,6 +434,10 @@ export const useStore = defineStore('store', () => {
 
   function recordDappActivity(entry: Omit<DappActivityEntry, 'time'>) {
     dappActivity.value = appendDappActivity(network.value, wallet.value.name, { time: Date.now(), ...entry });
+  }
+  function markDappActivitySeen() {
+    dappActivitySeenAt.value = Date.now();
+    saveDappActivitySeen(network.value, wallet.value.name, dappActivitySeenAt.value);
   }
   function clearActiveDappActivity() {
     clearDappActivity(network.value, wallet.value.name);
@@ -1698,9 +1707,11 @@ export const useStore = defineStore('store', () => {
     txNotes,
     dappActivity,
     dappActivityByTxid,
+    unseenDappActivityCount,
     setTxNote,
     recordDappActivity,
     clearActiveDappActivity,
+    markDappActivitySeen,
     addressMarks,
     addressLabels,
     currentAddressIndex,

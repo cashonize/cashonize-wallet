@@ -249,7 +249,7 @@
       <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ t('nav.history') }} </div>
       <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ t('nav.connect') }} </div>
       <div v-if="settingsStore.dappActivityInNav" class="nav-dapp-activity">
-        <DappActivityButton />
+        <DappActivityButton icon-only />
       </div>
       <div @click="store.changeView(5)" style="width: max-content; position: relative;">
         <img style="vertical-align: text-bottom;" :src="store.displayView == 5 ? 'images/settingsGreen.svg' : (
