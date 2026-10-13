@@ -23,7 +23,7 @@
   const walletconnectStore = useWalletconnectStore()
   const cashconnectStore = useCashconnectStore()
   const { t } = useI18n()
-  import { useWindowSize } from 'src/utils/composables'
+  import { useWindowSize, addressesNavTabMinWidth } from 'src/utils/composables'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
@@ -1013,7 +1013,7 @@
         ↳ {{ t('settings.menu.developerSettings') }}
       </div>
 
-      <div v-if="settingsStore.getWalletType(store.activeWalletName) === 'hd'" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(10)">
+      <div v-if="settingsStore.getWalletType(store.activeWalletName) === 'hd' && width <= addressesNavTabMinWidth" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(10)">
         → {{ t('settings.menu.hdAddresses') }}
       </div>
 

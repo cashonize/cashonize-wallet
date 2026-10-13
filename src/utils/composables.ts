@@ -6,6 +6,10 @@ interface UseWindowSizeReturn {
   height: Ref<number>
 }
 
+// Above this window width the nav has room for an Addresses tab for HD wallets; below it the
+// settings menu links to the same view instead
+export const addressesNavTabMinWidth = 450;
+
 // Minimal useWindowSize, adapted from @vueuse/core
 // https://github.com/vueuse/vueuse/blob/main/packages/core/useWindowSize/index.ts
 export function useWindowSize(): UseWindowSizeReturn {
