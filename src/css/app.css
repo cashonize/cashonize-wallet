@@ -192,7 +192,8 @@ img {
 body.dark .qr-frame {
   --qr-crop: 6.5px;
   border: var(--qr-crop) solid transparent;
-  border-radius: 12px;
+  /* the white is drawn inside the border, where the corner's radius is this one minus the border */
+  border-radius: calc(12px + var(--qr-crop));
   background-clip: padding-box;
 }
 body.dark .qr-code {
