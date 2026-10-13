@@ -6,6 +6,7 @@
   import historyView from 'src/components/history/txHistory.vue'
   import settingsMenu from 'src/components/settingsMenu.vue'
   import DappActivityButton from 'src/components/history/dappActivityButton.vue'
+  import HeaderLogo from 'src/components/general/headerLogo.vue'
   import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/settings/createTokens.vue'
   import utxoManagement from 'src/components/settings/utxoManagement.vue'
@@ -241,7 +242,7 @@
 
 <template>
   <header>
-    <img :src="settingsStore.darkMode? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet" style="height: 85px;" >
+    <HeaderLogo />
     <nav v-if="store.displayView" style="display: flex; justify-content: center; user-select: none;" class="tabs" :class="{ compact: compactNavTabs }">
       <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ t('nav.wallet') }} </div>
       <div v-if="width > addressesNavTabMinWidth && store.wallet.walletType === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
