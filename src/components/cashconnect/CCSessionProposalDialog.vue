@@ -10,6 +10,7 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 import CCViewTemplateDialog from './CCViewTemplateDialog.vue';
+import TokenIcon from '../general/TokenIcon.vue';
 import { caughtErrorToString } from 'src/utils/errorHandling';
 import { type BcmrTokenResponse } from 'src/utils/zodValidation';
 
@@ -62,20 +63,17 @@ function getTokenName(categoryId: string) {
 }
 
 function getTokenIcon(categoryId: string) {
+  if (settingsStore.disableTokenIcons) return undefined;
   // NOTE: This is a remote payload, so we wrap in a try/catch for graceful failure.
   try {
-    const tokenInfo = tokens.value[categoryId];
-
-    if(!tokenInfo?.uris?.icon) {
-      return categoryId;
-    }
-
-    return gatewayUrl(tokenInfo.uris.icon, settingsStore.ipfsGateway);
+    const tokenIconUri = tokens.value[categoryId]?.uris?.icon;
+    if (!tokenIconUri) return undefined;
+    return gatewayUrl(tokenIconUri, settingsStore.ipfsGateway);
   } catch(error) {
     const errorMessage = caughtErrorToString(error)
     console.error(errorMessage)
 
-    return categoryId;
+    return undefined;
   }
 }
 
@@ -136,9 +134,7 @@ for (const tokenId of allowedTokens) {
               <div class="cc-modal-heading">{{ t('cashConnect.sessionProposal.willSeeTokens') }}</div>
               <ul>
                 <li v-for="(allowedToken, i) of session.allowedTokens" :key="i" class="q-mb-xs">
-                  <q-avatar size="18px" class="q-mr-xs">
-                    <q-img :src="getTokenIcon(allowedToken)" />
-                  </q-avatar>
+                  <TokenIcon :token-id="allowedToken" :icon-url="getTokenIcon(allowedToken)" :size="18" class="q-mr-xs" />
                   <span>
                     {{ getTokenName(allowedToken) }}
                     <q-tooltip>{{ allowedToken }}</q-tooltip>

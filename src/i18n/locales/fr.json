@@ -1419,7 +1419,9 @@
       "followTokenIdentities": "Suivre les identités des tokens que vous détenez",
       "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens détenus à chaque ouverture du portefeuille.",
       "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
-      "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les AuthKeys ne sont pas concernées : une requête qui en utilise une est signée quand l'AuthKey revient, ce qui est le fonctionnement de CashTokens Studio."
+      "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les AuthKeys ne sont pas concernées : une requête qui en utilise une est signée quand l'AuthKey revient, ce qui est le fonctionnement de CashTokens Studio.",
+      "disableTokenIcons": "Désactiver le chargement des images de tokens",
+      "disableTokenIconsHint": "Les images de tokens et de NFT peuvent être hébergées sur n'importe quel serveur choisi par le créateur du token, qui voit votre adresse IP lorsqu'une image se charge."
     },
     "advanced": {
       "electrumMainnet": "Serveur Electrum mainnet :",
@@ -1471,8 +1473,6 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Activer la création de NFTs",
       "enableMintNftsHint": "Ajoute une action de création aux NFTs de création, vous permettant de créer plus de NFTs dans la même catégorie",
-      "disableTokenIcons": "Désactiver le chargement des images de tokens",
-      "disableTokenIconsHint": "Empêche le chargement des images de tokens depuis des serveurs externes",
       "strictWcSchema": "Validation stricte du schéma WalletConnect",
       "strictWcSchemaHint": "Applique la spécification WC2-BCH à la lettre. Activez-le lors du développement d'une dApp pour détecter les payloads non conformes.",
       "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",

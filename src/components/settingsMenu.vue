@@ -603,6 +603,14 @@
       </div>
 
       <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.disableTokenIcons') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.disableTokenIconsHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="disableTokenIcons" @update:model-value="changeDisableTokenIcons()" dense />
+      </div>
+
+      <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.enableTokenBurn') }} <q-toggle v-model="selectedTokenBurn" @update:model-value="changeTokenBurn()" dense />
       </div>
 
@@ -888,13 +896,6 @@
         {{ t('settings.developer.nonTokenIdentities') }} <q-toggle v-model="enableNonTokenIdentities" @update:model-value="changeNonTokenIdentities()" dense />
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.nonTokenIdentitiesHint') }}
-        </div>
-      </div>
-
-      <div style="margin-top:15px; margin-bottom: 15px">
-        {{ t('settings.developer.disableTokenIcons') }} <q-toggle v-model="disableTokenIcons" @update:model-value="changeDisableTokenIcons()" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.developer.disableTokenIconsHint') }}
         </div>
       </div>
 

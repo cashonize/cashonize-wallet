@@ -1419,7 +1419,9 @@
       "followTokenIdentities": "Seguir as identidades dos tokens que tem",
       "followTokenIdentitiesHint": "A lista de tokens que tem vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligado por defeito: então só é consultada a identidade de um token cuja AuthKey esta carteira tem. Ligar consulta todos os tokens que tem em cada abertura da carteira.",
       "allowDappIdentitySpends": "Permitir que apps ligadas gastem UTXOs de identidade",
-      "allowDappIdentitySpendsHint": "Desligado: um pedido WalletConnect ou WizardConnect que gaste o UTXO de uma identidade desta carteira é recusado, como um UTXO comprometido. Ligado: o pedido chega ao diálogo de aprovação, que nomeia a identidade e diz o que o seu UTXO carrega antes e depois. Um pedido que tirasse uma identidade desta carteira é recusado em ambos os casos. As AuthKeys não são afetadas: um pedido que use uma é assinado quando a AuthKey volta, que é como o CashTokens Studio funciona."
+      "allowDappIdentitySpendsHint": "Desligado: um pedido WalletConnect ou WizardConnect que gaste o UTXO de uma identidade desta carteira é recusado, como um UTXO comprometido. Ligado: o pedido chega ao diálogo de aprovação, que nomeia a identidade e diz o que o seu UTXO carrega antes e depois. Um pedido que tirasse uma identidade desta carteira é recusado em ambos os casos. As AuthKeys não são afetadas: um pedido que use uma é assinado quando a AuthKey volta, que é como o CashTokens Studio funciona.",
+      "disableTokenIcons": "Desabilitar carregamento de imagens dos tokens",
+      "disableTokenIconsHint": "As imagens de tokens e NFTs podem estar hospedadas em qualquer servidor escolhido pelo criador do token, que vê o seu endereço IP quando uma imagem é carregada."
     },
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
@@ -1471,8 +1473,6 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Habilitar mint de NFTs",
       "enableMintNftsHint": "Adiciona uma ação de mint aos NFTs de minting, permitindo criar mais NFTs na mesma categoria",
-      "disableTokenIcons": "Desabilitar carregamento de imagens dos tokens",
-      "disableTokenIconsHint": "Impede o carregamento de imagens de tokens de servidores externos",
       "strictWcSchema": "Validação estrita do schema WalletConnect",
       "strictWcSchemaHint": "Aplica a especificação WC2-BCH exatamente. Ative ao desenvolver um dApp para detectar payloads não conformes.",
       "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",

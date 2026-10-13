@@ -1419,7 +1419,9 @@
       "followTokenIdentities": "Follow the identities of the tokens you hold",
       "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every held token at every wallet open.",
       "allowDappIdentitySpends": "Let connected apps spend identity UTXOs",
-      "allowDappIdentitySpendsHint": "Off: a WalletConnect or WizardConnect request that spends the UTXO of one of this wallet's identities is refused, the way a pledged UTXO is. On: the request reaches the approval dialog, which names the identity and says what its UTXO carries before and after. A request that would move an identity out of this wallet is refused either way. AuthKeys are not affected: a request using one is signed when the AuthKey comes back, which is how CashTokens Studio works."
+      "allowDappIdentitySpendsHint": "Off: a WalletConnect or WizardConnect request that spends the UTXO of one of this wallet's identities is refused, the way a pledged UTXO is. On: the request reaches the approval dialog, which names the identity and says what its UTXO carries before and after. A request that would move an identity out of this wallet is refused either way. AuthKeys are not affected: a request using one is signed when the AuthKey comes back, which is how CashTokens Studio works.",
+      "disableTokenIcons": "Disable token image loading",
+      "disableTokenIconsHint": "Token and NFT images can be hosted on any server the token's creator picks, which sees your IP address when an image loads."
     },
     "advanced": {
       "electrumMainnet": "Electrum server mainnet:",
@@ -1471,8 +1473,6 @@
       "chipnet": "chipnet",
       "enableMintNfts": "Enable mint NFTs",
       "enableMintNftsHint": "Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category",
-      "disableTokenIcons": "Disable token image loading",
-      "disableTokenIconsHint": "Prevents loading token images from external servers",
       "strictWcSchema": "Strict WalletConnect schema validation",
       "strictWcSchemaHint": "Enforces the WC2-BCH spec exactly. Enable this when developing a dApp to surface non-compliant payloads.",
       "showPrivateKeyWif": "Show WIF private key on backup page",
