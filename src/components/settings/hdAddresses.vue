@@ -292,7 +292,7 @@
     <q-card class="qr-card">
       <div class="qr-frame">
         <QrCode :contents="qrDialogAddress" :label="qrDialogTokenAddress ? t('qrCode.tokenAddress') : t('qrCode.bchAddress')" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
-          <img :src="qrDialogTokenAddress ? 'images/tokenicon.png' : 'images/bch-icon.png'" alt="" />
+          <img :src="qrDialogTokenAddress ? 'images/tokenicon.svg' : 'images/bch-icon.svg'" alt="" />
         </QrCode>
       </div>
       <!-- no address label here: this dialog is held out to whoever scans the code,

@@ -21,7 +21,7 @@
   <div class="asset-row">
     <span class="dot" :style="{ color: dotColor }"></span>
     <div class="hodl-icon">
-      <img src="images/bch-icon.png" class="bch-icon">
+      <img src="images/bch-icon.svg" class="bch-icon">
       <span class="hodl-badge">💎</span>
     </div>
     <div class="asset-name">

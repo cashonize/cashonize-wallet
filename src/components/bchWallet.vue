@@ -320,7 +320,7 @@
     </div>
     <div class="qr-frame">
       <QrCode ref="qrCodeRef" :contents="addressQrcode" :animation="settingsStore.qrAnimation" :label="displayBchQr ? t('qrCode.bchAddress') : t('qrCode.tokenAddress')" @click="copyToClipboard(addressQrcode)" class="qr-code" @rendered="animateQrCode">
-        <img :src="displayBchQr? 'images/bch-icon.png':'images/tokenicon.png'" alt="" />
+        <img :src="displayBchQr? 'images/bch-icon.svg':'images/tokenicon.svg'" alt="" />
       </QrCode>
     </div>
     <div style="text-align: center;">
