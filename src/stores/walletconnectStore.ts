@@ -541,7 +541,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const signedTxObject = { signedTransaction: binToHex(encodedTransaction), signedTransactionHash: hash };
     const activity = {
       protocol: 'walletconnect' as const,
-      dappName: dappNameForTopic(topic),
+      ...dappForTopic(topic),
       userPrompt: wcTransactionObj.userPrompt,
       txid: hash,
     };
@@ -572,8 +572,9 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     await web3wallet.value?.respondSessionRequest({ topic, response });
     notifyDappActivity({ ...activity, outcome: wcTransactionObj.broadcast ? 'sent' : 'signed' });
   }
-  function dappNameForTopic(topic: string): string {
-    return web3wallet.value?.getActiveSessions()[topic]?.peer.metadata.name ?? 'dapp';
+  function dappForTopic(topic: string) {
+    const metadata = web3wallet.value?.getActiveSessions()[topic]?.peer.metadata;
+    return { dappName: metadata?.name ?? 'dapp', dappIcon: metadata?.icons[0] };
   }
   function isValidSignMessageRequest(signMessageRequestWC: WalletKitTypes.SessionRequest) {
     try{
@@ -600,7 +601,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const signedMessage = mainStore.wallet.sign(message, privateKey);
     const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
     await web3wallet.value?.respondSessionRequest({ topic, response });
-    notifyDappActivity({ protocol: 'walletconnect', dappName: dappNameForTopic(topic), outcome: 'messageSigned' });
+    notifyDappActivity({ protocol: 'walletconnect', ...dappForTopic(topic), outcome: 'messageSigned' });
   }
   function rejectSession(wcSessionProposal: WalletKitTypes.SessionProposal){
     return web3wallet.value?.rejectSession({

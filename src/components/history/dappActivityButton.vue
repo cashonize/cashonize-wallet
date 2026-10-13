@@ -2,7 +2,7 @@
   // Opens the log of what this wallet signed for dapps (see utils/dapp/dappActivity.ts), with a
   // count of what arrived since it was last opened. Labelled on the dapp sessions; icon-only in the
   // top nav, where the user can opt in to it.
-  import { computed, ref } from 'vue'
+  import { computed, reactive, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -17,6 +17,8 @@
   const { t } = useI18n()
 
   const showDialog = ref(false);
+  // icons that would not load show the fallback, like a session's own would
+  const failedIcons = reactive(new Set<string>());
   const pageSize = 20;
   const shownCount = ref(pageSize);
   const shownEntries = computed(() => store.dappActivity.slice(0, shownCount.value));
@@ -71,22 +73,26 @@
         <q-card-section>
           <div v-if="!store.dappActivity.length">{{ t('dappActivity.empty') }}</div>
           <div v-for="entry in shownEntries" :key="`${entry.time}-${entry.txid ?? entry.outcome}`" class="activity-entry">
-            <div class="activity-row">
-              <span class="activity-title">
-                {{ entry.dappName }}<template v-if="entry.userPrompt"> · <span class="activity-prompt">{{ entry.userPrompt }}</span></template>
-              </span>
-              <span class="activity-time">{{ formatReadableDate(Math.floor(entry.time / 1000)) }}</span>
-            </div>
-            <div class="activity-row activity-detail">
-              <span :class="{ failed: entry.outcome === 'broadcastFailed' }">
-                {{ t(`dappActivity.outcome.${entry.outcome}`) }}<template v-if="entry.outcome === 'signed' && !isOnChain(entry)">, {{ t('dappActivity.notSeenOnChain') }}</template>
-              </span>
-              <a v-if="entry.txid && isOnChain(entry)" :href="store.explorerUrl + `/${entry.txid}`" target="_blank" rel="noopener" class="activity-txid">
-                {{ shortTxid(entry.txid) }}
-              </a>
-              <span v-else-if="entry.txid" class="activity-txid" style="cursor: pointer;" @click="copyToClipboard(entry.txid)">
-                {{ shortTxid(entry.txid) }}
-              </span>
+            <img v-if="entry.dappIcon && !failedIcons.has(entry.dappIcon)" :src="entry.dappIcon" alt="" class="activity-icon" @error="failedIcons.add(entry.dappIcon)">
+            <div v-else class="activity-icon activity-icon-fallback"></div>
+            <div class="activity-text">
+              <div class="activity-row">
+                <span class="activity-title">
+                  {{ entry.dappName }}<template v-if="entry.userPrompt"> · <span class="activity-prompt">{{ entry.userPrompt }}</span></template>
+                </span>
+                <span class="activity-time">{{ formatReadableDate(Math.floor(entry.time / 1000)) }}</span>
+              </div>
+              <div class="activity-row activity-detail">
+                <span :class="{ failed: entry.outcome === 'broadcastFailed' }">
+                  {{ t(`dappActivity.outcome.${entry.outcome}`) }}<template v-if="entry.outcome === 'signed' && !isOnChain(entry)">, {{ t('dappActivity.notSeenOnChain') }}</template>
+                </span>
+                <a v-if="entry.txid && isOnChain(entry)" :href="store.explorerUrl + `/${entry.txid}`" target="_blank" rel="noopener" class="activity-txid">
+                  {{ shortTxid(entry.txid) }}
+                </a>
+                <span v-else-if="entry.txid" class="activity-txid" style="cursor: pointer;" @click="copyToClipboard(entry.txid)">
+                  {{ shortTxid(entry.txid) }}
+                </span>
+              </div>
             </div>
           </div>
           <div class="activity-actions" v-if="store.dappActivity.length">
@@ -122,8 +128,25 @@ body.dark .activityDialog {
   background-color: var(--bg-color);
 }
 .activity-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 6px 0;
   border-bottom: 1px solid var(--color-lightGrey);
+}
+.activity-icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+.activity-icon-fallback {
+  background-color: var(--color-lightGrey);
+}
+.activity-text {
+  flex: 1;
+  min-width: 0;
 }
 .activity-entry:last-of-type {
   border-bottom: none;

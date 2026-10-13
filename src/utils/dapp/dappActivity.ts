@@ -13,6 +13,8 @@ export interface DappActivityEntry {
   time: number;
   protocol: 'walletconnect' | 'wizardconnect';
   dappName: string;
+  /** The icon URL the dapp's session showed, unverified like the session's own */
+  dappIcon?: string | undefined;
   /** The dapp's own description of the transaction, unverified */
   userPrompt?: string | undefined;
   /** Absent for a signed message */

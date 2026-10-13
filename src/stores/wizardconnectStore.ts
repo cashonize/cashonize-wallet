@@ -363,6 +363,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     const activity = {
       protocol: 'wizardconnect' as const,
       dappName: dappNameForConnection(connectionId),
+      dappIcon: dappIconForConnection(connectionId),
       userPrompt: wizTransactionObj.userPrompt,
       txid: hash,
     };
@@ -392,6 +393,12 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     const connection = manager?.getConnections()[connectionId];
     if (!connection) return 'dapp';
     return dappInfoFor(connection)?.name ?? connection.label;
+  }
+
+  function dappIconForConnection(connectionId: string): string | undefined {
+    const connection = manager?.getConnections()[connectionId];
+    if (!connection) return undefined;
+    return dappInfoFor(connection)?.icon ?? undefined;
   }
 
   function handleSignCancelled(connectionId: string, sequence: number) {

@@ -162,11 +162,13 @@
 
     <fieldset class="item sessions-fieldset">
       <legend>{{ t('dapp.sessionsTitle') }}</legend>
-      <WCSessions />
-      <CCSessions />
-      <WizSessions />
-      <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
-      <DappActivityButton class="sessions-activity-button" />
+      <div class="sessions-body">
+        <DappActivityButton class="sessions-activity-button" />
+        <WCSessions />
+        <CCSessions />
+        <WizSessions />
+        <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
+      </div>
     </fieldset>
 
     <i18n-t keypath="dapp.exploreDapps" tag="div" class="explore-dapps-note">
@@ -189,10 +191,17 @@
   .sessions-fieldset {
     padding-bottom: 12px;
   }
-  /* the activity log's entry point, under the sessions it is about */
+  /* flow-root keeps the first heading's top margin inside, where the button's offset matches it */
+  .sessions-body {
+    position: relative;
+    display: flow-root;
+  }
+  /* the activity log's entry point, on the first protocol heading's line: the heading's top
+     margin and the session rows' padding line it up with both */
   .sessions-activity-button {
-    display: block;
-    margin-top: 12px;
+    position: absolute;
+    top: 8px;
+    right: 7px;
   }
   /* Styled like the about-page note on the onboarding page */
   .explore-dapps-note {
