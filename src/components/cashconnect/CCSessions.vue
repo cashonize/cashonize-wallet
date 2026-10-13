@@ -52,19 +52,19 @@
   padding: 7px;
 }
 
-/* min-width lets the url ellipsis work inside the flex row */
+/* min-width lets the details shrink inside the flex row; the dapp's name, url and description
+   are its own and can hold long unbroken strings */
 .cc-session-item-details-container {
   display: flex;
   flex-direction: column;
   width: 100%;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
+/* wrapped rather than cut off: the end of the url is what tells a dapp's domain from a lookalike */
 .cc-session-url {
   font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .cc-session-description {

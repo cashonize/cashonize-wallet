@@ -102,17 +102,18 @@
     border-radius: 8px;
     flex-shrink: 0;
   }
-  /* min-width lets the url ellipsis work inside the flex row */
+  /* min-width lets the details shrink inside the flex row; the dapp's name, url and description
+     are its own and can hold long unbroken strings */
   .wc-session-details {
     flex: 1;
     min-width: 0;
+    overflow-wrap: anywhere;
   }
+  /* wrapped rather than cut off: the end of the url is what tells a dapp's domain from a
+     lookalike, and preview deployment urls run long */
   .wc-session-url {
     display: block;
     font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
   .wc-session-description {
     font-size: 13px;

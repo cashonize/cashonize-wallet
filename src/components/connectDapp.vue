@@ -188,7 +188,10 @@
     font-weight: 600;
     margin: 8px 0 2px;
   }
+  /* a fieldset does not shrink below its content's widest unbreakable string by default, so a long
+     dapp url or name would push it past the screen edge on a phone */
   .sessions-fieldset {
+    min-width: 0;
     padding-bottom: 12px;
   }
   /* flow-root keeps the first heading's top margin inside, where the button's offset matches it */
