@@ -1,4 +1,4 @@
-![Cashonize Banner](https://github.com/cashonize/cashonize-wallet/assets/53938059/fd6b8244-76ba-4d3d-9b84-c757e0fb0e21)
+![Cashonize Banner](docs/images/cashonize-banner.png)
 
 ## Cashonize: a modern Bitcoin Cash Wallet
 
