@@ -15,6 +15,21 @@
     <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
     <link rel="icon" type="image/ico" href="favicon.ico">
     <link rel="manifest" href="manifest.json">
+    <% if (ctx.mode.spa || ctx.mode.pwa) { %>
+    <!-- The card a chat app or social site shows for a shared link; only the hosted web wallet is
+         ever shared. X reads the og: tags too, it needs only its own card type. -->
+    <link rel="canonical" href="https://cashonize.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="<%= productName %>">
+    <meta property="og:url" content="https://cashonize.com/">
+    <meta property="og:title" content="<%= productName %>">
+    <meta property="og:description" content="<%= productDescription %>">
+    <meta property="og:image" content="https://cashonize.com/images/link-preview.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Cashonize, a Bitcoin Cash wallet">
+    <meta name="twitter:card" content="summary_large_image">
+    <% } %>
 
     <script>
       // Preload the header logo and landing-view icons to improve initial page load.
