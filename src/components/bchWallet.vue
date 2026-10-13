@@ -406,7 +406,8 @@ body.dark .portfolioLink {
   width: fit-content;
   margin: auto;
   margin-top: -10px;
-  padding: 5px;
+  /* the extra top padding keeps the icon clear of the qr code */
+  padding: 10px 5px 5px;
   cursor: pointer;
   user-select: none;
   transition: transform 0.3s;
