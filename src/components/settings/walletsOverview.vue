@@ -4,16 +4,16 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { confirmDialog } from 'src/utils/txHelpers'
+  import { switchWalletWithNotice, maxWallets } from 'src/utils/wallet/walletUtils'
   import { useI18n } from 'vue-i18n'
 
-  const MAX_WALLETS = 20
 
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
   const { t } = useI18n()
 
-  const canAddMoreWallets = computed(() => store.availableWallets.length < MAX_WALLETS)
+  const canAddMoreWallets = computed(() => store.availableWallets.length < maxWallets)
 
   function formatCreationDate(walletName: string, shortYear = false): string {
     const meta = settingsStore.getWalletMetadata(walletName);
@@ -45,28 +45,6 @@
   function getWalletTypeLabel(walletName: string): string {
     const walletType = settingsStore.getWalletType(walletName);
     return walletType === 'hd' ? t('walletsOverview.walletTypeHD') : t('walletsOverview.walletTypeSingle');
-  }
-
-  async function handleSwitchWallet(walletName: string) {
-    if (walletName === store.activeWalletName) return;
-    try {
-      const result = await store.switchWallet(walletName);
-      // If network was changed to accommodate wallet, notify user
-      if (result.networkChanged) {
-        settingsStore.hasPlayedAnimation = false;
-        $q.notify({
-          message: t('walletsOverview.switchedNetwork', { network: result.networkChanged, name: walletName }),
-          icon: 'info',
-          color: "grey-6"
-        });
-      }
-    } catch (error) {
-      $q.notify({
-        message: t('walletsOverview.switchFailed', { error: error instanceof Error ? error.message : 'Unknown error' }),
-        icon: 'warning',
-        color: "red"
-      });
-    }
   }
 
   async function deleteSingleWallet(walletName: string) {
@@ -121,7 +99,7 @@
           <span
             class="wallet-section-left"
             :class="{ clickable: wallet.name !== store.activeWalletName }"
-            @click="handleSwitchWallet(wallet.name)"
+            @click="switchWalletWithNotice(wallet.name)"
           >
             <span class="wallet-name-styled">{{ wallet.name }}</span>
             <span v-if="wallet.name === store.activeWalletName" class="active-badge">{{ t('walletsOverview.current') }}</span>
@@ -159,7 +137,7 @@
       {{ t('walletsOverview.addNewWallet') }}
     </div>
     <div v-else style="margin-bottom: 15px; color: #888;">
-      {{ t('walletsOverview.walletLimitReached', { max: MAX_WALLETS }) }}
+      {{ t('walletsOverview.walletLimitReached', { max: maxWallets }) }}
     </div>
   </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, watch, shallowRef } from 'vue'
+  import { ref, computed, watch, shallowRef, nextTick } from 'vue'
   import { convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
@@ -9,10 +9,11 @@
   import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
-  import { useQuasar } from 'quasar'
+  import { useQuasar, type QMenu } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { switchWalletWithNotice, maxWallets } from 'src/utils/wallet/walletUtils'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
   import QrScanButton from './qr/qrScanButton.vue';
   import QrCode from './general/qrCode.vue';
@@ -106,6 +107,26 @@
       settingsStore.hasPlayedAnimation = true;
     }
   };
+  // Leaving the view while the wallet menu animates closed takes away its anchor, so the menu
+  // jumps to the screen's left edge on the way out. For add wallet it closes without the
+  // animation instead, and the view changes as soon as it is gone.
+  const walletMenu = ref<QMenu | null>(null);
+  const defaultMenuTransitionMs = 300;
+  const walletMenuTransitionMs = ref(defaultMenuTransitionMs);
+  let addWalletAfterMenu = false;
+  function addWalletFromMenu() {
+    addWalletAfterMenu = true;
+    walletMenuTransitionMs.value = 0;
+    // the 0ms duration has to reach the menu before it starts hiding
+    void nextTick(() => walletMenu.value?.hide());
+  }
+  function onWalletMenuHide() {
+    walletMenuTransitionMs.value = defaultMenuTransitionMs;
+    if (!addWalletAfterMenu) return;
+    addWalletAfterMenu = false;
+    store.changeView(9);
+  }
+
   function switchAddressTypeQr(){
     displayBchQr.value = !displayBchQr.value;
     settingsStore.hasPlayedAnimation = false;
@@ -280,6 +301,26 @@
 
 <template>
   <fieldset class="wallet-fieldset">
+    <!-- the wallet's name on the box's border, with a menu to switch or add -->
+    <legend class="walletName" role="button" :aria-label="t('settings.currentWallet')">
+      <span class="walletNameText">{{ store.activeWalletName }}</span>
+      <q-icon name="expand_more" size="20px" class="walletNameChevron" />
+      <q-menu ref="walletMenu" anchor="bottom left" self="top left" :transition-duration="walletMenuTransitionMs" @hide="onWalletMenuHide">
+        <q-list dense style="min-width: 180px">
+          <q-item v-for="wallet in store.availableWallets" :key="wallet.name" clickable v-close-popup @click="switchWalletWithNotice(wallet.name)">
+            <q-item-section>{{ wallet.name }}</q-item-section>
+            <q-item-section side><q-icon v-if="wallet.name === store.activeWalletName" name="check" size="18px" color="primary" /></q-item-section>
+          </q-item>
+          <template v-if="store.availableWallets.length < maxWallets">
+            <q-separator />
+            <q-item clickable @click="addWalletFromMenu">
+              <q-item-section>{{ t('addWallet.title') }}</q-item-section>
+              <q-item-section side><q-icon name="add_circle" size="18px" /></q-item-section>
+            </q-item>
+          </template>
+        </q-list>
+      </q-menu>
+    </legend>
     <div class="portfolioLink" @click="store.changeView(12)">
       <portfolioIcon :sizePx="20" />
       <span>{{ t('portfolio.title') }}</span>
@@ -360,16 +401,44 @@
 
 <style scoped>
 /* the view's frame, also the positioning context for the absolute portfolioLink */
+/* the legend's lower half already spaces the content from the border line, so the padding and the
+   portfolio pill's offset are that much smaller than they would be without it */
 .wallet-fieldset {
   position: relative;
   margin: 0 10px;
-  padding-top: 2rem;
+  padding-top: 8px;
   padding-bottom: 1rem;
   max-width: 75rem;
 }
+/* a legend, but the name shows as typed: wallet names can differ only in case */
+.walletName {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: calc(100% - 140px);
+  padding: 0 10px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 600;
+  font-size: 1em;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+}
+.walletName:hover {
+  color: var(--color-primary);
+}
+.walletNameChevron {
+  opacity: 0.6;
+}
+.walletNameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .portfolioLink {
   position: absolute;
-  top: 12px;
+  top: 0;
   right: 12px;
   display: flex;
   align-items: center;
@@ -396,6 +465,9 @@ body.dark .portfolioLink {
   }
   .portfolioLink {
     padding: 5px 9px;
+  }
+  .walletName {
+    max-width: calc(100% - 60px);
   }
 }
 /* size, background and dark mode crop are shared with the address dialog, see app.css */
