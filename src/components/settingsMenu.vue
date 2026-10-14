@@ -858,25 +858,17 @@
 
     </div>
     <div v-else-if="settingsSection == 8">
-      <div>{{ t('settings.advanced.deleteAllWallets', { platform: platformString }) }}
-        <div v-if="isPwaMode" style="color: red">
-          {{ t('settings.advanced.pwaDeleteWarning') }}
-        </div>
-        <div v-if="!isPwaMode && settingsStore.hasInstalledPWA" style="color: red">
-          {{ t('settings.advanced.browserDeleteWarning') }}
-        </div>
-        <input @click="confirmDeleteWallets()" type="button" :value="t('settings.advanced.deleteAllWalletsButton')" class="button error" style="display: block;">
-      </div>
-
-      <div style="margin-top:15px; margin-bottom: 15px">
+      <div style="margin-bottom: 15px">
         {{ isMobile ? t('settings.advanced.clearHistoryCache') : t('settings.advanced.clearHistoryCacheFrom', { platform: platformString }) }}
         <span v-if="indexedDbCacheSizeMB != undefined" class="nowrap">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
+        <div style="font-size: smaller; color: grey;">{{ t('settings.advanced.clearHistoryCacheHint') }}</div>
         <input @click="clearHistoryCache()" type="button" :value="t('settings.advanced.clearHistoryCacheButton')" class="button" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
         {{ isMobile ? t('settings.advanced.clearMetadataCache') : t('settings.advanced.clearMetadataCacheFrom', { platform: platformString }) }}
         <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ localStorageSizeMB.toFixed(2) }} MB)</span>
+        <div style="font-size: smaller; color: grey;">{{ t('settings.advanced.clearMetadataCacheHint') }}</div>
         <input @click="clearMetadataCache()" type="button" :value="t('settings.advanced.clearMetadataCacheButton')" class="button" style="display: block;">
       </div>
 
@@ -887,6 +879,20 @@
       <div style="margin-top:15px; margin-bottom: 15px">
         {{ t('settings.advanced.resetSettings') }}
         <input @click="resetSettings()" type="button" :value="t('settings.advanced.resetSettingsButton')" class="button" style="display: block;">
+      </div>
+      <!-- last: the only action here that deletes the wallets themselves -->
+      <div style="margin-top:15px; margin-bottom: 15px">
+        {{ t('settings.advanced.deleteAllWallets', { platform: platformString }) }}
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.advanced.deleteSingleWalletNote', { page: t('settings.menu.manageWallets') }) }}
+        </div>
+        <div v-if="isPwaMode" style="color: red">
+          {{ t('settings.advanced.pwaDeleteWarning') }}
+        </div>
+        <div v-if="!isPwaMode && settingsStore.hasInstalledPWA" style="color: red">
+          {{ t('settings.advanced.browserDeleteWarning') }}
+        </div>
+        <input @click="confirmDeleteWallets()" type="button" :value="t('settings.advanced.deleteAllWalletsButton')" class="button error" style="display: block;">
       </div>
     </div>
     <div v-else-if="settingsSection == 4">
