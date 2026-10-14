@@ -1474,7 +1474,7 @@
       "strictWcSchemaHint": "Verifica os pedidos WalletConnect e WizardConnect contra o formato exato e mostra o motivo completo quando um é recusado. Ative ao desenvolver uma dApp para identificar pedidos fora do formato.",
       "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",
       "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único.",
-      "nonTokenIdentities": "Adicionar identidades que não são tokens",
+      "nonTokenIdentities": "Habilitar criação de identidades sem token",
       "nonTokenIdentitiesHint": "Mostra Adicionar nova na página das identidades, que cria uma identidade a partir de qualquer UTXO desta carteira em vez de um token. As identidades de pessoas, organizações e contratos são novas, e poucas ferramentas as leem ainda."
     },
     "madeWith": "Feito com {heart} por Mathieu G."

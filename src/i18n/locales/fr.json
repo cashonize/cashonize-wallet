@@ -1474,7 +1474,7 @@
       "strictWcSchemaHint": "Vérifie les requêtes WalletConnect et WizardConnect par rapport à leur format exact, et affiche la raison complète lorsqu'une requête est refusée. Activez cette option lors du développement d'une dApp pour repérer les requêtes non conformes.",
       "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
-      "nonTokenIdentities": "Ajouter des identités qui ne sont pas des tokens",
+      "nonTokenIdentities": "Activer la création d'identités sans token",
       "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore."
     },
     "madeWith": "Fait avec {heart} par Mathieu G."
