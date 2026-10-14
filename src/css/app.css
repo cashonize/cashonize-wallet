@@ -153,7 +153,11 @@ img {
 .q-dialog__message {
   white-space: pre-line;
 }
+/* the svg's own size, set here so the space is held before it loads and the text beside it
+   does not jump */
 .copyIcon {
+  width: 16px;
+  height: 16px;
   vertical-align: text-bottom;
   margin-bottom: 1px;
   margin-left: 5px;
@@ -447,7 +451,10 @@ body.dark .identity-card {
   display: flex;
   align-items: center;
 }
+/* not shrinkable: the full-width info beside it squeezes the row, and an image that has not loaded
+   yet has no minimum width, so it would grow back a few px on load and push the text over */
 .tokenIcon {
+  flex-shrink: 0;
   margin-right: 10px;
   width: 48px;
   height: 48px;
@@ -544,6 +551,11 @@ body.dark .identity-card {
 .actionBar span {
   margin: 0 20px;
   cursor: pointer;
+}
+/* the action svgs are all 18px, held before they load so the labels do not jump */
+.actionBar .icon {
+  width: 18px;
+  height: 18px;
 }
 .actionBar :first-of-type {
   margin-left: 0;
