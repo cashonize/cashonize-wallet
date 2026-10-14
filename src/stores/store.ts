@@ -181,6 +181,8 @@ export const useStore = defineStore('store', () => {
   // Category a token payment request asks for, set when the user chooses to open it from
   // the wallet page. The token list narrows itself to it and clears it again.
   const pendingTokenSearch = ref(undefined as (undefined | string));
+  // Address whose transactions the history narrows to, set from the addresses page
+  const pendingHistorySearch = ref(undefined as (undefined | string));
   const currentBlockHeight = ref(undefined as (number | undefined));
   const bcmrRegistries = ref(undefined as (Record<string, BcmrTokenMetadata> | undefined));
   const cauldronPrices = ref<Record<string, CauldronPriceData> | null>(null);
@@ -813,6 +815,7 @@ export const useStore = defineStore('store', () => {
     walletUtxos.value = undefined;
     reservedUtxos.value = {}; // setWallet loads the incoming wallet's own set
     pendingTokenSearch.value = undefined;
+    pendingHistorySearch.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = undefined;
     queriedHistoryCategories = [];
@@ -1736,6 +1739,7 @@ export const useStore = defineStore('store', () => {
     setAddressLabel,
     walletInitFailed,
     pendingTokenSearch,
+    pendingHistorySearch,
     dappConnectionStoresInitDone,
     latestGithubRelease,
     network,

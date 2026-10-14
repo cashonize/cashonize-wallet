@@ -1,4 +1,4 @@
-import { txDirection, isCombined, isDappInteraction } from "../src/utils/history/txDirection";
+import { txDirection, isCombined, isDappInteraction, isSelfSend } from "../src/utils/history/txDirection";
 import type { TransactionHistoryItem } from "mainnet-js";
 
 const category = "aabbccdd".repeat(8);
@@ -91,5 +91,36 @@ describe('isDappInteraction', () => {
   it('should handle the coinbase pseudo address', () => {
     const tx = makeTx({ inputs: [input("coinbase")] });
     expect(isDappInteraction(tx, hasWalletAddress)).toBe(false);
+  });
+});
+
+describe('isSelfSend', () => {
+  const own = "bitcoincash:qown";
+  const ownChange = "bitcoincash:qownchange";
+  const isOwn = (address: string) => address === own || address === ownChange;
+  const consolidation = { valueChange: -300, inputs: [input(own), input(ownChange)], outputs: [input(own)] };
+
+  it('should recognise a send between the wallet\'s own addresses', () => {
+    expect(isSelfSend(makeTx(consolidation), isOwn)).toBe(true);
+  });
+
+  it('should allow an OP_RETURN output', () => {
+    const tx = makeTx({ ...consolidation, outputs: [input(own), input("OP_RETURN: 6a0442434d52")] });
+    expect(isSelfSend(tx, isOwn)).toBe(true);
+  });
+
+  it('should not count a send with an output to someone else', () => {
+    const tx = makeTx({ ...consolidation, outputs: [input(own), input("bitcoincash:qsomeoneelse")] });
+    expect(isSelfSend(tx, isOwn)).toBe(false);
+  });
+
+  it('should not count a transaction with an input of someone else', () => {
+    const tx = makeTx({ ...consolidation, valueChange: 5_000, inputs: [input(own), input("bitcoincash:qsomeoneelse")] });
+    expect(isSelfSend(tx, isOwn)).toBe(false);
+  });
+
+  it('should not count a token burn', () => {
+    const tx = makeTx({ ...consolidation, tokenAmountChanges: [{ category, amount: -100n, nftAmount: 0n }] });
+    expect(isSelfSend(tx, isOwn)).toBe(false);
   });
 });

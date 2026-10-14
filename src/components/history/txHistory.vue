@@ -9,8 +9,9 @@
   import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips, dayLabel, localDayStart } from 'src/utils/utils';
   import { historyToCsv } from 'src/utils/history/csvUtils';
   import { maxTxNoteLength } from 'src/utils/history/txNotes';
-  import { txDirection, directionIcon, isCombined, isDappInteraction } from 'src/utils/history/txDirection';
+  import { txDirection, directionIcon, isCombined, isDappInteraction, isSelfSend } from 'src/utils/history/txDirection';
   import { isBelowRelayFee } from 'src/utils/history/txFeeRate';
+  import { addressQueryBytecode, labelledAddressBytecodes, txInvolvesBytecode } from 'src/utils/history/addressSearch';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import InlineTextEdit from '../general/InlineTextEdit.vue';
@@ -58,6 +59,19 @@
     { value: "combined", label: "history.directionFilter.combined" },
   ] as const;
 
+  // The addresses page opens the history of one address here. The other filters are reset so
+  // none of its transactions stay hidden. Immediate, as the value is set before the first visit.
+  watch(() => store.pendingHistorySearch, (address) => {
+    if (!address) return;
+    selectedFilter.value = "allTransactions";
+    directionFilter.value = "all";
+    dateFrom.value = "";
+    dateTo.value = "";
+    searchQuery.value = address;
+    showSearch.value = true;
+    store.pendingHistorySearch = undefined;
+  }, { immediate: true });
+
   const currentPage = ref(1)
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
 
@@ -91,6 +105,11 @@
   function isDappTransaction(transaction: TransactionHistoryItem): boolean {
     return store.dappActivityByTxid.has(transaction.hash) || isDappInteraction(transaction, walletHasAddress);
   }
+  function directionLabel(transaction: TransactionHistoryItem): string {
+    if (isSelfSend(transaction, walletHasAddress)) return t('history.selfSend');
+    return t('history.' + txDirection(transaction));
+  }
+
   function dappBadgeText(transaction: TransactionHistoryItem): string {
     return store.dappActivityByTxid.get(transaction.hash)?.dappName ?? t('history.dapp');
   }
@@ -109,8 +128,8 @@
     if (selectedFilter.value === "bchTransactions") history = history?.filter(tx => !tx.tokenAmountChanges.length);
     if (selectedFilter.value === "tokenTransactions") history = history?.filter(tx => tx.tokenAmountChanges.length);
     if (selectedFilter.value === "dappTransactions") history = history?.filter(tx => isDappTransaction(tx));
-    // The direction pills partition the history: each one shows exactly the rows
-    // carrying that label, so combined transactions only appear under Combined
+    // The direction pills partition the history: each one shows exactly the rows carrying its
+    // direction, so combined transactions only appear under Combined. Sends to self are outgoing
     if (directionFilter.value === "incoming") history = history?.filter(tx => txDirection(tx) === 'received');
     if (directionFilter.value === "outgoing") history = history?.filter(tx => txDirection(tx) === 'sent');
     if (directionFilter.value === "combined") history = history?.filter(tx => isCombined(tx));
@@ -147,7 +166,10 @@
   const searchedHistory = computed(() => {
     const query = searchQuery.value.toLowerCase().trim();
     if (!query) return selectedHistory.value;
-    return selectedHistory.value?.filter(tx => txMatchesSearch(tx, query));
+    // a whole address, or the label of one of the wallet's own, finds the transactions it is in
+    const queryBytecode = addressQueryBytecode(query);
+    const addressBytecodes = new Set(queryBytecode ? [queryBytecode] : labelledAddressBytecodes(store.addressLabels, query));
+    return selectedHistory.value?.filter(tx => txMatchesSearch(tx, query) || txInvolvesBytecode(tx, addressBytecodes));
   });
 
   // The view is kept alive, so a wallet or network switch has to reset the page index too. Only
@@ -194,7 +216,7 @@
 
   function exportCsv() {
     const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value, store.txNotes, tx => ({
-      direction: t('history.' + txDirection(tx)),
+      direction: directionLabel(tx),
       dapp: isDappTransaction(tx),
     }));
     const status = exportFile("cashonize-tx-history.csv", csvContent, { mimeType: "text/csv" });
@@ -274,11 +296,11 @@
             <!-- the left section and the amounts section flex equally, keeping the note centered on the card -->
             <div class="tx-left">
               <div class="tx-direction" :class="[txDirection(transaction), { pending: !transaction.timestamp }]">
-                <q-icon :name="directionIcon(transaction)" size="20px" />
+                <q-icon :name="directionIcon(transaction, isSelfSend(transaction, walletHasAddress))" size="20px" />
               </div>
               <div class="tx-info">
                 <div class="tx-type">
-                  {{ t('history.' + txDirection(transaction)) }}
+                  {{ directionLabel(transaction) }}
                   <span v-if="isDappTransaction(transaction)" class="dapp-badge" :title="store.dappActivityByTxid.get(transaction.hash)?.userPrompt">{{ dappBadgeText(transaction) }}</span>
                   <span v-if="identityOperation(transaction)" class="identity-badge">{{ identityOperation(transaction) }}</span>
                   <!-- electrum reports height -1 for mempool transactions spending unconfirmed inputs -->
