@@ -24,9 +24,24 @@ export function txDirection(transaction: TransactionHistoryItem): TxDirection {
   return txHasOutgoing(transaction) ? 'sent' : 'received';
 }
 
-export function directionIcon(transaction: TransactionHistoryItem): string {
+// A send that only moves coins between the wallet's own addresses, like a consolidation, costs
+// the fee and nothing else. An OP_RETURN output pays no one, so it does not make a send external
+export function isSelfSend(
+  transaction: TransactionHistoryItem,
+  hasWalletAddress: (address: string) => boolean
+): boolean {
+  if (txHasIncoming(transaction)) return false;
+  if (transaction.tokenAmountChanges.some(change => change.amount !== 0n || change.nftAmount !== 0n)) return false;
+  if (!transaction.inputs.every(input => hasWalletAddress(input.address))) return false;
+  return transaction.outputs.every(output =>
+    output.address.startsWith(OP_RETURN_ADDRESS_PREFIX) || hasWalletAddress(output.address)
+  );
+}
+
+export function directionIcon(transaction: TransactionHistoryItem, selfSend = false): string {
   // pending transactions show a waiting icon, the label next to it carries the direction
   if (!transaction.timestamp) return 'hourglass_empty';
+  if (selfSend) return 'sync';
   const direction = txDirection(transaction);
   if (direction === 'combined') return 'swap_vert';
   return direction === 'received' ? 'arrow_downward' : 'arrow_upward';

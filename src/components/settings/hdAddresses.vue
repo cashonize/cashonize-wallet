@@ -82,6 +82,11 @@
     showQrDialog.value = true;
   }
 
+  function openHistory(row: AddressRow) {
+    store.pendingHistorySearch = row.address;
+    store.changeView(3);
+  }
+
   const qrDialogAddress = computed(() => {
     const row = qrDialogRow.value;
     if (!row) return "";
@@ -280,6 +285,14 @@
               <span class="qr-button" @click.stop="openQrDialog(row)">
                 <q-icon name="qr_code_2" size="22px" />
               </span>
+              <!-- an address marked used can have no transactions yet, it keeps the slot so the
+                   qr buttons of the used group stay in one column -->
+              <span v-if="row.txCount > 0" class="history-button" :title="t('hdAddresses.showHistory')" @click.stop="openHistory(row)">
+                <q-icon name="history" size="22px" />
+              </span>
+              <span v-else-if="group.key === 'used'" class="history-button" style="visibility: hidden;">
+                <q-icon name="history" size="22px" />
+              </span>
             </div>
           </div>
           <AddressTokenChips v-if="isTokensExpanded(row)" :utxos="row.utxos" />
@@ -472,6 +485,7 @@
 }
 
 .qr-button,
+.history-button,
 .tokens-button,
 .label-button,
 .mark-button {
@@ -486,6 +500,7 @@
 }
 
 .qr-button:hover,
+.history-button:hover,
 .tokens-button:hover,
 .label-button:hover,
 .mark-button:hover {
