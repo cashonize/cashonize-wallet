@@ -407,7 +407,7 @@
   position: relative;
   margin: 0 10px;
   padding-top: 8px;
-  padding-bottom: 1rem;
+  padding-bottom: 2rem;
   max-width: 75rem;
 }
 /* a legend, but the name shows as typed: wallet names can differ only in case */

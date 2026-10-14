@@ -141,7 +141,7 @@
 </script>
 
 <template>
-    <fieldset class="item">
+    <fieldset class="item" style="padding-bottom: 1.5rem;">
       <legend>{{ t('dapp.title') }}</legend>
       <div style="margin-bottom: 10px;">
         {{ t('dapp.connectText') }}

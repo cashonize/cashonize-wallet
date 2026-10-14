@@ -151,7 +151,7 @@
 </script>
 
 <template>
-  <fieldset class="item">
+  <fieldset class="item" style="padding-bottom: 1.5rem;">
     <legend>{{ t('hdAddresses.title') }}</legend>
 
     <div class="control-row">
