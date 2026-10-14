@@ -249,7 +249,7 @@
         <div class="actionBar">
           <span @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
             <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.send') }} </span>
-          <span v-if="nftMetadata || isParsable" @click="displayNftInfo = !displayNftInfo">
+          <span v-if="nftMetadata || isParsable || parseResult?.success" @click="displayNftInfo = !displayNftInfo">
             <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
           </span>
           <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.nft?.capability == 'minting' && settingsStore.mintNfts">

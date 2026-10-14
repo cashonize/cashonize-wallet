@@ -2,6 +2,9 @@ import { ref, computed, watch, onMounted } from 'vue'
 import type { Utxo } from "mainnet-js"
 import type { ParseResult } from 'src/parsing/nftParsing'
 import { useStore } from 'src/stores/store'
+import { useSettingsStore } from 'src/stores/settingsStore'
+import { EMERALD_DAO_CATEGORY } from 'src/utils/defi/emeraldDao'
+import { emeraldKeycardParseResult } from 'src/parsing/emeraldKeycard'
 
 // Vue composable for Parsable-NFT state.
 // Keeps parsing state and parses the NFT commitment on mount/when metadata becomes available.
@@ -9,7 +12,8 @@ import { useStore } from 'src/stores/store'
 // Callback arguments read the latest reactive values when parsing runs.
 export function useNftCommitmentParsing(getCategory: () => string, getNftUtxo: () => Utxo | undefined, isEnabled: () => boolean = () => true) {
   const store = useStore();
-  const parseResult = ref(undefined as ParseResult | undefined);
+  const settingsStore = useSettingsStore();
+  const parsedResult = ref(undefined as ParseResult | undefined);
   const parsingNft = ref(false);
 
   const hasParyonUsdExtension = computed(() => {
@@ -23,7 +27,7 @@ export function useNftCommitmentParsing(getCategory: () => string, getNftUtxo: (
     const nftUtxo = getNftUtxo();
     if (!nftUtxo) return;
     parsingNft.value = true;
-    parseResult.value = await store.parseNftCommitment(getCategory(), nftUtxo);
+    parsedResult.value = await store.parseNftCommitment(getCategory(), nftUtxo);
     parsingNft.value = false;
   }
 
@@ -33,8 +37,16 @@ export function useNftCommitmentParsing(getCategory: () => string, getNftUtxo: (
 
   // Watch for isParsable becoming true after mount (e.g. bcmrRegistries loads async)
   watch(isParsable, async (nowParsable) => {
-    if (nowParsable && isEnabled() && !parseResult.value) await parseNft();
+    if (nowParsable && isEnabled() && !parsedResult.value) await parseNft();
   })
+
+  // Emerald DAO keycards come without parse info in their metadata, so the portfolio's reading of
+  // the commitment stands in for it; parse info the registry does publish takes precedence
+  const keycardResult = computed(() => {
+    if (!isEnabled() || isParsable.value || getCategory() !== EMERALD_DAO_CATEGORY) return undefined;
+    return emeraldKeycardParseResult(getNftUtxo()?.token?.nft?.commitment, store.exchangeRate, settingsStore.currency);
+  });
+  const parseResult = computed(() => parsedResult.value ?? keycardResult.value);
 
   return { parseResult, parsingNft, isParsable, hasParyonUsdExtension };
 }
