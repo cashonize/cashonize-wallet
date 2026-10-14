@@ -155,6 +155,18 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     connections.value = {};
   }
 
+  // Ends this wallet's sessions and forgets the saved ones of every wallet and network, the way
+  // clearing the WalletConnect and CashConnect databases does. Returns whether a session was live,
+  // whose courtesy disconnect message is still being published when this returns.
+  function forgetAllSessions(): boolean {
+    const hadConnections = Object.keys(manager?.getConnections() ?? {}).length > 0;
+    stop();
+    localStorage.removeItem(WIZ_URIS_STORAGE_KEY);
+    localStorage.removeItem(WIZ_DAPP_INFO_STORAGE_KEY);
+    savedDappInfo.value = {};
+    return hadConnections;
+  }
+
   async function pair(wizUri: string) {
     if (!manager) {
       if (!(mainStore.wallet instanceof HDWallet)) throw new Error(t('wizardConnect.errors.hdWalletRequired'));
@@ -611,6 +623,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     stop,
     pair,
     disconnectSession,
+    forgetAllSessions,
     dappInfoFor,
     // Properties
     connections,

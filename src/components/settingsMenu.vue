@@ -12,6 +12,7 @@
   import { useSettingsStore, removeSettingsMenuKeys } from '../stores/settingsStore'
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
+  import { useWizardconnectStore } from '../stores/wizardconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
   import { displayAndLogError } from "src/utils/errorHandling";
   import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
@@ -22,6 +23,7 @@
   const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()
   const cashconnectStore = useCashconnectStore()
+  const wizardconnectStore = useWizardconnectStore()
   const { t } = useI18n()
   import { useWindowSize, addressesNavTabMinWidth } from 'src/utils/composables'
   const { width } = useWindowSize();
@@ -476,6 +478,9 @@
       } catch (error) {
         console.error("Failed to disconnect CashConnect sessions:", error);
       }
+      // WizardConnect keeps its sessions in localStorage rather than a database, and does not say
+      // when its courtesy disconnect went out, so a live session waits out the timeout below
+      if (wizardconnectStore.forgetAllSessions()) await new Promise(resolve => setTimeout(resolve, 3000));
     })();
     const timeout = new Promise(resolve => setTimeout(resolve, 3000));
     await Promise.race([gracefulDisconnect, timeout]);

@@ -116,3 +116,33 @@ describe('WizardConnect dapp info across a reload', () => {
     expect(savedDappInfo()).not.toHaveProperty([wizUri])
   })
 })
+
+describe('WizardConnect clearing all dapp connections', () => {
+  beforeEach(() => {
+    localStorageMock.clear()
+    managers.length = 0
+  })
+
+  it('ends the live session and leaves nothing to restore after a reload, for any wallet', () => {
+    const { store } = openWallet()
+    localStorageMock.setItem('wizardConnectUris', JSON.stringify({
+      [`${store.network}:${store.activeWalletName}`]: [wizUri],
+      'mainnet:otherWallet': ['wiz://other-dapp-pairing'],
+    }))
+    const before = openWallet()
+    before.manager.dappReady(before.connectionId!, 'Cauldron', null)
+
+    expect(before.wizardconnectStore.forgetAllSessions()).toBe(true)
+    expect(before.manager.getConnections()).toEqual({})
+    expect(localStorageMock.getItem('wizardConnectUris')).toBeNull()
+    expect(localStorageMock.getItem('wizardConnectDappInfo')).toBeNull()
+
+    const { connection } = openWallet()
+    expect(connection).toBeUndefined()
+  })
+
+  it('reports no live session when there was none', () => {
+    const { wizardconnectStore } = openWallet()
+    expect(wizardconnectStore.forgetAllSessions()).toBe(false)
+  })
+})
