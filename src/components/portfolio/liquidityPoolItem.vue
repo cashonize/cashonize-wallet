@@ -11,6 +11,8 @@
   defineProps<{
     category: string
     name: string
+    protocol: 'cauldron' | 'guanaco'
+    feeDisplay: string | undefined
     dotColor: string
     bchDisplay: string
     tokenDisplay: string
@@ -19,8 +21,8 @@
   }>()
 </script>
 
-<!-- One Cauldron liquidity pool row in the portfolio asset list. A pool holds BCH next to its
-  token, so the icon layers the Cauldron mark over the token icon and both sides are listed.
+<!-- One Cauldron or Guanaco liquidity pool row in the portfolio asset list. A pool holds BCH next
+  to its token, so the icon layers the protocol's mark over the token icon and both sides are listed.
   Row styling comes from portfolioView's asset-list :deep() rules. -->
 <template>
   <div class="asset-row">
@@ -31,11 +33,13 @@
         :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(category) : undefined"
         :size="32"
       />
-      <img class="pool-badge" src="images/cauldronGreen.svg">
+      <img v-if="protocol === 'guanaco'" class="pool-badge" src="images/guanaco.png">
+      <img v-else class="pool-badge" src="images/cauldronGreen.svg">
     </div>
     <div class="asset-name">
       <div>{{ name }}</div>
-      <div class="sub">{{ t('portfolio.cauldronPool') }}</div>
+      <div v-if="protocol === 'guanaco'" class="sub">{{ t('portfolio.guanacoPool', { fee: feeDisplay }) }}</div>
+      <div v-else class="sub">{{ t('portfolio.cauldronPool') }}</div>
       <div class="sub">{{ bchDisplay }} + {{ tokenDisplay }}</div>
     </div>
     <div class="asset-value">
@@ -57,8 +61,8 @@
   width: 32px;
   height: 32px;
 }
-/* The Cauldron mark sits in the corner of the token icon, in Cauldron's own colors: their
-   green on the dark background they show it on. The ring of page background lifts the badge
+/* The protocol mark sits in the corner of the token icon, on the dark background Cauldron shows
+   its green mark on; Guanaco's pink reads on it as well. The ring of page background lifts the badge
    off the icon it overlaps. */
 .pool-badge {
   position: absolute;
