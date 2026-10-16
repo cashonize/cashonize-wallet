@@ -410,7 +410,7 @@ export function getBalanceFromUtxos(utxos: Utxo[]) {
 
 export function parseExtendedJson(jsonString: string){
   const uint8ArrayRegex = /^<Uint8Array: 0x(?<hex>[0-9a-f]*)>$/u;
-  const bigIntRegex = /^<bigint: (?<bigint>[0-9]*)n>$/;
+  const bigIntRegex = /^<bigint: (?<bigint>-?[0-9]+)n>$/;
 
   return JSON.parse(jsonString, (_key, value) => {
     if (typeof value === "string") {
