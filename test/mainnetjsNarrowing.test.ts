@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { BaseWallet, ElectrumNetworkProvider, FeePaidByEnum, NFTCapability, SendRequest, TokenSendRequest, getHistory } from 'mainnet-js'
 import type { Utxo } from 'mainnet-js'
 // not on the package's export surface, so reached by path
@@ -54,11 +54,24 @@ describe('mainnet-js still reports a shortfall in the words the explainer matche
 })
 
 // A broadcast that timed out may still have been sent, which the classifier only recognizes by
-// this exact string, so a rewording upstream would drop the warning to check history first
-describe('mainnet-js still rejects a timed out request with the string the classifier matches', () => {
-  it('performRequest times out with electrumTimeoutMessage', () => {
-    const source = (ElectrumNetworkProvider.prototype as unknown as Record<string, () => unknown>)['performRequest']?.toString()
-    expect(source).toContain(electrumTimeoutMessage)
+// this exact message, so a rewording upstream would drop the warning to check history first
+describe('mainnet-js still rejects a timed out request with the message the classifier matches', () => {
+  it('performRequest times out, after its one retry, with an Error of electrumTimeoutMessage', async () => {
+    vi.useFakeTimers()
+    try {
+      const provider = Object.assign(Object.create(ElectrumNetworkProvider.prototype) as ElectrumNetworkProvider, {
+        ready: () => Promise.resolve(),
+        transport: { request: () => new Promise(() => {}) },
+      })
+      const request = provider.performRequest('blockchain.transaction.broadcast', ['00'])
+      const settled = request.then(() => undefined, (error: unknown) => error)
+      await vi.advanceTimersByTimeAsync(60_000)
+      const error = await settled
+      expect(error).toBeInstanceOf(Error)
+      expect((error as Error).message).toBe(electrumTimeoutMessage)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 
