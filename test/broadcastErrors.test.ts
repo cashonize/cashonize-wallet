@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { classifyBroadcastError, electrumTimeoutMessage } from '../src/utils/wallet/broadcastErrors'
 
-// A rejection as Fulcrum hands it to @electrum-cash/network, which wraps it in an Error
+// A rejection as Fulcrum sends it, which mainnet-js wraps in an Error of its message
 const rejected = (reason: string) => new Error(`the transaction was rejected by network rules.\n\n${reason}\n`)
 
 describe('classifyBroadcastError', () => {
@@ -16,9 +16,8 @@ describe('classifyBroadcastError', () => {
     expect(classifyBroadcastError(rejected(reason))).toBe(kind)
   })
 
-  // mainnet-js rejects a timed out request with a string, not an Error
-  it('reads the electrum timeout string as a timeout', () => {
-    expect(classifyBroadcastError(electrumTimeoutMessage)).toBe('timeout')
-    expect(classifyBroadcastError(new Error(electrumTimeoutMessage))).toBe('other')
+  // mainnet-js v4 wraps its timeout string in an Error
+  it('reads the electrum timeout error as a timeout', () => {
+    expect(classifyBroadcastError(new Error(electrumTimeoutMessage))).toBe('timeout')
   })
 })

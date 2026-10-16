@@ -15,7 +15,7 @@ import {
   localStorageMock,
   mockGetAllWalletsWithNetworkInfo,
   mockDeleteWalletFromDb,
-  mockPruneHdWalletKeyCache,
+  mockPruneWalletKeyCache,
   mockClearWalletSettings,
   mockGetNamedWalletIdFromDb,
 } from './mocks/store.mocks'
@@ -361,7 +361,7 @@ describe('deleteWallet', () => {
 
     await store.deleteWallet('otherWallet')
 
-    expect(mockPruneHdWalletKeyCache).toHaveBeenCalled()
+    expect(mockPruneWalletKeyCache).toHaveBeenCalled()
   })
 
   it('clears the settings of the deleted wallet', async () => {
@@ -378,7 +378,7 @@ describe('deleteWallet', () => {
   it('still succeeds and cleans up when the key cache prune fails', async () => {
     const store = useStore()
     store.setWallet(mockMainnetWallet as never)
-    mockPruneHdWalletKeyCache.mockRejectedValueOnce(new Error('prune failed'))
+    mockPruneWalletKeyCache.mockRejectedValueOnce(new Error('prune failed'))
 
     await expect(store.deleteWallet('otherWallet')).resolves.toBeUndefined()
 
@@ -396,7 +396,7 @@ describe('deleteWallet', () => {
       // Expected to throw, deleting the active wallet is refused
     }
 
-    expect(mockPruneHdWalletKeyCache).not.toHaveBeenCalled()
+    expect(mockPruneWalletKeyCache).not.toHaveBeenCalled()
   })
 
   it('refreshes available wallets after deletion', async () => {

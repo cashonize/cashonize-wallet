@@ -6,7 +6,7 @@ const { t } = i18n.global
 // e.g. "the transaction was rejected by network rules.\n\ntxn-mempool-conflict (code 18)\n"
 export type BroadcastErrorKind = 'conflict' | 'missing-inputs' | 'not-yet-final' | 'timeout' | 'other';
 
-// mainnet-js rejects a timed out request with this string rather than an Error (pinned by a test)
+// mainnet-js rejects a timed out request with an Error of this message (pinned by a test)
 export const electrumTimeoutMessage = 'electrum-cash request timed out, retrying';
 
 // BCHN's reject reasons
@@ -15,9 +15,9 @@ const missingInputsReasons = ['Missing inputs', 'bad-txns-inputs-missingorspent'
 const notFinalReasons = ['non-final', 'bad-txns-nonfinal', 'non-BIP68-final'];
 
 export function classifyBroadcastError(error: unknown): BroadcastErrorKind {
-  if (error === electrumTimeoutMessage) return 'timeout';
   if (!(error instanceof Error)) return 'other';
   const { message } = error;
+  if (message === electrumTimeoutMessage) return 'timeout';
   if (conflictReasons.some(reason => message.includes(reason))) return 'conflict';
   if (missingInputsReasons.some(reason => message.includes(reason))) return 'missing-inputs';
   if (notFinalReasons.some(reason => message.includes(reason))) return 'not-yet-final';

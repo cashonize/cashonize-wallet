@@ -1,5 +1,16 @@
 import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
-import { binToHex, sha256, utf8ToBin } from "@bitauth/libauth"
+import {
+  assertSuccess,
+  binToHex,
+  deriveHdPath,
+  deriveHdPrivateNodeFromSeed,
+  deriveHdPublicNode,
+  deriveSeedFromBip39Mnemonic,
+  encodeCashAddress,
+  hash160,
+  sha256,
+  utf8ToBin
+} from "@bitauth/libauth"
 
 export interface WalletInfo {
   name: string;
@@ -84,77 +95,64 @@ export async function getNamedWalletIdFromDb(
   }
 }
 
-//-----------------------------------------------------------------------------
-// Raw IndexedDB
-//-----------------------------------------------------------------------------
-// Deleting is the one thing mainnet-js offers no way to do, neither on BaseWallet nor on the
-// StorageProvider interface, so the database is opened directly and its store name matched here.
-
+// Deleting a record is part of the StorageProvider interface since mainnet-js v4, so this stays
+// its business too. Deleting from a database the wallet was never in resolves as a no-op.
 export async function deleteWalletFromDb(
   name: string,
   dbName: "bitcoincash" | "bchtest"
 ): Promise<void> {
   if (!name) throw new Error("Wallet name must be non-empty");
 
-  // Use the same store name as IndexedDBProvider ("wallet")
-  const STORE_NAME = "wallet";
-
-  return new Promise((resolve, reject) => {
-    // Opening without a version is safe for these two, unlike for the caches below:
-    // IndexedDBProvider asks for version 31, so a database created here at version 1 still gets
-    // its upgrade, and its store, the next time mainnet-js opens it.
-    const request = indexedDB.open(dbName);
-
-    request.onerror = () => reject(new Error(`Failed to open database: ${dbName}`));
-
-    request.onsuccess = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.close();
-        resolve();
-        return;
-      }
-
-      const dbTx = db.transaction(STORE_NAME, "readwrite");
-      const objectStore = dbTx.objectStore(STORE_NAME);
-      const deleteRequest = objectStore.delete(name);
-
-      deleteRequest.onsuccess = () => {
-        db.close();
-        resolve();
-      };
-
-      deleteRequest.onerror = () => {
-        db.close();
-        reject(new Error(`Failed to delete wallet: ${name}`));
-      };
-    };
-  });
+  const db = new IndexedDBProvider(dbName);
+  await db.init();
+  try {
+    await db.deleteWallet(name);
+  } finally {
+    await db.close();
+  }
 }
 
 //-----------------------------------------------------------------------------
-// HD wallet key cache (Raw IndexedDB)
+// Wallet key cache (Raw IndexedDB)
 //-----------------------------------------------------------------------------
 // Everything above works on the mainnet-js wallet databases, everything below on the separate
-// one holding its HD address cache.
+// one holding its wallet cache.
 //
-// For HD wallets mainnet-js keeps a derived private key per address in a database of its own,
-// so deleting a wallet has to clear that too or spendable key material outlives the wallet it
-// belonged to. Single-address wallets hold their key in memory and leave nothing here.
+// mainnet-js keeps derived private keys in a database of its own: one entry per address for HD
+// wallets, and one for the wallet itself for single-address wallets. Deleting a wallet has to
+// clear those too or spendable key material outlives the wallet it belonged to.
 //
 // mainnet-js does not export the class it reads that database with, and it could not list what
 // it holds anyway, which the prune needs.
 
-// mainnet-js keys those entries by a hash of the seed rather than by the wallet name, so the key
-// has to be rebuilt from the stored wallet record. Mirrors HDWallet's own derivation.
-export function hdWalletCacheKey(storedWalletId: string): string | undefined {
+// mainnet-js keys those entries by a hash of the wallet's secrets rather than by the wallet
+// name, so the key has to be rebuilt from the stored wallet record. Mirrors the wallets' own
+// derivations for the record kinds the app creates (hd and seed); anything else matches nothing.
+export function walletCacheKey(storedWalletId: string): string | undefined {
   const [walletType, network, secret, fourthField] = storedWalletId.split(":");
-  if (walletType !== "hd" || !network || !secret) return undefined;
-  // mnemonic wallets store the derivation path after the mnemonic and hash the two together,
-  // xpriv and xpub wallets hash the key on its own
-  const seedSource = fourthField?.startsWith("m/") ? secret + fourthField : secret;
-  const walletId = binToHex(sha256.hash(utf8ToBin(`${seedSource}-${network}`)));
-  return `walletCache-${walletId}`;
+  if (!network || !secret) return undefined;
+
+  if (walletType === "hd") {
+    // mnemonic wallets store the derivation path after the mnemonic and hash the two together,
+    // xpriv and xpub wallets hash the key on its own
+    const seedSource = fourthField?.startsWith("m/") ? secret + fourthField : secret;
+    return `walletCache-${binToHex(sha256.hash(utf8ToBin(`${seedSource}-${network}`)))}`;
+  }
+
+  if (walletType === "seed") {
+    // single-address wallets hash their cash address, so derive it from the stored mnemonic and
+    // derivation path the way the wallet itself does
+    if (!fourthField?.startsWith("m/")) return undefined;
+    if (network !== "mainnet" && network !== "testnet") return undefined;
+    const rootNode = deriveHdPrivateNodeFromSeed(deriveSeedFromBip39Mnemonic(secret));
+    const addressNode = deriveHdPath(rootNode, fourthField);
+    const publicKeyHash = hash160(deriveHdPublicNode(addressNode).publicKey);
+    const prefix = network === "mainnet" ? "bitcoincash" : "bchtest";
+    const cashaddr = assertSuccess(encodeCashAddress({ prefix, type: "p2pkh", payload: publicKeyHash })).address;
+    return `walletCache-${binToHex(sha256.hash(utf8ToBin(`${cashaddr}-${network}`)))}`;
+  }
+
+  return undefined;
 }
 
 // Every wallet's stored id, from both databases. The prune needs these to work out which cached
@@ -187,13 +185,13 @@ async function getAllStoredWalletIds(): Promise<string[]> {
 //
 // Keys are deleted one at a time rather than the database dropped, because deleteDatabase waits
 // on the connection the running wallet holds open and nothing reloads the page here to close it.
-export async function pruneHdWalletKeyCache(): Promise<void> {
+export async function pruneWalletKeyCache(): Promise<void> {
   // mainnet-js passes this one name as both the database and the object store
   const CACHE_DB = "WalletCache";
 
   const liveCacheKeys: string[] = [];
   for (const storedWalletId of await getAllStoredWalletIds()) {
-    const cacheKey = hdWalletCacheKey(storedWalletId);
+    const cacheKey = walletCacheKey(storedWalletId);
     if (cacheKey) liveCacheKeys.push(cacheKey);
   }
 

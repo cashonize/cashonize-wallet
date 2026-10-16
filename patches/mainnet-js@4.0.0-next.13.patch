@@ -1,11 +1,10 @@
 diff --git a/dist/module/history/getHistory.js b/dist/module/history/getHistory.js
-index 10cf6e711fd5fdc9492dddf1386d0774c5fcc2f0..52f4f53d4c64277711c65e49fa097423a9fbacde 100644
---- a/dist/module/history/getHistory.js	
-+++ b/dist/module/history/getHistory.js	
-@@ -3,6 +3,10 @@ import { UnitEnum } from "../enum.js";
+--- a/dist/module/history/getHistory.js
++++ b/dist/module/history/getHistory.js
+@@ -3,6 +3,10 @@
+ import { UnitEnum } from "../enum.js";
  import { ExchangeRate } from "../rate/ExchangeRate.js";
  import { sanitizeUnit } from "../util/sanitizeUnit.js";
- import { bchParam } from "../chain.js";
 +const historyAddress = (lockingBytecode, prefix) => {
 +    const result = lockingBytecodeToCashAddress({ bytecode: lockingBytecode, prefix });
 +    return typeof result === "string" ? `SCRIPT: ${binToHex(lockingBytecode)}` : result.address;
@@ -13,7 +12,7 @@ index 10cf6e711fd5fdc9492dddf1386d0774c5fcc2f0..52f4f53d4c64277711c65e49fa097423
  export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight = 0, toHeight = -1, start = 0, count = -1, rawHistory, }) => {
      if (!addresses.length) {
          return [];
-@@ -135,10 +139,7 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
+@@ -135,10 +139,7 @@
              const cached = addressCache[prevoutOutput.lockingBytecode];
              let address;
              if (!cached) {
@@ -25,7 +24,7 @@ index 10cf6e711fd5fdc9492dddf1386d0774c5fcc2f0..52f4f53d4c64277711c65e49fa097423
                  addressCache[prevoutOutput.lockingBytecode] = address;
              }
              else {
-@@ -160,6 +161,9 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
+@@ -160,6 +161,9 @@
                              : undefined,
                      }
                      : undefined,
@@ -35,7 +34,7 @@ index 10cf6e711fd5fdc9492dddf1386d0774c5fcc2f0..52f4f53d4c64277711c65e49fa097423
              };
          });
          result.outputs = tx.outputs.map((output) => {
-@@ -170,10 +174,7 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
+@@ -170,10 +174,7 @@
                      address = `OP_RETURN: ${binToHex(output.lockingBytecode)}`;
                  }
                  else {
@@ -47,7 +46,7 @@ index 10cf6e711fd5fdc9492dddf1386d0774c5fcc2f0..52f4f53d4c64277711c65e49fa097423
                      addressCache[output.lockingBytecode] = address;
                  }
              }
-@@ -196,6 +197,7 @@ export const getHistory = async ({ addresses, provider, unit = "sat", fromHeight
+@@ -196,6 +197,7 @@
                              : undefined,
                      }
                      : undefined,
@@ -56,10 +55,9 @@ index 10cf6e711fd5fdc9492dddf1386d0774c5fcc2f0..52f4f53d4c64277711c65e49fa097423
          });
          result.blockHeight = tx.blockHeight;
 diff --git a/dist/module/history/interface.d.ts b/dist/module/history/interface.d.ts
-index 2eebf72de8847028c08edceacfc0d9b4ad4618b6..b4d78e1c316a9104fac6e6e883269bedcd8b7f45 100644
---- a/dist/module/history/interface.d.ts	
-+++ b/dist/module/history/interface.d.ts	
-@@ -3,6 +3,9 @@ export interface InOutput {
+--- a/dist/module/history/interface.d.ts
++++ b/dist/module/history/interface.d.ts
+@@ -3,6 +3,9 @@
      address: string;
      value: number;
      token?: TokenI;
@@ -70,37 +68,36 @@ index 2eebf72de8847028c08edceacfc0d9b4ad4618b6..b4d78e1c316a9104fac6e6e883269bed
  export interface TransactionHistoryItem {
      inputs: InOutput[];
 diff --git a/dist/module/wallet/Base.js b/dist/module/wallet/Base.js
-index 9baa2496b379fc0dd2efb8229d93be9caefdc97f..ca38609c3c9b04195df7f6ed81edde6f03d34ef6 100644
---- a/dist/module/wallet/Base.js	
-+++ b/dist/module/wallet/Base.js	
-@@ -867,7 +867,10 @@ export class BaseWallet {
-         if (!Array.isArray(mintRequests)) {
-             mintRequests = [mintRequests];
+--- a/dist/module/wallet/Base.js
++++ b/dist/module/wallet/Base.js
+@@ -905,7 +905,10 @@
+             bucket.push(request);
+             requestsByCategory.set(request.category, bucket);
          }
 -        const utxos = await this.getUtxos();
 +        let utxos = await this.getUtxos();
 +        if (options?.utxoIds) {
 +            utxos = checkUtxos(options.utxoIds.map((utxoId) => typeof utxoId === "string" ? fromUtxoId(utxoId) : utxoId), utxos);
 +        }
-         const nftUtxos = utxos.filter((val) => val.token?.category === category &&
-             val.token?.nft?.capability === NFTCapability.minting);
-         if (!nftUtxos.length) {
-@@ -921,7 +924,10 @@ export class BaseWallet {
-         if (burnRequest.category?.length !== 64) {
-             throw Error(`Invalid category supplied: ${burnRequest.category}`);
+         const ensureUtxos = [];
+         const outputs = [];
+         for (const [category, requests] of requestsByCategory) {
+@@ -970,7 +973,10 @@
+         if (burnRequests.length === 0) {
+             throw new Error("tokenBurn requires at least one request");
          }
 -        const utxos = await this.getUtxos();
 +        let utxos = await this.getUtxos();
 +        if (options?.utxoIds) {
 +            utxos = checkUtxos(options.utxoIds.map((utxoId) => typeof utxoId === "string" ? fromUtxoId(utxoId) : utxoId), utxos);
 +        }
-         const tokenUtxos = utxos.filter((val) => val.token?.category === burnRequest.category &&
-             val.token?.nft?.capability === burnRequest.nft?.capability &&
-             val.token?.nft?.commitment === burnRequest.nft?.commitment);
+         const ensureUtxos = [];
+         const changeSendRequests = [];
+         for (const burnRequest of burnRequests) {
 diff --git a/dist/module/transaction/Wif.js b/dist/module/transaction/Wif.js
 --- a/dist/module/transaction/Wif.js
 +++ b/dist/module/transaction/Wif.js
-@@ -53,7 +53,7 @@ export async function buildP2pkhNonHdTransaction({ inputs, outputs, signingKey,
+@@ -55,7 +55,7 @@
      if (!result.success) {
          throw Error("Error building transaction with fee");
      }
