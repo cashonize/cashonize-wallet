@@ -2,11 +2,13 @@
   import BackRow from 'src/components/general/BackRow.vue'
   import { ref, computed, watch } from 'vue';
   import type { Utxo } from '@cashonize/bch-wallet-lib';
-  import { filledLocations, locationBudgetLeft, publicationOutput, tokenOutputValue } from 'src/utils/tools/authchainIdentity';
+  import { filledLocations, locationBudgetLeft, publicationOutput } from 'src/utils/tools/authchainIdentity';
   import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, fetchCandidateRegistry, summarizeRegistry } from 'src/utils/tools/registryFile';
   import {
-    circulationOutputs,
+    authKeyGenesisInput,
     genesisAmounts,
+    genesisOutputs,
+    guardsAsPlanned,
     metadataReadiness,
     parseDecimals,
     maxTokenSupply,
@@ -17,7 +19,6 @@
   } from 'src/utils/tools/tokenCreation';
   import { copyToClipboard, formatBch, formatTokenAmount, gatewayUrl, truncateHash } from 'src/utils/utils'
   import { isTypedAmountProblem, typedAmountMessage } from 'src/utils/numberFormat';
-  import { NFTCapability } from '@cashonize/bch-wallet-lib';
   import TokenIcon from '../general/TokenIcon.vue';
   import genesisInputPicker from './genesisInputPicker.vue';
   import publicationLocations from './publicationLocations.vue';
@@ -25,7 +26,7 @@
   import tokenCreated from './tokenCreated.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { displayAndLogError } from 'src/utils/errorHandling';
-  import { confirmDialog, notifySending } from 'src/utils/txHelpers';
+  import { confirmDialog, notifySending, prepareGenesisUtxo } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useQuasar } from 'quasar'
@@ -59,6 +60,24 @@
   const utxoStepOpen = ref(true);
   const plannedCategory = computed(() => genesisInput.value?.txid);
   const homeConfirmed = ref(false);
+  // An AuthGuard genesis spends a second UTXO at output 0, whose txid becomes the AuthKey's
+  // category; the user has no reason to choose it, so the wallet picks the UTXO
+  const guarded = ref(false);
+  const keyGenesisInput = computed(() => {
+    if (!guarded.value) return undefined;
+    return authKeyGenesisInput(store.spendableUtxos ?? [], genesisInput.value);
+  });
+  const preparingKeyInput = ref(false);
+  async function prepareKeyInput() {
+    if (preparingKeyInput.value) return;
+    preparingKeyInput.value = true;
+    try {
+      // the token's own genesis coin stays, or preparing this one would spend the coin just picked
+      await prepareGenesisUtxo(t('createTokens.prepare.message', { amount: bchOf(preparedUtxoValue) }), genesisInput.value ? [genesisInput.value] : []);
+    } finally {
+      preparingKeyInput.value = false;
+    }
+  }
   // the shape step is titled by what it asks, which for a collection alone is only the type
   const shapeTitle = computed(() => hasSupply.value ? 'shape' : 'type');
   // Step 2 closes on its own Continue, so step 3 opens one step at a time for every shape, a
@@ -195,28 +214,12 @@
     changeHome();
   }
 
-  // The genesis request and the outputs beside it: output 0 is the authhead, carrying the reserve
-  // and the minting NFT if there is one, then what is issued to circulation and the publication
-  function genesisOutputs(category: string, reserveAmount: bigint, circulatingAmount: bigint) {
-    const tokenAddress = store.currentTokenDepositAddress;
-    const genesisRequest = {
-      cashaddr: tokenAddress,
-      amount: reserveAmount,
-      value: tokenOutputValue,
-      ...(createMintingNft.value ? { nft: { commitment: "", capability: NFTCapability.minting } } : {}),
-    };
-    const opreturnData = metadataOutput();
-    const extraOutputs = [
-      ...circulationOutputs(tokenAddress, category, circulatingAmount, tokenOutputValue),
-      ...(opreturnData ? [opreturnData] : []),
-    ];
-    return { genesisRequest, extraOutputs, linkedMetadata: opreturnData !== undefined };
-  }
-
   // One genesis builds the whole issuer kit, confirmed first since it cannot be corrected afterwards
   async function createToken(){
     if (activeAction.value) return;
     const pickedCoin = genesisInput.value;
+    const keyCoin = keyGenesisInput.value;
+    if (guarded.value && !keyCoin) return;
     const reserveAmount = hasSupply.value ? reserve.value : 0n;
     const circulatingAmount = hasSupply.value ? circulating.value : 0n;
     if (!pickedCoin || genesisProblem.value) return;
@@ -229,18 +232,36 @@
     if (!confirmed) return;
     activeAction.value = 'creating';
     try{
-      const { genesisRequest, extraOutputs, linkedMetadata } = genesisOutputs(pickedCoin.txid, reserveAmount, circulatingAmount);
+      const publication = metadataOutput();
+      const genesis = genesisOutputs({
+        tokenCategory: pickedCoin.txid,
+        walletTokenAddress: store.currentTokenDepositAddress,
+        reserve: reserveAmount,
+        mintingNft: createMintingNft.value,
+        circulating: circulatingAmount,
+        ...(publication ? { publication } : {}),
+        ...(keyCoin ? { keyCategory: keyCoin.txid } : {}),
+      });
+      // creation ends where management begins: the identity is listed and its authhead, or the
+      // AuthKey at output 1 that opens its guard, held back, also when the broadcast's outcome is
+      // unknown, as it may have gone through
+      const listCreated = (txId: string) => identitiesStore.listCreatedIdentity(pickedCoin.txid, txId, keyCoin ? 1 : 0);
       notifySending(t('createTokens.notifications.creatingTokens'));
-      const { txId } = await store.spend.tokenGenesis(pickedCoin, genesisRequest, extraOutputs);
-      // creation ends where management begins: the identity is listed and its authhead held back
-      if (txId) await identitiesStore.listCreatedIdentity(pickedCoin.txid, txId);
-      const linked = linkedMetadata ? checkedRegistry.value?.summary : undefined;
+      const { txId } = await store.spend.tokenGenesis(
+        keyCoin ? [pickedCoin, keyCoin] : [pickedCoin],
+        genesis.genesisRequests,
+        genesis.extraOutputs,
+        { holdBack: listCreated, ...(keyCoin ? { verify: transaction => guardsAsPlanned(transaction, keyCoin.txid) } : {}) },
+      );
+      if (txId) await listCreated(txId);
+      const linked = publication ? checkedRegistry.value?.summary : undefined;
       created.value = {
         category: pickedCoin.txid,
         txId,
         ...(linked ? { name: linked.name } : {}),
         ...(linked?.symbol ? { symbol: linked.symbol } : {}),
         ...(linked && checkedIconUrl.value ? { iconUrl: checkedIconUrl.value } : {}),
+        guarded: keyCoin !== undefined,
         hasSupply: hasSupply.value,
         supply: totalSupply.value ?? 0n,
         reserve: reserveAmount,
@@ -273,6 +294,7 @@
         reserve: amountShown(reserveAmount), circulating: amountShown(circulatingAmount),
       }));
     }
+    if (guarded.value) lines.push(t('createTokens.confirm.guarded'));
     const checked = checkedRegistry.value;
     if (checked && readiness.value === 'ready') {
       lines.push(t('createTokens.confirm.metadataLinked', { name: checkedName.value, location: checked.uris.join(', ') }));
@@ -292,12 +314,12 @@
       <tokenCreated v-if="created" :created="created" @start-over="startOver()" />
 
       <template v-else>
-      <tokenCreationChoice v-if="!homeConfirmed" @continue="homeConfirmed = true" />
+      <tokenCreationChoice v-if="!homeConfirmed" @continue="guard => { guarded = guard; homeConfirmed = true; }" />
       <template v-else>
         <div style="margin-bottom: 15px; cursor: pointer;" @click="changeHome()">
           ← {{ t('common.actions.back') }}
         </div>
-        <div>{{ t('createTokens.home.chosen') }}</div>
+        <div>{{ t(guarded ? 'createTokens.home.chosenGuard' : 'createTokens.home.chosen') }}</div>
       </template>
 
       <template v-if="homeConfirmed">
@@ -317,6 +339,25 @@
           </div>
         </div>
       </genesisInputPicker>
+      <div v-if="guarded && !utxoStepOpen" class="section">
+        <div v-if="keyGenesisInput" class="closed-line description">
+          <img src="images/check-circle.svg" class="step-check pop">
+          <span>{{ t('createTokens.authKeyInput.id') }}</span>
+          <span class="copy-target" @click="copyToClipboard(keyGenesisInput.txid)">
+            <span class="mono">{{ truncateHash(keyGenesisInput.txid) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+          </span>
+        </div>
+        <template v-else>
+          <div>{{ t('createTokens.authKeyInput.missing') }}</div>
+          <input
+            @click="prepareKeyInput"
+            type="button"
+            :value="preparingKeyInput ? t('createTokens.preparingButton') : t('createTokens.authKeyInput.prepareButton')"
+            :disabled="preparingKeyInput || store.spendableBalance === 0n"
+            style="margin-top: 8px;"
+          >
+        </template>
+      </div>
       <template v-if="utxoStepOpen">
         <div class="section step-label">{{ stepLabel(2, 3, stepTitle(shapeTitle)) }}</div>
         <div class="step-label" style="margin-top: 8px;">{{ stepLabel(3, 3, stepTitle('metadata')) }}</div>
@@ -331,7 +372,9 @@
           <option value="both">{{ t('createTokens.shapes.both') }}</option>
         </select>
         <div v-if="createMintingNft" class="description" style="margin-top: 4px;">{{ t('createTokens.mintingDescription') }}</div>
-        <div v-if="createMintingNft" class="description" style="margin-top: 4px;">{{ t('createTokens.mintingNote') }}</div>
+        <div v-if="createMintingNft" class="description" style="margin-top: 4px;">
+          {{ t(guarded ? 'createTokens.guardedMintingNote' : 'createTokens.mintingNote') }}
+        </div>
 
         <template v-if="hasSupply">
         <div class="supply-row">
@@ -369,7 +412,7 @@
         <div v-if="totalSupply && reserve !== undefined && circulating !== undefined" style="margin-top: 6px;">
           {{ t('createTokens.circulation.split', { reserve: tokensOf(reserve), circulating: tokensOf(circulating) }) }}
         </div>
-        <div class="description" style="margin-top: 4px;">{{ t('createTokens.circulation.note') }}</div>
+        <div class="description" style="margin-top: 4px;">{{ t(guarded ? 'createTokens.circulation.guardedNote' : 'createTokens.circulation.note') }}</div>
         <div v-if="genesisProblem" class="genesis-problem" style="margin-top: 6px;">{{ genesisProblem }}</div>
         </template>
         <input
@@ -460,7 +503,7 @@
           class="primaryButton"
           :value="activeAction === 'creating' ? t('createTokens.creatingTokensButton') : t('createTokens.createButton')"
           style="margin: 15px 0 4px;"
-          :disabled="activeAction !== null || genesisProblem !== undefined || (readiness !== 'none' && readiness !== 'ready')"
+          :disabled="activeAction !== null || genesisProblem !== undefined || (readiness !== 'none' && readiness !== 'ready') || (guarded && !keyGenesisInput)"
         >
       </div>
       <div v-else-if="!utxoStepOpen" class="section step-label">

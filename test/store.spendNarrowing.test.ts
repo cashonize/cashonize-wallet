@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { encodeCashAddress, hexToBin } from '@bitauth/libauth'
+import { binToHex, encodeCashAddress, encodeTransaction, hexToBin } from '@bitauth/libauth'
 import { BroadcastRejectedError, BroadcastTimeoutError, InsufficientFundsError, UtxoNotAvailableError, type Utxo } from '@cashonize/bch-wallet-lib'
 
 import {
@@ -30,6 +30,15 @@ const otherTokenCoin: Utxo = {
 }
 
 const walletCoins = [bchCoin, tokenCoin, otherTokenCoin]
+
+// a built genesis whose one output carries the coin's txid as its category
+function genesisOf(coin: Utxo) {
+  return binToHex(encodeTransaction({
+    version: 2, locktime: 0,
+    inputs: [{ outpointTransactionHash: hexToBin(coin.txid), outpointIndex: 0, sequenceNumber: 0, unlockingBytecode: new Uint8Array() }],
+    outputs: [{ lockingBytecode: new Uint8Array([0x51]), valueSatoshis: 1000n, token: { category: hexToBin(coin.txid), amount: 1n } }],
+  }))
+}
 
 function createMockWallet() {
   return {
@@ -350,7 +359,10 @@ describe('a frozen address', () => {
     await store.spend.sendMax('bitcoincash:qdest')
     await store.spend.tokenMint([])
     await store.spend.tokenBurn({ category, amount: 100n })
-    await store.spend.tokenGenesis(bchCoin, { amount: 1n })
+    await store.spend.sendKeeping([{ cashaddr: 'bitcoincash:qdest', value: 1000n }], [bchCoin])
+    // the genesis is built without broadcasting and checked to carry the picked coin's category
+    wallet.tokenGenesis.mockResolvedValue({ transaction: genesisOf(bchCoin) })
+    await store.spend.tokenGenesis([bchCoin], [{ amount: 1n }])
     await store.spend.getMaxAmountToSend()
 
     const calls = [
@@ -413,7 +425,7 @@ describe('a frozen address', () => {
   it('keeps a token genesis off a coin on the address', async () => {
     const { store } = await storeWithFrozenAddress()
 
-    await expect(store.spend.tokenGenesis(frozenBchCoin, { amount: 1n })).rejects.toThrow(/no longer available/)
+    await expect(store.spend.tokenGenesis([frozenBchCoin], [{ amount: 1n }])).rejects.toThrow(/no longer available/)
   })
 
   it('stays frozen for the next session of the same wallet', async () => {
