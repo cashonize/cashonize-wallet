@@ -821,8 +821,7 @@
       "createAnother": "Créer un autre token",
       "decimals": "Décimales : {decimals}, le fichier de métadonnées doit l'indiquer"
     },
-    "decimalsNote": "Les décimales sont lues dans le fichier de métadonnées, pas sur la chaîne, il doit donc indiquer ce nombre.",
-    "goBack": "Retour"
+    "decimalsNote": "Les décimales sont lues dans le fichier de métadonnées, pas sur la chaîne, il doit donc indiquer ce nombre."
   },
   "utxoManagement": {
     "title": "Gestion des UTXO",

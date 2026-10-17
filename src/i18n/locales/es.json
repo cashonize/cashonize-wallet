@@ -821,8 +821,7 @@
       "createAnother": "Crear otro token",
       "decimals": "Decimales: {decimals}, el archivo de metadatos debe indicarlo"
     },
-    "decimalsNote": "Los decimales se leen del archivo de metadatos, no de la cadena, así que debe indicar este número.",
-    "goBack": "Volver"
+    "decimalsNote": "Los decimales se leen del archivo de metadatos, no de la cadena, así que debe indicar este número."
   },
   "utxoManagement": {
     "title": "Gestión de UTXO",

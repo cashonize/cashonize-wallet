@@ -821,8 +821,7 @@
       "createAnother": "Criar outro token",
       "decimals": "Decimais: {decimals}, o ficheiro de metadados tem de o indicar"
     },
-    "decimalsNote": "As decimais são lidas do ficheiro de metadados, não da cadeia, por isso ele tem de indicar este número.",
-    "goBack": "Voltar"
+    "decimalsNote": "As decimais são lidas do ficheiro de metadados, não da cadeia, por isso ele tem de indicar este número."
   },
   "utxoManagement": {
     "title": "Gerenciamento de UTXOs",

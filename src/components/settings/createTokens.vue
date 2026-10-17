@@ -288,10 +288,12 @@
 
       <template v-else>
       <tokenCreationChoice v-if="!homeConfirmed" @continue="homeConfirmed = true" />
-      <div v-else class="chosen-line">
-        <span>{{ t('createTokens.home.chosen') }}</span>
-        <span class="go-back" @click="changeHome()">← {{ t('createTokens.goBack') }}</span>
-      </div>
+      <template v-else>
+        <div style="margin-bottom: 15px; cursor: pointer;" @click="changeHome()">
+          ← {{ t('common.actions.back') }}
+        </div>
+        <div>{{ t('createTokens.home.chosen') }}</div>
+      </template>
 
       <template v-if="homeConfirmed">
       <genesisInputPicker
@@ -466,14 +468,6 @@
 </template>
 
 <style scoped>
-.chosen-line {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.go-back {
-  cursor: pointer;
-}
 label {
   display: block;
   margin-top: 14px;

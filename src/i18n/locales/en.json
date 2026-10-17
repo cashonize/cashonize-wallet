@@ -821,8 +821,7 @@
       "createAnother": "Create another token",
       "decimals": "Decimals: {decimals}, the metadata file must say this"
     },
-    "decimalsNote": "Decimals are read from the metadata file, not the chain, so it must say this number.",
-    "goBack": "Go back"
+    "decimalsNote": "Decimals are read from the metadata file, not the chain, so it must say this number."
   },
   "utxoManagement": {
     "title": "UTXO Management",

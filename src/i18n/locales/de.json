@@ -821,8 +821,7 @@
       "createAnother": "Noch einen Token erstellen",
       "decimals": "Dezimalstellen: {decimals}, die Metadaten-Datei muss das nennen"
     },
-    "decimalsNote": "Dezimalstellen werden aus der Metadaten-Datei gelesen, nicht von der Chain, also muss sie diese Zahl nennen.",
-    "goBack": "Zurück"
+    "decimalsNote": "Dezimalstellen werden aus der Metadaten-Datei gelesen, nicht von der Chain, also muss sie diese Zahl nennen."
   },
   "utxoManagement": {
     "title": "UTXO-Verwaltung",
