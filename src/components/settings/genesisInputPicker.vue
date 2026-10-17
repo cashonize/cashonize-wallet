@@ -9,12 +9,10 @@
   import type { Utxo } from 'mainnet-js';
   import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils';
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
-  import { genesisCandidates, preparedUtxoValue } from 'src/utils/tools/tokenCreation';
+  import { genesisCandidates } from 'src/utils/tools/tokenCreation';
   import TokenIcon from '../general/TokenIcon.vue';
-  import { displayAndLogError } from 'src/utils/errorHandling';
-  import { confirmDialog, notifySending } from 'src/utils/txHelpers';
+  import { prepareGenesisUtxo } from 'src/utils/txHelpers';
   import { useStore } from 'src/stores/store';
-  import { useQuasar } from 'quasar';
   import { useI18n } from 'vue-i18n';
 
   const props = defineProps<{
@@ -27,7 +25,6 @@
   }>();
   const picked = defineModel<Utxo | undefined>({ required: true });
   const open = defineModel<boolean>('open', { required: true });
-  const $q = useQuasar();
   const store = useStore();
   const { t } = useI18n();
 
@@ -53,26 +50,13 @@
     }
   });
 
-  // A self-send makes a fresh UTXO at output 0; the amount stays the user's, only the fee is spent
   async function prepareUtxo() {
     if (preparing.value) return;
-    const confirmed = await confirmDialog(
-      t('createTokens.prepare.title'),
-      props.prepareMessage,
-      t('createTokens.genesisInput.prepareButton')
-    );
-    if (!confirmed) return;
     preparing.value = true;
     try {
-      notifySending(t('createTokens.notifications.preparingPreGenesis'));
-      const { txId } = await store.spend.send([{ cashaddr: store.wallet.getDepositAddress(), value: preparedUtxoValue }]);
-      $q.notify({ type: 'positive', message: t('createTokens.notifications.transactionSent') });
-      await store.updateWalletUtxos();
+      const outpoint = await prepareGenesisUtxo(props.prepareMessage);
       // the UTXO the user just asked for is the one they meant
-      if (txId) pickedOutpoint.value = `${txId}:0`;
-      void store.updateWalletHistory();
-    } catch (error) {
-      displayAndLogError(error);
+      if (outpoint) pickedOutpoint.value = outpoint;
     } finally {
       preparing.value = false;
     }

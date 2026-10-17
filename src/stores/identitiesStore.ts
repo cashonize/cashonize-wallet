@@ -667,13 +667,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // An identity this wallet just created, token or not: its authhead is output 0 of the
-  // transaction, so the coin is held back straight away rather than when Chaingraph or this
-  // wallet's own view catches up. The resolve after it is a lookup that can fail, and the
-  // identity is listed and held back whether or not it does: a failure is not the caller's.
-  async function listCreatedIdentity(category: string, authheadTxId: string) {
+  // transaction, or for a guarded one the AuthKey is output 1, so that coin is held back straight
+  // away rather than when Chaingraph or this wallet's own view catches up. The resolve after it is
+  // a lookup that can fail, and the identity is listed and held back whether or not it does: a
+  // failure is not the caller's.
+  async function listCreatedIdentity(category: string, authheadTxId: string, heldVout: 0 | 1 = 0) {
     dismissedIdentities.value = removeFromIdentityList('dismissed', ...walletKey(), category);
     listCategory(category);
-    const outpoint = `${authheadTxId}:0`;
+    const outpoint = `${authheadTxId}:${heldVout}`;
     if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoints([outpoint], 'auth');
     try {
       // the resolve reads the wallet's coins, which must include the one just made

@@ -2,8 +2,11 @@
 // tested: amounts typed in tokens become base units by the chosen decimals, and a metadata
 // location counts only once the wallet has fetched and verified what it serves.
 
-import type { Utxo } from 'mainnet-js';
+import { NFTCapability, TokenSendRequest, type OpReturnData, type Utxo } from 'mainnet-js';
+import type { CashAddressNetworkPrefix } from '@bitauth/libauth';
 import type { RegistrySummary } from './registryFile';
+import { tokenOutputValue } from './authchainIdentity';
+import { authGuardAddress, STUDIO_KEY_COMMITMENT } from './authGuard';
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
@@ -79,6 +82,13 @@ export function genesisCandidates(utxos: Utxo[], order: 'largest' | 'smallest' =
     .sort((left, right) => sign * Number(right.satoshis - left.satoshis));
 }
 
+// The UTXO whose txid becomes an AuthKey's category. Nobody sees that id, so the wallet picks it:
+// the smallest candidate left once the token's own genesis input is taken, since only its change
+// comes back.
+export function authKeyGenesisInput(utxos: Utxo[], tokenInput: Utxo | undefined): Utxo | undefined {
+  return genesisCandidates(utxos, 'smallest').find(utxo => utxo.txid !== tokenInput?.txid);
+}
+
 // What a prepared UTXO carries, which stays the user's: the genesis or the identity spends it to self
 export const preparedUtxoValue = 10_000n;
 
@@ -94,9 +104,53 @@ export interface CreatedToken {
   name?: string;
   symbol?: string;
   iconUrl?: string;
+  guarded: boolean;
   hasSupply: boolean;
   supply: bigint;
   reserve: bigint;
   circulating: bigint;
   decimals: number;
+}
+
+export interface AuthGuardGenesis {
+  tokenCategory: string;
+  keyCategory: string;
+  prefix: CashAddressNetworkPrefix;
+  walletTokenAddress: string;
+  reserve: bigint;
+  mintingNft: boolean;
+  circulating: bigint;
+  publication?: OpReturnData;
+}
+
+// The standard's genesis, in the order CashTokens Studio builds it: the guard at output 0 holding
+// the reserve and the minting NFT, the AuthKey at output 1, then what enters circulation and the
+// publication. The key's category is its own genesis input's, never the token's: any NFT of the
+// key's category opens the guard, and a token's own category gains NFTs whenever it has a minting NFT.
+export function authGuardGenesisOutputs(genesis: AuthGuardGenesis): (TokenSendRequest | OpReturnData)[] {
+  const outputs: (TokenSendRequest | OpReturnData)[] = [
+    new TokenSendRequest({
+      cashaddr: authGuardAddress(genesis.keyCategory, genesis.prefix),
+      category: genesis.tokenCategory,
+      amount: genesis.reserve,
+      value: tokenOutputValue,
+      ...(genesis.mintingNft ? { nft: { commitment: "", capability: NFTCapability.minting } } : {}),
+    }),
+    new TokenSendRequest({
+      cashaddr: genesis.walletTokenAddress,
+      category: genesis.keyCategory,
+      value: tokenOutputValue,
+      nft: { commitment: STUDIO_KEY_COMMITMENT, capability: NFTCapability.none },
+    }),
+  ];
+  if (genesis.circulating > 0n) {
+    outputs.push(new TokenSendRequest({
+      cashaddr: genesis.walletTokenAddress,
+      category: genesis.tokenCategory,
+      amount: genesis.circulating,
+      value: tokenOutputValue,
+    }));
+  }
+  if (genesis.publication) outputs.push(genesis.publication);
+  return outputs;
 }
