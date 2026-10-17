@@ -692,7 +692,7 @@
       },
       "studioLines": {
         "for": "la voie la plus simple, et les collections de NFT.",
-        "managed": "sur le site de CashTokens Studio, par WalletConnect."
+        "managed": "sur le site de CashTokens Studio, connecté à ce portefeuille."
       },
       "leads": {
         "protection": "Protection :",
@@ -710,7 +710,7 @@
         "protectionHelp": "L'AuthKey est un NFT qui ouvre un AuthGuard, le contrat dans lequel CashTokens Studio garde l'identité, de sorte que l'identité ne se dépense qu'avec l'AuthKey, quelle que soit l'app qui détient la seed. D'autres portefeuilles montrent l'AuthKey comme un NFT sans nom, et c'est ainsi qu'elle se retrouve envoyée ou brûlée ; ce portefeuille la nomme d'après ce qu'elle protège.",
         "metadata": "rédigées et épinglées sur IPFS par CashTokens Studio ; il est recommandé d'en garder une copie.",
         "metadataHelp": "Le pin IPFS est celui de CashTokens Studio. S'il expire un jour, le fichier peut être hébergé n'importe où et le hash publié correspond toujours, mais seulement au fichier exact : gardez-en une copie.",
-        "operations": "métadonnées, émission et libération, sur le site de CashTokens Studio par WalletConnect.",
+        "operations": "métadonnées, émission et libération, sur le site de CashTokens Studio, connecté à ce portefeuille.",
         "moveLater": "Vous pourrez déplacer l'identité du token de CashTokens Studio vers ce portefeuille plus tard, et inversement."
       },
       "studioBox": "Après la création d'un token dans l'application CashTokens Studio, l'AuthKey apparaît dans l'onglet Tokens et l'identité sur la page des identités, dans Outils.",
