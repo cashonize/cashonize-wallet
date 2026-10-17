@@ -108,6 +108,7 @@
       "utxosHeldBack": "Einige UTXOs sind von der Münzauswahl ausgenommen und zählen hier nicht mit. Die UTXO-Verwaltung zeigt, welche zurückgehalten werden und warum.",
       "cannotSendPledgedUtxo": "Dieser UTXO wird für ein offenes Pledge zurückgehalten. Brich das Pledge ab, um ihn freizugeben.",
       "genesisInputUnavailable": "Die zur Erstellung gewählte Münze ist nicht mehr verfügbar. Wähle eine andere.",
+      "genesisNotAsPlanned": "Die Transaktion, die die Wallet erstellt hat, passt nicht zum Token, der erstellt werden soll, daher wurde sie nicht gesendet.",
       "utxoNotAvailable": "Eine Münze, die diese Transaktion ausgibt, ist nicht mehr in der Wallet, wahrscheinlich anderswo ausgegeben. Warte, bis die Wallet aktualisiert ist, und versuche es erneut.",
       "identityLeavesWallet": "Diese Anfrage würde eine deiner Identitäten an eine Adresse bewegen, die dieses Wallet nicht als seine eigene erkennt, und wurde daher abgelehnt. Eine Identität wird über die Identitäten-Seite übertragen.",
       "identityMerge": "Diese Anfrage würde zwei deiner Identitäten in einer Transaktion ausgeben, was sie zu einer verschmilzt. Identitäten zu verschmelzen unterstützt dieses Wallet noch nicht, deshalb wurde sie abgelehnt.",
@@ -692,6 +693,12 @@
       "wallet": "In diesem Wallet",
       "studio": "Mit CashTokens Studio",
       "chosen": "Token-Identität bleibt: in diesem Wallet",
+      "chosenGuard": "Token-Identität aufbewahrt: in einem AuthGuard, mit dem AuthKey in diesem Wallet",
+      "keep": {
+        "label": "Identität aufbewahren:",
+        "utxo": "in einem UTXO, das dieses Wallet zurückhält",
+        "guard": "in einem AuthGuard, mit dem AuthKey in diesem Wallet"
+      },
       "cardLeads": {
         "for": "Für:",
         "managed": "Verwaltet:"
@@ -723,6 +730,13 @@
         "operations": "Metadaten, Ausgabe und Freigabe, auf der Seite von CashTokens Studio, mit diesem Wallet verbunden.",
         "moveLater": "Du kannst die Token-Identität später von CashTokens Studio in dieses Wallet verschieben, und zurück."
       },
+      "guardRows": {
+        "protection": "nur mit dem AuthKey ausgebbar, den dieses Wallet hält; in anderen Wallets ein namenloses NFT, also behalte ihn.",
+        "protectionHelp": "Der AuthKey ist ein NFT, das den AuthGuard öffnet, den Vertrag, in dem die Identität aufbewahrt wird, sodass die Identität nur mit dem AuthKey ausgegeben wird, egal welche App den Seed hält. Andere Wallets zeigen den AuthKey als namenloses NFT, und so wird einer versehentlich verschickt oder verbrannt; dieses Wallet benennt ihn nach dem, was er schützt.",
+        "metadata": "eine Datei, die du hostest, verknüpft in Schritt 3 oder später auf der Seite von CashTokens Studio.",
+        "operations": "Metadaten, Ausgabe und Prägen auf der Seite von CashTokens Studio, mit diesem Wallet verbunden, mit dem AuthKey.",
+        "moveLater": "CashTokens Studio zeigt sie mit dem AuthKey an und kann die Identität später in dieses Wallet freigeben."
+      },
       "studioBox": "Nach dem Erstellen eines Tokens in der CashTokens-Studio-App erscheint der AuthKey im Tokens-Tab und die Identität auf der Identitäten-Seite unter Werkzeuge.",
       "openStudio": "CashTokens Studio öffnen",
       "continueButton": "Weiter",
@@ -746,6 +760,11 @@
       "unconfirmed": "unbestätigt",
       "loading": "lädt..."
     },
+    "authKeyInput": {
+      "id": "AuthKey-ID:",
+      "missing": "Ein AuthGuard braucht ein zweites UTXO an Output 0, dessen txid die ID des AuthKeys wird; dieses Wallet hat keines mehr.",
+      "prepareButton": "UTXO für den AuthKey vorbereiten"
+    },
     "prepare": {
       "title": "Einen UTXO vorbereiten?",
       "message": "Das sendet jetzt {amount} an dich selbst, damit die Genesis einen frischen UTXO an Output 0 zum Ausgeben hat. Der Betrag bleibt deiner; nur die Gebühr wird ausgegeben."
@@ -762,6 +781,7 @@
     },
     "mintingDescription": "Ein Minting-NFT prägt die NFTs der Sammlung, und nur die erstellende Transaktion kann das gewähren.",
     "mintingNote": "NFTs werden aus der Token-Liste geprägt, mit „NFTs prägen aktivieren“ in den Entwicklereinstellungen.",
+    "guardedMintingNote": "NFTs werden auf der Seite von CashTokens Studio geprägt, mit dem AuthKey.",
     "decimalsLabel": "Dezimalstellen",
     "supplyLabel": "Gesamtvorrat an fungiblen Tokens",
     "supplyNote": "Der Vorrat wird einmal erstellt und kann nie erhöht werden; behalte einen Teil in der Reserve, um ihn später freizugeben.",
@@ -771,7 +791,8 @@
       "label": "Jetzt in Umlauf bringen",
       "placeholder": "Auszugebender Betrag",
       "split": "{reserve} bleibt als Reserve bei der Identität, {circulating} kommt in Umlauf.",
-      "note": "Die Reserve bleibt auf dem UTXO der Identität; gib sie später von der Identitäten-Seite aus."
+      "note": "Die Reserve bleibt auf dem UTXO der Identität; gib sie später von der Identitäten-Seite aus.",
+      "guardedNote": "Die Reserve bleibt im AuthGuard; gib sie später auf der Seite von CashTokens Studio aus."
     },
     "errors": {
       "invalidAmount": "Gib Beträge in Tokens ein, mit nicht mehr Dezimalstellen, als der Token hat.",
@@ -808,6 +829,7 @@
       "button": "Erstellen",
       "supply": "Gesamtvorrat: {supply}",
       "decimals": "Dezimalstellen: {decimals}",
+      "guarded": "Identität in einem AuthGuard aufbewahrt; das AuthKey-NFT kommt in dieses Wallet.",
       "metadataLinked": "Metadaten: {name}, von {location}",
       "metadataNone": "Metadaten: noch keine verknüpft. Bis sie veröffentlicht sind, zeigen Wallets den Token mit seiner ID und rohen Beträgen an."
     },
@@ -821,8 +843,10 @@
       "title": "Geschafft!",
       "supply": "{amount} erstellt",
       "mintingNft": "Ein Minting-NFT erstellt, auf dem UTXO der Identität: präge die NFTs der Sammlung daraus in der Token-Liste.",
+      "guardedMintingNft": "Ein Minting-NFT wurde erstellt, im AuthGuard: präge die NFTs der Sammlung damit auf der Seite von CashTokens Studio.",
       "split": "{reserve} als Reserve bei der Identität, {circulating} in diesem Wallet",
       "listed": "Auf der Identitäten-Seite gelistet, die seinen UTXO nur aus Versänden dieses Wallets heraushält.",
+      "guardedListed": "Auf der Identitäten-Seite gelistet. Der AuthKey, der den AuthGuard öffnet, ist in diesem Wallet und von ihren Sendungen zurückgehalten; nutze ihn auf der Seite von CashTokens Studio.",
       "untilPublished": "Wallets zeigen ihn so an, bis du {link}.",
       "untilPublishedLink": "Metadaten veröffentlichst",
       "seeToken": "Token im Wallet ansehen",

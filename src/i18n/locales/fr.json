@@ -108,6 +108,7 @@
       "utxosHeldBack": "Certains UTXO sont écartés de la sélection et ne comptent pas ici. La page de gestion des UTXO montre lesquels sont retenus et pourquoi.",
       "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer.",
       "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre.",
+      "genesisNotAsPlanned": "La transaction construite par le portefeuille ne correspond pas au jeton à créer, elle n'a donc pas été envoyée.",
       "utxoNotAvailable": "Une pièce que dépense cette transaction n'est plus dans le portefeuille, probablement dépensée ailleurs. Attendez la mise à jour du portefeuille et réessayez.",
       "identityLeavesWallet": "Cette requête déplacerait une de vos identités vers une adresse que ce portefeuille ne reconnaît pas comme la sienne, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités.",
       "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, ce qui les fusionne en une. Ce portefeuille ne prend pas encore en charge la fusion d'identités, elle a donc été refusée.",
@@ -692,6 +693,12 @@
       "wallet": "Dans ce portefeuille",
       "studio": "Avec CashTokens Studio",
       "chosen": "Identité du token conservée : dans ce portefeuille",
+      "chosenGuard": "Identité du jeton conservée : dans un AuthGuard, avec l'AuthKey dans ce portefeuille",
+      "keep": {
+        "label": "Conserver l'identité :",
+        "utxo": "dans un UTXO que ce portefeuille met de côté",
+        "guard": "dans un AuthGuard, avec l'AuthKey dans ce portefeuille"
+      },
       "cardLeads": {
         "for": "Pour :",
         "managed": "Géré :"
@@ -723,6 +730,13 @@
         "operations": "métadonnées, émission et libération, sur le site de CashTokens Studio, connecté à ce portefeuille.",
         "moveLater": "Vous pourrez déplacer l'identité du token de CashTokens Studio vers ce portefeuille plus tard, et inversement."
       },
+      "guardRows": {
+        "protection": "dépensable uniquement avec l'AuthKey, que ce portefeuille détient ; dans d'autres portefeuilles un NFT sans nom, gardez-la donc.",
+        "protectionHelp": "L'AuthKey est un NFT qui ouvre l'AuthGuard, le contrat dans lequel l'identité est conservée, de sorte que l'identité ne se dépense qu'avec l'AuthKey, quelle que soit l'app qui détient la seed. D'autres portefeuilles montrent l'AuthKey comme un NFT sans nom, et c'est ainsi qu'elle se retrouve envoyée ou brûlée ; ce portefeuille la nomme d'après ce qu'elle protège.",
+        "metadata": "un fichier que vous hébergez, lié à l'étape 3 ou plus tard sur le site de CashTokens Studio.",
+        "operations": "métadonnées, émission et frappe sur le site de CashTokens Studio connecté à ce portefeuille, avec l'AuthKey.",
+        "moveLater": "CashTokens Studio l'affiche avec l'AuthKey et peut libérer l'identité vers ce portefeuille plus tard."
+      },
       "studioBox": "Après la création d'un token dans l'application CashTokens Studio, l'AuthKey apparaît dans l'onglet Tokens et l'identité sur la page des identités, dans Outils.",
       "openStudio": "Ouvrir CashTokens Studio",
       "continueButton": "Continuer",
@@ -746,6 +760,11 @@
       "unconfirmed": "non confirmé",
       "loading": "chargement..."
     },
+    "authKeyInput": {
+      "id": "ID de l'AuthKey :",
+      "missing": "Un AuthGuard demande aussi un second UTXO à la sortie 0, dont le txid devient l'ID de l'AuthKey ; ce portefeuille n'en a plus.",
+      "prepareButton": "Préparer un UTXO pour l'AuthKey"
+    },
     "prepare": {
       "title": "Préparer un UTXO ?",
       "message": "Ceci vous envoie {amount} à vous-même maintenant, pour que la genèse ait un UTXO neuf à la sortie 0 à dépenser. Le montant reste le vôtre ; seuls les frais sont dépensés."
@@ -762,6 +781,7 @@
     },
     "mintingDescription": "Un NFT de frappe crée les NFT de la collection, et seule la transaction de création peut l'accorder.",
     "mintingNote": "Les NFT sont frappés depuis la liste des tokens, avec « Activer la frappe de NFT » activé dans les paramètres développeur.",
+    "guardedMintingNote": "Les NFT sont frappés sur le site de CashTokens Studio, avec l'AuthKey.",
     "decimalsLabel": "Décimales",
     "supplyLabel": "Offre totale de tokens fongibles",
     "supplyNote": "L'offre est créée une fois et ne peut jamais être augmentée ; gardez-en une partie en réserve pour la libérer plus tard.",
@@ -771,7 +791,8 @@
       "label": "Émettre en circulation maintenant",
       "placeholder": "Montant à émettre",
       "split": "{reserve} reste avec l'identité en réserve, {circulating} entre en circulation.",
-      "note": "La réserve reste sur l'UTXO de l'identité ; émettez-la plus tard depuis la page des identités."
+      "note": "La réserve reste sur l'UTXO de l'identité ; émettez-la plus tard depuis la page des identités.",
+      "guardedNote": "La réserve reste dans l'AuthGuard ; émettez-la plus tard sur le site de CashTokens Studio."
     },
     "errors": {
       "invalidAmount": "Saisissez des montants en tokens, sans plus de décimales que le token n'en a.",
@@ -808,6 +829,7 @@
       "button": "Créer",
       "supply": "Offre totale : {supply}",
       "decimals": "Décimales : {decimals}",
+      "guarded": "Identité conservée dans un AuthGuard ; le NFT AuthKey arrive dans ce portefeuille.",
       "metadataLinked": "Métadonnées : {name}, depuis {location}",
       "metadataNone": "Métadonnées : aucune liée pour l'instant. Tant qu'elles ne sont pas publiées, les portefeuilles affichent le token par son id, avec des montants bruts."
     },
@@ -821,8 +843,10 @@
       "title": "Réussi !",
       "supply": "{amount} créés",
       "mintingNft": "Un NFT de frappe créé, sur l'UTXO de l'identité : frappez-en les NFT de la collection dans la liste des tokens.",
+      "guardedMintingNft": "Un NFT de frappe créé, dans l'AuthGuard : frappez-en les NFT de la collection sur le site de CashTokens Studio.",
       "split": "{reserve} avec l'identité en réserve, {circulating} dans ce portefeuille",
       "listed": "Listé sur la page des identités, qui tient son UTXO hors des envois de ce portefeuille seulement.",
+      "guardedListed": "Listé sur la page des identités. L'AuthKey qui ouvre son AuthGuard est dans ce portefeuille, mise de côté de ses envois ; utilisez-la sur le site de CashTokens Studio.",
       "untilPublished": "Les portefeuilles l'affichent ainsi jusqu'à ce que vous {link}.",
       "untilPublishedLink": "publiiez des métadonnées",
       "seeToken": "Voir le token dans le portefeuille",

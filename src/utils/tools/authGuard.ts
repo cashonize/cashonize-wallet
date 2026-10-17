@@ -13,6 +13,8 @@ import {
   hash160,
   hash256,
   hexToBin,
+  lockingBytecodeToCashAddress,
+  type CashAddressNetworkPrefix,
 } from "@bitauth/libauth";
 
 // The compiled body of AuthGuard.cash: require the AuthKey at input 1, force output 0 back to the
@@ -41,6 +43,17 @@ export function authGuardLockingBytecodes(category: string): { p2sh20: string; p
 export function isAuthGuardOf(keyCategory: string, lockingBytecode: string): boolean {
   const forms = authGuardLockingBytecodes(keyCategory);
   return lockingBytecode === forms.p2sh20 || lockingBytecode === forms.p2sh32;
+}
+
+// Where a genesis made here puts the guard: the token-aware P2SH20 address, the form CashTokens
+// Studio derives and watches, so the identity shows up there. P2SH32 would buy nothing: its point
+// is collisions between scripts an attacker helps write, and nothing in this one is the attacker's,
+// leaving a 2^160 second preimage. It would only hide the identity from Studio.
+export function authGuardAddress(keyCategory: string, prefix: CashAddressNetworkPrefix): string {
+  const bytecode = hexToBin(authGuardLockingBytecodes(keyCategory).p2sh20);
+  const encoded = lockingBytecodeToCashAddress({ bytecode, prefix, tokenSupport: true });
+  if (typeof encoded === "string") throw new Error(encoded);
+  return encoded.address;
 }
 
 // The commitment CashTokens Studio mints its AuthKeys with. The covenant reads none, so this is a

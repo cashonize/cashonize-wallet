@@ -108,6 +108,7 @@
       "utxosHeldBack": "Algunos UTXOs están retenidos fuera de la selección de monedas y no cuentan aquí. La página de gestión de UTXOs muestra cuáles están retenidos y por qué.",
       "cannotSendPledgedUtxo": "Este UTXO está retenido por una promesa abierta. Cancela la promesa para liberarlo.",
       "genesisInputUnavailable": "La moneda elegida para crear este token ya no está disponible. Elige otra.",
+      "genesisNotAsPlanned": "La transacción que creó la billetera no coincide con el token a crear, así que no se envió.",
       "utxoNotAvailable": "Una moneda que gasta esta transacción ya no está en la billetera, probablemente gastada en otro lugar. Espera a que la billetera se actualice e inténtalo de nuevo.",
       "identityLeavesWallet": "Esta solicitud movería una de tus identidades a una dirección que esta billetera no reconoce como propia, así que fue rechazada. La transferencia de una identidad se hace desde la página de identidades.",
       "identityMerge": "Esta solicitud gastaría dos de tus identidades en una sola transacción, lo que las fusiona en una. Esta billetera todavía no admite fusionar identidades, así que se rechazó.",
@@ -692,6 +693,12 @@
       "wallet": "En esta billetera",
       "studio": "Con CashTokens Studio",
       "chosen": "Identidad del token guardada: en esta billetera",
+      "chosenGuard": "Identidad del token guardada: en un AuthGuard, con la AuthKey en esta billetera",
+      "keep": {
+        "label": "Guardar la identidad:",
+        "utxo": "en un UTXO que esta billetera reserva",
+        "guard": "en un AuthGuard, con la AuthKey en esta billetera"
+      },
       "cardLeads": {
         "for": "Para:",
         "managed": "Se gestiona:"
@@ -723,6 +730,13 @@
         "operations": "metadatos, emisión y liberación, en el sitio de CashTokens Studio, conectado a esta billetera.",
         "moveLater": "Puedes mover la identidad del token de CashTokens Studio a esta billetera más adelante, y de vuelta."
       },
+      "guardRows": {
+        "protection": "solo se gasta con la AuthKey, que tiene esta billetera; en otras billeteras es un NFT sin nombre, así que guárdala.",
+        "protectionHelp": "La AuthKey es un NFT que abre el AuthGuard, el contrato en el que se guarda la identidad, de modo que la identidad solo se gasta con la AuthKey, sea cual sea la app que tenga la semilla. Otras carteras muestran la AuthKey como un NFT sin nombre, y así es como una se envía por error o se quema; esta cartera la nombra por lo que protege.",
+        "metadata": "un archivo que alojas tú, vinculado en el paso 3 o después en el sitio de CashTokens Studio.",
+        "operations": "metadatos, emisión y acuñación en el sitio de CashTokens Studio conectado a esta billetera, con la AuthKey.",
+        "moveLater": "CashTokens Studio la muestra con la AuthKey y puede liberar la identidad a esta billetera más adelante."
+      },
       "studioBox": "Tras crear un token en la app CashTokens Studio, la AuthKey aparece en la pestaña Tokens y la identidad en la página de identidades, en Herramientas.",
       "openStudio": "Abrir CashTokens Studio",
       "continueButton": "Continuar",
@@ -746,6 +760,11 @@
       "unconfirmed": "sin confirmar",
       "loading": "cargando..."
     },
+    "authKeyInput": {
+      "id": "ID de la AuthKey:",
+      "missing": "Un AuthGuard necesita también un segundo UTXO en la salida 0, cuyo txid se convierte en el ID de la AuthKey; a esta billetera no le queda ninguno.",
+      "prepareButton": "Preparar un UTXO para la AuthKey"
+    },
     "prepare": {
       "title": "¿Preparar un UTXO?",
       "message": "Esto te envía {amount} a ti mismo ahora, para que la génesis tenga un UTXO nuevo en la salida 0 que gastar. La cantidad sigue siendo tuya; solo se gasta la comisión."
@@ -762,6 +781,7 @@
     },
     "mintingDescription": "Un NFT de acuñación crea los NFTs de la colección, y solo la transacción de creación puede otorgar eso.",
     "mintingNote": "Los NFTs se acuñan desde la lista de tokens, con \"Habilitar acuñar NFTs\" activado en los ajustes de desarrollador.",
+    "guardedMintingNote": "Los NFT se acuñan en el sitio de CashTokens Studio, con la AuthKey.",
     "decimalsLabel": "Decimales",
     "supplyLabel": "Suministro total de tokens fungibles",
     "supplyNote": "El suministro se crea una vez y nunca puede aumentarse; deja una parte en reserva para liberarla después.",
@@ -771,7 +791,8 @@
       "label": "Emitir a circulación ahora",
       "placeholder": "Cantidad a emitir",
       "split": "{reserve} se queda con la identidad como reserva, {circulating} entra en circulación.",
-      "note": "La reserva se queda en el UTXO de la identidad; emítela después desde la página de identidades."
+      "note": "La reserva se queda en el UTXO de la identidad; emítela después desde la página de identidades.",
+      "guardedNote": "La reserva se queda en el AuthGuard; emítela más adelante en el sitio de CashTokens Studio."
     },
     "errors": {
       "invalidAmount": "Escribe cantidades en tokens, sin más decimales de los que tiene el token.",
@@ -808,6 +829,7 @@
       "button": "Crear",
       "supply": "Suministro total: {supply}",
       "decimals": "Decimales: {decimals}",
+      "guarded": "Identidad guardada en un AuthGuard; el NFT AuthKey llega a esta billetera.",
       "metadataLinked": "Metadatos: {name}, desde {location}",
       "metadataNone": "Metadatos: ninguno enlazado todavía. Hasta que se publiquen, las billeteras muestran el token por su id, con cantidades en bruto."
     },
@@ -821,8 +843,10 @@
       "title": "¡Listo!",
       "supply": "{amount} creados",
       "mintingNft": "Un NFT de acuñación creado, en el UTXO de la identidad: acuña desde él los NFTs de la colección en la lista de tokens.",
+      "guardedMintingNft": "Se creó un NFT de acuñación, en el AuthGuard: acuña con él los NFT de la colección en el sitio de CashTokens Studio.",
       "split": "{reserve} con la identidad como reserva, {circulating} en esta billetera",
       "listed": "Listado en la página de identidades, que mantiene su UTXO fuera de los envíos solo de esta billetera.",
+      "guardedListed": "Listada en la página de identidades. La AuthKey que abre su AuthGuard está en esta billetera, reservada de sus envíos; úsala en el sitio de CashTokens Studio.",
       "untilPublished": "Las billeteras lo muestran así hasta que {link}.",
       "untilPublishedLink": "publiques los metadatos",
       "seeToken": "Ver el token en la billetera",
