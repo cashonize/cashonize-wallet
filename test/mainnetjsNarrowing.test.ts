@@ -4,8 +4,11 @@ import type { Utxo } from 'mainnet-js'
 // not on the package's export surface, so reached by path
 import { buildP2pkhNonHdTransaction, getSuitableUtxos, placeholderPrivateKeyBin } from '../node_modules/mainnet-js/dist/module/transaction/Wif.js'
 import { OP_RETURN_ADDRESS_PREFIX } from '../src/utils/history/txDirection'
-import { binToHex, encodeTransaction, hashTransaction, hexToBin, lockingBytecodeToCashAddress, privateKeyToP2pkhCashAddress } from '@bitauth/libauth'
+import { binToHex, CashAddressNetworkPrefix, createVirtualMachineBch, encodeTransaction, hashTransaction, hexToBin, lockingBytecodeToCashAddress, privateKeyToP2pkhCashAddress } from '@bitauth/libauth'
 import { electrumTimeoutMessage } from '../src/utils/wallet/broadcastErrors'
+import { authGuardGenesisOutputs } from '../src/utils/tools/tokenCreation'
+import { publicationOutput } from '../src/utils/tools/authchainIdentity'
+import { isAuthGuardOf } from '../src/utils/tools/authGuard'
 
 // The wallet keeps frozen and reserved coins out of a spend by narrowing mainnet-js's pool with
 // the utxoIds option, so every method that selects inputs has to honor it. tokenMint and tokenBurn
@@ -149,5 +152,46 @@ describe('mainnet-js builds a transaction spending an NFT with a commitment over
     })
 
     await expect(built).resolves.toBeDefined()
+  })
+})
+
+// An AuthGuard genesis makes two categories in one transaction, which mainnet-js's tokenGenesis
+// cannot, so the store hands send both genesis inputs as ensureUtxos with the genesis token
+// operation. Built and signed the way send does, and checked by the VM's consensus rules: a
+// genesis output's category must be the txid of an output-0 input this very transaction spends.
+describe('mainnet-js builds an AuthGuard genesis with both genesis inputs', () => {
+  it('forces both inputs in, in order, into a transaction the VM accepts', async () => {
+    const { address } = privateKeyToP2pkhCashAddress({ privateKey: placeholderPrivateKeyBin, prefix: 'bitcoincash', tokenSupport: true })
+    const tokenInput: Utxo = { txid: '44'.repeat(32), vout: 0, satoshis: 10_000n, address }
+    const keyInput: Utxo = { txid: '55'.repeat(32), vout: 0, satoshis: 10_000n, address }
+    const funding: Utxo = { txid: '11'.repeat(32), vout: 1, satoshis: 50_000n, address }
+    const outputs = authGuardGenesisOutputs({
+      tokenCategory: tokenInput.txid,
+      keyCategory: keyInput.txid,
+      prefix: CashAddressNetworkPrefix.mainnet,
+      walletTokenAddress: address,
+      reserve: 700n,
+      mintingNft: true,
+      circulating: 300n,
+      publication: publicationOutput('66'.repeat(32), ['example.com']),
+    })
+
+    const selected = await getSuitableUtxos([funding, keyInput, tokenInput], 5000n, 0, FeePaidByEnum.change, outputs, [tokenInput, keyInput], 'genesis')
+    expect(selected.slice(0, 2)).toEqual([tokenInput, keyInput])
+
+    const { transaction, sourceOutputs } = await buildP2pkhNonHdTransaction({
+      inputs: selected,
+      outputs,
+      signingKey: placeholderPrivateKeyBin,
+      fee: 2000n,
+      walletCache: { get: () => undefined },
+    })
+
+    expect(createVirtualMachineBch(true).verify({ transaction, sourceOutputs })).toBe(true)
+    const [guard, key] = transaction.outputs
+    expect(binToHex(guard!.token!.category)).toBe(tokenInput.txid)
+    expect(isAuthGuardOf(keyInput.txid, binToHex(guard!.lockingBytecode))).toBe(true)
+    expect(binToHex(key!.token!.category)).toBe(keyInput.txid)
+    expect(binToHex(key!.token!.nft!.commitment)).toBe('00')
   })
 })

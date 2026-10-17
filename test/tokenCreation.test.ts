@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Utxo } from 'mainnet-js'
+import { Config, OpReturnData, type TokenSendRequest, type Utxo } from 'mainnet-js'
+import { binToHex, cashAddressToLockingBytecode, CashAddressNetworkPrefix, encodeCashAddress } from '@bitauth/libauth'
 
-import { genesisAmounts, genesisCandidates, metadataReadiness, type CheckedRegistry } from '../src/utils/tools/tokenCreation'
+import {
+  authGuardGenesisOutputs,
+  authKeyGenesisInput,
+  genesisAmounts,
+  genesisCandidates,
+  metadataReadiness,
+  type CheckedRegistry,
+} from '../src/utils/tools/tokenCreation'
+import { isAuthGuardOf, isAuthKey } from '../src/utils/tools/authGuard'
 
 describe('genesisAmounts', () => {
   // the supply is typed in tokens and the decimals do the zeroes, since the on-chain number is
@@ -89,5 +98,61 @@ describe('genesisCandidates', () => {
     const small = coin('a'.repeat(64), 0, 1000n)
     const large = coin('b'.repeat(64), 0, 5000n)
     expect(genesisCandidates([large, small], 'smallest')).toEqual([small, large])
+  })
+})
+
+describe('authKeyGenesisInput', () => {
+  const coin = (txid: string, satoshis: bigint): Utxo => ({ txid, vout: 0, satoshis }) as Utxo
+
+  // two categories from one coin is impossible, so the token's own input is never the key's
+  it('picks the smallest candidate other than the token input', () => {
+    const small = coin('a'.repeat(64), 1000n)
+    const large = coin('b'.repeat(64), 5000n)
+    expect(authKeyGenesisInput([large, small], small)).toBe(large)
+    expect(authKeyGenesisInput([large, small], large)).toBe(small)
+    expect(authKeyGenesisInput([small], small)).toBeUndefined()
+  })
+})
+
+describe('authGuardGenesisOutputs', () => {
+  Config.EnforceCashTokenReceiptAddresses = true
+  const tokenCategory = 'aa'.repeat(32)
+  const keyCategory = 'bcc5157eb69f0fcf80593c69ac08a3f28a1e726d55d0be6330ccaba4ed94c307'
+  const walletTokenAddress = encodeCashAddress({ prefix: 'bitcoincash', type: 'p2pkhWithTokens', payload: new Uint8Array(20) }).address
+  const genesis = {
+    tokenCategory, keyCategory, prefix: CashAddressNetworkPrefix.mainnet, walletTokenAddress,
+    reserve: 700n, mintingNft: false, circulating: 300n,
+  }
+  const lockingOf = (request: TokenSendRequest) => {
+    const decoded = cashAddressToLockingBytecode(request.cashaddr)
+    if (typeof decoded === 'string') throw new Error(decoded)
+    return binToHex(decoded.bytecode)
+  }
+
+  // a wrong guard address locks the identity for good, so output 0 is checked against the covenant
+  // the key at output 1 opens, at the P2SH20 form CashTokens Studio watches
+  it('puts the guard at output 0, opened by the key at output 1', () => {
+    const [guard, key] = authGuardGenesisOutputs(genesis) as TokenSendRequest[]
+    expect(guard!.category).toBe(tokenCategory)
+    expect(guard!.amount).toBe(700n)
+    expect(guard!.nft).toBeUndefined()
+    expect(isAuthGuardOf(key!.category, lockingOf(guard!))).toBe(true)
+    expect(lockingOf(guard!)).toBe('a9146a59d6c4546b759fe4e67258bae954f03335f7a187')
+    expect(key!.cashaddr).toBe(walletTokenAddress)
+    expect(isAuthKey({ token: { ...key!, amount: key!.amount } } as unknown as Utxo, keyCategory, '00')).toBe(true)
+  })
+
+  it('follows with circulation and the publication, in the standard\'s order', () => {
+    const publication = OpReturnData.fromArray(['BCMR'])
+    const outputs = authGuardGenesisOutputs({ ...genesis, mintingNft: true, publication })
+    expect(outputs).toHaveLength(4)
+    expect((outputs[0] as TokenSendRequest).nft?.capability).toBe('minting')
+    expect((outputs[2] as TokenSendRequest).category).toBe(tokenCategory)
+    expect((outputs[2] as TokenSendRequest).amount).toBe(300n)
+    expect(outputs[3]).toBe(publication)
+  })
+
+  it('leaves out an empty circulation output', () => {
+    expect(authGuardGenesisOutputs({ ...genesis, circulating: 0n })).toHaveLength(2)
   })
 })

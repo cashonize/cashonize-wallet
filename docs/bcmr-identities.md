@@ -75,8 +75,8 @@ and the one the wallet makes itself for a contract's chain, under Spec versus co
 
 ## What the wallet does and does not do
 
-Does: create (a token genesis, or any UTXO at output 0 for an identity that is not a
-token), hold identity outputs and keys back, resolve where each listed identity is held,
+Does: create (a token genesis, kept in this wallet or in an AuthGuard, or any UTXO at output
+0 for an identity that is not a token), hold identity outputs and keys back, resolve where each listed identity is held,
 fetch and hash what the published locations serve, build the publication, reserve and
 transfer transactions (all one shape: the old identity output in, the new one at output 0,
 the publication output beside it when there is one), mint from an identity UTXO as the
@@ -89,7 +89,11 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
 
 - **Made here.** The create page lists a genesis and reserves its output 0 before any
   indexer has seen it; the identities page's Add new, behind a user option, does the same
-  for a picked UTXO.
+  for a picked UTXO. A guarded genesis is CashTokens Studio's, output for output: a second
+  output-0 UTXO the wallet picks becomes the AuthKey's own category, the guard goes at output
+  0 at the P2SH20 address Studio watches, and the AuthKey at output 1 is what gets reserved.
+  Studio then manages it like one it made; P2SH32 would hide it from Studio and protect
+  nothing more, since nothing in the guard's script is an attacker's to grind a collision with.
 - **Found in the wallet's own history.** The history the wallet loads in full at open is
   read for two markers: a genesis these keys made, and a publication these keys made. Each
   marker fires on the link that carries it, which is rarely the chain's last: a mint, a

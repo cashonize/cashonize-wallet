@@ -19,6 +19,8 @@ import {
   type TokenGenesisRequest,
   type TokenMintRequest,
   type TokenBurnRequest,
+  type TokenSendRequest,
+  type OpReturnData,
   type TransactionHistoryItem,
   NetworkType
 } from "mainnet-js"
@@ -1626,6 +1628,28 @@ export const useStore = defineStore('store', () => {
       const otherCoins = spendable.filter(utxo => outpointOf(utxo) !== outpoint);
       const pool = [picked, ...otherCoins];
       return spendExplained(() => wallet.value.tokenGenesis(genesisRequest, sendRequests, { utxoIds: pool }));
+    },
+    // An AuthGuard genesis makes two categories, the token's and its AuthKey's, which mainnet-js's
+    // tokenGenesis cannot: it forces one genesis input. So both are forced in here, in CashTokens
+    // Studio's order, and the pool holds no token coins, since a genesis send checks no token
+    // quantities and one swept in would be burned.
+    async authGuardGenesis(tokenInput: Utxo, keyInput: Utxo, requests: (TokenSendRequest | OpReturnData)[]) {
+      const allUtxos = await wallet.value.getUtxos();
+      const spendable = spendableFromUtxos(allUtxos, reservedUtxos.value);
+      const outpoints = [outpointOf(tokenInput), outpointOf(keyInput)];
+      const inputs = outpoints.map(outpoint => spendable.find(utxo => outpointOf(utxo) === outpoint));
+      // a coin spent elsewhere since it was picked would otherwise create a category nobody chose
+      const unavailable = inputs.some(utxo => !utxo || utxo.vout !== 0 || utxo.token);
+      if (unavailable || tokenInput.txid === keyInput.txid) throw new Error(t('store.errors.genesisInputUnavailable'));
+      const genesisInputs = inputs as Utxo[];
+      const otherCoins = spendable.filter(utxo => !utxo.token && !outpoints.includes(outpointOf(utxo)));
+      return spendExplained(() => wallet.value.send(requests, {
+        utxoIds: [...genesisInputs, ...otherCoins],
+        ensureUtxos: genesisInputs,
+        checkTokenQuantities: false,
+        queryBalance: false,
+        tokenOperation: 'genesis',
+      }));
     },
     // tokenMint and tokenBurn locate their token input themselves; utxoIds applies to everything
     // else they select

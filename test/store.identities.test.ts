@@ -825,6 +825,22 @@ describe('auth reservations follow the authchain', () => {
     expect(store.reservedUtxos[`${authheadA}:0`]).toBe('auth')
   })
 
+  // a guarded genesis leaves output 0 in the covenant and the key at output 1, so it is the key
+  // that is held back, and the resolve recognises the guard from it
+  it('holds back the key of a guarded identity it created', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryB, categoryA, '500') })
+    const key: Utxo = { ...authKeyUtxo(categoryB), txid: authheadA, vout: 1 }
+    const { store, identitiesStore } = startStore([key])
+    // the refresh after a creation reads the coins from the wallet
+    vi.mocked(store.wallet.getUtxos).mockResolvedValue([key])
+
+    await identitiesStore.listCreatedIdentity(categoryA, authheadA, 1)
+
+    expect(identitiesStore.identityCategories).toEqual([categoryA])
+    expect(identitiesStore.identities?.[0]?.guardedBy).toBe(categoryB)
+    expect(store.reservedUtxos).toEqual({ [`${authheadA}:1`]: 'auth' })
+  })
+
   // the card that could transfer the key goes with the identity, so the key cannot stay frozen
   it('releases the key when the identity it opens is removed', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '500') })
