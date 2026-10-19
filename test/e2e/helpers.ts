@@ -40,6 +40,8 @@ export async function importWalletOnboarding(page: Page, options: ImportOptions)
   const firstSeedInput = page.locator('.seed-words-grid input').first()
   await firstSeedInput.fill(options.seedPhrase)
   await firstSeedInput.dispatchEvent('input')
+  // A 24 word phrase cut to the 12 word layout would import a different wallet, or none
+  if (options.seedPhrase.split(' ').length === 24) await expect(page.getByLabel('24 words')).toBeChecked()
 
   if (options.walletType) {
     await page.locator('select').filter({ has: page.locator('option[value="hd"]') }).selectOption(options.walletType)

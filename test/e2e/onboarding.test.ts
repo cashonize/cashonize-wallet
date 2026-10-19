@@ -82,6 +82,12 @@ test.describe('Onboarding import', () => {
     await expectShownAddresses(page, addressesAt(MNEMONIC_24, "m/44'/245'/0'/0/0"))
   })
 
+  test('pasting 24 words into the 12 word layout switches to 24 and imports that seed phrase', async ({ page }) => {
+    await importWalletOnboarding(page, { seedPhrase: MNEMONIC_24, walletType: 'single', derivationPath: 'standard' })
+    await page.getByRole('button', { name: 'Finish Setup' }).click()
+    await expectShownAddresses(page, addressesAt(MNEMONIC_24, "m/44'/145'/0'/0/0"))
+  })
+
   test('applies the onboarding preferences and keeps them and the wallet after a reload', async ({ page }) => {
     await importWalletOnboarding(page, { seedPhrase: MNEMONIC_12, walletType: 'hd', derivationPath: 'standard', walletName: 'e2e import' })
 
