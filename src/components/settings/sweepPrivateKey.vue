@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
-  import { TestNetWallet, Wallet, convert } from '@cashonize/bch-wallet-lib';
+  import { NetworkType, TestNetWallet, Wallet, convert, decodeWif } from '@cashonize/bch-wallet-lib';
   import { decodePrivateKeyWif, encodePrivateKeyWif } from '@bitauth/libauth';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -62,10 +62,11 @@
   const fungibleTokens = computed(() => previewTokenList.value.filter(item => 'amount' in item));
   const nftTokens = computed(() => previewTokenList.value.filter(item => 'nfts' in item));
 
-  const keyToSweep = computed(() => {
-    const input = privateKeyToSweep.value.trim();
+  function withoutWifScheme(input: string) {
     return input.startsWith('bch-wif:') ? input.slice(8) : input;
-  });
+  }
+
+  const keyToSweep = computed(() => withoutWifScheme(privateKeyToSweep.value.trim()));
   const isEncryptedKey = computed(() => isBip38Key(keyToSweep.value));
   // Readable from the encrypted key itself, so there is no reason to let a passphrase be typed
   // and derived first only to turn the key away afterwards
@@ -289,22 +290,22 @@
   }
 
   const qrDecode = (content: string) => {
-    const decodedContent = content.startsWith('bch-wif:') ? content.slice(8) : content
-    privateKeyToSweep.value = decodedContent;
+    privateKeyToSweep.value = withoutWifScheme(content);
   }
   const qrFilter = (content: string) => {
+    const key = withoutWifScheme(content);
     // Encrypted keys are the same on both networks, so which one it is only shows after decrypting
-    if (isBip38Key(content)) return true;
-    // see https://documentation.cash/protocol/blockchain/encoding/base58check.html#version-bytes
-    const mainnetWifEncoding = content.startsWith('bch-wif:') || content.startsWith('K') || content.startsWith('L') || content.startsWith('5')
-    const chipnetWifEncoding = content.startsWith('c') || content.startsWith('9')
-    if(!mainnetWifEncoding && !chipnetWifEncoding) {
+    if (isBip38Key(key)) return true;
+    let wifNetwork: NetworkType;
+    try {
+      wifNetwork = decodeWif(key).network;
+    } catch {
       return t('sweepPrivateKey.qrErrors.notWif');
     }
-    if(store.network === 'mainnet' && !mainnetWifEncoding) {
+    if (store.network === 'mainnet' && wifNetwork !== NetworkType.Mainnet) {
       return t('sweepPrivateKey.qrErrors.notMainnetWif');
     }
-    if(store.network === 'chipnet' && !chipnetWifEncoding) {
+    if (store.network === 'chipnet' && wifNetwork !== NetworkType.Testnet) {
       return t('sweepPrivateKey.qrErrors.notChipnetWif');
     }
     return true;
