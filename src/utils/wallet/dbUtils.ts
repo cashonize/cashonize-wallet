@@ -1,5 +1,5 @@
+import { pruneWalletCaches } from "@cashonize/bch-wallet-lib"
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
-import { binToHex, sha256, utf8ToBin } from "@bitauth/libauth"
 
 export interface WalletInfo {
   name: string;
@@ -7,31 +7,12 @@ export interface WalletInfo {
   hasChipnet: boolean;
 }
 
-//-----------------------------------------------------------------------------
-// Through mainnet-js's own storage provider
-//-----------------------------------------------------------------------------
-// IndexedDBProvider is mainnet-js's own class, so the database name, its version and the shape
+// IndexedDBProvider is the library's own class, so the database name, its version and the shape
 // of a record stay its business. Only the layer above it is bypassed, for the reasons below.
+// Checking a wallet exists, reading its id and deleting it go through the library's
+// namedWalletExists, getNamedWalletId and deleteNamedWallet instead.
 
-// BaseWallet.namedExists reads the same record, but constructs a wallet to get there, and that
-// builds an electrum client and network provider, which becomes the session's global one when
-// there is none yet.
-export async function namedWalletExistsInDb(
-  name: string,
-  dbName: "bitcoincash" | "bchtest"
-): Promise<boolean> {
-  if (!name) throw new Error("Named wallets must have a non-empty name");
-
-  const db = new IndexedDBProvider(dbName);
-  await db.init();
-  try {
-    return await db.walletExists(name);
-  } finally {
-    await db.close();
-  }
-}
-
-// mainnet-js has no wallet listing above the storage provider, so this uses its getWallets().
+// The library has no wallet listing above the storage provider, so this uses its getWallets().
 export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
   // Get wallets from both networks
   const mainnetDb = new IndexedDBProvider("bitcoincash");
@@ -66,97 +47,6 @@ export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
   }
 }
 
-// mainnet-js's getNamedWalletId reads the same record, but throws when the name is not in that
-// database. A wallet legitimately exists on one network only, so the caller needs that returned.
-export async function getNamedWalletIdFromDb(
-  name: string,
-  dbName: "bitcoincash" | "bchtest"
-): Promise<string | undefined> {
-  if (!name) throw new Error("Named wallets must have a non-empty name");
-
-  const db = new IndexedDBProvider(dbName);
-  await db.init();
-  try {
-    const walletEntry = await db.getWallet(name);
-    return walletEntry?.wallet || undefined;
-  } finally {
-    await db.close();
-  }
-}
-
-//-----------------------------------------------------------------------------
-// Raw IndexedDB
-//-----------------------------------------------------------------------------
-// Deleting is the one thing mainnet-js offers no way to do, neither on BaseWallet nor on the
-// StorageProvider interface, so the database is opened directly and its store name matched here.
-
-export async function deleteWalletFromDb(
-  name: string,
-  dbName: "bitcoincash" | "bchtest"
-): Promise<void> {
-  if (!name) throw new Error("Wallet name must be non-empty");
-
-  // Use the same store name as IndexedDBProvider ("wallet")
-  const STORE_NAME = "wallet";
-
-  return new Promise((resolve, reject) => {
-    // Opening without a version is safe for these two, unlike for the caches below:
-    // IndexedDBProvider asks for version 31, so a database created here at version 1 still gets
-    // its upgrade, and its store, the next time mainnet-js opens it.
-    const request = indexedDB.open(dbName);
-
-    request.onerror = () => reject(new Error(`Failed to open database: ${dbName}`));
-
-    request.onsuccess = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.close();
-        resolve();
-        return;
-      }
-
-      const dbTx = db.transaction(STORE_NAME, "readwrite");
-      const objectStore = dbTx.objectStore(STORE_NAME);
-      const deleteRequest = objectStore.delete(name);
-
-      deleteRequest.onsuccess = () => {
-        db.close();
-        resolve();
-      };
-
-      deleteRequest.onerror = () => {
-        db.close();
-        reject(new Error(`Failed to delete wallet: ${name}`));
-      };
-    };
-  });
-}
-
-//-----------------------------------------------------------------------------
-// HD wallet key cache (Raw IndexedDB)
-//-----------------------------------------------------------------------------
-// Everything above works on the mainnet-js wallet databases, everything below on the separate
-// one holding its HD address cache.
-//
-// For HD wallets mainnet-js keeps a derived private key per address in a database of its own,
-// so deleting a wallet has to clear that too or spendable key material outlives the wallet it
-// belonged to. Single-address wallets hold their key in memory and leave nothing here.
-//
-// mainnet-js does not export the class it reads that database with, and it could not list what
-// it holds anyway, which the prune needs.
-
-// mainnet-js keys those entries by a hash of the seed rather than by the wallet name, so the key
-// has to be rebuilt from the stored wallet record. Mirrors HDWallet's own derivation.
-export function hdWalletCacheKey(storedWalletId: string): string | undefined {
-  const [walletType, network, secret, fourthField] = storedWalletId.split(":");
-  if (walletType !== "hd" || !network || !secret) return undefined;
-  // mnemonic wallets store the derivation path after the mnemonic and hash the two together,
-  // xpriv and xpub wallets hash the key on its own
-  const seedSource = fourthField?.startsWith("m/") ? secret + fourthField : secret;
-  const walletId = binToHex(sha256.hash(utf8ToBin(`${seedSource}-${network}`)));
-  return `walletCache-${walletId}`;
-}
-
 // Every wallet's stored id, from both databases. The prune needs these to work out which cached
 // keys still belong to a wallet. Each database is read once, since getWallets already returns the
 // stored id next to the name.
@@ -180,72 +70,11 @@ async function getAllStoredWalletIds(): Promise<string[]> {
   }
 }
 
-// Deletes the cached keys of every wallet that is no longer in the databases. Deleting a wallet
-// left these keys behind up to and including v0.12, so working from the wallets that remain
-// rather than from the one just deleted is what clears those too, and matching no current wallet
-// is the expected state for anyone upgrading rather than a sign something is wrong.
-//
-// Keys are deleted one at a time rather than the database dropped, because deleteDatabase waits
-// on the connection the running wallet holds open and nothing reloads the page here to close it.
-export async function pruneHdWalletKeyCache(): Promise<void> {
-  // mainnet-js passes this one name as both the database and the object store
-  const CACHE_DB = "WalletCache";
-
-  const liveCacheKeys: string[] = [];
-  for (const storedWalletId of await getAllStoredWalletIds()) {
-    const cacheKey = hdWalletCacheKey(storedWalletId);
-    if (cacheKey) liveCacheKeys.push(cacheKey);
-  }
-
-  return new Promise((resolve, reject) => {
-    // Object stores can only be created during an upgrade, which runs only when the version
-    // asked for is higher than the one stored. Opening without a version creates this database
-    // at version 1 with no store, and mainnet-js only ever asks for version 1, so it would never
-    // upgrade and never get to add its own. Match its version and create the store too.
-    const request = indexedDB.open(CACHE_DB, 1);
-
-    request.onerror = () => reject(new Error(`Failed to open database: ${CACHE_DB}`));
-
-    request.onupgradeneeded = () => request.result.createObjectStore(CACHE_DB);
-
-    request.onsuccess = () => {
-      const db = request.result;
-      // a fresh database gets its store from the upgrade above, so reaching here means something
-      // else left this one without one. Adding it now would take a version mainnet-js never asks
-      // for, so the only safe move is to leave it be.
-      if (!db.objectStoreNames.contains(CACHE_DB)) {
-        db.close();
-        resolve();
-        return;
-      }
-
-      const objectStore = db.transaction(CACHE_DB, "readwrite").objectStore(CACHE_DB);
-      const keysRequest = objectStore.getAllKeys();
-
-      keysRequest.onerror = () => {
-        db.close();
-        reject(new Error("Failed to read the HD wallet key cache"));
-      };
-
-      keysRequest.onsuccess = () => {
-        // anything that is not one of mainnet-js's string keys is left alone rather than
-        // deleted, since it is not ours to interpret
-        const orphaned = keysRequest.result.filter(
-          (cacheKey) => typeof cacheKey === "string" && !liveCacheKeys.includes(cacheKey)
-        );
-        for (const cacheKey of orphaned) {
-          objectStore.delete(cacheKey);
-        }
-        // the transaction carries the deletes, so wait on it rather than on each request
-        objectStore.transaction.oncomplete = () => {
-          db.close();
-          resolve();
-        };
-        objectStore.transaction.onerror = () => {
-          db.close();
-          reject(new Error("Failed to prune the HD wallet key cache"));
-        };
-      };
-    };
-  });
+// Deletes the cached keys of every wallet that is no longer in the databases. An HD wallet keeps
+// a private key per address in the library's wallet cache, and deleting a wallet left these
+// keys behind up to and including v0.12, so working from the wallets that remain rather than
+// from the one just deleted is what clears those too.
+export async function pruneDeletedWalletCaches(): Promise<void> {
+  const storedWalletIds = await getAllStoredWalletIds();
+  await pruneWalletCaches(storedWalletIds);
 }

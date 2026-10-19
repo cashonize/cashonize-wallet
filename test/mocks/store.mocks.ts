@@ -101,6 +101,8 @@ vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   DefaultProvider: {
     servers: { mainnet: [], testnet: [], regtest: [] },
   },
+  deleteNamedWallet: mockDeleteNamedWallet,
+  getNamedWalletId: mockGetNamedWalletId,
 }))
 
 // Mock IndexedDB provider
@@ -108,14 +110,14 @@ vi.mock('@cashonize/bch-wallet-lib/indexeddb', () => ({
   IndexedDBProvider: vi.fn(),
 }))
 
-// Mock dbUtils
+// Mock the wallet database access
 export const mockGetAllWalletsWithNetworkInfo = vi.fn()
-export const mockDeleteWalletFromDb = vi.fn()
-export const mockPruneHdWalletKeyCache = vi.fn().mockResolvedValue(undefined)
+export const mockDeleteNamedWallet = vi.fn()
+export const mockPruneDeletedWalletCaches = vi.fn().mockResolvedValue(undefined)
 
 // Wallets exist in IndexedDB by default, override per-test to exercise the missing-wallet guard
 export const mockNamedWalletExistsInDb = vi.fn().mockResolvedValue(true)
-function defaultGetNamedWalletIdFromDb(
+function defaultGetNamedWalletId(
   _name: string,
   dbName: 'bitcoincash' | 'bchtest'
 ): Promise<string | undefined> {
@@ -124,14 +126,12 @@ function defaultGetNamedWalletIdFromDb(
     : 'seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0'
   return Promise.resolve(walletId)
 }
-export const mockGetNamedWalletIdFromDb = vi.fn(defaultGetNamedWalletIdFromDb)
+export const mockGetNamedWalletId = vi.fn(defaultGetNamedWalletId)
 
 vi.mock('src/utils/wallet/dbUtils', () => ({
   getAllWalletsWithNetworkInfo: mockGetAllWalletsWithNetworkInfo,
-  deleteWalletFromDb: mockDeleteWalletFromDb,
-  pruneHdWalletKeyCache: mockPruneHdWalletKeyCache,
+  pruneDeletedWalletCaches: mockPruneDeletedWalletCaches,
   namedWalletExistsInDb: mockNamedWalletExistsInDb,
-  getNamedWalletIdFromDb: mockGetNamedWalletIdFromDb,
 }))
 
 // Mock settingsStore

@@ -2,7 +2,7 @@
   import { ref, computed, onMounted, onDeactivated } from "vue"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
-  import { namedWalletExistsInDb } from 'src/utils/wallet/dbUtils'
+  import { namedWalletExists } from '@cashonize/bch-wallet-lib'
   import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, suggestNextWalletName } from 'src/utils/wallet/walletUtils'
   import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
   import seedPhraseInput from '../general/seedPhraseInput.vue'
@@ -52,8 +52,8 @@
       return;
     }
     // Check if wallet already exists
-    const existsMainnet = await namedWalletExistsInDb(name, "bitcoincash");
-    const existsChipnet = await namedWalletExistsInDb(name, "bchtest");
+    const existsMainnet = await namedWalletExists(name, "bitcoincash");
+    const existsChipnet = await namedWalletExists(name, "bchtest");
     if (existsMainnet || existsChipnet) {
       $q.notify({
         message: t('addWallet.walletName.existsError', { name }),

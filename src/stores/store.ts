@@ -10,6 +10,8 @@ import {
   Config,
   createProvider,
   DefaultProvider,
+  deleteNamedWallet,
+  getNamedWalletId,
   convert,
   ExchangeRate,
   InsufficientFundsError,
@@ -52,7 +54,7 @@ import { useWizardconnectStore } from "./wizardconnectStore"
 import { displayAndLogError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch } from "src/utils/cacheUtils"
-import { pruneHdWalletKeyCache, deleteWalletFromDb, getAllWalletsWithNetworkInfo, getNamedWalletIdFromDb, type WalletInfo } from "src/utils/wallet/dbUtils"
+import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
   fetchCauldronPools,
@@ -836,7 +838,7 @@ export const useStore = defineStore('store', () => {
   // Loading must reconstruct from the saved walletId; .named() is only for creation flows.
   async function loadExistingWallet(walletName: string, network: 'mainnet' | 'chipnet'): Promise<WalletType> {
     const dbName = network === 'mainnet' ? 'bitcoincash' : 'bchtest';
-    const walletId = await getNamedWalletIdFromDb(walletName, dbName);
+    const walletId = await getNamedWalletId(walletName, dbName);
     if (!walletId) {
       throw new Error(t('store.errors.walletNotFoundOnNetwork', { name: walletName, network }));
     }
@@ -924,9 +926,9 @@ export const useStore = defineStore('store', () => {
     if (walletName === activeWalletName.value) {
       throw new Error(t('store.errors.cannotDeleteActiveWallet'));
     }
-    // Delete from both mainnet and testnet databases
-    await deleteWalletFromDb(walletName, 'bitcoincash');
-    await deleteWalletFromDb(walletName, 'bchtest');
+    // Delete from both mainnet and testnet databases, each with its HD wallet's cached keys
+    await deleteNamedWallet(walletName, 'bitcoincash');
+    await deleteNamedWallet(walletName, 'bchtest');
     removeTxNotes(walletName);
     removeDappActivity(walletName);
     removeAddressManagementData(walletName);
@@ -937,12 +939,10 @@ export const useStore = defineStore('store', () => {
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
-    // mainnet-js stores a private key for every address of an HD wallet. This deletes the cached
-    // keys of any wallet no longer in the databases, not only the one just deleted, so it also
-    // picks up keys left by wallets deleted before this existed, whatever kind just went.
+    // Also deletes the cached keys of wallets deleted before deleteNamedWallet cleared them.
     // The wallet is already gone by now, so a failure here is not a failed deletion.
     try {
-      await pruneHdWalletKeyCache();
+      await pruneDeletedWalletCaches();
     } catch (error) {
       console.error(error);
       Notify.create({

@@ -6,12 +6,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Import mocks FIRST
 import {
   mockWalletNamed,
-  mockWalletReplaceNamed,
-  mockTestNetWalletReplaceNamed,
+  mockSaveNamedWallet,
   mockHDWalletNamed,
-  mockHDWalletReplaceNamed,
-  mockTestNetHDWalletReplaceNamed,
-  mockNamedWalletExistsInDb,
+  mockNamedWalletExists,
   mockSetWallet,
   mockResetWalletState,
   mockRefreshAvailableWallets,
@@ -67,9 +64,9 @@ describe('createNewWallet', () => {
 
       expect(result.success).toBe(false)
       // Verify NO side effects occurred
-      expect(mockNamedWalletExistsInDb).not.toHaveBeenCalled()
+      expect(mockNamedWalletExists).not.toHaveBeenCalled()
       expect(mockWalletNamed).not.toHaveBeenCalled()
-      expect(mockTestNetWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
       expect(mockSetWallet).not.toHaveBeenCalled()
       expect(localStorageMock.setItem).not.toHaveBeenCalled()
     })
@@ -78,40 +75,40 @@ describe('createNewWallet', () => {
       const result = await createNewWallet('   \t\n  ')
 
       expect(result.success).toBe(false)
-      expect(mockNamedWalletExistsInDb).not.toHaveBeenCalled()
+      expect(mockNamedWalletExists).not.toHaveBeenCalled()
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
 
     it('rejects existing wallet name and makes no wallet creation calls', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(true)
+      mockNamedWalletExists.mockResolvedValue(true)
 
       const result = await createNewWallet('existingWallet')
 
       expect(result.success).toBe(false)
       expect(result.success === false && result.isUserError).toBe(true)
       // DB check happened, but no wallet creation
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
+      expect(mockNamedWalletExists).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
       expect(mockWalletNamed).not.toHaveBeenCalled()
-      expect(mockTestNetWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
       expect(mockSetWallet).not.toHaveBeenCalled()
     })
 
     it('rejects whitespace variant of existing wallet name (security check)', async () => {
       // "mywallet" exists, user tries "mywallet " or "  mywallet  "
-      mockNamedWalletExistsInDb.mockResolvedValue(true)
+      mockNamedWalletExists.mockResolvedValue(true)
 
       const result = await createNewWallet('  existingWallet  ')
 
       expect(result.success).toBe(false)
       expect(result.success === false && result.message).toContain('already exists')
       // Trimmed name should be used for DB check
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
+      expect(mockNamedWalletExists).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
 
     it('rejects wallet name that exists only in chipnet DB', async () => {
       // Wallet exists in chipnet but not mainnet (edge case: old/corrupted state)
-      mockNamedWalletExistsInDb
+      mockNamedWalletExists
         .mockResolvedValueOnce(false)  // mainnet check
         .mockResolvedValueOnce(true)   // chipnet check
 
@@ -119,33 +116,33 @@ describe('createNewWallet', () => {
 
       expect(result.success).toBe(false)
       expect(result.success === false && result.message).toContain('already exists')
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('chipnetOnlyWallet', 'bitcoincash')
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('chipnetOnlyWallet', 'bchtest')
+      expect(mockNamedWalletExists).toHaveBeenCalledWith('chipnetOnlyWallet', 'bitcoincash')
+      expect(mockNamedWalletExists).toHaveBeenCalledWith('chipnetOnlyWallet', 'bchtest')
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
   })
 
   describe('name handling', () => {
     it('trims whitespace from name before all operations', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
       const mockWallet = { toDbString: vi.fn().mockReturnValue('seed:mainnet:x:path') }
       mockWalletNamed.mockResolvedValue(mockWallet)
 
       await createNewWallet('  myWallet  ')
 
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('myWallet', 'bitcoincash')
+      expect(mockNamedWalletExists).toHaveBeenCalledWith('myWallet', 'bitcoincash')
       expect(mockWalletNamed).toHaveBeenCalledWith('myWallet')
     })
 
     it('handles unicode wallet names', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
       const mockWallet = { toDbString: vi.fn().mockReturnValue('seed:mainnet:x:path') }
       mockWalletNamed.mockResolvedValue(mockWallet)
 
       const unicodeName = '我的钱包'
       await createNewWallet(unicodeName)
 
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith(unicodeName, 'bitcoincash')
+      expect(mockNamedWalletExists).toHaveBeenCalledWith(unicodeName, 'bitcoincash')
       expect(mockWalletNamed).toHaveBeenCalledWith(unicodeName)
     })
   })
@@ -154,9 +151,9 @@ describe('createNewWallet', () => {
     const mockWallet = { toDbString: vi.fn().mockReturnValue('seed:mainnet:testseed:m/44\'/145\'/0\'/0/0') }
 
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
       mockWalletNamed.mockResolvedValue(mockWallet)
-      mockTestNetWalletReplaceNamed.mockResolvedValue(undefined)
+      mockSaveNamedWallet.mockResolvedValue(undefined)
     })
 
     it('creates mainnet wallet via Wallet.named', async () => {
@@ -170,9 +167,10 @@ describe('createNewWallet', () => {
       await createNewWallet('newWallet')
 
       // toDbString returns mainnet id, which gets converted to testnet
-      expect(mockTestNetWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'newWallet',
-        'seed:testnet:testseed:m/44\'/145\'/0\'/0/0' // mainnet → testnet
+        'seed:testnet:testseed:m/44\'/145\'/0\'/0/0', // mainnet → testnet
+        'bchtest',
       )
     })
 
@@ -227,7 +225,7 @@ describe('createNewWallet', () => {
 
   describe('error handling - dependency failures', () => {
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
     })
 
     it('returns non-user error when Wallet.named throws', async () => {
@@ -243,10 +241,10 @@ describe('createNewWallet', () => {
       expect(localStorageMock.setItem).not.toHaveBeenCalled()
     })
 
-    it('returns non-user error when TestNetWallet.replaceNamed throws', async () => {
+    it('returns non-user error when storing the chipnet copy throws', async () => {
       const mockWallet = { toDbString: vi.fn().mockReturnValue('seed:mainnet:x:path') }
       mockWalletNamed.mockResolvedValue(mockWallet)
-      mockTestNetWalletReplaceNamed.mockRejectedValue(new Error('DB error'))
+      mockSaveNamedWallet.mockRejectedValue(new Error('DB error'))
 
       const result = await createNewWallet('newWallet')
 
@@ -255,7 +253,7 @@ describe('createNewWallet', () => {
     })
 
     it('returns non-user error when DB existence check throws', async () => {
-      mockNamedWalletExistsInDb.mockRejectedValue(new Error('IndexedDB unavailable'))
+      mockNamedWalletExists.mockRejectedValue(new Error('IndexedDB unavailable'))
 
       const result = await createNewWallet('newWallet')
 
@@ -284,12 +282,12 @@ describe('importWallet', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(mockNamedWalletExistsInDb).not.toHaveBeenCalled()
-      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockNamedWalletExists).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects existing wallet name and makes no wallet creation calls', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(true)
+      mockNamedWalletExists.mockResolvedValue(true)
 
       const result = await importWallet({
         name: 'existingWallet',
@@ -299,12 +297,11 @@ describe('importWallet', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
-      expect(mockTestNetWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects whitespace variant of existing wallet name (security check)', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(true)
+      mockNamedWalletExists.mockResolvedValue(true)
 
       const result = await importWallet({
         name: '  existingWallet  ',
@@ -316,12 +313,12 @@ describe('importWallet', () => {
       expect(result.success).toBe(false)
       expect(result.success === false && result.message).toContain('already exists')
       // Trimmed name should be used for DB check
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
-      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockNamedWalletExists).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects wallet name that exists only in chipnet DB', async () => {
-      mockNamedWalletExistsInDb
+      mockNamedWalletExists
         .mockResolvedValueOnce(false)  // mainnet check
         .mockResolvedValueOnce(true)   // chipnet check
 
@@ -334,13 +331,13 @@ describe('importWallet', () => {
 
       expect(result.success).toBe(false)
       expect(result.success === false && result.message).toContain('already exists')
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('chipnetOnlyWallet', 'bitcoincash')
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('chipnetOnlyWallet', 'bchtest')
-      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockNamedWalletExists).toHaveBeenCalledWith('chipnetOnlyWallet', 'bitcoincash')
+      expect(mockNamedWalletExists).toHaveBeenCalledWith('chipnetOnlyWallet', 'bchtest')
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects empty seed phrase and makes no wallet calls', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
 
       const result = await importWallet({
         name: 'newWallet',
@@ -350,11 +347,11 @@ describe('importWallet', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects invalid seed phrase and makes no wallet calls', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
 
       const result = await importWallet({
         name: 'newWallet',
@@ -364,11 +361,11 @@ describe('importWallet', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects checksum-invalid BIP39 words even if UI validity is true', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
 
       const result = await importWallet({
         name: 'newWallet',
@@ -379,18 +376,16 @@ describe('importWallet', () => {
 
       expect(result.success).toBe(false)
       expect(result.success === false && result.message).toContain('valid seed phrase')
-      expect(mockNamedWalletExistsInDb).not.toHaveBeenCalled()
-      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
-      expect(mockTestNetWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockNamedWalletExists).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
       expect(mockSetBackupStatus).not.toHaveBeenCalled()
     })
   })
 
   describe('derivation path handling', () => {
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
-      mockWalletReplaceNamed.mockResolvedValue(undefined)
-      mockTestNetWalletReplaceNamed.mockResolvedValue(undefined)
+      mockNamedWalletExists.mockResolvedValue(false)
+      mockSaveNamedWallet.mockResolvedValue(undefined)
       mockWalletNamed.mockResolvedValue({})
     })
 
@@ -402,13 +397,15 @@ describe('importWallet', () => {
         derivationPath: 'standard'
       })
 
-      expect(mockWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'wallet',
-        `seed:mainnet:${validSeedPhrase}:m/44'/145'/0'/0/0`
+        `seed:mainnet:${validSeedPhrase}:m/44'/145'/0'/0/0`,
+        'bitcoincash',
       )
-      expect(mockTestNetWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'wallet',
-        `seed:testnet:${validSeedPhrase}:m/44'/145'/0'/0/0`
+        `seed:testnet:${validSeedPhrase}:m/44'/145'/0'/0/0`,
+        'bchtest',
       )
     })
 
@@ -420,13 +417,15 @@ describe('importWallet', () => {
         derivationPath: 'bitcoindotcom'
       })
 
-      expect(mockWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'wallet',
-        `seed:mainnet:${validSeedPhrase}:m/44'/0'/0'/0/0`
+        `seed:mainnet:${validSeedPhrase}:m/44'/0'/0'/0/0`,
+        'bitcoincash',
       )
-      expect(mockTestNetWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'wallet',
-        `seed:testnet:${validSeedPhrase}:m/44'/0'/0'/0/0`
+        `seed:testnet:${validSeedPhrase}:m/44'/0'/0'/0/0`,
+        'bchtest',
       )
     })
   })
@@ -435,9 +434,8 @@ describe('importWallet', () => {
     const mockWallet = {}
 
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
-      mockWalletReplaceNamed.mockResolvedValue(undefined)
-      mockTestNetWalletReplaceNamed.mockResolvedValue(undefined)
+      mockNamedWalletExists.mockResolvedValue(false)
+      mockSaveNamedWallet.mockResolvedValue(undefined)
       mockWalletNamed.mockResolvedValue(mockWallet)
     })
 
@@ -449,8 +447,7 @@ describe('importWallet', () => {
         derivationPath: 'standard'
       })
 
-      expect(mockWalletReplaceNamed).toHaveBeenCalledTimes(1)
-      expect(mockTestNetWalletReplaceNamed).toHaveBeenCalledTimes(1)
+      expect(mockSaveNamedWallet).toHaveBeenCalledTimes(2)
     })
 
     it('loads the mainnet wallet after creation', async () => {
@@ -534,11 +531,11 @@ describe('importWallet', () => {
 
   describe('error handling - dependency failures', () => {
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
     })
 
-    it('returns non-user error when Wallet.replaceNamed throws', async () => {
-      mockWalletReplaceNamed.mockRejectedValue(new Error('Storage full'))
+    it('returns non-user error when storing the wallet throws', async () => {
+      mockSaveNamedWallet.mockRejectedValue(new Error('Storage full'))
 
       const result = await importWallet({
         name: 'wallet',
@@ -555,8 +552,7 @@ describe('importWallet', () => {
     })
 
     it('returns non-user error when Wallet.named throws after creation', async () => {
-      mockWalletReplaceNamed.mockResolvedValue(undefined)
-      mockTestNetWalletReplaceNamed.mockResolvedValue(undefined)
+      mockSaveNamedWallet.mockResolvedValue(undefined)
       mockWalletNamed.mockRejectedValue(new Error('Corrupted wallet'))
 
       const result = await importWallet({
@@ -582,27 +578,27 @@ describe('createNewHDWallet', () => {
       const result = await createNewHDWallet('')
 
       expect(result.success).toBe(false)
-      expect(mockNamedWalletExistsInDb).not.toHaveBeenCalled()
+      expect(mockNamedWalletExists).not.toHaveBeenCalled()
       expect(mockHDWalletNamed).not.toHaveBeenCalled()
-      expect(mockTestNetHDWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
       expect(mockSetWallet).not.toHaveBeenCalled()
       expect(localStorageMock.setItem).not.toHaveBeenCalled()
     })
 
     it('rejects existing wallet name and makes no wallet creation calls', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(true)
+      mockNamedWalletExists.mockResolvedValue(true)
 
       const result = await createNewHDWallet('existingWallet')
 
       expect(result.success).toBe(false)
       expect(result.success === false && result.isUserError).toBe(true)
-      expect(mockNamedWalletExistsInDb).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
+      expect(mockNamedWalletExists).toHaveBeenCalledWith('existingWallet', 'bitcoincash')
       expect(mockHDWalletNamed).not.toHaveBeenCalled()
-      expect(mockTestNetHDWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects wallet name that exists only in chipnet DB', async () => {
-      mockNamedWalletExistsInDb
+      mockNamedWalletExists
         .mockResolvedValueOnce(false)  // mainnet check
         .mockResolvedValueOnce(true)   // chipnet check
 
@@ -618,9 +614,9 @@ describe('createNewHDWallet', () => {
     const mockWallet = { toDbString: vi.fn().mockReturnValue('hd:mainnet:testseed:m/44\'/145\'/0\':0:0') }
 
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
       mockHDWalletNamed.mockResolvedValue(mockWallet)
-      mockTestNetHDWalletReplaceNamed.mockResolvedValue(undefined)
+      mockSaveNamedWallet.mockResolvedValue(undefined)
     })
 
     it('creates mainnet HD wallet via HDWallet.named', async () => {
@@ -635,12 +631,11 @@ describe('createNewHDWallet', () => {
     it('creates testnet HD wallet with converted walletId', async () => {
       await createNewHDWallet('newHDWallet')
 
-      expect(mockTestNetHDWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'newHDWallet',
-        'hd:testnet:testseed:m/44\'/145\'/0\':0:0' // mainnet → testnet
+        'hd:testnet:testseed:m/44\'/145\'/0\':0:0', // mainnet → testnet
+        'bchtest',
       )
-      // Should NOT use single-address TestNetWallet
-      expect(mockTestNetWalletReplaceNamed).not.toHaveBeenCalled()
     })
 
     it('updates store with wallet instance', async () => {
@@ -696,7 +691,7 @@ describe('createNewHDWallet', () => {
 
   describe('error handling - dependency failures', () => {
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
     })
 
     it('returns non-user error when HDWallet.named throws', async () => {
@@ -710,10 +705,10 @@ describe('createNewHDWallet', () => {
       expect(localStorageMock.setItem).not.toHaveBeenCalled()
     })
 
-    it('returns non-user error when TestNetHDWallet.replaceNamed throws', async () => {
+    it('returns non-user error when storing the chipnet copy throws', async () => {
       const mockWallet = { toDbString: vi.fn().mockReturnValue('hd:mainnet:x:path:0:0') }
       mockHDWalletNamed.mockResolvedValue(mockWallet)
-      mockTestNetHDWalletReplaceNamed.mockRejectedValue(new Error('DB error'))
+      mockSaveNamedWallet.mockRejectedValue(new Error('DB error'))
 
       const result = await createNewHDWallet('newHDWallet')
 
@@ -741,12 +736,12 @@ describe('importHDWallet', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(mockNamedWalletExistsInDb).not.toHaveBeenCalled()
-      expect(mockHDWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockNamedWalletExists).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects existing wallet name and makes no wallet creation calls', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(true)
+      mockNamedWalletExists.mockResolvedValue(true)
 
       const result = await importHDWallet({
         name: 'existingWallet',
@@ -756,12 +751,11 @@ describe('importHDWallet', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(mockHDWalletReplaceNamed).not.toHaveBeenCalled()
-      expect(mockTestNetHDWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects empty seed phrase and makes no wallet calls', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
 
       const result = await importHDWallet({
         name: 'newWallet',
@@ -771,11 +765,11 @@ describe('importHDWallet', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(mockHDWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects invalid seed phrase and makes no wallet calls', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
 
       const result = await importHDWallet({
         name: 'newWallet',
@@ -785,11 +779,11 @@ describe('importHDWallet', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(mockHDWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
 
     it('rejects checksum-invalid BIP39 words even if UI validity is true', async () => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
 
       const result = await importHDWallet({
         name: 'newWallet',
@@ -800,18 +794,16 @@ describe('importHDWallet', () => {
 
       expect(result.success).toBe(false)
       expect(result.success === false && result.message).toContain('valid seed phrase')
-      expect(mockNamedWalletExistsInDb).not.toHaveBeenCalled()
-      expect(mockHDWalletReplaceNamed).not.toHaveBeenCalled()
-      expect(mockTestNetHDWalletReplaceNamed).not.toHaveBeenCalled()
+      expect(mockNamedWalletExists).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
       expect(mockSetBackupStatus).not.toHaveBeenCalled()
     })
   })
 
   describe('derivation path handling', () => {
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
-      mockHDWalletReplaceNamed.mockResolvedValue(undefined)
-      mockTestNetHDWalletReplaceNamed.mockResolvedValue(undefined)
+      mockNamedWalletExists.mockResolvedValue(false)
+      mockSaveNamedWallet.mockResolvedValue(undefined)
       mockHDWalletNamed.mockResolvedValue({})
     })
 
@@ -824,13 +816,15 @@ describe('importHDWallet', () => {
       })
 
       // HD wallets use parent path with :0:0 suffix (different from single-address full path)
-      expect(mockHDWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'wallet',
-        `hd:mainnet:${validSeedPhrase}:m/44'/145'/0':0:0`
+        `hd:mainnet:${validSeedPhrase}:m/44'/145'/0':0:0`,
+        'bitcoincash',
       )
-      expect(mockTestNetHDWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'wallet',
-        `hd:testnet:${validSeedPhrase}:m/44'/145'/0':0:0`
+        `hd:testnet:${validSeedPhrase}:m/44'/145'/0':0:0`,
+        'bchtest',
       )
     })
 
@@ -842,13 +836,15 @@ describe('importHDWallet', () => {
         derivationPath: 'bitcoindotcom'
       })
 
-      expect(mockHDWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'wallet',
-        `hd:mainnet:${validSeedPhrase}:m/44'/0'/0':0:0`
+        `hd:mainnet:${validSeedPhrase}:m/44'/0'/0':0:0`,
+        'bitcoincash',
       )
-      expect(mockTestNetHDWalletReplaceNamed).toHaveBeenCalledWith(
+      expect(mockSaveNamedWallet).toHaveBeenCalledWith(
         'wallet',
-        `hd:testnet:${validSeedPhrase}:m/44'/0'/0':0:0`
+        `hd:testnet:${validSeedPhrase}:m/44'/0'/0':0:0`,
+        'bchtest',
       )
     })
 
@@ -860,8 +856,6 @@ describe('importHDWallet', () => {
         derivationPath: 'standard'
       })
 
-      expect(mockWalletReplaceNamed).not.toHaveBeenCalled()
-      expect(mockTestNetWalletReplaceNamed).not.toHaveBeenCalled()
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
   })
@@ -870,9 +864,8 @@ describe('importHDWallet', () => {
     const mockWallet = {}
 
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
-      mockHDWalletReplaceNamed.mockResolvedValue(undefined)
-      mockTestNetHDWalletReplaceNamed.mockResolvedValue(undefined)
+      mockNamedWalletExists.mockResolvedValue(false)
+      mockSaveNamedWallet.mockResolvedValue(undefined)
       mockHDWalletNamed.mockResolvedValue(mockWallet)
     })
 
@@ -884,8 +877,7 @@ describe('importHDWallet', () => {
         derivationPath: 'standard'
       })
 
-      expect(mockHDWalletReplaceNamed).toHaveBeenCalledTimes(1)
-      expect(mockTestNetHDWalletReplaceNamed).toHaveBeenCalledTimes(1)
+      expect(mockSaveNamedWallet).toHaveBeenCalledTimes(2)
     })
 
     it('loads the mainnet HD wallet after creation', async () => {
@@ -981,11 +973,11 @@ describe('importHDWallet', () => {
 
   describe('error handling - dependency failures', () => {
     beforeEach(() => {
-      mockNamedWalletExistsInDb.mockResolvedValue(false)
+      mockNamedWalletExists.mockResolvedValue(false)
     })
 
-    it('returns non-user error when HDWallet.replaceNamed throws', async () => {
-      mockHDWalletReplaceNamed.mockRejectedValue(new Error('Storage full'))
+    it('returns non-user error when storing the wallet throws', async () => {
+      mockSaveNamedWallet.mockRejectedValue(new Error('Storage full'))
 
       const result = await importHDWallet({
         name: 'wallet',
@@ -1001,8 +993,7 @@ describe('importHDWallet', () => {
     })
 
     it('returns non-user error when HDWallet.named throws after creation', async () => {
-      mockHDWalletReplaceNamed.mockResolvedValue(undefined)
-      mockTestNetHDWalletReplaceNamed.mockResolvedValue(undefined)
+      mockSaveNamedWallet.mockResolvedValue(undefined)
       mockHDWalletNamed.mockRejectedValue(new Error('Corrupted wallet'))
 
       const result = await importHDWallet({

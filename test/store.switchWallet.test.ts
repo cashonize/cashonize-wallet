@@ -14,10 +14,10 @@ import {
   mockChipnetWallet,
   localStorageMock,
   mockGetAllWalletsWithNetworkInfo,
-  mockDeleteWalletFromDb,
-  mockPruneHdWalletKeyCache,
+  mockDeleteNamedWallet,
+  mockPruneDeletedWalletCaches,
   mockClearWalletSettings,
-  mockGetNamedWalletIdFromDb,
+  mockGetNamedWalletId,
 } from './mocks/store.mocks'
 
 // Import store after mocks
@@ -41,7 +41,7 @@ describe('switchWallet', () => {
 
       await store.switchWallet('newWallet')
 
-      expect(mockGetNamedWalletIdFromDb).toHaveBeenCalledWith('newWallet', 'bitcoincash')
+      expect(mockGetNamedWalletId).toHaveBeenCalledWith('newWallet', 'bitcoincash')
       expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
       expect(mockWalletNamed).not.toHaveBeenCalled()
       expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
@@ -55,7 +55,7 @@ describe('switchWallet', () => {
 
       await store.switchWallet('newWallet')
 
-      expect(mockGetNamedWalletIdFromDb).toHaveBeenCalledWith('newWallet', 'bchtest')
+      expect(mockGetNamedWalletId).toHaveBeenCalledWith('newWallet', 'bchtest')
       expect(mockTestNetWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0')
       expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
       expect(mockWalletNamed).not.toHaveBeenCalled()
@@ -195,7 +195,7 @@ describe('switchWallet', () => {
 
       expect(result.success).toBe(true)
       expect(result.networkChanged).toBeUndefined()
-      expect(mockGetNamedWalletIdFromDb).toHaveBeenCalledWith('unknownWallet', 'bitcoincash')
+      expect(mockGetNamedWalletId).toHaveBeenCalledWith('unknownWallet', 'bitcoincash')
       expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
@@ -204,7 +204,7 @@ describe('switchWallet', () => {
   describe('error handling', () => {
     it('throws without calling .named() when wallet does not exist in IndexedDB', async () => {
       localStorageMock.setItem('network', 'mainnet')
-      mockGetNamedWalletIdFromDb.mockResolvedValueOnce(undefined)
+      mockGetNamedWalletId.mockResolvedValueOnce(undefined)
 
       const store = useStore()
       await store.setWallet(mockMainnetWallet as never)
@@ -218,7 +218,7 @@ describe('switchWallet', () => {
     it('does not mutate state when a stale availableWallets entry points to a missing wallet', async () => {
       localStorageMock.setItem('network', 'mainnet')
       localStorageMock.setItem.mockClear()
-      mockGetNamedWalletIdFromDb.mockResolvedValueOnce(undefined)
+      mockGetNamedWalletId.mockResolvedValueOnce(undefined)
 
       const store = useStore()
       await store.setWallet(mockMainnetWallet as never)
@@ -296,7 +296,7 @@ describe('changeNetwork', () => {
 
   it('does not create a new wallet when it does not exist on the target network', async () => {
     localStorageMock.setItem('network', 'mainnet')
-    mockGetNamedWalletIdFromDb.mockResolvedValueOnce(undefined)
+    mockGetNamedWalletId.mockResolvedValueOnce(undefined)
 
     const store = useStore()
     await store.setWallet(mockMainnetWallet as never)
@@ -329,7 +329,7 @@ describe('deleteWallet', () => {
     await expect(store.deleteWallet('mywallet')).rejects.toThrowError()
   })
 
-  it('does not call deleteWalletFromDb when trying to delete active wallet', async () => {
+  it('does not call deleteNamedWallet when trying to delete active wallet', async () => {
     const store = useStore()
     await store.setWallet(mockMainnetWallet as never)
 
@@ -339,7 +339,7 @@ describe('deleteWallet', () => {
       // Expected to throw
     }
 
-    expect(mockDeleteWalletFromDb).not.toHaveBeenCalled()
+    expect(mockDeleteNamedWallet).not.toHaveBeenCalled()
   })
 
   it('deletes wallet from both mainnet and testnet databases', async () => {
@@ -348,9 +348,9 @@ describe('deleteWallet', () => {
 
     await store.deleteWallet('otherWallet')
 
-    expect(mockDeleteWalletFromDb).toHaveBeenCalledWith('otherWallet', 'bitcoincash')
-    expect(mockDeleteWalletFromDb).toHaveBeenCalledWith('otherWallet', 'bchtest')
-    expect(mockDeleteWalletFromDb).toHaveBeenCalledTimes(2)
+    expect(mockDeleteNamedWallet).toHaveBeenCalledWith('otherWallet', 'bitcoincash')
+    expect(mockDeleteNamedWallet).toHaveBeenCalledWith('otherWallet', 'bchtest')
+    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(2)
   })
 
   // The seed is deleted above, but mainnet-js caches a private key per address for HD wallets
@@ -361,7 +361,7 @@ describe('deleteWallet', () => {
 
     await store.deleteWallet('otherWallet')
 
-    expect(mockPruneHdWalletKeyCache).toHaveBeenCalled()
+    expect(mockPruneDeletedWalletCaches).toHaveBeenCalled()
   })
 
   it('clears the settings of the deleted wallet', async () => {
@@ -378,12 +378,12 @@ describe('deleteWallet', () => {
   it('still succeeds and cleans up when the key cache prune fails', async () => {
     const store = useStore()
     await store.setWallet(mockMainnetWallet as never)
-    mockPruneHdWalletKeyCache.mockRejectedValueOnce(new Error('prune failed'))
+    mockPruneDeletedWalletCaches.mockRejectedValueOnce(new Error('prune failed'))
 
     await expect(store.deleteWallet('otherWallet')).resolves.toBeUndefined()
 
     expect(mockClearWalletSettings).toHaveBeenCalledWith('otherWallet')
-    expect(mockDeleteWalletFromDb).toHaveBeenCalledTimes(2)
+    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(2)
   })
 
   it('does not prune the key cache when the delete is refused', async () => {
@@ -396,7 +396,7 @@ describe('deleteWallet', () => {
       // Expected to throw, deleting the active wallet is refused
     }
 
-    expect(mockPruneHdWalletKeyCache).not.toHaveBeenCalled()
+    expect(mockPruneDeletedWalletCaches).not.toHaveBeenCalled()
   })
 
   it('refreshes available wallets after deletion', async () => {
@@ -409,21 +409,21 @@ describe('deleteWallet', () => {
   })
 
   it('propagates error if mainnet deletion fails (testnet not attempted)', async () => {
-    mockDeleteWalletFromDb.mockRejectedValueOnce(new Error('DB error'))
+    mockDeleteNamedWallet.mockRejectedValueOnce(new Error('DB error'))
     const store = useStore()
     await store.setWallet(mockMainnetWallet as never)
 
     await expect(store.deleteWallet('otherWallet')).rejects.toThrowError()
 
     // Only mainnet deletion was attempted before failure
-    expect(mockDeleteWalletFromDb).toHaveBeenCalledTimes(1)
-    expect(mockDeleteWalletFromDb).toHaveBeenCalledWith('otherWallet', 'bitcoincash')
+    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(1)
+    expect(mockDeleteNamedWallet).toHaveBeenCalledWith('otherWallet', 'bitcoincash')
     // Wallet list not refreshed on failure
     expect(mockGetAllWalletsWithNetworkInfo).not.toHaveBeenCalled()
   })
 
   it('propagates error if testnet deletion fails (mainnet already deleted)', async () => {
-    mockDeleteWalletFromDb
+    mockDeleteNamedWallet
       .mockResolvedValueOnce(undefined) // mainnet succeeds
       .mockRejectedValueOnce(new Error('DB error')) // testnet fails
     const store = useStore()
@@ -432,7 +432,7 @@ describe('deleteWallet', () => {
     await expect(store.deleteWallet('otherWallet')).rejects.toThrowError()
 
     // Both deletions were attempted
-    expect(mockDeleteWalletFromDb).toHaveBeenCalledTimes(2)
+    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(2)
     // Wallet list not refreshed on failure
     expect(mockGetAllWalletsWithNetworkInfo).not.toHaveBeenCalled()
   })

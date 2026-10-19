@@ -1,13 +1,18 @@
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
+import { binToHex, sha256, utf8ToBin } from "@bitauth/libauth";
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb";
-import { HDWallet, Config, DefaultProvider } from "@cashonize/bch-wallet-lib";
-import { pruneHdWalletKeyCache, hdWalletCacheKey, deleteWalletFromDb, getAllWalletsWithNetworkInfo } from "../src/utils/wallet/dbUtils";
+import { BaseWallet, HDWallet, Config, DefaultProvider, deleteNamedWallet, saveNamedWallet } from "@cashonize/bch-wallet-lib";
+import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo } from "../src/utils/wallet/dbUtils";
 import { openIndexedDB } from "../src/utils/cacheUtils";
 
 // These run against a real IndexedDB implementation rather than a mock on purpose: both bugs
 // this file guards against were in IndexedDB's own versioning rules, which a stub would model
-// however we told it to and would have reported as passing.
+// however we told it to and would have reported as passing. The wallets' browsers hold what
+// mainnet-js 3.1.7 wrote, so the key format is spelled out here rather than taken from the library.
+
+BaseWallet.StorageProvider = IndexedDBProvider;
+Config.UseIndexedDBCache = true;
 
 const CACHE_DB = "WalletCache";
 const ELECTRUM_CACHE_DB = "ElectrumNetworkProviderCache";
@@ -16,6 +21,9 @@ const mnemonic = "abandon abandon abandon abandon abandon abandon abandon abando
 const otherMnemonic = "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong";
 const derivation = "m/44'/145'/0'";
 const hdWalletId = (seed: string, network: string) => `hd:${network}:${seed}:${derivation}:0:0`;
+// mainnet-js 3.1.7 keyed an HD wallet's cache record by a hash of its seed, derivation and network
+const cacheKeyOf = (seed: string, network: string) =>
+  `walletCache-${binToHex(sha256.hash(utf8ToBin(`${seed}${derivation}-${network}`)))}`;
 
 // every test starts from a browser profile that has never run the app
 beforeEach(() => {
@@ -29,9 +37,9 @@ async function addWallet(dbName: "bitcoincash" | "bchtest", name: string, stored
   await db.close();
 }
 
-// opens the key cache the way mainnet-js does: database and store share one name, version 1,
-// and the store is only ever created from the upgrade
-function openLikeMainnetJs(dbName: string): Promise<IDBDatabase> {
+// opens the key cache the way the library does, as mainnet-js did: database and store share one
+// name, version 1, and the store is only ever created from the upgrade
+function openLikeTheLibrary(dbName: string): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(dbName, 1);
     request.onupgradeneeded = () => request.result.createObjectStore(dbName);
@@ -41,7 +49,7 @@ function openLikeMainnetJs(dbName: string): Promise<IDBDatabase> {
 }
 
 async function seedCache(entries: [IDBValidKey, unknown][]) {
-  const db = await openLikeMainnetJs(CACHE_DB);
+  const db = await openLikeTheLibrary(CACHE_DB);
   await new Promise<void>((resolve, reject) => {
     const objectStore = db.transaction(CACHE_DB, "readwrite").objectStore(CACHE_DB);
     for (const [key, value] of entries) objectStore.put(value, key);
@@ -52,7 +60,7 @@ async function seedCache(entries: [IDBValidKey, unknown][]) {
 }
 
 async function cacheKeys(): Promise<IDBValidKey[]> {
-  const db = await openLikeMainnetJs(CACHE_DB);
+  const db = await openLikeTheLibrary(CACHE_DB);
   const keys = await new Promise<IDBValidKey[]>((resolve, reject) => {
     const request = db.transaction(CACHE_DB, "readonly").objectStore(CACHE_DB).getAllKeys();
     request.onsuccess = () => resolve(request.result);
@@ -62,12 +70,11 @@ async function cacheKeys(): Promise<IDBValidKey[]> {
   return keys;
 }
 
-// mainnet-js reads its cache through a transaction on that store, so a database left without one
-// throws NotFoundError here. Its own try/catch covers only the JSON parse, so the throw takes
-// PersistentWalletCache.init() with it and creating or importing an HD wallet fails outright,
-// for that browser profile, permanently.
-async function mainnetJsCanUseCache(dbName: string): Promise<boolean> {
-  const db = await openLikeMainnetJs(dbName);
+// The library reads its cache through a transaction on that store, so a database left without one
+// throws NotFoundError here, which takes the wallet cache's init() with it: creating or importing
+// an HD wallet fails outright, for that browser profile, permanently.
+async function libraryCanUseCache(dbName: string): Promise<boolean> {
+  const db = await openLikeTheLibrary(dbName);
   try {
     db.transaction(dbName, "readonly");
     return true;
@@ -78,7 +85,7 @@ async function mainnetJsCanUseCache(dbName: string): Promise<boolean> {
   }
 }
 
-// Every key in every database, so an assertion can find what mainnet-js wrote without being told
+// Every key in every database, so an assertion can find what the library wrote without being told
 // where it put it. If it ever moved its cache, this still sees the entry and the prune does not.
 async function everyStoredKey(): Promise<string[]> {
   const found: string[] = [];
@@ -102,17 +109,17 @@ async function everyStoredKey(): Promise<string[]> {
   return found;
 }
 
-describe('pruneHdWalletKeyCache', () => {
+describe('pruneDeletedWalletCaches', () => {
   it('removes the entries of wallets that are gone and keeps the ones still in the databases', async () => {
     await addWallet("bitcoincash", "kept", hdWalletId(mnemonic, "mainnet"));
     await addWallet("bchtest", "kept", hdWalletId(mnemonic, "testnet"));
 
-    const liveMainnet = hdWalletCacheKey(hdWalletId(mnemonic, "mainnet")) as string;
-    const liveTestnet = hdWalletCacheKey(hdWalletId(mnemonic, "testnet")) as string;
-    const orphan = hdWalletCacheKey(hdWalletId(otherMnemonic, "mainnet")) as string;
+    const liveMainnet = cacheKeyOf(mnemonic, "mainnet");
+    const liveTestnet = cacheKeyOf(mnemonic, "testnet");
+    const orphan = cacheKeyOf(otherMnemonic, "mainnet");
     await seedCache([[liveMainnet, { a: 1 }], [liveTestnet, { a: 2 }], [orphan, { a: 3 }]]);
 
-    await pruneHdWalletKeyCache();
+    await pruneDeletedWalletCaches();
 
     const remaining = await cacheKeys();
     expect(remaining).toContain(liveMainnet);
@@ -124,68 +131,68 @@ describe('pruneHdWalletKeyCache', () => {
     await addWallet("bitcoincash", "kept", hdWalletId(mnemonic, "mainnet"));
     await addWallet("bchtest", "kept", hdWalletId(mnemonic, "testnet"));
     // used on mainnet only, so no chipnet entry was ever written
-    const liveMainnet = hdWalletCacheKey(hdWalletId(mnemonic, "mainnet")) as string;
+    const liveMainnet = cacheKeyOf(mnemonic, "mainnet");
     await seedCache([[liveMainnet, { a: 1 }]]);
 
-    await pruneHdWalletKeyCache();
+    await pruneDeletedWalletCaches();
 
     expect(await cacheKeys()).toEqual([liveMainnet]);
   });
 
   it('removes every entry once the last wallet is deleted', async () => {
-    const orphanOne = hdWalletCacheKey(hdWalletId(mnemonic, "mainnet")) as string;
-    const orphanTwo = hdWalletCacheKey(hdWalletId(otherMnemonic, "mainnet")) as string;
+    const orphanOne = cacheKeyOf(mnemonic, "mainnet");
+    const orphanTwo = cacheKeyOf(otherMnemonic, "mainnet");
     await seedCache([[orphanOne, { a: 1 }], [orphanTwo, { a: 2 }]]);
 
-    await pruneHdWalletKeyCache();
+    await pruneDeletedWalletCaches();
 
     expect(await cacheKeys()).toEqual([]);
   });
 
   it('contributes no keys for single-address wallets, which cache nothing here', async () => {
     await addWallet("bitcoincash", "single", `seed:mainnet:${mnemonic}:${derivation}`);
-    const orphan = hdWalletCacheKey(hdWalletId(mnemonic, "mainnet")) as string;
+    const orphan = cacheKeyOf(mnemonic, "mainnet");
     await seedCache([[orphan, { a: 1 }]]);
 
-    await pruneHdWalletKeyCache();
+    await pruneDeletedWalletCaches();
 
     // the single-address wallet protects nothing, so the stale entry still goes
     expect(await cacheKeys()).toEqual([]);
   });
 
-  it('leaves keys that are not mainnet-js strings alone', async () => {
-    const orphan = hdWalletCacheKey(hdWalletId(mnemonic, "mainnet")) as string;
+  it('leaves keys that are not strings alone', async () => {
+    const orphan = cacheKeyOf(mnemonic, "mainnet");
     await seedCache([[42, { a: 1 }], [orphan, { a: 2 }]]);
 
-    await pruneHdWalletKeyCache();
+    await pruneDeletedWalletCaches();
 
     expect(await cacheKeys()).toEqual([42]);
   });
 
-  it('leaves a database mainnet-js can still initialise when nothing was ever cached', async () => {
+  it('leaves a database the wallet cache can still initialise when nothing was ever cached', async () => {
     // the reachable case: every wallet is single-address, so the user deletes one and the prune
     // is the first thing ever to open this database
-    await pruneHdWalletKeyCache();
+    await pruneDeletedWalletCaches();
 
-    expect(await mainnetJsCanUseCache(CACHE_DB)).toBe(true);
+    expect(await libraryCanUseCache(CACHE_DB)).toBe(true);
   });
 
   it('resolves without error when nothing was ever cached', async () => {
-    await expect(pruneHdWalletKeyCache()).resolves.toBeUndefined();
+    await expect(pruneDeletedWalletCaches()).resolves.toBeUndefined();
   });
 });
 
 describe('openIndexedDB', () => {
-  it('leaves a database mainnet-js can still initialise', async () => {
+  it('leaves a database the library can still initialise', async () => {
     // reading the cache size from the settings menu must not be able to break the electrum cache
     const db = await openIndexedDB(ELECTRUM_CACHE_DB);
     db.close();
 
-    expect(await mainnetJsCanUseCache(ELECTRUM_CACHE_DB)).toBe(true);
+    expect(await libraryCanUseCache(ELECTRUM_CACHE_DB)).toBe(true);
   });
 
   it('opens an existing database without disturbing what it holds', async () => {
-    const existing = await openLikeMainnetJs(ELECTRUM_CACHE_DB);
+    const existing = await openLikeTheLibrary(ELECTRUM_CACHE_DB);
     await new Promise<void>((resolve) => {
       const objectStore = existing.transaction(ELECTRUM_CACHE_DB, "readwrite").objectStore(ELECTRUM_CACHE_DB);
       objectStore.put("cached", "header-mainnet-800000-false");
@@ -205,15 +212,24 @@ describe('openIndexedDB', () => {
   });
 });
 
-describe('deleteWalletFromDb', () => {
-  // This one opens without a version, unlike the caches, and is only safe because
-  // IndexedDBProvider asks for 31: a database created here at version 1 still gets its upgrade,
-  // and its store, when mainnet-js next opens it
+describe('deleteNamedWallet', () => {
+  it('deletes the cached keys of the wallet it deletes, and no other', async () => {
+    await addWallet("bitcoincash", "goes", hdWalletId(mnemonic, "mainnet"));
+    await addWallet("bitcoincash", "stays", hdWalletId(otherMnemonic, "mainnet"));
+    const goes = cacheKeyOf(mnemonic, "mainnet");
+    const stays = cacheKeyOf(otherMnemonic, "mainnet");
+    await seedCache([[goes, { a: 1 }], [stays, { a: 2 }]]);
+
+    await deleteNamedWallet("goes", "bitcoincash");
+
+    expect(await cacheKeys()).toEqual([stays]);
+  });
+
   it('removes the record it names and leaves the other wallets', async () => {
     await addWallet("bitcoincash", "goes", hdWalletId(mnemonic, "mainnet"));
     await addWallet("bitcoincash", "stays", hdWalletId(otherMnemonic, "mainnet"));
 
-    await deleteWalletFromDb("goes", "bitcoincash");
+    await deleteNamedWallet("goes", "bitcoincash");
 
     const db = new IndexedDBProvider("bitcoincash");
     await db.init();
@@ -225,12 +241,12 @@ describe('deleteWalletFromDb', () => {
     expect(stays?.wallet).toBe(hdWalletId(otherMnemonic, "mainnet"));
   });
 
-  // deleteWallet calls this once per network, so each call has to touch only its own database
+  // the store's deleteWallet calls this once per network, so each call has to touch only its own database
   it('leaves the same wallet on the other network alone', async () => {
     await addWallet("bitcoincash", "both", hdWalletId(mnemonic, "mainnet"));
     await addWallet("bchtest", "both", hdWalletId(mnemonic, "testnet"));
 
-    await deleteWalletFromDb("both", "bitcoincash");
+    await deleteNamedWallet("both", "bitcoincash");
 
     const mainnetDb = new IndexedDBProvider("bitcoincash");
     const chipnetDb = new IndexedDBProvider("bchtest");
@@ -254,13 +270,13 @@ describe('deleteWalletFromDb', () => {
     expect([...db.objectStoreNames]).toEqual([]);
     db.close();
 
-    await expect(deleteWalletFromDb("anything", "bitcoincash")).resolves.toBeUndefined();
+    await expect(deleteNamedWallet("anything", "bitcoincash")).resolves.toBeUndefined();
   });
 
-  it('leaves a database mainnet-js can still add wallets to', async () => {
+  it('leaves a database the storage provider can still add wallets to', async () => {
     // deleting from a network the wallet was never on is reachable today, since deleteWallet
     // always tries both and wallets can exist on one network only
-    await deleteWalletFromDb("neverExisted", "bchtest");
+    await deleteNamedWallet("neverExisted", "bchtest");
 
     const db = new IndexedDBProvider("bchtest");
     await db.init();
@@ -272,21 +288,53 @@ describe('deleteWalletFromDb', () => {
   });
 });
 
-describe('hdWalletCacheKey against mainnet-js', () => {
-  // The derivation mirrors a private one, so this is the contract that would otherwise break
-  // silently on a version bump. Constructing the wallet is safe here: initialize() sets walletId
-  // and awaits only the cache, leaving address discovery unawaited, so the offline wedge that
-  // catches consumers of watchPromise does not catch this.
-  it('derives the key mainnet-js will store the entry under', async () => {
-    Config.UseIndexedDBCache = true;
+describe('the cache key format against the library', () => {
+  // The cache is found by this key in what mainnet-js 3.1.7 wrote, so the library has to keep
+  // writing under it. Constructing the wallet is safe here: discovery fails on the unroutable
+  // server, which the wallet survives, and nothing awaits it.
+  it('stores an HD wallet\'s cache under the key mainnet-js 3.1.7 used', async () => {
     // unroutable, so a connection attempt cannot reach anything or depend on the network
     DefaultProvider.servers.mainnet = ["wss://127.0.0.1:1"];
-    const storedWalletId = hdWalletId(mnemonic, "mainnet");
+    const wallet = await HDWallet.fromId(hdWalletId(mnemonic, "mainnet"));
+    await wallet.walletCache.persist(true);
+    await wallet.stop();
 
-    const wallet = await HDWallet.fromId(storedWalletId);
+    const written = (await everyStoredKey()).filter((key) => key.startsWith("walletCache-"));
+    expect(written).toEqual([cacheKeyOf(mnemonic, "mainnet")]);
+  });
 
-    // walletId is private in the library, the contract this pins is the key it caches under
-    expect(hdWalletCacheKey(storedWalletId)).toBe(`walletCache-${(wallet as unknown as { walletId: string }).walletId}`);
+  it('prunes an entry the library wrote itself', async () => {
+    DefaultProvider.servers.mainnet = ["wss://127.0.0.1:1"];
+    const wallet = await HDWallet.fromId(hdWalletId(mnemonic, "mainnet"));
+    await wallet.walletCache.persist(true);
+    await wallet.stop();
+    const written = (await everyStoredKey()).filter((key) => key.startsWith("walletCache-"));
+    expect(written).toHaveLength(1);
+
+    // no wallet records exist, so everything is orphaned
+    await pruneDeletedWalletCaches();
+
+    expect(await everyStoredKey()).not.toContain(written[0]);
+  });
+});
+
+// A new wallet's chipnet copy, and both copies of an import, are stored without constructing the
+// wallet; the row has to be the one mainnet-js 3.1.7 reads, in the "wallet" store keyed by name
+describe('saveNamedWallet', () => {
+  it('stores the row mainnet-js 3.1.7 reads, in the database it is given', async () => {
+    await saveNamedWallet("saved", hdWalletId(mnemonic, "testnet"), "bchtest");
+
+    const row = await new Promise<unknown>((resolve, reject) => {
+      const open = indexedDB.open("bchtest");
+      open.onsuccess = () => {
+        const request = open.result.transaction("wallet", "readonly").objectStore("wallet").get("saved");
+        request.onsuccess = () => { open.result.close(); resolve(request.result); };
+        request.onerror = () => reject(new Error("Failed to read the row"));
+      };
+      open.onerror = () => reject(new Error("Failed to open bchtest"));
+    });
+    expect(row).toEqual({ name: "saved", wallet: hdWalletId(mnemonic, "testnet") });
+    expect(await getAllWalletsWithNetworkInfo()).toEqual([{ name: "saved", hasMainnet: false, hasChipnet: true }]);
   });
 });
 
@@ -312,23 +360,5 @@ describe('getAllWalletsWithNetworkInfo', () => {
 
   it('returns nothing before any wallet exists', async () => {
     expect(await getAllWalletsWithNetworkInfo()).toEqual([]);
-  });
-});
-
-describe('pruneHdWalletKeyCache against mainnet-js', () => {
-  it('removes an entry mainnet-js wrote itself', async () => {
-    Config.UseIndexedDBCache = true;
-    DefaultProvider.servers.mainnet = ["wss://127.0.0.1:1"];
-    const wallet = await HDWallet.fromId(hdWalletId(mnemonic, "mainnet"));
-    // let mainnet-js write the entry through its own database name, store name and key prefix,
-    // so none of those are assumed here. Without immediate the library debounces the write.
-    await wallet.walletCache.persist(true);
-    const written = (await everyStoredKey()).filter((key) => key.startsWith("walletCache-"));
-    expect(written).toHaveLength(1);
-
-    // no wallet records exist, so everything is orphaned
-    await pruneHdWalletKeyCache();
-
-    expect(await everyStoredKey()).not.toContain(written[0]);
   });
 });

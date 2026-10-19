@@ -1,8 +1,8 @@
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, Config } from "@cashonize/bch-wallet-lib"
+import { Wallet, HDWallet, Config, namedWalletExists, saveNamedWallet } from "@cashonize/bch-wallet-lib"
 import { Notify } from "quasar"
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
-import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
+import { getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
 import { isQuotaExceededError } from 'src/utils/errorHandling'
 import { isValidBip39Mnemonic, normalizeSeedPhrase } from 'src/utils/utils'
 import { i18n } from 'src/boot/i18n'
@@ -157,8 +157,8 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
 
   try {
     // Check if wallet already exists in either network DB
-    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
@@ -172,7 +172,8 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     // elsewhere wallets should be loaded through store.loadExistingWallet
     const mainnetWallet = await Wallet.named(trimmedName);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
-    await TestNetWallet.replaceNamed(trimmedName, walletId);
+    // stored without constructing it, so the chipnet copy opens no subscription
+    await saveNamedWallet(trimmedName, walletId, "bchtest");
 
     // Update store state
     store.activeWalletName = trimmedName;
@@ -238,8 +239,8 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
 
   try {
     // Check if wallet already exists in either network DB
-    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
@@ -249,11 +250,12 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
 
     const fullDerivationPath = DERIVATION_PATHS[derivationPath].full;
 
+    // stored without constructing them; the mainnet one is loaded by name below
     const walletId = `seed:mainnet:${normalizedSeedPhrase}:${fullDerivationPath}`;
-    await Wallet.replaceNamed(trimmedName, walletId);
+    await saveNamedWallet(trimmedName, walletId, "bitcoincash");
 
     const walletIdTestnet = `seed:testnet:${normalizedSeedPhrase}:${fullDerivationPath}`;
-    await TestNetWallet.replaceNamed(trimmedName, walletIdTestnet);
+    await saveNamedWallet(trimmedName, walletIdTestnet, "bchtest");
 
     const mainnetWallet = await Wallet.named(trimmedName);
 
@@ -299,8 +301,8 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
   const trimmedName = name.trim();
 
   try {
-    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
@@ -313,7 +315,8 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
     // elsewhere wallets should be loaded through store.loadExistingWallet
     const mainnetWallet = await HDWallet.named(trimmedName);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
-    await TestNetHDWallet.replaceNamed(trimmedName, walletId);
+    // stored without constructing it, so the chipnet copy starts no discovery
+    await saveNamedWallet(trimmedName, walletId, "bchtest");
 
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
@@ -366,8 +369,8 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
   }
 
   try {
-    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
@@ -377,11 +380,12 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
 
     const parentDerivationPath = DERIVATION_PATHS[derivationPath].parent;
 
+    // stored without constructing them; the mainnet one is loaded by name below
     const walletId = `hd:mainnet:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
-    await HDWallet.replaceNamed(trimmedName, walletId);
+    await saveNamedWallet(trimmedName, walletId, "bitcoincash");
 
     const walletIdTestnet = `hd:testnet:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
-    await TestNetHDWallet.replaceNamed(trimmedName, walletIdTestnet);
+    await saveNamedWallet(trimmedName, walletIdTestnet, "bchtest");
 
     const mainnetWallet = await HDWallet.named(trimmedName);
 

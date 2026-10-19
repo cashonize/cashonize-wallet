@@ -9,17 +9,13 @@ import { vi } from 'vitest'
 
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
-export const mockWalletReplaceNamed = vi.fn()
 export const mockWalletFromId = vi.fn()
-export const mockTestNetWalletReplaceNamed = vi.fn()
-
-// Mock functions for HD wallet classes
 export const mockHDWalletNamed = vi.fn()
-export const mockHDWalletReplaceNamed = vi.fn()
-export const mockTestNetHDWalletReplaceNamed = vi.fn()
+// Stores a wallet id under a name without constructing the wallet
+export const mockSaveNamedWallet = vi.fn()
 
 // Mock functions for dependencies
-export const mockNamedWalletExistsInDb = vi.fn()
+export const mockNamedWalletExists = vi.fn()
 export const mockSetWallet = vi.fn()
 export const mockResetWalletState = vi.fn()
 export const mockRefreshAvailableWallets = vi.fn()
@@ -59,25 +55,17 @@ vi.mock('src/stores/settingsStore', () => ({
   }))
 }))
 
-vi.mock('src/utils/wallet/dbUtils', () => ({
-  namedWalletExistsInDb: mockNamedWalletExistsInDb
-}))
+vi.mock('src/utils/wallet/dbUtils', () => ({}))
 
 vi.mock('@cashonize/bch-wallet-lib', () => ({
+  namedWalletExists: mockNamedWalletExists,
+  saveNamedWallet: mockSaveNamedWallet,
   Wallet: {
     named: mockWalletNamed,
-    replaceNamed: mockWalletReplaceNamed,
     fromId: mockWalletFromId,
-  },
-  TestNetWallet: {
-    replaceNamed: mockTestNetWalletReplaceNamed,
   },
   HDWallet: {
     named: mockHDWalletNamed,
-    replaceNamed: mockHDWalletReplaceNamed,
-  },
-  TestNetHDWallet: {
-    replaceNamed: mockTestNetHDWalletReplaceNamed,
   },
   Config: {
     DefaultParentDerivationPath: '',
