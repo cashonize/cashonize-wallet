@@ -1,3 +1,4 @@
+import { BroadcastRejectedError } from "@cashonize/bch-wallet-lib";
 import { transferAllAssets, type TransferProgress } from "../src/utils/tools/transferAssets";
 import type { ReservedUtxos } from "../src/utils/wallet/reservedUtxos";
 import type { WalletType } from "../src/interfaces/interfaces";
@@ -182,5 +183,19 @@ describe('test transferAllAssets', () => {
     await transferAllAssets(wallet, destinationAddress, held(frozenToken));
 
     expect(pools.at(-1)).toEqual([expect.objectContaining({ txid: "00".repeat(32) })]);
+  })
+})
+
+describe('transferAllAssets and a refused broadcast', () => {
+  beforeEach(() => { nextVout = 0 });
+
+  it('stops at the refusal', async () => {
+    const { wallet, callOrder } = createFakeWallet([bchUtxo(100_000n), fungibleTokenUtxo(cat1, 500n)]);
+    wallet.send = (() => Promise.reject(
+      new BroadcastRejectedError("txn-mempool-conflict", { reason: "txn-mempool-conflict", txid: "ab".repeat(32) })
+    ));
+
+    await expect(transferAllAssets(wallet, destinationAddress, {})).rejects.toBeInstanceOf(BroadcastRejectedError);
+    expect(callOrder).toEqual([]);
   })
 })

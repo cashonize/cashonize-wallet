@@ -19,7 +19,8 @@
         "missingInputs": "A transação foi rejeitada porque um dos seus UTXOs está faltando ou já foi gasto. Nada foi enviado, então você pode tentar novamente.",
         "missingInputsDapp": "A transação foi rejeitada porque um dos seus UTXOs está faltando ou já foi gasto. Nada foi enviado. A dApp precisa criar a transação novamente: recarregue a dApp e repita a ação.",
         "notYetFinal": "A transação foi rejeitada porque tem um bloqueio de tempo que ainda não foi atingido. Tentar novamente agora não ajuda, aguarde até o bloqueio passar.",
-        "timeout": "O servidor não respondeu a tempo. A transação pode ter sido enviada mesmo assim, por isso verifique o seu histórico de transações antes de tentar novamente."
+        "timeout": "O servidor não respondeu a tempo. A transação pode ter sido enviada mesmo assim, por isso verifique o seu histórico de transações antes de tentar novamente.",
+        "unconfirmed": "A transação foi transmitida, mas o servidor não confirmou que a recebeu. Ela ainda pode ser concluída, por isso verifique o seu histórico de transações antes de tentar novamente."
       }
     },
     "attention": "Atenção:",

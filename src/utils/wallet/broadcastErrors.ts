@@ -1,11 +1,12 @@
-import { BroadcastRejectedError, ElectrumTimeoutError } from '@cashonize/bch-wallet-lib'
+import { BroadcastRejectedError, BroadcastTimeoutError, ElectrumTimeoutError } from '@cashonize/bch-wallet-lib'
 import { i18n } from 'src/boot/i18n'
 import { displayAndLogError } from 'src/utils/errorHandling'
 const { t } = i18n.global
 
 // A refused broadcast is a BroadcastRejectedError carrying the node's reject reason, e.g.
-// "txn-mempool-conflict"; a broadcast that timed out is an ElectrumTimeoutError, never resent
-export type BroadcastErrorKind = 'conflict' | 'missing-inputs' | 'not-yet-final' | 'timeout' | 'other';
+// "txn-mempool-conflict"; a broadcast that timed out is an ElectrumTimeoutError, never resent, and
+// one the server took but never reported nor holds is a BroadcastTimeoutError
+export type BroadcastErrorKind = 'conflict' | 'missing-inputs' | 'not-yet-final' | 'timeout' | 'unconfirmed' | 'other';
 
 // BCHN's reject reasons
 const conflictReasons = ['txn-mempool-conflict'];
@@ -14,6 +15,7 @@ const notFinalReasons = ['non-final', 'bad-txns-nonfinal', 'non-BIP68-final'];
 
 export function classifyBroadcastError(error: unknown): BroadcastErrorKind {
   if (error instanceof ElectrumTimeoutError) return 'timeout';
+  if (error instanceof BroadcastTimeoutError) return 'unconfirmed';
   if (!(error instanceof BroadcastRejectedError)) return 'other';
   const { reason } = error;
   if (conflictReasons.includes(reason)) return 'conflict';
@@ -34,6 +36,7 @@ export function broadcastErrorMessage(kind: Exclude<BroadcastErrorKind, 'other'>
       return t('common.errors.broadcast.missingInputs');
     case 'not-yet-final': return t('common.errors.broadcast.notYetFinal');
     case 'timeout': return t('common.errors.broadcast.timeout');
+    case 'unconfirmed': return t('common.errors.broadcast.unconfirmed');
   }
 }
 

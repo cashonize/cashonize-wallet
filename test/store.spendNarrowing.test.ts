@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { BroadcastRejectedError, InsufficientFundsError, UtxoNotAvailableError, type Utxo } from '@cashonize/bch-wallet-lib'
+import { BroadcastRejectedError, BroadcastTimeoutError, InsufficientFundsError, UtxoNotAvailableError, type Utxo } from '@cashonize/bch-wallet-lib'
 
 import {
   localStorageMock,
@@ -218,6 +218,18 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
 
     await expect(store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }]))
       .rejects.toThrow(/^broadcast failed$/)
+  })
+
+  // the server took the broadcast but never confirmed it: the payment may still go through, so
+  // the user is told to check before sending again
+  it('says a broadcast the server did not confirm in the user\'s terms', async () => {
+    const { wallet, store } = await storeHoldingTokenCoin()
+    const unconfirmed = new BroadcastTimeoutError('not reported', { txid: 'ef'.repeat(32), transaction: '0200' })
+    wallet.send.mockRejectedValue(unconfirmed)
+
+    const sending = store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }])
+    await expect(sending).rejects.toThrow(/check your transaction history/)
+    await expect(sending).rejects.toMatchObject({ cause: unconfirmed })
   })
 
   // the node's reject reason means nothing to a user, so they get the classified message and

@@ -1564,7 +1564,9 @@ export const useStore = defineStore('store', () => {
   // broadcast, so a failure leaves the coin held rather than released into the next unrelated send.
   async function sendSingleCoin(utxo: Utxo, cashaddr: string) {
     const response = await wallet.value.sendMax(cashaddr, { utxoIds: [utxo] })
-      .catch((error: unknown) => { throw explainBroadcastError(error); });
+      .catch((error: unknown) => {
+        throw explainBroadcastError(error);
+      });
     // The coin is gone, so refresh before dropping the reservation: otherwise the spendable
     // pool still holds it and the max-amount refresh asks the server about a spent outpoint
     await updateWalletUtxos();
