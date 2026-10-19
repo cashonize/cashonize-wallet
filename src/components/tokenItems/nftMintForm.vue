@@ -110,7 +110,7 @@
       let txId: string;
       if (props.identityUtxo) {
         const outputs = mintOutputs(props.identityUtxo, store.walletAddresses(), mints);
-        const mintOptions = { tokenOperation: 'mint' as const, checkTokenQuantities: false };
+        const mintOptions = { tokenOperation: 'mint' as const };
         ({ txId } = await store.spend.spendAuthUtxo(props.identityUtxo, outputs, [], mintOptions));
       } else {
         const mintRequests = mints.map(mint => new TokenMintRequest({

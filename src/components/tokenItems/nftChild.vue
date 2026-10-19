@@ -151,7 +151,7 @@
             capability: nftInfo.nft!.capability,
           },
         }),
-      ]);
+      ], [nftData.value]);
       const nftName = tokenName.value;
       let alertMessage = t('tokenItem.alerts.sentNft', { tokenId: nftInfo.category, address: destinationAddr.value });
       if (nftName) {

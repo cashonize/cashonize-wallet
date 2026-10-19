@@ -28,32 +28,37 @@ const held = (utxo: { txid: string, vout: number }): ReservedUtxos =>
   ({ [`${utxo.txid}:${utxo.vout}`]: 'manual' });
 
 // Records the order of the wallet calls the transfer makes, the outputs of each send, and the
-// pool each was narrowed to
+// pool each was narrowed to and the coins it excluded
 function createFakeWallet(utxos: unknown[]) {
   const callOrder: string[] = [];
   const sendCalls: { category: string, commitment?: string }[][] = [];
   const pools: ({ txid: string, vout: number }[] | undefined)[] = [];
+  const exclusions: (string[] | undefined)[] = [];
+  const ensured: ({ txid: string, vout: number }[] | undefined)[] = [];
   const wallet = {
     getUtxos: () => Promise.resolve(utxos),
     send: (
       requests: { category: string, nft?: { commitment: string } }[],
-      options?: { utxoIds?: { txid: string, vout: number }[] },
+      options?: { utxoIds?: { txid: string, vout: number }[], excludeUtxoIds?: string[], ensureUtxos?: { txid: string, vout: number }[] },
     ) => {
       callOrder.push("send");
       pools.push(options?.utxoIds);
+      exclusions.push(options?.excludeUtxoIds);
+      ensured.push(options?.ensureUtxos);
       sendCalls.push(requests.map(request => ({
         category: request.category,
         ...(request.nft ? { commitment: request.nft.commitment } : {}),
       })));
       return Promise.resolve({});
     },
-    sendMax: (address: string, options?: { utxoIds?: { txid: string, vout: number }[] }) => {
+    sendMax: (address: string, options?: { utxoIds?: { txid: string, vout: number }[], excludeUtxoIds?: string[] }) => {
       callOrder.push(`sendMax:${address}`);
       pools.push(options?.utxoIds);
+      exclusions.push(options?.excludeUtxoIds);
       return Promise.resolve({});
     },
   };
-  return { wallet: wallet as unknown as WalletType, callOrder, sendCalls, pools };
+  return { wallet: wallet as unknown as WalletType, utxos, callOrder, sendCalls, pools, exclusions, ensured };
 }
 
 describe('test transferAllAssets', () => {
@@ -103,6 +108,23 @@ describe('test transferAllAssets', () => {
     ]);
   })
 
+  // a fungible send can spend an NFT coin carrying tokens and return the NFT as change, so the
+  // NFT send names the coins as they are once the fungible sends are done
+  it('names the nft coins as read after the fungible sends', async () => {
+    const nftWithTokens = { ...nftUtxo(cat1, "aa"), token: { category: cat1, amount: 10n, nft: { commitment: "aa", capability: "none" as const } } };
+    const { wallet, utxos, ensured } = createFakeWallet([bchUtxo(100_000n), nftWithTokens]);
+    const returned = nftUtxo(cat1, "aa");
+    const send = wallet.send.bind(wallet);
+    wallet.send = ((...args: Parameters<typeof wallet.send>) => {
+      utxos.splice(1, 1, returned);
+      return send(...args);
+    });
+
+    await transferAllAssets(wallet, destinationAddress, {});
+
+    expect(ensured).toEqual([undefined, [returned]]);
+  })
+
   it('should report progress for each phase', async () => {
     const { wallet } = createFakeWallet([
       bchUtxo(100_000n),
@@ -133,7 +155,7 @@ describe('test transferAllAssets', () => {
   // this tool empties the wallet of everything a spend can reach, which is not everything it holds
   it('should leave a held back coin behind', async () => {
     const frozenNft = nftUtxo(cat1, "aa");
-    const { wallet, sendCalls, pools } = createFakeWallet([
+    const { wallet, sendCalls, pools, exclusions } = createFakeWallet([
       bchUtxo(100_000n),
       nftUtxo(cat1, "bb"),
       frozenNft,
@@ -143,7 +165,11 @@ describe('test transferAllAssets', () => {
 
     expect(sendCalls).toEqual([[{ category: cat1, commitment: "bb" }]]);
     for (const pool of pools) {
-      expect(pool?.some(utxo => utxo.vout === frozenNft.vout)).toBe(false);
+      expect(pool?.some(utxo => utxo.vout === frozenNft.vout)).not.toBe(true);
+    }
+    // the library leaves the held back coin out of every send, whatever pool it is handed
+    for (const excluded of exclusions) {
+      expect(excluded).toEqual([`${frozenNft.txid}:${frozenNft.vout}`]);
     }
   })
 

@@ -20,7 +20,7 @@ export function isFeatureReservation(reason: ReservationReason | undefined): boo
   return reason !== undefined && reason !== 'manual';
 }
 
-// "txid:vout", the same outpoint form mainnet-js accepts for utxoIds
+// "txid:vout", the same outpoint form the library accepts for utxoIds and excludeUtxoIds
 export type Outpoint = string;
 
 // The reason is the whole of a reservation: what holds the coin back is what releases it
@@ -85,7 +85,7 @@ export function removeReservedUtxos(walletName: string) {
   }
 }
 
-// The coins the wallet may spend, which every spend path narrows mainnet-js's selection through
+// The coins the wallet may spend: what is left to the library once the reserved outpoints are excluded
 export function spendableFromUtxos(utxos: Utxo[], reservedUtxos: ReservedUtxos): Utxo[] {
   if (!Object.keys(reservedUtxos).length) return utxos;
   return utxos.filter(utxo => !(outpointOf(utxo) in reservedUtxos));

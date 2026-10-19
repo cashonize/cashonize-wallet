@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { BroadcastRejectedError, InsufficientFundsError, type Utxo } from '@cashonize/bch-wallet-lib'
+import { BroadcastRejectedError, InsufficientFundsError, UtxoNotAvailableError, type Utxo } from '@cashonize/bch-wallet-lib'
 
 import {
   localStorageMock,
@@ -30,15 +30,24 @@ function createMockWallet() {
     getUtxos: vi.fn().mockResolvedValue(walletCoins),
     getMaxAmountToSend: vi.fn().mockResolvedValue(0n),
     send: vi.fn().mockResolvedValue({ txId: 'sent-tx' }),
+    sendMax: vi.fn().mockResolvedValue({ txId: 'sent-tx' }),
     tokenMint: vi.fn().mockResolvedValue({ txId: 'mint-tx' }),
     tokenBurn: vi.fn().mockResolvedValue({ txId: 'burn-tx' }),
   }
 }
 
-// The pool a spend was narrowed to, as the store handed it to mainnet-js
+// The pool a spend was narrowed to, and the coins it kept out, as the store handed them to the library
 function poolOf(call: unknown[]) {
   const options = call.at(-1) as { utxoIds?: Utxo[] } | undefined
   return options?.utxoIds
+}
+function tokenPoolOf(call: unknown[]) {
+  const options = call.at(-1) as { tokenUtxoIds?: Utxo[] } | undefined
+  return options?.tokenUtxoIds
+}
+function excludedOf(call: unknown[]) {
+  const options = call.at(-1) as { excludeUtxoIds?: string[] } | undefined
+  return options?.excludeUtxoIds
 }
 
 async function storeHoldingTokenCoin() {
@@ -71,17 +80,23 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     const { wallet, store } = await storeHoldingTokenCoin()
 
     await store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }])
+    await store.spend.sendMax('bitcoincash:qdest')
+    await store.spend.getMaxAmountToSend()
 
-    expect(poolOf(wallet.send.mock.calls[0] as unknown[])).toEqual([bchCoin, otherTokenCoin])
+    for (const call of [...wallet.send.mock.calls, ...wallet.sendMax.mock.calls]) {
+      expect(excludedOf(call as unknown[])).toEqual([outpointOf(tokenCoin)])
+      expect(poolOf(call as unknown[])).toBeUndefined()
+    }
+    expect(wallet.getMaxAmountToSend).toHaveBeenCalledWith({ excludeUtxoIds: [outpointOf(tokenCoin)] })
   })
 
-  // mainnet-js picks the minting NFT and the coins to burn itself, from the pool it is handed
+  // the library picks the minting NFT and the coins to burn itself, leaving the excluded ones out
   it('keeps a held back token coin out of a mint', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
 
     await store.spend.tokenMint([])
 
-    expect(poolOf(wallet.tokenMint.mock.calls[0] as unknown[])).toEqual([bchCoin, otherTokenCoin])
+    expect(excludedOf(wallet.tokenMint.mock.calls[0] as unknown[])).toEqual([outpointOf(tokenCoin)])
   })
 
   it('keeps a held back token coin out of a burn', async () => {
@@ -89,10 +104,20 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
 
     await store.spend.tokenBurn({ category, amount: 100n })
 
-    expect(poolOf(wallet.tokenBurn.mock.calls[0] as unknown[])).toEqual([bchCoin, otherTokenCoin])
+    expect(excludedOf(wallet.tokenBurn.mock.calls[0] as unknown[])).toEqual([outpointOf(tokenCoin)])
   })
 
-  it('passes no pool while the wallet holds nothing back', async () => {
+  // the library reads the wallet's coins itself, so the store reads none ahead of an ordinary spend
+  it('reads no coins of its own before a send', async () => {
+    const { wallet, store } = await storeHoldingTokenCoin()
+    wallet.getUtxos.mockClear()
+
+    await store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }])
+
+    expect(wallet.getUtxos).not.toHaveBeenCalled()
+  })
+
+  it('excludes nothing while the wallet holds nothing back', async () => {
     const wallet = createMockWallet()
     const store = useStore()
     await store.setWallet(wallet as never)
@@ -100,6 +125,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
 
     await store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }])
 
+    expect(excludedOf(wallet.send.mock.calls[0] as unknown[])).toEqual([])
     expect(poolOf(wallet.send.mock.calls[0] as unknown[])).toBeUndefined()
   })
 
@@ -117,10 +143,18 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
       .rejects.toThrow(/held back/)
   })
 
-  // The one path that spends past its own reservation: the pool is the wallet's BCH coins plus
-  // the identity output, and only the token coins the operation asked for, so a supply operation
-  // cannot sweep the circulating balance into itself as change
-  it('spends an identity output from a pool of BCH coins, the output, and the coins asked for', async () => {
+  it('explains no other error that merely reads like a shortfall', async () => {
+    const { wallet, store } = await storeHoldingTokenCoin()
+    wallet.send.mockRejectedValue(new Error('Amount required was not met'))
+
+    await expect(store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 150_000n }]))
+      .rejects.toThrow(/^Amount required was not met$/)
+  })
+
+  // The one path that spends past its own reservation: its token coins are the identity output
+  // and the coins the operation asked for, so a supply operation cannot sweep the circulating
+  // balance into itself as change
+  it('spends an identity output with no token coins but the output and the coins asked for', async () => {
     const wallet = createMockWallet()
     const store = useStore()
     await store.setWallet(wallet as never)
@@ -128,12 +162,54 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     await store.reserveOutpoints([outpointOf(tokenCoin)], 'auth')
     const request = [{ cashaddr: 'bitcoincash:qdest', value: 1000n }]
 
+    // the library narrows the pool itself, so the spend reads no coins before it sends
+    wallet.getUtxos.mockClear()
+    let readsBeforeSend = -1
+    wallet.send.mockImplementationOnce(() => {
+      readsBeforeSend = wallet.getUtxos.mock.calls.length
+      return Promise.resolve({ txId: 'sent-tx' })
+    })
     await store.spend.spendAuthUtxo(tokenCoin, request)
-    expect(poolOf(wallet.send.mock.calls[0] as unknown[])).toEqual([bchCoin, tokenCoin])
+    expect(readsBeforeSend).toBe(0)
+    expect(tokenPoolOf(wallet.send.mock.calls[0] as unknown[])).toEqual([tokenCoin])
+    expect(poolOf(wallet.send.mock.calls[0] as unknown[])).toBeUndefined()
     expect((wallet.send.mock.calls[0] as unknown[]).at(-1)).toMatchObject({ ensureUtxos: [tokenCoin] })
 
     await store.spend.spendAuthUtxo(tokenCoin, request, [otherTokenCoin])
-    expect(poolOf(wallet.send.mock.calls[1] as unknown[])).toEqual([bchCoin, tokenCoin, otherTokenCoin])
+    expect(tokenPoolOf(wallet.send.mock.calls[1] as unknown[])).toEqual([tokenCoin, otherTokenCoin])
+  })
+
+  // the authhead passes its own reservation and no other: a held back coin among those asked for stays out
+  it('excludes every other reservation from an identity spend', async () => {
+    const wallet = createMockWallet()
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    store.walletUtxos = walletCoins
+    await store.reserveOutpoints([outpointOf(tokenCoin)], 'auth')
+    await store.reserveOutpoints([outpointOf(otherTokenCoin)], 'manual')
+
+    await store.spend.spendAuthUtxo(tokenCoin, [{ cashaddr: 'bitcoincash:qdest', value: 1000n }], [otherTokenCoin])
+
+    expect(excludedOf(wallet.send.mock.calls[0] as unknown[])).toEqual([outpointOf(otherTokenCoin)])
+  })
+
+  // an authhead moved elsewhere since it was read is named all the same, so the library says it
+  // is not available
+  it('says an identity UTXO the wallet no longer holds is not available', async () => {
+    const wallet = createMockWallet()
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    store.walletUtxos = walletCoins
+    const movedAuthhead: Utxo = { ...tokenCoin, txid: 'dd'.repeat(32) }
+    await store.reserveOutpoints([outpointOf(movedAuthhead)], 'auth')
+    const notAvailable = new UtxoNotAvailableError('not found', { utxoId: outpointOf(movedAuthhead), reason: 'not-found' })
+    wallet.send.mockRejectedValue(notAvailable)
+
+    const spending = store.spend.spendAuthUtxo(movedAuthhead, [{ cashaddr: 'bitcoincash:qdest', value: 1000n }])
+
+    await expect(spending).rejects.toThrow(/no longer in the wallet/)
+    await expect(spending).rejects.toMatchObject({ cause: notAvailable })
+    expect((wallet.send.mock.calls[0] as unknown[]).at(-1)).toMatchObject({ ensureUtxos: [movedAuthhead] })
   })
 
   it('passes an unrelated failure through untouched', async () => {
