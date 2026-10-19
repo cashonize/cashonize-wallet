@@ -187,7 +187,7 @@
       "noBalance": "La billetera no tiene Bitcoin Cash",
       "noDestination": "No se proporcionó una dirección de destino",
       "noAmount": "No se proporcionó un monto válido",
-      "invalidAmount": "Introduce un monto positivo: satoshis enteros, o BCH con 8 decimales como máximo",
+      "invalidAmount": "Ingresa un monto positivo: satoshis enteros, o BCH con 8 decimales como máximo",
       "insufficientFunds": "No hay suficiente BCH en la billetera",
       "invalidAddress": "Se proporcionó una dirección BCH inválida",
       "notCashaddress": "No es una cashaddress en la red actual"

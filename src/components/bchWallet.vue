@@ -254,7 +254,7 @@
         const fiatStr = currencySendAmount.value ? ` (${formatFiatAmount(currencySendAmount.value, settingsStore.currency)})` : ''
         const confirmed = await confirmDialog(
           t('wallet.confirmPayment'),
-          `${t('wallet.confirmPaymentMessage', { amount: bchSendAmount.value?.toLocaleString("en-US"), unit: displayUnitLong.value, fiat: fiatStr })}\n${truncatedAddr}`,
+          `${t('wallet.confirmPaymentMessage', { amount: numberFormatter.format(bchSendAmount.value), unit: displayUnitLong.value, fiat: fiatStr })}\n${truncatedAddr}`,
           t('common.actions.confirm')
         )
         if (!confirmed) return

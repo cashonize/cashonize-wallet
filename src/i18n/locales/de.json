@@ -58,7 +58,7 @@
       "unsupportedPaymentRequest": "Nicht unterstützte Zahlungsanfrage",
       "duplicateParameters": "Ungültige Zahlungsanfrage: doppelte Parameter",
       "invalidAmountFormat": "Zahlungsanfrage hat ungültiges Betragsformat",
-      "conflictingAmounts": "Ungültige Zahlungsanfrage: sie setzt sowohl amount als auch s",
+      "conflictingAmounts": "Ungültige Zahlungsanfrage: sie gibt sowohl amount als auch s an",
       "invalidExpiration": "Zahlungsanfrage hat ein ungültiges Ablaufdatum",
       "requestExpired": "Diese Zahlungsanfrage ist abgelaufen"
     }
