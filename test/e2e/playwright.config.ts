@@ -24,6 +24,8 @@ export default defineConfig({
       command: 'pnpm dev',
       cwd: '../..',
       port: 9000,
+      // turns off the type checker's error overlay, see quasar.config.ts
+      env: { E2E: 'true' },
       reuseExistingServer: true,
     },
     {

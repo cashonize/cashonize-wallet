@@ -95,6 +95,9 @@ export default defineConfig((ctx) => {
           gzipSize: true
         }],
         ['vite-plugin-checker', {
+          // The E2E tests start the dev server with E2E=true: the error overlay would cover the
+          // page and block clicks, and CI type checks and lints separately
+          overlay: process.env.E2E !== 'true',
           vueTsc: true,
           eslint: {
             lintCommand: 'eslint -c ./eslint.config.ts "./src*/**/*.{ts,js,mjs,cjs,vue}"'
