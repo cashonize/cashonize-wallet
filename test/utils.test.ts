@@ -1,4 +1,4 @@
-import { chaingraphGraphqlUrl, connectElectrum, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt } from "../src/utils/utils";
+import { chaingraphGraphqlUrl, connectElectrum, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sendAmountToSatoshis } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
 
 describe('test electrumWssUrl', () => {
@@ -153,3 +153,38 @@ describe('staleTipHours', () => {
     expect(staleTipHours(genesis, genesisMs - hourMs)).toBeUndefined()
   })
 })
+
+describe('sendAmountToSatoshis', () => {
+  it('converts bch amounts exactly, including those a float product rounds badly', () => {
+    expect(sendAmountToSatoshis(1, 'bch')).toBe(100_000_000n);
+    expect(sendAmountToSatoshis(0.3, 'bch')).toBe(30_000_000n);
+    expect(sendAmountToSatoshis(0.00000001, 'bch')).toBe(1n);
+    expect(sendAmountToSatoshis(1.23456789, 'bch')).toBe(123_456_789n);
+    expect(sendAmountToSatoshis(20999999.99999999, 'bch')).toBe(2_099_999_999_999_999n);
+  });
+
+  it('refuses a bch amount with more than 8 decimals instead of rounding it', () => {
+    expect(sendAmountToSatoshis(0.000000015, 'bch')).toBeUndefined();
+    expect(sendAmountToSatoshis(1.123456789, 'bch')).toBeUndefined();
+  });
+
+  it('refuses more bch than will ever exist', () => {
+    expect(sendAmountToSatoshis(21_000_001, 'bch')).toBeUndefined();
+    expect(sendAmountToSatoshis(1e21, 'bch')).toBeUndefined();
+  });
+
+  it('takes whole satoshis and refuses a fraction of one', () => {
+    expect(sendAmountToSatoshis(1500, 'sat')).toBe(1500n);
+    expect(sendAmountToSatoshis(1.5, 'sat')).toBeUndefined();
+    expect(sendAmountToSatoshis(2 ** 53, 'sat')).toBeUndefined();
+  });
+
+  it('refuses zero, negative and non-finite amounts in either unit', () => {
+    for (const unit of ['bch', 'sat'] as const) {
+      expect(sendAmountToSatoshis(0, unit)).toBeUndefined();
+      expect(sendAmountToSatoshis(-1, unit)).toBeUndefined();
+      expect(sendAmountToSatoshis(NaN, unit)).toBeUndefined();
+      expect(sendAmountToSatoshis(Infinity, unit)).toBeUndefined();
+    }
+  });
+});

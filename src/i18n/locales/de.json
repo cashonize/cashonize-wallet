@@ -57,7 +57,10 @@
     "errors": {
       "unsupportedPaymentRequest": "Nicht unterstützte Zahlungsanfrage",
       "duplicateParameters": "Ungültige Zahlungsanfrage: doppelte Parameter",
-      "invalidAmountFormat": "Zahlungsanfrage hat ungültiges Betragsformat"
+      "invalidAmountFormat": "Zahlungsanfrage hat ungültiges Betragsformat",
+      "conflictingAmounts": "Ungültige Zahlungsanfrage: sie gibt sowohl amount als auch s an",
+      "invalidExpiration": "Zahlungsanfrage hat ein ungültiges Ablaufdatum",
+      "requestExpired": "Diese Zahlungsanfrage ist abgelaufen"
     }
   },
   "chaingraph": {
@@ -184,6 +187,7 @@
       "noBalance": "Wallet enthält kein Bitcoin Cash",
       "noDestination": "Keine Zieladresse angegeben",
       "noAmount": "Kein gültiger Betrag angegeben",
+      "invalidAmount": "Gib einen positiven Betrag ein: ganze Satoshis oder BCH mit höchstens 8 Nachkommastellen",
       "insufficientFunds": "Nicht genug BCH im Wallet",
       "invalidAddress": "Ungültige BCH-Adresse angegeben",
       "notCashaddress": "Keine cashaddress im aktuellen Netzwerk"

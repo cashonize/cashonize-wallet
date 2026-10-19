@@ -4,10 +4,11 @@
  * parameters CHIP-2023-05-PayPro defines on top of it.
  * PayPro spec: https://github.com/bitjson/chip-paypro
  *
- * Only PayPro's token parameters are implemented: c for the category and f for the fungible
- * amount, with ft accepted as the alias other wallets and older requests use. Its n, s and e
- * parameters and its alphanumeric QR mode are not handled, and the amount of a plain BCH
- * request is written as BIP21's amount= rather than the CHIP's s=.
+ * Only some of PayPro's parameters are implemented: c for the category and f for the fungible
+ * amount, with ft accepted as the alias other wallets and older requests use, s for the amount in
+ * satoshis next to BIP21's amount=, and e for the expiration, which refuses a request once it has
+ * passed. Its n parameter and its alphanumeric QR mode are not handled, and the amount of a plain
+ * BCH request is written as BIP21's amount= rather than the CHIP's s=.
  *
  * Every mention of those parameter names lives here, so reading a request and building one
  * cannot drift apart.
@@ -20,29 +21,51 @@ import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
 export interface PayProParams {
+  /** Requested BCH amount in satoshis, from s= or BIP21's amount= */
+  satoshis?: bigint | undefined;
   /** Token category being requested */
   category?: string | undefined;
   /** Fungible amount in base units, undefined when absent or not a plain integer */
   fungibleAmount?: bigint | undefined;
 }
 
-// The amount arrives in base units and is read as a bigint, token supplies go well past what
+// The amounts arrive in base units and are read as bigints, token supplies go well past what
 // a number holds exactly.
 export function parsePayProParams(parsed: Bip21ParseResult): PayProParams {
   const fungibleAmountParam = parsed.otherParams?.f ?? parsed.otherParams?.ft;
   const hasValidAmount = fungibleAmountParam !== undefined && /^\d+$/.test(fungibleAmountParam);
+  const satoshisParam = parsed.otherParams?.s;
+  let satoshis = parsed.satoshis;
+  if (satoshisParam !== undefined && /^\d+$/.test(satoshisParam)) satoshis = BigInt(satoshisParam);
   return {
+    satoshis,
     category: parsed.otherParams?.c,
     fungibleAmount: hasValidAmount ? BigInt(fungibleAmountParam) : undefined
   };
+}
+
+// The reason a parsed request cannot be paid, or null. PayPro's e= is a Unix timestamp in seconds;
+// a malformed one is refused too, since whether the request is still valid cannot be told.
+export function getPaymentRequestValidationError(parsed: Bip21ParseResult): string | null {
+  const bip21Error = getBip21ValidationError(parsed);
+  if (bip21Error) return bip21Error;
+  const satoshis = parsed.otherParams?.s;
+  if (satoshis !== undefined) {
+    if (!/^\d+$/.test(satoshis)) return t('bip21.errors.invalidAmountFormat');
+    if (parsed.satoshis !== undefined) return t('bip21.errors.conflictingAmounts');
+  }
+  const expiration = parsed.otherParams?.e;
+  if (expiration !== undefined) {
+    if (!/^\d+$/.test(expiration)) return t('bip21.errors.invalidExpiration');
+    if (BigInt(expiration) * 1000n <= BigInt(Date.now())) return t('bip21.errors.requestExpired');
+  }
+  return null;
 }
 
 /** The parameters Cashonize puts in a payment request it generates */
 export interface PaymentRequestParams extends PayProParams {
   /** Full cashaddress including the scheme prefix, as the wallet hands it out */
   address: string;
-  /** Requested amount in satoshis, left out of the URI when zero or undefined */
-  satoshis?: bigint | undefined;
   /** Note for the payer, shown by wallets that display it */
   message?: string | undefined;
 }
@@ -77,7 +100,7 @@ export function parseTokenPaymentRequest(addressInput: string, expectedCategory:
 
   try {
     const parsed = parseBip21Uri(addressInput);
-    const validationError = getBip21ValidationError(parsed);
+    const validationError = getPaymentRequestValidationError(parsed);
     if (validationError) {
       Notify.create({ message: validationError, icon: 'warning', color: "red" });
       return;

@@ -57,7 +57,10 @@
     "errors": {
       "unsupportedPaymentRequest": "Solicitação de pagamento não suportada",
       "duplicateParameters": "Solicitação de pagamento inválida: parâmetros duplicados",
-      "invalidAmountFormat": "A solicitação de pagamento tem um formato de valor inválido"
+      "invalidAmountFormat": "A solicitação de pagamento tem um formato de valor inválido",
+      "conflictingAmounts": "Solicitação de pagamento inválida: define tanto amount como s",
+      "invalidExpiration": "A solicitação de pagamento tem uma data de expiração inválida",
+      "requestExpired": "Esta solicitação de pagamento expirou"
     }
   },
   "chaingraph": {
@@ -184,6 +187,7 @@
       "noBalance": "A carteira não possui Bitcoin Cash",
       "noDestination": "Nenhum endereço de destino informado",
       "noAmount": "Nenhum valor válido informado",
+      "invalidAmount": "Insira um valor positivo: satoshis inteiros, ou BCH com no máximo 8 casas decimais",
       "insufficientFunds": "BCH insuficiente na carteira",
       "invalidAddress": "Endereço BCH inválido",
       "notCashaddress": "Não é um cashaddress na rede atual"

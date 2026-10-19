@@ -10,6 +10,7 @@
  *
  * This module knows the BIP21 keys only. Everything else lands in otherParams as raw strings,
  * including the CashTokens parameters, which paymentRequest.ts reads and writes on top of this.
+ * Keys are matched case-insensitively, so otherParams holds them lowercased.
  */
 
 import { formatTokenAmountFromBigInt } from 'src/utils/utils'
@@ -18,7 +19,8 @@ const { t } = i18n.global
 
 export interface Bip21ParseResult {
   address: string;
-  amount?: number;
+  /** The amount= parameter, converted from whole BCH to satoshis */
+  satoshis?: bigint;
   label?: string;
   message?: string;
   /** Other non-required parameters that were present */
@@ -83,9 +85,9 @@ export function parseBip21Uri(uri: string): Bip21ParseResult {
 
       switch (lowerKey) {
         case 'amount': {
-          const amount = parseAmount(value);
-          if (amount !== undefined) {
-            result.amount = amount;
+          const satoshis = parseAmountAsSatoshis(value);
+          if (satoshis !== undefined) {
+            result.satoshis = satoshis;
           } else {
             result.hasInvalidAmount = true;
           }
@@ -101,7 +103,7 @@ export function parseBip21Uri(uri: string): Bip21ParseResult {
           if (lowerKey.startsWith('req-')) {
             result.hasUnknownRequired = true;
           } else {
-            otherParams[key] = value;
+            otherParams[lowerKey] = value;
           }
       }
     }
@@ -122,16 +124,14 @@ export function formatSatoshisAsBch(satoshis: bigint): string {
   return formatTokenAmountFromBigInt(satoshis, 8);
 }
 
-/**
- * Parse an amount string according to BIP21 rules.
- * Amount must use period as decimal separator, no commas.
- * @returns The parsed amount, or undefined if invalid (empty, contains commas, NaN, or negative)
- */
-function parseAmount(value: string): number | undefined {
-  if (!value || value.includes(',')) return undefined;
-  const amount = parseFloat(value);
-  if (isNaN(amount) || amount < 0) return undefined;
-  return amount;
+// BIP21 allows only digits with an optional period as the decimal separator; more than 8 decimals
+// would be a fraction of a satoshi.
+function parseAmountAsSatoshis(value: string): bigint | undefined {
+  const match = /^(\d*)(?:\.(\d{0,8}))?$/.exec(value);
+  if (!match) return undefined;
+  const [, whole = '', fraction = ''] = match;
+  if (!whole && !fraction) return undefined;
+  return BigInt(whole || '0') * 100_000_000n + BigInt(fraction.padEnd(8, '0'));
 }
 
 /**

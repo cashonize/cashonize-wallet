@@ -57,7 +57,10 @@
     "errors": {
       "unsupportedPaymentRequest": "Demande de paiement non supportée",
       "duplicateParameters": "Demande de paiement invalide : paramètres en double",
-      "invalidAmountFormat": "La demande de paiement a un format de montant invalide"
+      "invalidAmountFormat": "La demande de paiement a un format de montant invalide",
+      "conflictingAmounts": "Demande de paiement invalide : elle définit à la fois amount et s",
+      "invalidExpiration": "La demande de paiement a une date d'expiration invalide",
+      "requestExpired": "Cette demande de paiement a expiré"
     }
   },
   "chaingraph": {
@@ -184,6 +187,7 @@
       "noBalance": "Le portefeuille n'a pas de Bitcoin Cash",
       "noDestination": "Aucune adresse de destination fournie",
       "noAmount": "Aucun montant valide fourni",
+      "invalidAmount": "Saisissez un montant positif : des satoshis entiers, ou des BCH avec 8 décimales au maximum",
       "insufficientFunds": "Pas assez de BCH dans le portefeuille",
       "invalidAddress": "Adresse BCH invalide fournie",
       "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel"

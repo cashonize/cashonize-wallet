@@ -1,5 +1,8 @@
+import { Notify } from "quasar";
 import { parseBip21Uri } from "../src/utils/payments/bip21";
-import { buildPaymentRequestUri, parsePayProParams } from "../src/utils/payments/paymentRequest";
+import { buildPaymentRequestUri, parsePayProParams, getPaymentRequestValidationError, parseTokenPaymentRequest } from "../src/utils/payments/paymentRequest";
+
+vi.mock("quasar", () => ({ Notify: { create: vi.fn() } }));
 
 const testAddress = "bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv";
 
@@ -85,7 +88,7 @@ describe("generated requests round-trip through the parser", () => {
     const uri = buildPaymentRequestUri({ address: testAddress, satoshis: 123_456_789n, message: "Order #7 & tip" });
     const parsed = parseBip21Uri(uri);
     expect(parsed.address).toBe(testAddress);
-    expect(parsed.amount).toBe(1.23456789);
+    expect(parsed.satoshis).toBe(123_456_789n);
     expect(parsed.message).toBe("Order #7 & tip");
   });
 
@@ -95,7 +98,7 @@ describe("generated requests round-trip through the parser", () => {
     expect(parsed.hasUnknownRequired).toBe(false);
     expect(parsed.hasDuplicateKeys).toBeUndefined();
     expect(parsed.hasInvalidAmount).toBeUndefined();
-    expect(parsed.amount).toBe(0.00000001);
+    expect(parsed.satoshis).toBe(1n);
     expect(parsed.message).toBe("req-test=1&amount=999");
   });
 });
@@ -127,7 +130,105 @@ describe("parsePayProParams", () => {
     expect(paramsOf(`c=${category}&f=abc`).fungibleAmount).toBeUndefined();
   });
 
-  it("should leave both undefined for a plain bch request", () => {
-    expect(paramsOf("amount=0.05")).toEqual({ category: undefined, fungibleAmount: undefined });
+  it("should read the parameters in uppercase too", () => {
+    expect(paramsOf(`C=${category}&F=250`)).toEqual({ category, fungibleAmount: 250n });
+  });
+
+  it("should leave the token params undefined for a plain bch request", () => {
+    expect(paramsOf("amount=0.05")).toEqual({ satoshis: 5_000_000n, category: undefined, fungibleAmount: undefined });
+  });
+
+  it("should read the bch amount from s= as satoshis", () => {
+    expect(paramsOf("s=123400").satoshis).toBe(123_400n);
+    expect(paramsOf("S=123400").satoshis).toBe(123_400n);
+  });
+
+  it("should read the bch amount from amount= when there is no s=", () => {
+    expect(paramsOf("amount=0.001234").satoshis).toBe(123_400n);
+  });
+
+  it("should keep satoshi amounts too large for a number exact", () => {
+    expect(paramsOf("s=9007199254740993").satoshis).toBe(9_007_199_254_740_993n);
+  });
+});
+
+describe("getPaymentRequestValidationError", () => {
+  const errorOf = (query: string) => getPaymentRequestValidationError(parseBip21Uri(`${testAddress}?${query}`));
+  // 2023-05-15T12:00:00Z, the expiration in the PayPro spec's examples
+  const expiration = 1684152000;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime((expiration - 60) * 1000);
+  });
+  afterEach(() => { vi.useRealTimers(); });
+
+  it("should accept a valid request", () => {
+    expect(errorOf("amount=1&message=Hi")).toBeNull();
+  });
+
+  it("should accept an expiring request that uses s=, as the spec asks", () => {
+    expect(errorOf(`s=123400&e=${expiration}`)).toBeNull();
+  });
+
+  it("should refuse a malformed s=", () => {
+    expect(errorOf("s=1.5")).toBe("Payment request has invalid amount format");
+    expect(errorOf("s=-1")).toBe("Payment request has invalid amount format");
+    expect(errorOf("s=")).toBe("Payment request has invalid amount format");
+  });
+
+  it("should refuse a request that sets both amount= and s=", () => {
+    expect(errorOf("amount=1&s=100000000")).toBe("Invalid payment request: it sets both amount and s");
+  });
+
+  it("should refuse each BIP21 error", () => {
+    expect(errorOf("req-unknown=1")).toBe("Unsupported payment request");
+    expect(errorOf("amount=1&amount=2")).toBe("Invalid payment request: duplicate parameters");
+    expect(errorOf("amount=1e3")).toBe("Payment request has invalid amount format");
+  });
+
+  it("should accept a request before its expiration", () => {
+    expect(errorOf(`amount=1&e=${expiration}`)).toBeNull();
+  });
+
+  it("should refuse a request once its expiration has passed", () => {
+    vi.setSystemTime(expiration * 1000);
+    expect(errorOf(`amount=1&e=${expiration}`)).toBe("This payment request has expired");
+    expect(errorOf(`amount=1&E=${expiration}`)).toBe("This payment request has expired");
+  });
+
+  it("should refuse a malformed expiration", () => {
+    expect(errorOf("amount=1&e=tomorrow")).toBe("Payment request has an invalid expiration");
+    expect(errorOf("amount=1&e=1.5e9")).toBe("Payment request has an invalid expiration");
+    expect(errorOf("amount=1&e=")).toBe("Payment request has an invalid expiration");
+  });
+});
+
+describe("parseTokenPaymentRequest", () => {
+  const tokenAddress = "bitcoincash:zr7fzmep8g7h7ymfxy74lgc0v950j3r295z4y4gq0v";
+  const category = "3a29bd2fe2ca319181035844dcff236c518bae26f417911043dc653b1a9dedc7";
+  const otherCategory = "b".repeat(64);
+
+  beforeEach(() => { vi.mocked(Notify.create).mockClear(); });
+
+  it("should return the address and token params of a request for this token", () => {
+    expect(parseTokenPaymentRequest(`${tokenAddress}?c=${category}&f=250`, category))
+      .toEqual({ address: tokenAddress, category, fungibleAmount: 250n });
+    expect(Notify.create).not.toHaveBeenCalled();
+  });
+
+  it("should leave a plain address alone", () => {
+    expect(parseTokenPaymentRequest(tokenAddress, category)).toBeUndefined();
+    expect(Notify.create).not.toHaveBeenCalled();
+  });
+
+  it("should refuse a request for another token, with a notice", () => {
+    expect(parseTokenPaymentRequest(`${tokenAddress}?c=${otherCategory}&f=1`, category)).toBeUndefined();
+    expect(Notify.create).toHaveBeenCalledOnce();
+  });
+
+  it("should refuse an expired request, with a notice", () => {
+    expect(parseTokenPaymentRequest(`${tokenAddress}?c=${category}&f=1&e=1684152000`, category)).toBeUndefined();
+    expect(Notify.create).toHaveBeenCalledWith(expect.objectContaining({ message: "This payment request has expired" }));
   });
 });
