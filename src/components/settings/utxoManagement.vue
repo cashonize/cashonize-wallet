@@ -313,10 +313,13 @@
       })
       // splitBchFromTokenUtxos esentially sends all fungible tokens
       for(const uniqueTokenIdToSplit of uniqueTokenIdsToSplit) {
+        // a category whose coins are all held back has nothing a send can reach
+        const amount = fungibleTokensResult[uniqueTokenIdToSplit] ?? 0n;
+        if (amount <= 0n) continue;
         const { txId } = await store.spend.send([
           new TokenSendRequest({
             cashaddr: store.wallet.getTokenDepositAddress(),
-            amount: fungibleTokensResult[uniqueTokenIdToSplit] as bigint,
+            amount,
             category: uniqueTokenIdToSplit,
           }),
         ]);

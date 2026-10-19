@@ -128,6 +128,7 @@
       if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
+      if(amountTokensInt <= 0n) throw new Error(t('tokenItem.errors.noValidAmount'));
       const amountSentFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
 
@@ -175,6 +176,7 @@
       if(!burnAmountFTs?.value) throw new Error(t('tokenItem.errors.amountMustBeInteger'));
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(burnAmountFTs.value, decimals);
+      if(amountTokensInt <= 0n) throw new Error(t('tokenItem.errors.noValidAmount'));
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
 

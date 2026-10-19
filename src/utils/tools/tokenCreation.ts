@@ -2,7 +2,7 @@
 // tested: amounts typed in tokens become base units by the chosen decimals, and a metadata
 // location counts only once the wallet has fetched and verified what it serves.
 
-import type { Utxo } from '@cashonize/bch-wallet-lib';
+import { TokenSendRequest, type Utxo } from '@cashonize/bch-wallet-lib';
 import type { RegistrySummary } from './registryFile';
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
@@ -77,6 +77,13 @@ export function genesisCandidates(utxos: Utxo[], order: 'largest' | 'smallest' =
   return utxos
     .filter(utxo => !utxo.token && utxo.vout === 0)
     .sort((left, right) => sign * Number(right.satoshis - left.satoshis));
+}
+
+// What the genesis issues to circulation: nothing when everything stays in the reserve, since a
+// token output with neither an amount nor an NFT is invalid and the library refuses to build one
+export function circulationOutputs(tokenAddress: string, category: string, amount: bigint, value: bigint) {
+  if (amount <= 0n) return [];
+  return [new TokenSendRequest({ cashaddr: tokenAddress, category, amount, value })];
 }
 
 // What a prepared UTXO carries, which stays the user's: the genesis or the identity spends it to self

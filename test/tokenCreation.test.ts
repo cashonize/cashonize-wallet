@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Utxo } from '@cashonize/bch-wallet-lib'
+import { InvalidRequestError, TokenSendRequest, type Utxo } from '@cashonize/bch-wallet-lib'
 
-import { genesisAmounts, genesisCandidates, metadataReadiness, type CheckedRegistry } from '../src/utils/tools/tokenCreation'
+import { circulationOutputs, genesisAmounts, genesisCandidates, metadataReadiness, type CheckedRegistry } from '../src/utils/tools/tokenCreation'
 
 describe('genesisAmounts', () => {
   // the supply is typed in tokens and the decimals do the zeroes, since the on-chain number is
@@ -89,5 +89,23 @@ describe('genesisCandidates', () => {
     const small = coin('a'.repeat(64), 0, 1000n)
     const large = coin('b'.repeat(64), 0, 5000n)
     expect(genesisCandidates([large, small], 'smallest')).toEqual([small, large])
+  })
+})
+
+describe('circulationOutputs', () => {
+  const tokenAddress = 'bitcoincash:zr7fzmep8g7h7ymfxy74lgc0v950j3r295z4y4gq0v'
+  const category = 'a'.repeat(64)
+
+  // the library refuses a token output with neither an amount nor an NFT, so a genesis that keeps
+  // the whole supply in the reserve must not build one
+  it('issues nothing when the whole supply stays in the reserve', () => {
+    expect(circulationOutputs(tokenAddress, category, 0n, 1000n)).toEqual([])
+    expect(() => new TokenSendRequest({ cashaddr: tokenAddress, category, amount: 0n })).toThrow(InvalidRequestError)
+  })
+
+  it('issues the circulating amount as one token output', () => {
+    const outputs = circulationOutputs(tokenAddress, category, 500n, 1000n)
+    expect(outputs).toHaveLength(1)
+    expect(outputs[0]).toMatchObject({ cashaddr: tokenAddress, category, amount: 500n, value: 1000n })
   })
 })
