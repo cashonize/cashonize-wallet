@@ -57,7 +57,9 @@
     "errors": {
       "unsupportedPaymentRequest": "Nicht unterstützte Zahlungsanfrage",
       "duplicateParameters": "Ungültige Zahlungsanfrage: doppelte Parameter",
-      "invalidAmountFormat": "Zahlungsanfrage hat ungültiges Betragsformat"
+      "invalidAmountFormat": "Zahlungsanfrage hat ungültiges Betragsformat",
+      "invalidExpiration": "Zahlungsanfrage hat ein ungültiges Ablaufdatum",
+      "requestExpired": "Diese Zahlungsanfrage ist abgelaufen"
     }
   },
   "chaingraph": {

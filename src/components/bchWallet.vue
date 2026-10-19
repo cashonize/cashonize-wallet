@@ -4,8 +4,8 @@
   import { decodeCashAddress } from "@bitauth/libauth"
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount, convertToCurrency } from 'src/utils/utils';
-  import { parseBip21Uri, isBip21Uri, getBip21ValidationError, addressFromUri } from 'src/utils/payments/bip21';
-  import { parsePayProParams } from 'src/utils/payments/paymentRequest';
+  import { parseBip21Uri, isBip21Uri, addressFromUri, formatSatoshisAsBch } from 'src/utils/payments/bip21';
+  import { parsePayProParams, getPaymentRequestValidationError } from 'src/utils/payments/paymentRequest';
   import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -139,7 +139,7 @@
     try {
       const parsed = parseBip21Uri(addressInput);
 
-      const validationError = getBip21ValidationError(parsed);
+      const validationError = getPaymentRequestValidationError(parsed);
       if (validationError) {
         $q.notify({ message: validationError, icon: 'warning', color: "red" });
         return;
@@ -156,9 +156,9 @@
       destinationAddr.value = parsed.address;
 
       // Set the amount if present
-      if(parsed.amount !== undefined){
-        let bchAmount = parsed.amount;
-        if(settingsStore.bchUnit == "sat") bchAmount = Math.round(bchAmount * 100_000_000);
+      if(parsed.satoshis !== undefined){
+        let bchAmount = Number(formatSatoshisAsBch(parsed.satoshis));
+        if(settingsStore.bchUnit == "sat") bchAmount = Number(parsed.satoshis);
         bchSendAmount.value = bchAmount;
         void setCurrencyAmount();
       }

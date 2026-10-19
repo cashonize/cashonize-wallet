@@ -7,7 +7,7 @@ describe("parseBip21Uri", () => {
     it("should parse a simple bitcoincash address", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv");
       expect(result.address).toBe("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv");
-      expect(result.amount).toBeUndefined();
+      expect(result.satoshis).toBeUndefined();
       expect(result.label).toBeUndefined();
       expect(result.message).toBeUndefined();
       expect(result.hasUnknownRequired).toBe(false);
@@ -24,46 +24,65 @@ describe("parseBip21Uri", () => {
   describe("amount parameter", () => {
     it("should parse integer amount", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=1");
-      expect(result.amount).toBe(1);
+      expect(result.satoshis).toBe(100_000_000n);
     });
 
     it("should parse decimal amount", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=1.5");
-      expect(result.amount).toBe(1.5);
+      expect(result.satoshis).toBe(150_000_000n);
     });
 
     it("should parse small decimal amount", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=0.00000001");
-      expect(result.amount).toBe(0.00000001);
+      expect(result.satoshis).toBe(1n);
     });
 
     it("should parse large amount", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=21000000");
-      expect(result.amount).toBe(21000000);
+      expect(result.satoshis).toBe(2_100_000_000_000_000n);
     });
 
     it("should reject amount with comma and flag as invalid (BIP21 requirement)", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=1,000");
-      expect(result.amount).toBeUndefined();
+      expect(result.satoshis).toBeUndefined();
       expect(result.hasInvalidAmount).toBe(true);
     });
 
     it("should reject negative amount and flag as invalid", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=-1");
-      expect(result.amount).toBeUndefined();
+      expect(result.satoshis).toBeUndefined();
       expect(result.hasInvalidAmount).toBe(true);
     });
 
     it("should reject invalid amount string and flag as invalid", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=abc");
-      expect(result.amount).toBeUndefined();
+      expect(result.satoshis).toBeUndefined();
       expect(result.hasInvalidAmount).toBe(true);
     });
 
     it("should flag empty amount as invalid", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=");
-      expect(result.amount).toBeUndefined();
+      expect(result.satoshis).toBeUndefined();
       expect(result.hasInvalidAmount).toBe(true);
+    });
+
+    // parseFloat read each of these as a number: 1e3 as 1000 BCH, 1.5abc as 1.5, 0x10 as 0
+    it.each(["1e3", "Infinity", "1.5abc", "0x10", " 1", "+1", ".", "1.2.3", "0.123456789"])(
+      "should flag %j as invalid", (amount) => {
+        const result = parseBip21Uri(`${testAddress}?amount=${encodeURIComponent(amount)}`);
+        expect(result.satoshis).toBeUndefined();
+        expect(result.hasInvalidAmount).toBe(true);
+      });
+
+    it("should accept the digit forms the BIP21 grammar allows", () => {
+      expect(parseBip21Uri(`${testAddress}?amount=.5`).satoshis).toBe(50_000_000n);
+      expect(parseBip21Uri(`${testAddress}?amount=1.`).satoshis).toBe(100_000_000n);
+      expect(parseBip21Uri(`${testAddress}?amount=007`).satoshis).toBe(700_000_000n);
+    });
+
+    it("should convert amounts a float would round badly exactly", () => {
+      expect(parseBip21Uri(`${testAddress}?amount=0.3`).satoshis).toBe(30_000_000n);
+      expect(parseBip21Uri(`${testAddress}?amount=20999999.99999999`).satoshis).toBe(2_099_999_999_999_999n);
     });
   });
 
@@ -100,7 +119,7 @@ describe("parseBip21Uri", () => {
         "bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz"
       );
       expect(result.address).toBe("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv");
-      expect(result.amount).toBe(50);
+      expect(result.satoshis).toBe(5_000_000_000n);
       expect(result.label).toBe("Luke-Jr");
       expect(result.message).toBe("Donation for project xyz");
       expect(result.hasUnknownRequired).toBe(false);
@@ -110,7 +129,7 @@ describe("parseBip21Uri", () => {
       const result = parseBip21Uri(
         "bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?message=Test&amount=1&label=Shop"
       );
-      expect(result.amount).toBe(1);
+      expect(result.satoshis).toBe(100_000_000n);
       expect(result.label).toBe("Shop");
       expect(result.message).toBe("Test");
     });
@@ -132,9 +151,22 @@ describe("parseBip21Uri", () => {
       const result = parseBip21Uri(
         "bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=1&req-unknown=value&label=Test"
       );
-      expect(result.amount).toBe(1);
+      expect(result.satoshis).toBe(100_000_000n);
       expect(result.label).toBe("Test");
       expect(result.hasUnknownRequired).toBe(true);
+    });
+
+    it("should match the BIP21 keys in any case", () => {
+      const result = parseBip21Uri(`${testAddress}?AMOUNT=1&Label=Shop&MESSAGE=Hi&REQ-x=1`);
+      expect(result.satoshis).toBe(100_000_000n);
+      expect(result.label).toBe("Shop");
+      expect(result.message).toBe("Hi");
+      expect(result.hasUnknownRequired).toBe(true);
+    });
+
+    it("should lowercase the keys it collects in otherParams", () => {
+      const result = parseBip21Uri(`${testAddress}?C=abc123&FT=100`);
+      expect(result.otherParams).toEqual({ c: "abc123", ft: "100" });
     });
 
     it("should collect CashToken params (c=, ft=, nft=) in otherParams", () => {
@@ -170,12 +202,12 @@ describe("parseBip21Uri", () => {
     it("should handle trailing question mark with no params", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?");
       expect(result.address).toBe("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv");
-      expect(result.amount).toBeUndefined();
+      expect(result.satoshis).toBeUndefined();
     });
 
     it("should handle amount=0", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=0");
-      expect(result.amount).toBe(0);
+      expect(result.satoshis).toBe(0n);
     });
   });
 
@@ -192,6 +224,11 @@ describe("parseBip21Uri", () => {
 
     it("should flag duplicate custom parameters", () => {
       const result = parseBip21Uri("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?c=abc&c=def");
+      expect(result.hasDuplicateKeys).toBe(true);
+    });
+
+    it("should flag a key repeated in another case", () => {
+      const result = parseBip21Uri(`${testAddress}?amount=1&AMOUNT=100`);
       expect(result.hasDuplicateKeys).toBe(true);
     });
 
@@ -281,7 +318,7 @@ describe("full URI parsing", () => {
       "bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv?amount=1.5&label=Test+Shop&message=Order+123"
     );
     expect(parsed.address).toBe("bitcoincash:qz2qya9a8s7f0vs0m68fxlkdfse2gj8wpgsw5szafv");
-    expect(parsed.amount).toBe(1.5);
+    expect(parsed.satoshis).toBe(150_000_000n);
     expect(parsed.label).toBe("Test Shop");
     expect(parsed.message).toBe("Order 123");
   });

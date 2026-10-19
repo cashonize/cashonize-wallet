@@ -4,10 +4,11 @@
  * parameters CHIP-2023-05-PayPro defines on top of it.
  * PayPro spec: https://github.com/bitjson/chip-paypro
  *
- * Only PayPro's token parameters are implemented: c for the category and f for the fungible
- * amount, with ft accepted as the alias other wallets and older requests use. Its n, s and e
- * parameters and its alphanumeric QR mode are not handled, and the amount of a plain BCH
- * request is written as BIP21's amount= rather than the CHIP's s=.
+ * Only some of PayPro's parameters are implemented: c for the category and f for the fungible
+ * amount, with ft accepted as the alias other wallets and older requests use, and e for the
+ * expiration, which refuses a request once it has passed. Its n and s parameters and its
+ * alphanumeric QR mode are not handled, and the amount of a plain BCH request is written as
+ * BIP21's amount= rather than the CHIP's s=.
  *
  * Every mention of those parameter names lives here, so reading a request and building one
  * cannot drift apart.
@@ -35,6 +36,23 @@ export function parsePayProParams(parsed: Bip21ParseResult): PayProParams {
     category: parsed.otherParams?.c,
     fungibleAmount: hasValidAmount ? BigInt(fungibleAmountParam) : undefined
   };
+}
+
+/**
+ * Check a parsed request for what should block paying it: the BIP21 errors, then PayPro's
+ * expiration, a Unix timestamp in seconds. A malformed one is refused too, since whether the
+ * request is still valid cannot be told.
+ * @returns Error message string if it cannot be paid, null if it can
+ */
+export function getPaymentRequestValidationError(parsed: Bip21ParseResult): string | null {
+  const bip21Error = getBip21ValidationError(parsed);
+  if (bip21Error) return bip21Error;
+  const expiration = parsed.otherParams?.e;
+  if (expiration !== undefined) {
+    if (!/^\d+$/.test(expiration)) return t('bip21.errors.invalidExpiration');
+    if (BigInt(expiration) * 1000n <= BigInt(Date.now())) return t('bip21.errors.requestExpired');
+  }
+  return null;
 }
 
 /** The parameters Cashonize puts in a payment request it generates */
@@ -77,7 +95,7 @@ export function parseTokenPaymentRequest(addressInput: string, expectedCategory:
 
   try {
     const parsed = parseBip21Uri(addressInput);
-    const validationError = getBip21ValidationError(parsed);
+    const validationError = getPaymentRequestValidationError(parsed);
     if (validationError) {
       Notify.create({ message: validationError, icon: 'warning', color: "red" });
       return;

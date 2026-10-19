@@ -57,7 +57,9 @@
     "errors": {
       "unsupportedPaymentRequest": "Solicitud de pago no soportada",
       "duplicateParameters": "Solicitud de pago inválida: parámetros duplicados",
-      "invalidAmountFormat": "La solicitud de pago tiene un formato de monto inválido"
+      "invalidAmountFormat": "La solicitud de pago tiene un formato de monto inválido",
+      "invalidExpiration": "La solicitud de pago tiene una fecha de vencimiento inválida",
+      "requestExpired": "Esta solicitud de pago ha vencido"
     }
   },
   "chaingraph": {

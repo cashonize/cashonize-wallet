@@ -57,7 +57,9 @@
     "errors": {
       "unsupportedPaymentRequest": "Unsupported payment request",
       "duplicateParameters": "Invalid payment request: duplicate parameters",
-      "invalidAmountFormat": "Payment request has invalid amount format"
+      "invalidAmountFormat": "Payment request has invalid amount format",
+      "invalidExpiration": "Payment request has an invalid expiration",
+      "requestExpired": "This payment request has expired"
     }
   },
   "chaingraph": {

@@ -57,7 +57,9 @@
     "errors": {
       "unsupportedPaymentRequest": "Demande de paiement non supportée",
       "duplicateParameters": "Demande de paiement invalide : paramètres en double",
-      "invalidAmountFormat": "La demande de paiement a un format de montant invalide"
+      "invalidAmountFormat": "La demande de paiement a un format de montant invalide",
+      "invalidExpiration": "La demande de paiement a une date d'expiration invalide",
+      "requestExpired": "Cette demande de paiement a expiré"
     }
   },
   "chaingraph": {
