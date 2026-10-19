@@ -1,6 +1,4 @@
-// Onboarding E2E tests: import a seed phrase and check the app shows the address it derives,
-// for 12 and 24 words, single address and HD wallets and the derivation path options, and that
-// the onboarding preferences are applied and kept. Mainnet only, nothing is sent.
+// Onboarding E2E tests. Mainnet only: nothing is sent and no funds are needed.
 
 import { test, expect, type Page } from '@playwright/test'
 import {
@@ -12,7 +10,7 @@ import {
   generateRandomBytes,
   hash160,
 } from '@bitauth/libauth'
-import { importWalletOnboarding } from './helpers'
+import { CASHONIZE_URL, importWalletOnboarding } from './helpers'
 
 // Fresh for every run, so they are unused and an HD wallet shows its first receive address.
 // A failing test attaches them to the report; set these variables to rerun with the same ones.
@@ -41,7 +39,6 @@ async function expectShownAddresses(page: Page, expected: { address: string, tok
   await expect(shown.nth(1)).toHaveText(expected.tokenAddress)
 }
 
-// A toggle on the preferences step, by the text it sits next to
 function preferenceToggle(page: Page, label: string) {
   return page.locator('div:has(> .q-toggle)').filter({ hasText: label }).locator('.q-toggle')
 }
@@ -57,9 +54,47 @@ test.afterEach(async () => {
   })
 })
 
+async function shownSeedPhrase(page: Page) {
+  await page.locator('nav img[src*="settings"]').click()
+  await page.getByText('Backup wallet').click()
+  await page.getByRole('button', { name: 'Show seed phrase' }).click()
+  const words = await page.locator('.seedphrase-word').evaluateAll(spans =>
+    spans.map(span => span.lastChild?.textContent?.trim() ?? ''))
+  return words.join(' ')
+}
+
+test.describe('Onboarding create', () => {
+  test('with the defaults: a single address wallet at the standard path of the 12 word seed phrase it shows', async ({ page }) => {
+    await page.goto(CASHONIZE_URL)
+    await page.getByRole('button', { name: 'Create new wallet' }).click()
+    await page.getByRole('button', { name: 'Create wallet' }).click()
+    await page.getByRole('button', { name: 'Finish Setup' }).click()
+
+    const seedPhrase = await shownSeedPhrase(page)
+    expect(seedPhrase.split(' ')).toHaveLength(12)
+    await expect(page.getByText('(BCH standard)')).toBeVisible()
+    await page.locator('nav').getByText('Wallet', { exact: true }).click()
+    await expectShownAddresses(page, addressesAt(seedPhrase, "m/44'/145'/0'/0/0"))
+  })
+
+  test('an HD wallet at the standard path of the seed phrase it shows', async ({ page }) => {
+    await page.goto(CASHONIZE_URL)
+    await page.getByRole('button', { name: 'Create new wallet' }).click()
+    await page.locator('select').filter({ has: page.locator('option[value="hd"]') }).selectOption('hd')
+    await page.getByRole('button', { name: 'Create wallet' }).click()
+    await page.getByRole('button', { name: 'Finish Setup' }).click()
+
+    const seedPhrase = await shownSeedPhrase(page)
+    await page.locator('nav').getByText('Wallet', { exact: true }).click()
+    await expectShownAddresses(page, addressesAt(seedPhrase, "m/44'/145'/0'/0/0"))
+  })
+})
+
 test.describe('Onboarding import', () => {
-  test('12 words, single address wallet at the standard path', async ({ page }) => {
-    await importWalletOnboarding(page, { seedPhrase: MNEMONIC_12, walletType: 'single', derivationPath: 'standard' })
+  // The onboarding defaults decide which addresses a re-imported seed phrase finds, so this test
+  // leaves the wallet type and derivation path as they are
+  test('12 words with the defaults: a single address wallet at the standard path', async ({ page }) => {
+    await importWalletOnboarding(page, { seedPhrase: MNEMONIC_12 })
     await page.getByRole('button', { name: 'Finish Setup' }).click()
     await expectShownAddresses(page, addressesAt(MNEMONIC_12, "m/44'/145'/0'/0/0"))
 
