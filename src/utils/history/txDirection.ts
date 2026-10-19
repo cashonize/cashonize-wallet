@@ -1,5 +1,5 @@
-import type { InOutput, TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
-import { hexToBin, decodeAuthenticationInstructions, authenticationInstructionsAreMalformed } from "@bitauth/libauth";
+import { OpReturnData, type InOutput, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
+import { hexToBin } from "@bitauth/libauth";
 
 export type TxDirection = 'received' | 'sent' | 'combined';
 
@@ -34,7 +34,7 @@ export function isSelfSend(
   if (transaction.tokenAmountChanges.some(change => change.amount !== 0n || change.nftAmount !== 0n)) return false;
   if (!transaction.inputs.every(input => hasWalletAddress(input.address))) return false;
   return transaction.outputs.every(output =>
-    output.address.startsWith(OP_RETURN_ADDRESS_PREFIX) || hasWalletAddress(output.address)
+    opReturnHex(output) !== undefined || hasWalletAddress(output.address)
   );
 }
 
@@ -64,31 +64,24 @@ export function isDappInteraction(
   return transaction.inputs.some(input => hasWalletAddress(input.address));
 }
 
-// A history item's OP_RETURN outputs have no address; mainnet-js puts "OP_RETURN: " and the
-// locking bytecode in hex there instead, which is where the protocol announcements are read
-export const OP_RETURN_ADDRESS_PREFIX = "OP_RETURN: ";
-
-// What the patched mainnet-js puts in place of the address of a coin that has none: a P2S contract,
-// and the rarer P2PK and bare multisig
+// What the library puts in place of the address of a coin that has none: a P2S contract, and the
+// rarer P2PK and bare multisig
 export const SCRIPT_ADDRESS_PREFIX = "SCRIPT: ";
 
+// The locking bytecode of an OP_RETURN output, in hex, which is where the protocol announcements
+// are read; undefined for any other output
 export function opReturnHex(output: InOutput | undefined) {
-  if (!output?.address.startsWith(OP_RETURN_ADDRESS_PREFIX)) return undefined;
-  return output.address.slice(OP_RETURN_ADDRESS_PREFIX.length);
+  const lockingBytecode = output?.lockingBytecode;
+  if (!lockingBytecode?.startsWith("6a")) return undefined;
+  return lockingBytecode;
 }
 
-// The protocol announcements read here are a series of pushes after the OP_RETURN, so the
-// script is decoded into those data chunks. Returns undefined for anything else, which for
-// an announcement is a malformed one. mainnet-js has OpReturnData.parseBinary for this, but
-// it stops at the first empty push, of which a TapSwap listing announcement has three
+// The protocol announcements read here are a series of pushes after the OP_RETURN. Returns
+// undefined for anything else, which for an announcement is a malformed one
 export function opReturnChunks(announcementHex: string) {
-  const instructions = decodeAuthenticationInstructions(hexToBin(announcementHex));
-  if (authenticationInstructionsAreMalformed(instructions)) return undefined;
-  const chunks: Uint8Array[] = [];
-  // the first instruction is the OP_RETURN itself
-  for (const instruction of instructions.slice(1)) {
-    if (!('data' in instruction)) return undefined;
-    chunks.push(instruction.data);
+  try {
+    return OpReturnData.parseBinary(hexToBin(announcementHex));
+  } catch {
+    return undefined;
   }
-  return chunks;
 }

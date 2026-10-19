@@ -357,7 +357,7 @@
       notifySending();
       const { txId } = await store.spend.spendAuthUtxo(
         authUtxo,
-        reserveAddOutputs(authUtxo, store.walletAddresses(), amount, categoryUtxos),
+        reserveAddOutputs(authUtxo, store.walletAddresses(), amount),
         categoryUtxos,
       );
       return { txId, message: t('identities.reserve.add.done'), title: t('identities.reserve.add.doneTitle') };

@@ -1,12 +1,12 @@
 import type { InOutput, TransactionHistoryItem } from '@cashonize/bch-wallet-lib'
 
-// History items the way mainnet-js builds them: every output decoded, an OP_RETURN output's
-// address standing in as "OP_RETURN: <hex>", token fields as on a utxo. Coins are P2PKH unless a
-// test gives one another lockingBytecode.
+// History items the way the library builds them: every output decoded with its locking bytecode,
+// an OP_RETURN output's address standing in as "OP_RETURN: <hex>", token fields as on a utxo.
+// Coins are P2PKH unless a test gives one another lockingBytecode.
 
 export const p2pkhBytecode = `76a914${'00'.repeat(20)}88ac`
 
-export const opReturnOutput = (hex: string): InOutput => ({ address: `OP_RETURN: ${hex}`, value: 0 })
+export const opReturnOutput = (hex: string): InOutput => ({ address: `OP_RETURN: ${hex}`, value: 0, lockingBytecode: hex })
 
 export const p2pkhOutput = (address = 'bitcoincash:qtest', value = 1000): InOutput => ({ address, value, lockingBytecode: p2pkhBytecode })
 
@@ -25,7 +25,7 @@ export const tokenOutput = (
   },
 })
 
-// An input as mainnet-js reports it: the outpoint it spends alongside the coin it spent, which is
+// An input as the library reports it: the outpoint it spends alongside the coin it spent, which is
 // what identity detection reads to follow an authchain through the history
 export const spendOf = (txid: string, vout: number, address = 'bitcoincash:qtest'): InOutput => ({
   address,

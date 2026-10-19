@@ -43,6 +43,13 @@ describe('parsePublicationOutput', () => {
 
     expect(parsePublicationOutput(message)).toBeUndefined()
   })
+
+  // an output on the chain can be anything: a hash push that claims more bytes than follow
+  it('reads a malformed publication as no publication', () => {
+    const truncated = publicationOutput(registryHash, []).slice(0, -2)
+
+    expect(parsePublicationOutput(truncated)).toBeUndefined()
+  })
 })
 
 describe('registryUrlOf', () => {
