@@ -72,7 +72,7 @@
         });
       } catch (error) {
         $q.notify({
-          message: typeof error === 'string' ? error : (error instanceof Error ? error.message : t('walletsOverview.deleteWallet.failed')),
+          message: error instanceof Error ? error.message : t('walletsOverview.deleteWallet.failed'),
           icon: 'warning',
           color: "red"
         });

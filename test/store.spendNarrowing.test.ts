@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import type { Utxo } from '@cashonize/bch-wallet-lib'
+import { BroadcastRejectedError, InsufficientFundsError, type Utxo } from '@cashonize/bch-wallet-lib'
 
 import {
   localStorageMock,
@@ -103,13 +103,13 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     expect(poolOf(wallet.send.mock.calls[0] as unknown[])).toBeUndefined()
   })
 
-  // mainnet-js counts what it was handed, so its numbers read as wrong to someone
+  // the library counts what it was handed, so its numbers read as wrong to someone
   // looking at a balance that includes the held back coins
   it('says why a spend fell short while coins are held back', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
-    const shortfall = Object.assign(
-      new Error('Amount required was not met, 150000 satoshis needed, 100000 satoshis available'),
-      { data: { required: 150_000n, available: 100_000n } },
+    const shortfall = new InsufficientFundsError(
+      'Amount required was not met, 150000 satoshis needed, 100000 satoshis available',
+      { asset: 'bch' },
     )
     wallet.send.mockRejectedValue(shortfall)
 
@@ -148,7 +148,10 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
   // the node's words stay on as the cause
   it('says a lost race in the user\'s terms', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
-    const rejection = new Error('the transaction was rejected by network rules.\n\ntxn-mempool-conflict (code 18)\n')
+    const rejection = new BroadcastRejectedError(
+      'the transaction was rejected by network rules.\n\ntxn-mempool-conflict (code 18)\n',
+      { reason: 'txn-mempool-conflict' },
+    )
     wallet.send.mockRejectedValue(rejection)
 
     const sending = store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }])

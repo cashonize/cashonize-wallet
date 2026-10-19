@@ -12,6 +12,7 @@ import {
   DefaultProvider,
   convert,
   ExchangeRate,
+  InsufficientFundsError,
   type Utxo,
   type ElectrumNetworkProvider,
   type CancelFn,
@@ -1520,26 +1521,16 @@ export const useStore = defineStore('store', () => {
   }
 
   // A spend that falls short while UTXOs are held back may have fallen short for that reason, and
-  // mainnet-js cannot say so: it counted only the pool it was handed. So the reason is said after
-  // its message, on the messages that report a shortfall and no other: every wallet holding an
-  // identity has a reservation, and the sentence on a rejected broadcast would point its holder
-  // at releasing the authhead. The pin test on the installed build asserts these are still
-  // mainnet-js's words.
-  const shortfallMessages = [
-    "Amount required was not met",
-    "Not enough token amount to send",
-    "You do not have any token UTXOs with minting capability for specified category",
-    "You do not have suitable token UTXOs to perform burn",
-    "There were no Unspent Outputs",
-    "The available inputs couldn't satisfy the request with fees",
-  ];
+  // the library cannot say so: it counted only the pool it was handed. So the reason is said after
+  // its message, on a shortfall and no other error: every wallet holding an identity has a
+  // reservation, and the sentence on a rejected broadcast would point its holder at releasing
+  // the authhead.
   async function spendExplained<T>(makeTransaction: () => Promise<T>): Promise<T> {
     try {
       return await makeTransaction();
     } catch (error) {
       // a reservation outliving its coin holds nothing back, so it explains nothing
-      if (reservedWalletUtxos.value?.length && error instanceof Error
-        && shortfallMessages.some(message => error.message.startsWith(message))) {
+      if (reservedWalletUtxos.value?.length && error instanceof InsufficientFundsError) {
         throw new Error(`${error.message} ${t('store.errors.utxosHeldBack')}`, { cause: error });
       }
       throw explainBroadcastError(error);
