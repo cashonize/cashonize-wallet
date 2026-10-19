@@ -172,8 +172,8 @@ identities were held elsewhere last time, and that is the one thing it keeps.
     contract's intent, so it cannot tell a contract's state from an identity parked in one;
     between key-held addresses there is no such doubt.
   - *How.* The rule reads the locking bytecode rather than the address, since a P2S contract,
-    standard since the 2026 upgrade, has no address form at all (mainnet-js reports the
-    bytecode only through this wallet's patch, see `pnpm-workspace.yaml`). An AuthGuard is
+    standard since the 2026 upgrade, has no address form at all (bch-wallet-lib reports the
+    bytecode of every history input and output). An AuthGuard is
     told from the link that spends it: the covenant requires its AuthKey at input 1, so an
     input 1 whose category derives that very output's bytecode proves it, from the history
     alone and the same way the resolve recognises a guard. That keeps the identity's way into

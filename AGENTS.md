@@ -33,12 +33,12 @@ Reservations split the set into what the wallet may spend and what it holds back
 - **store.ts**: Main wallet state - `_wallet` (mutable ref), `wallet` (computed, throws if null), balance, UTXOs, token list, BCMR registries. Handles wallet initialization, network switching, transaction watching.
 - **settingsStore.ts**: User preferences persisted to localStorage - currency, dark mode, electrum servers, per-wallet backup status, auto-approve settings for WalletConnect.
 - **walletconnectStore.ts** / **cashconnectStore.ts**: dApp connection protocol handlers. Access the wallet via Pinia cross-store ref (`useStore()` inside `defineStore` setup).
-- `_wallet` is a `shallowRef`: mainnet-js owns the wallet's internal state, so only swapping wallets is reactive, not changes inside the wallet object. Reactive code reading wallet internals depends on `walletUtxos` instead, which is why `store.walletHasAddress()` exists next to `store.wallet.hasAddress()`.
-- Spending goes through `store.spend.*` rather than `store.wallet.*`, so mainnet-js's coin selection is always narrowed to `spendableUtxos`: the wallet's utxos minus the reserved outpoints, BCH and token coins alike (`utils/wallet/reservedUtxos.ts`). A reservation is local to this app; another wallet on the same keys can still spend the coin. A dApp-built transaction is judged against the reservations at signing (`utils/dapp/reservedInputs.ts`): a pledged or frozen coin refuses, an AuthKey is signed when the same NFT comes back, and an identity UTXO refuses unless the `allowDappIdentitySpends` user option is on, and even then only when the authchain continues at an output of this wallet.
+- `_wallet` is a `shallowRef`: bch-wallet-lib owns the wallet's internal state, so only swapping wallets is reactive, not changes inside the wallet object. Reactive code reading wallet internals depends on `walletUtxos` instead, which is why `store.walletHasAddress()` exists next to `store.wallet.hasAddress()`.
+- Spending goes through `store.spend.*` rather than `store.wallet.*`, so the library's coin selection is always narrowed to `spendableUtxos`: the wallet's utxos minus the reserved outpoints, BCH and token coins alike (`utils/wallet/reservedUtxos.ts`). A reservation is local to this app; another wallet on the same keys can still spend the coin. A dApp-built transaction is judged against the reservations at signing (`utils/dapp/reservedInputs.ts`): a pledged or frozen coin refuses, an AuthKey is signed when the same NFT comes back, and an identity UTXO refuses unless the `allowDappIdentitySpends` user option is on, and even then only when the authchain continues at an output of this wallet.
 - **identitiesStore.ts**: the identities the wallet follows and everything resolved about them; reads the wallet and its coins from store.ts, which keeps the reservations that hold an authhead back.
 
 ### Multi-Wallet Support
-- Wallets stored in IndexedDB via `@mainnet-cash/indexeddb-storage` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet); by default each wallet is stored in both databases
+- Wallets stored in IndexedDB via the library's `IndexedDBProvider` from `bch-wallet-lib/indexeddb` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet); by default each wallet is stored in both databases
 - `activeWalletName` persisted in localStorage
 
 ### Concurrency
@@ -46,35 +46,36 @@ Only the web (SPA) target can run several live instances at once: browser tabs s
 
 Regardless of app instances, the same wallet can be live elsewhere (other devices, other wallet software), so on-chain state can change at any moment: in-memory UTXOs, balance and history are a cache, not a source of truth, and flows holding utxo state across user interaction must tolerate it going stale.
 
-### mainnet-js (Core Wallet Library)
+### bch-wallet-lib (Core Wallet Library)
 
-The wallet functionality is powered by `mainnet-js` v3, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers.
+The wallet functionality is powered by `bch-wallet-lib`, continued from mainnet-js 4 (`next`) with Cashonize as its first user, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers. It keeps mainnet-js 3.1.7's storage format, so existing wallets load unchanged.
 
 - Single-address wallets: `Wallet` for mainnet, `TestNetWallet` for chipnet
 - HD wallets: `HDWallet` for mainnet, `TestNetHDWallet` for chipnet; address/key management goes through a `walletCache`
 - The wallet type (`WalletType`) is a union of all four classes
 - `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
 - Named wallets persist to IndexedDB (see Multi-Wallet Support)
-- mainnet-js builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. dApp-supplied transactions are the exception: a shortcoming of the WalletConnect/WizardConnect protocols is that the dApp builds the transaction and the wallet only signs it, against libauth directly in `utils/dapp/wcSigning.ts` / `wizSigning.ts`.
-- The app overrides several mainnet-js defaults. Those in `store.ts` must be applied before the first wallet is constructed, since HD wallets start address discovery during construction; the rest follow a user action instead.
-- Docs: https://mainnet.cash/tutorial/
+- The library builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. dApp-supplied transactions are the exception: a shortcoming of the WalletConnect/WizardConnect protocols is that the dApp builds the transaction and the wallet only signs it, against libauth directly in `utils/dapp/wcSigning.ts` / `wizSigning.ts`.
+- The app overrides several library defaults. Those in `store.ts` must be applied before the first wallet is constructed, since HD wallets start address discovery during construction; the rest follow a user action instead.
+- Errors are typed `Error` subclasses, told apart with `instanceof`, never by message.
+- Repo: https://github.com/cashonize/bch-wallet-lib
 
 ### Other Key Dependencies
 - **@bitauth/libauth**: Cryptographic primitives, transaction encoding (https://libauth.org/)
-- **@electrum-cash/network**: Electrum client used under mainnet-js (https://gitlab.com/electrum-cash/network)
+- **@electrum-cash/network**: Electrum client used under bch-wallet-lib (https://gitlab.com/electrum-cash/network)
 - **@reown/walletkit**: WalletConnect integration (wraps @walletconnect/* packages). Uses BCH-specific payloads per the WC2-BCH spec: https://github.com/mainnet-pat/wc2-bch-bcr
 - **@cashconnect-js/core** & **@cashconnect-js/nostr**: CashConnect protocol for BCH-native dApp connections. Docs: https://cashconnect.developers.cash/ — Repo: https://gitlab.com/cashconnect-js/cashconnect-js
 - **@wizardconnect/core** & **@wizardconnect/wallet**: WizardConnect protocol for BCH HD-wallet dApp connections. Repo: https://gitlab.com/riftenlabs/lib/wizardconnect
 
 ### Persistent Storage
-- **IndexedDB** belongs to the libraries: mainnet-js keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
+- **IndexedDB** belongs to the libraries: bch-wallet-lib keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
 - **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, the dApp activity log, address marks and labels, reserved outpoints, flipstarter pledges, the identity lists (listed, dismissed, unseen, watched at the last complete resolve), WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
 
 ### Direct IndexedDB Access
-The app reaches into mainnet-js's databases itself, in `utils/wallet/dbUtils.ts` and the settings menu's cache-size/clear and delete flows. Some of that goes through mainnet-js's own storage provider, the rest is raw IndexedDB where not even that reaches. There we have to keep matching its versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and mainnet-js finding it already there never runs its own setup.
+Wallet ids, deletes and pruning the cached keys of deleted wallets go through the library (`utils/wallet/dbUtils.ts`). The settings menu's cache-size and delete-all flows are still raw IndexedDB, and there we have to keep matching the library's versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and the library finding it already there never runs its own setup.
 
 ### Electrum Connections
-mainnet-js configures `@electrum-cash/web-socket` to keep connections alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. This matters because wallet subscriptions (balance watches, token monitors) are fire-and-forget callbacks via `runAsyncVoid`, so forcibly rejected electrum requests would surface as uncaught promise errors. Safari and iOS still kill idle WebSockets in backgrounded tabs regardless, so a connection can come back stale; mainnet-js reconnects on the actual failure, not on the visibility change.
+The library keeps the `@electrum-cash/web-socket` connection alive across visibility changes (tab switches, app backgrounding, window minimizing) rather than disconnecting/reconnecting. Safari and iOS still kill idle WebSockets in backgrounded tabs regardless, so a connection can come back stale; the library reconnects on the actual failure, not on the visibility change.
 
 ### Electrum Trust Model
 Blockchain data comes from one electrum server at a time and is not verified. `@electrum-cash/network` is a single-server client with no cluster or SPV support, so balance, history, confirmations and block height are that server's claims rather than anything the wallet checks, and they are cached to IndexedDB. The one sanity check is the tip's age on mainnet: a newest block hours old means the server stopped following the chain, and the wallet warns (`staleTipHours` in `utils/utils.ts`).
@@ -90,7 +91,7 @@ The Chaingraph queries live in `src/queryChainGraph.ts`, typed from the schema w
 CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). The relay is store-and-forward with per-message TTLs, so dApp and wallet don't need to be online at the same time — a session survives either side going offline (short-lived messages like balance pushes simply expire rather than being replayed). Sessions persist in localStorage, namespaced per wallet identity key, and are restored by the library's `start()`; the app's `cashconnectStore.stop()` stops the service without un-pairing.
 
 ### WizardConnect
-WizardConnect connects HD wallets to dApps over Nostr relays (`wiz:` URIs); the transport is fully encapsulated in @wizardconnect/core, so no separate nostr dependencies are needed. The wallet shares chain-level xpubs (receive/change/defi) so dApps derive addresses locally; the only interactive request is transaction signing, which MUST use `SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID` (see `wizSigning.ts`). The sign dialog marks the wallet's own inputs and outputs through the request's paths, since mainnet-js's address cache knows the receive and change chains only. HD wallets only; single-address wallets get a clear error on pairing.
+WizardConnect connects HD wallets to dApps over Nostr relays (`wiz:` URIs); the transport is fully encapsulated in @wizardconnect/core, so no separate nostr dependencies are needed. The wallet shares chain-level xpubs (receive/change/defi) so dApps derive addresses locally; the only interactive request is transaction signing, which MUST use `SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID` (see `wizSigning.ts`). The sign dialog marks the wallet's own inputs and outputs through the request's paths, since the wallet tracks the receive and change chains only. HD wallets only; single-address wallets get a clear error on pairing.
 
 ### Token Metadata (BCMR)
 BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for authchain identities on BCH, tokens being the common case; the rest is under Authchain Identities. Spec: https://github.com/bitjson/chip-bcmr
@@ -158,9 +159,9 @@ Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). IndexedDB-
 
 ## Dependency Pinning
 
-Security-critical dependencies (key material, signing, dApp communication: mainnet-js, libauth, walletkit, @walletconnect/core, indexeddb-storage, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
+Security-critical dependencies (key material, signing, dApp communication: bch-wallet-lib, libauth, walletkit, @walletconnect/core, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
 
-A pinned dep may carry a pnpm patch, declared with its reason in `pnpm-workspace.yaml` and dropped once the fix lands upstream. mainnet-js currently carries one, covering four fixes the wallet depends on.
+A pinned dep may carry a pnpm patch, declared with its reason in `pnpm-workspace.yaml` and dropped once the fix lands upstream.
 
 ## Code Style Preferences
 
