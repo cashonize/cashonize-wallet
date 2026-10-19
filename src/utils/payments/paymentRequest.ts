@@ -30,7 +30,7 @@ export interface PayProParams {
 }
 
 // The amounts arrive in base units and are read as bigints, token supplies go well past what
-// a number holds exactly. A malformed s= or one next to amount= is refused by the validation.
+// a number holds exactly.
 export function parsePayProParams(parsed: Bip21ParseResult): PayProParams {
   const fungibleAmountParam = parsed.otherParams?.f ?? parsed.otherParams?.ft;
   const hasValidAmount = fungibleAmountParam !== undefined && /^\d+$/.test(fungibleAmountParam);
@@ -44,13 +44,8 @@ export function parsePayProParams(parsed: Bip21ParseResult): PayProParams {
   };
 }
 
-/**
- * Check a parsed request for what should block paying it: the BIP21 errors, a malformed s= or one
- * next to amount=, which the spec makes an error, then PayPro's expiration, a Unix timestamp in
- * seconds. A malformed expiration is refused too, since whether the request is still valid
- * cannot be told.
- * @returns Error message string if it cannot be paid, null if it can
- */
+// The reason a parsed request cannot be paid, or null. PayPro's e= is a Unix timestamp in seconds;
+// a malformed one is refused too, since whether the request is still valid cannot be told.
 export function getPaymentRequestValidationError(parsed: Bip21ParseResult): string | null {
   const bip21Error = getBip21ValidationError(parsed);
   if (bip21Error) return bip21Error;
@@ -79,7 +74,7 @@ export interface PaymentRequestParams extends PayProParams {
  * Build a payment request URI.
  *
  * Only emits the parameters Cashonize itself understands when paying, so a request
- * generated here can always be paid back by another Cashonize wallet. A zero amount is left out.
+ * generated here can always be paid back by another Cashonize wallet.
  */
 export function buildPaymentRequestUri({ address, satoshis, message, category, fungibleAmount }: PaymentRequestParams) {
   const params: string[] = [];

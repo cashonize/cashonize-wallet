@@ -306,9 +306,8 @@ export function satsToBch(satoshis: bigint | number) {
   return Number(satoshis) / 100_000_000;
 };
 
-// The send form's amount, typed into a number input in the user's unit, as satoshis. Undefined when
-// the unit cannot express it as a positive amount: a fraction of a satoshi, zero or less, or more BCH
-// than will ever exist. BCH goes through its 8-decimal string, so no float product decides the sats.
+// The send form's number input in the user's unit, as satoshis, or undefined when it is not a positive
+// amount the unit can express. BCH goes through its 8-decimal string, not a float product.
 export function sendAmountToSatoshis(amount: number, unit: 'bch' | 'sat'): bigint | undefined {
   if (!Number.isFinite(amount) || amount <= 0) return undefined;
   if (unit === 'sat') return Number.isSafeInteger(amount) ? BigInt(amount) : undefined;

@@ -124,11 +124,8 @@ export function formatSatoshisAsBch(satoshis: bigint): string {
   return formatTokenAmountFromBigInt(satoshis, 8);
 }
 
-/**
- * Parse an amount= value into satoshis. BIP21 allows only digits with an optional period as the
- * decimal separator; more than 8 decimals would be a fraction of a satoshi.
- * @returns The amount in satoshis, or undefined if the value does not follow that grammar
- */
+// BIP21 allows only digits with an optional period as the decimal separator; more than 8 decimals
+// would be a fraction of a satoshi.
 function parseAmountAsSatoshis(value: string): bigint | undefined {
   const match = /^(\d*)(?:\.(\d{0,8}))?$/.exec(value);
   if (!match) return undefined;
