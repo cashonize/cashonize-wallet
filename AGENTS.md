@@ -15,6 +15,7 @@ pnpm dev                   # Start development server (opens browser)
 pnpm build                 # Production build (generates dist/stats.html bundle analysis)
 pnpm lint                  # ESLint check
 pnpm test                  # Run vitest tests
+pnpm test:coverage         # Run vitest once with coverage of src/*.ts
 pnpm check:i18n            # Locale files: duplicate keys, key parity, placeholders
 pnpm exec vue-tsc --noEmit # Type check (Vue projects use vue-tsc, not plain tsc)
 ```

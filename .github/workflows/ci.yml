@@ -25,7 +25,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm exec vue-tsc --noEmit
       - run: pnpm check:i18n
-      - run: pnpm test
+      - run: pnpm test:coverage
       - run: pnpm exec playwright install --with-deps chromium
       # TODO: re-enable as a required step. The CashConnect and WalletConnect suites depend on
       # public relays and have been timing out on their first step, skipping the rest of each

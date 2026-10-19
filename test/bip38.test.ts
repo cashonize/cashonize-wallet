@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 import { encodePrivateKeyWif } from "@bitauth/libauth";
 import { decryptBip38Key, isBip38Key } from "../src/utils/tools/bip38";
 
+// scrypt is slow by design, and several times slower again under coverage instrumentation
+const scryptTimeout = { timeout: 60_000 };
+
 // The eight test vectors from the BIP itself:
 // https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki#test-vectors
 const specVectors = [
@@ -93,7 +96,7 @@ describe("isBip38Key", () => {
   });
 });
 
-describe("decryptBip38Key", () => {
+describe("decryptBip38Key", scryptTimeout, () => {
   it.each(specVectors)("decrypts the spec vector with $name", async (vector) => {
     const { privateKey, compressed } = await decryptBip38Key(vector.encryptedKey, vector.passphrase);
     expect(compressed).toBe(vector.compressed);
@@ -128,7 +131,7 @@ describe("decryptBip38Key", () => {
   });
 });
 
-describe("decryptBip38Key, EC multiplied and compressed", () => {
+describe("decryptBip38Key, EC multiplied and compressed", scryptTimeout, () => {
   it("decrypts the variant paper wallet generators print today", async () => {
     const { privateKey, compressed } = await decryptBip38Key(
       compressedEcMultiplyVector.encryptedKey,

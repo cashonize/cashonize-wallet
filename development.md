@@ -68,6 +68,8 @@ Unit testing is done with [Vitest](https://vitest.dev/). Vitest is configured in
 pnpm test
 ```
 
+`pnpm test:coverage` runs them once with v8 coverage of the TypeScript in `src/` (not the `.vue` components): a summary in the terminal and an HTML report in `coverage/lcov-report/`. CI runs it too. Read it as a signal of what is untested, not a target; there are no thresholds.
+
 ### Refresh the Chaingraph schema
 
 The Chaingraph queries are typed from a committed introspection (`src/generated/graphql-env.d.ts`). When the instance's schema changes, regenerate it from the URL in `tsconfig.json`:

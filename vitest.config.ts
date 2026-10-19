@@ -11,8 +11,15 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    root: './test',
-    exclude: ['e2e/**'],
-    setupFiles: ['./setup.ts'],
+    include: ['test/**/*.test.ts'],
+    exclude: ['test/e2e/**', '**/node_modules/**'],
+    setupFiles: ['./test/setup.ts'],
+    // a signal of what the unit tests leave untested, not a target: no thresholds.
+    // .ts only: there is no vue plugin here, and the unit tests do not render components
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+      reporter: ['text-summary', 'lcov'],
+    },
   },
 })

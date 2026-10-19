@@ -14,6 +14,7 @@
   "scripts": {
     "lint": "eslint -c ./eslint.config.ts \"./src*/**/*.{ts,js,vue}\" \"./test/**/*.{ts,js,vue}\"",
     "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "check:i18n": "node scripts/checkI18n.ts",
     "generate:chaingraph": "gql-tada generate output",
     "dev": "quasar dev",
@@ -54,6 +55,7 @@
     "@playwright/test": "^1.64.0",
     "@quasar/app-vite": "^3.10.2",
     "@types/node": "^24.13.4",
+    "@vitest/coverage-v8": "5.0.3",
     "@vue/eslint-config-typescript": "^14.9.0",
     "@walletconnect/types": "^2.25.0",
     "autoprefixer": "^10.6.1",
@@ -65,7 +67,7 @@
     "rollup-plugin-visualizer": "^7.1.1",
     "typescript": "^6.0.3",
     "vite-plugin-checker": "^0.14.4",
-    "vitest": "^5.0.3",
+    "vitest": "5.0.3",
     "vue-tsc": "^3.3.13"
   },
   "engines": {
