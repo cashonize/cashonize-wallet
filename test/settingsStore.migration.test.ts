@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { ref } from 'vue'
 import { useSettingsStore } from '../src/stores/settingsStore'
+import { defaultWalletName } from '../src/stores/constants'
 
 // the real settings store, not the stub the wallet-store tests share: what is tested here is
 // what it reads from storage when it starts
@@ -46,5 +47,27 @@ describe('the setting that follows the identities of held tokens', () => {
     storage.setItem('followTokenIdentities', 'false')
 
     expect(useSettingsStore().followTokenIdentities).toBe(false)
+  })
+})
+
+describe('the default wallet name', () => {
+  beforeEach(() => {
+    storage.clear()
+    vi.stubGlobal('localStorage', storage)
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: false }), addEventListener: () => {} })
+    setActivePinia(createPinia())
+  })
+
+  // wallets made before multi-wallet, and their per-wallet data, are stored under this name and
+  // opened by it when no active wallet is saved: changing it would hide them
+  it('stays the name existing wallets are stored under', () => {
+    expect(defaultWalletName).toBe('mywallet')
+  })
+
+  it('receives the backup status of the old single-wallet setting', () => {
+    storage.setItem('seedBackedUp', 'true')
+
+    expect(useSettingsStore().getBackupStatus('mywallet')).toBe('verified')
+    expect(storage.getItem('seedBackedUp')).toBeNull()
   })
 })

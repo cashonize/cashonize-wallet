@@ -62,6 +62,14 @@ test.describe('Onboarding import', () => {
     await importWalletOnboarding(page, { seedPhrase: MNEMONIC_12, walletType: 'single', derivationPath: 'standard' })
     await page.getByRole('button', { name: 'Finish Setup' }).click()
     await expectShownAddresses(page, addressesAt(MNEMONIC_12, "m/44'/145'/0'/0/0"))
+
+    // Existing wallets are stored under the default name, so it must not change; a single
+    // address wallet stores no type, which reads as single
+    const stored = await page.evaluate(() => ({
+      activeWalletName: localStorage.getItem('activeWalletName'),
+      walletType: JSON.parse(localStorage.getItem('walletMetadata') ?? '{}').mywallet?.walletType,
+    }))
+    expect(stored).toEqual({ activeWalletName: 'mywallet', walletType: undefined })
   })
 
   test('24 words, HD wallet at the standard path', async ({ page }) => {
