@@ -65,6 +65,9 @@
     // Check if input contains spaces (pasted multiple words)
     if (value.includes(' ')) {
       const words = value.trim().split(/\s+/)
+      // A paste overflowing the 12 word layout is meant for 24: cut to its first 12 words, those
+      // pass the checksum about 1 time in 16 and would import a different, empty wallet
+      if (seedWordCount.value === 12 && index + words.length > 12) changeSeedWordCount(24)
       // Distribute words starting from current index
       for (let i = 0; i < words.length && (index + i) < seedWords.value.length; i++) {
         const word = words[i]
