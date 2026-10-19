@@ -5,7 +5,7 @@
  * Note: vi.mock() calls are hoisted, so mock functions must be defined at
  * module level to be available in both mock factories and test assertions.
  */
-import type * as MainnetJs from '@cashonize/bch-wallet-lib'
+import type * as BchWalletLib from '@cashonize/bch-wallet-lib'
 import type * as ZodValidation from 'src/utils/zodValidation'
 import { vi } from 'vitest'
 
@@ -68,10 +68,17 @@ class MockTestNetWallet { static named = mockTestNetWalletNamed; static fromId =
 class MockHDWallet { static named = mockHDWalletNamed; static fromId = mockHDWalletFromId }
 class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static fromId = mockTestNetHDWalletFromId }
 
-// Mock mainnet-js. The publication output parser is the real one: a publication is bytes on the
-// chain, and the tests that name an identity from one hand the store real bytecode.
+// Mock bch-wallet-lib. The publication output parser is the real one: a publication is bytes on the
+// chain, and the tests that name an identity from one hand the store real bytecode. The error
+// classes are the real ones too, as the store tells them apart with instanceof.
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
-  OpReturnData: (await importOriginal<typeof MainnetJs>()).OpReturnData,
+  OpReturnData: (await importOriginal<typeof BchWalletLib>()).OpReturnData,
+  MAX_OP_RETURN_BYTES: (await importOriginal<typeof BchWalletLib>()).MAX_OP_RETURN_BYTES,
+  InsufficientFundsError: (await importOriginal<typeof BchWalletLib>()).InsufficientFundsError,
+  UtxoNotAvailableError: (await importOriginal<typeof BchWalletLib>()).UtxoNotAvailableError,
+  BroadcastRejectedError: (await importOriginal<typeof BchWalletLib>()).BroadcastRejectedError,
+  ElectrumTimeoutError: (await importOriginal<typeof BchWalletLib>()).ElectrumTimeoutError,
+  BroadcastTimeoutError: (await importOriginal<typeof BchWalletLib>()).BroadcastTimeoutError,
   Wallet: MockWallet,
   TestNetWallet: MockTestNetWallet,
   HDWallet: MockHDWallet,
@@ -218,7 +225,6 @@ vi.mock('src/utils/utils', () => ({
     if (network === 'mainnet') return isHD ? mockHDWalletFromId(walletId) : mockWalletFromId(walletId)
     return isHD ? mockTestNetHDWalletFromId(walletId) : mockTestNetWalletFromId(walletId)
   }),
-  runAsyncVoid: vi.fn((fn) => fn()),
   convertElectrumTokenData: vi.fn(),
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),
   // the windows are the helper's own concern, tested in utils.test.ts; here a connect is one call

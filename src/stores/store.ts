@@ -31,7 +31,7 @@ import {
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import { connectElectrum, electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, runAsyncVoid, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
+import { connectElectrum, electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -623,12 +623,10 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // A wallet constructed while offline cannot be reused: its HD address discovery never
-  // settles (getUtxos would hang forever), so rebuild it on a new provider
+  // A wallet constructed while offline recovers on its own: its next read subscribes what
+  // failed again, so retrying is initializing it again
   async function retryInitializationAfterOffline() {
     try {
-      const reloadedWallet = await loadExistingWallet(activeWalletName.value, network.value);
-      await setWallet(reloadedWallet);
       await initializeWallet();
     } catch (error) {
       displayAndLogError(error);
@@ -674,25 +672,13 @@ export const useStore = defineStore('store', () => {
   }
 
   async function setUpWalletSubscriptions(){
-    // watchTokenTransactions fires unawaited getRawTransactionObject calls for all existing txids on setup.
-    // Some resolve after electrumSubscriptionsActive flips true, bypassing the init guard below.
-    // Prefilling from getRawHistory prevents those late arrivals from triggering false "new token" notifications.
-    // Remove seenTokenTxIds (prefill + check) if mainnet-js starts awaiting the initial watchTransactionHashes burst.
-    const seenTokenTxIds = new Set<string>();
-    try {
-      // For single-address wallets this is one extra electrum call; for HD wallets it reads from in-memory cache (free).
-      const existingHistory = await wallet.value.getRawHistory();
-      existingHistory.forEach((tx) => seenTokenTxIds.add(tx.tx_hash));
-    } catch (error) {
-      console.error("Failed to prefill token transaction dedupe set:", error);
-    }
     // Capture initialization so subscription callbacks become no-ops after a wallet/network switch
     const initialization = currentInitialization;
 
+    // The callbacks are async: the library reports a callback's rejection to console.error and
+    // goes on watching
     cancelWatchBchtxs = await wallet.value.watchBalance(
-      // use runAsyncVoid to wrap an async function as a synchronous callback
-      // this means the promise is fire-and-forget
-      (newBalance) => runAsyncVoid(async () => {
+      async (newBalance) => {
         if (initialization !== currentInitialization) return;
         // Compute oldBalance including bch on token utxos
         // to match way newBalance is calculated in watchBalance
@@ -712,21 +698,11 @@ export const useStore = defineStore('store', () => {
           void updateWalletHistory();
           await refreshMaxAmountToSend();
         }
-      })
+      }
     );
     cancelWatchTokenTxs = await wallet.value.watchTokenTransactions(
-      // use runAsyncVoid to wrap an async function as a synchronous callback
-      // this means the promise is fire-and-forget
-      (tx) => runAsyncVoid(async () => {
+      async (tx) => {
         if (initialization !== currentInitialization) return;
-        // Guard: the initial watchStatus invocation fires callbacks for all existing txs
-        // before electrumSubscriptionsActive is set to true, so skip those
-        if(!electrumSubscriptionsActive.value) return
-
-        // Catch late-resolving initial burst callbacks (see prefill above)
-        if (seenTokenTxIds.has(tx.txid)) return;
-        seenTokenTxIds.add(tx.txid);
-
         const receivedTokenOutputs = tx.vout.filter(voutElem =>
           voutElem.tokenData && voutElem.scriptPubKey.addresses?.[0] &&
           wallet.value.hasAddress(voutElem.scriptPubKey.addresses[0])
@@ -772,7 +748,7 @@ export const useStore = defineStore('store', () => {
         // fetch Cauldron prices for new FTs
         void fetchCauldronPricesForTokens();
         void updateWalletHistory();
-      })
+      }
     );
     cancelWatchBlocks = await wallet.value.watchBlocks(header => {
       if (initialization !== currentInitialization) return;

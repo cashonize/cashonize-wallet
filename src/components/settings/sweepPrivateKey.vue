@@ -108,9 +108,16 @@
     if (props.wif) privateKeyToSweep.value = props.wif;
   });
 
-  function createTempWallet(wif: string) {
+  // A wallet subscribes to its address as it is constructed, so the one made for a look at the
+  // key or for its sweep is stopped once that is done
+  async function withTempWallet<T>(wif: string, use: (tempWallet: Wallet | TestNetWallet) => Promise<T>): Promise<T> {
     const walletClass = (store.network == 'mainnet') ? Wallet : TestNetWallet;
-    return walletClass.fromWIF(wif);
+    const tempWallet = await walletClass.fromWIF(wif);
+    try {
+      return await use(tempWallet);
+    } finally {
+      tempWallet.stop().catch(() => {});
+    }
   }
 
   // mainnet-js turns these away itself, but only with a message about WIFs having to start with
@@ -144,8 +151,8 @@
       if (!compressed) throw new Error(t('sweepPrivateKey.errors.uncompressedKey'));
       // An encrypted key holds no network of its own, it unlocks the same key on either
       const wif = encodePrivateKeyWif(privateKey, store.network == 'mainnet' ? 'mainnet' : 'testnet');
-      const tempWallet = await createTempWallet(wif);
-      unlockedKey.value = { encryptedKey, wif, address: tempWallet.cashaddr };
+      const address = await withTempWallet(wif, (tempWallet) => Promise.resolve(tempWallet.cashaddr));
+      unlockedKey.value = { encryptedKey, wif, address };
       // The passphrase has done its work, the unlocked key is what the sweep needs from here
       bip38Passphrase.value = "";
       showPassphrase.value = false;
@@ -193,8 +200,7 @@
     isEmpty.value = false;
     try {
       const wif = getWifToSweep();
-      const tempWallet = await createTempWallet(wif);
-      const utxos = await tempWallet.getUtxos();
+      const utxos = await withTempWallet(wif, (tempWallet) => tempWallet.getUtxos());
 
       // Include sats from token UTXOs since those will be recovered after sweeping the tokens
       bchBalanceSats.value = utxos.reduce((sum, utxo) => sum + utxo.satoshis, 0n);
@@ -258,11 +264,12 @@
     isSweeping.value = true;
     try {
       const wif = getWifToSweep();
-      const tempWallet = await createTempWallet(wif);
       const tokenAwareAddress = store.wallet.getTokenDepositAddress();
 
       // no reservations: they belong to this wallet, and the coins being swept are another key's
-      await transferAllAssets(tempWallet, tokenAwareAddress, {}, notifySweepPhase);
+      await withTempWallet(wif, (tempWallet) =>
+        transferAllAssets(tempWallet, tokenAwareAddress, {}, notifySweepPhase)
+      );
 
       $q.notify({
         type: 'positive',
