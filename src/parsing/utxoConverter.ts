@@ -2,10 +2,10 @@ import { hexToBin, type Output } from "@bitauth/libauth";
 import type { Utxo } from "@cashonize/bch-wallet-lib";
 
 /**
- * Convert a mainnet-js Utxo to a libauth Output for use with parseNft().
+ * Convert a bch-wallet-lib Utxo to a libauth Output for use with parseNft().
  *
  * The parseNft() function requires a libauth Output with Uint8Array-based
- * token data. mainnet-js uses hex strings. This function bridges the two.
+ * token data. The library uses hex strings. This function bridges the two.
  *
  * lockingBytecode is set to an empty Uint8Array because the parsing VM
  * only accesses token data (via OP_UTXOTOKENCOMMITMENT), not the locking script.

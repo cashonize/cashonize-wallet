@@ -147,7 +147,7 @@ describe('test transferAllAssets', () => {
     }
   })
 
-  // a token coin swept as plain bch would burn its tokens; mainnet-js leaves them out on its own,
+  // a token coin swept as plain bch would burn its tokens; the library leaves them out on its own,
   // and the pool handed to it leaves them out as well
   it('should keep token coins out of the final bch sweep', async () => {
     const frozenToken = fungibleTokenUtxo(cat1, 500n);

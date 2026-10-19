@@ -102,7 +102,7 @@ describe('reservedUtxos', () => {
   });
 });
 
-// This is the subtraction every spend path narrows mainnet-js's coin selection through, so a
+// This is the subtraction every spend path narrows the library's coin selection through, so a
 // coin wrongly left in the pool is a reserved coin that gets spent.
 describe('spendableFromUtxos', () => {
   it('excludes reserved coins and keeps the rest', () => {
@@ -174,7 +174,7 @@ describe('reservedTransactionInputs', () => {
 });
 
 describe('outpointOf', () => {
-  it('formats the outpoint the way mainnet-js accepts for utxoIds', () => {
+  it('formats the outpoint the way the library accepts for utxoIds', () => {
     expect(outpointOf(coinB)).toBe(`${txidB}:1`);
   });
 });

@@ -120,12 +120,12 @@
     }
   }
 
-  // mainnet-js turns these away itself, but only with a message about WIFs having to start with
-  // L or K, so catch them here to say what is actually wrong. Sweeping them is not a matter of
-  // getting past the check: mainnet-js derives every address from the compressed public key.
+  // The library turns these away itself, but in English only, so catch them here to say it in the
+  // user's language. Sweeping them is not a matter of getting past the check: the library derives
+  // every address from the compressed public key.
   function throwOnUncompressedKey(wif: string) {
     const decoded = decodePrivateKeyWif(wif);
-    if (typeof decoded === 'string') return; // leave malformed keys to mainnet-js to report
+    if (typeof decoded === 'string') return; // leave malformed keys to the library to report
     if (decoded.type === 'mainnetUncompressed' || decoded.type === 'testnetUncompressed') {
       throw new Error(t('sweepPrivateKey.errors.uncompressedKey'));
     }
@@ -145,8 +145,8 @@
       // shows the button busy: after this the screen is frozen and no later change would show
       await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
       const { privateKey, compressed } = await decryptBip38Key(encryptedKey, bip38Passphrase.value);
-      // A typed in uncompressed WIF is refused by mainnet-js, but this one would not be: the
-      // re-encoding below always writes the compressed form, so mainnet-js would accept the key
+      // A typed in uncompressed WIF is refused by the library, but this one would not be: the
+      // re-encoding below always writes the compressed form, so the library would accept the key
       // and then watch and sign for an address that this key does not control
       if (!compressed) throw new Error(t('sweepPrivateKey.errors.uncompressedKey'));
       // An encrypted key holds no network of its own, it unlocks the same key on either

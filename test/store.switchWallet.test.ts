@@ -353,7 +353,7 @@ describe('deleteWallet', () => {
     expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(2)
   })
 
-  // The seed is deleted above, but mainnet-js caches a private key per address for HD wallets
+  // The seed is deleted above, but the library caches a private key per address for HD wallets
   // in a database of its own, which would still be able to spend from the deleted wallet
   it('prunes the HD wallet key cache so no spendable keys outlive the wallet', async () => {
     const store = useStore()

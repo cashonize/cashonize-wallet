@@ -3,13 +3,17 @@ import { cashNinjaJsonString0, cashNinjaJsonString1 } from "./fixtures/wcFixture
 import { createSignedWcTransaction } from "../src/utils/dapp/wcSigning";
 import { encodeLockingBytecodeP2pkh, binToHex } from "@bitauth/libauth"
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
-import { Wallet } from "@cashonize/bch-wallet-lib";
+import { DefaultProvider, Wallet } from "@cashonize/bch-wallet-lib";
 
 // const throwAwayTestKey = generatePrivateKey()
 // const throwAwayTestKeyWif = encodePrivateKeyWif(throwAwayTestKey, "mainnet")
 const throwAwayTestKeyWif = 'L15RRkJJdgWARpbwHaZV4a99ciHhKEmWz8bR8aQ5T94FqhfAw3Ac'
 
+// a wallet subscribes to its address as it is constructed, so it gets a server that is never
+// there, and is stopped at once: only its keys are used
+DefaultProvider.servers.mainnet = ["wss://127.0.0.1:1"];
 const throwAwayWallet = await Wallet.fromWIF(throwAwayTestKeyWif);
+await throwAwayWallet.stop();
 const walletLockingBytecode = encodeLockingBytecodeP2pkh(throwAwayWallet.publicKeyHash);
 const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
 

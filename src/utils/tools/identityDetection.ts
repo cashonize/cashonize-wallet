@@ -41,8 +41,8 @@ export interface DetectedIdentities {
 }
 
 // Which transaction spent each output 0, read off the history's own inputs. One index answers both
-// what makes a candidate a genesis and where a chain went next. The outpoints come from a patched
-// mainnet-js (see pnpm-workspace.yaml), which is what keeps this pass off the network and out of libauth.
+// what makes a candidate a genesis and where a chain went next. The library's history reports each
+// input's outpoint, which is what keeps this pass off the network and out of libauth.
 function indexOutput0Spends(history: TransactionHistoryItem[]) {
   const spenders = new Map<string, string>();
   for (const transaction of history) {
@@ -75,7 +75,7 @@ function advanceToAuthhead(marked: string, spenders: Map<string, string>, transa
   let authhead = marked;
   let next = spenders.get(authhead);
   while (next !== undefined) {
-    // the bytecode comes from the patched mainnet-js too, and without it the walk stops here
+    // the history reports the bytecode too, and without it the walk stops here
     const lockingBytecode = transactions.get(authhead)?.outputs[0]?.lockingBytecode;
     const spender = transactions.get(next);
     if (!lockingBytecode || !spender) break;

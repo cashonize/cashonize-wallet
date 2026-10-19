@@ -11,8 +11,8 @@ const { t } = i18n.global
 export type DerivationPathType = "standard" | "bitcoindotcom" | "slp";
 
 // BIP44 derivation paths for BCH wallets
-// - parent: used by mainnet-js Config when generating new wallets via Wallet.named()
-// - full: used in explicit walletId strings for Wallet.replaceNamed() imports
+// - parent: used by the library's Config when generating new wallets via Wallet.named()
+// - full: used in explicit walletId strings for saveNamedWallet() imports
 export const DERIVATION_PATHS = {
   // BCH coin type, used by the large majority of BCH wallets
   standard: {
@@ -166,7 +166,8 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     const store = useStore();
     const settingsStore = useSettingsStore();
 
-    // mainnet-js defaults to m/44'/0'/0' (bitcoindotcom), override to use BCH standard
+    // the library's default is the BCH standard path too; set here so a new wallet's path never
+    // depends on the library's default
     Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
     // .named() deliberately creates the new wallet here (non-existence checked above),
     // elsewhere wallets should be loaded through store.loadExistingWallet

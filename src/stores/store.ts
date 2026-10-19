@@ -34,7 +34,7 @@ import {
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import { connectElectrum, electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
+import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -104,40 +104,40 @@ const settingsStore = useSettingsStore()
 const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const CAULDRON_REFETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+// Long enough for a slow but healthy handshake, a TLS setup on a poor cellular link. It also caps
+// how long a silent connection is kept before the library replaces it, which is 10 s by default.
+const ELECTRUM_CONNECT_TIMEOUT_MS = 15_000;
 
 //-----------------------------------------------------------------------------
-// mainnet-js configuration
+// bch-wallet-lib configuration
 //-----------------------------------------------------------------------------
 // All of it has to be applied before the first wallet is constructed. Wallet
 // creation reads several of these at construction time, and an HD wallet starts
 // address discovery straight away, so anything set later arrives too late.
 
 Config.EnforceCashTokenReceiptAddresses = true;
-// Never set Config.UseLocalStorageCache instead: its clear() is a bare localStorage.clear(),
-// which would take every app setting, transaction note and address label with it
+// Also where an HD wallet's address cache lives, in the WalletCache database mainnet-js wrote;
+// without it the cache would be in memory only and every open would rediscover the addresses
 Config.UseIndexedDBCache = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
 
-// Point mainnet-js's default electrum servers at the user's selected servers.
-// Wallet construction (WalletClass.named) — and eager HD address discovery in particular — builds its
-// network provider from these defaults BEFORE the app assigns one via setWallet. Without this, mainnet-js
-// falls back to its hardcoded default server (blackie.c3-soft.com), leaking the wallet's address
-// subscriptions to a server the user never selected. Kept in sync with settings via a watch (see below).
+// Point the library's default electrum servers at the user's selected servers. A wallet is
+// constructed on the global provider of its network, made from these defaults, and subscribes
+// straight away (an HD wallet starts address discovery) before initializeWallet moves it onto the
+// provider setWallet made. Without this the library falls back to its built-in servers, leaking
+// the wallet's addresses to a server the user never selected. Kept in sync with settings via a
+// watch (see below).
 function setDefaultElectrumServers() {
   DefaultProvider.servers.mainnet = [electrumWssUrl(settingsStore.electrumServerMainnet)];
   DefaultProvider.servers.testnet = [electrumWssUrl(settingsStore.electrumServerChipnet)];
 }
 setDefaultElectrumServers();
 
-// Pin the fee rate mainnet-js builds transactions at, instead of letting it ask the electrum
-// server: it reads these globals before calling blockchain.relayfee and skips the call. A
-// server can advertise a fee far below what the rest of the network relays, leaving the wallet
-// building transactions no peer will pass on. BCH per kB, so 0.00001 is 1 sat/byte.
-Object.assign(globalThis, { BCH_RELAY_FEE: 0.00001, tBCH_RELAY_FEE: 0.00001 });
+// Pin the fee rate at 1 sat/byte instead of taking the server's blockchain.relayfee. The library
+// never goes below 1 sat/byte whatever a server says, but trusts a higher rate up to its fixed cap
+// of 10 sat/byte, which would let a server make every send pay up to ten times that.
+Config.RelayFeePerByte = 1;
 
-// Config.DefaultCurrency is deliberately not set: mainnet-js reads it as it loads, before any
-// app code has run, to warm an exchange rate cache. Assigning it afterwards is always too late,
-// so currency-aware calls pass settingsStore.currency explicitly instead.
 
 export const useStore = defineStore('store', () => {
   const displayView = ref(undefined as (number | undefined));
@@ -147,7 +147,7 @@ export const useStore = defineStore('store', () => {
   const availableWallets = ref([] as WalletInfo[]);
   // Wallet State
   // _wallet holds the wallet object and is null until one is set.
-  // The wallet's internals belong to mainnet-js: the library owns the key cache and the address
+  // The wallet's internals belong to bch-wallet-lib: it owns the key cache and the address
   // histories and mutates them behind its own references, including from callbacks holding the
   // wallet from before it reached this store. Vue cannot track that, so only swapping in
   // another wallet is reactive, nothing inside it is.
@@ -232,7 +232,7 @@ export const useStore = defineStore('store', () => {
   })
 
   // Preferred over wallet.hasAddress in computed properties and templates: hasAddress reads the
-  // HD address cache, which mainnet-js owns and Vue therefore does not track. Unlike a direct
+  // HD address cache, which the library owns and Vue therefore does not track. Unlike a direct
   // call, this one is tracked, so callers re-run when the cache advances.
   function walletHasAddress(address: string) {
     // The read is the subscription, without it reactive callers never re-run. walletUtxos stands
@@ -274,7 +274,7 @@ export const useStore = defineStore('store', () => {
   // discovery window is marked, which markAddressUsed refuses to bring about but another open
   // tab marking at the same time still can (see deriveFreshAddressIndex)
   const currentAddressIndex = computed(() => {
-    // depositRawHistory and walletCache below sit outside Vue reactivity, walletUtxos is the
+    // rawHistory and walletCache below sit outside Vue reactivity, walletUtxos is the
     // signal that they advanced (see walletHasAddress)
     void walletUtxos.value;
     // marks are kept but ignored while the setting is off, so the wallet hands out the same
@@ -403,12 +403,14 @@ export const useStore = defineStore('store', () => {
   const canGoBack = computed(() => viewStack.length > 1);
 
   // The provider of the selected electrum server. A wallet is constructed on the library's
-  // global provider, so initializeWallet moves it onto this one.
+  // global provider, so initializeWallet moves it onto this one, and tries again on a retry.
   let walletProvider: ElectrumNetworkProvider | undefined;
   async function selectElectrumProvider(walletNetwork: NetworkType) {
     const isMainnet = walletNetwork == NetworkType.Mainnet;
     const server = isMainnet ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet;
-    walletProvider = await createProvider(isMainnet ? "mainnet" : "testnet", electrumWssUrl(server));
+    walletProvider = await createProvider(isMainnet ? "mainnet" : "testnet", electrumWssUrl(server), {
+      connectTimeout: ELECTRUM_CONNECT_TIMEOUT_MS,
+    });
   }
 
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
@@ -552,9 +554,7 @@ export const useStore = defineStore('store', () => {
       const provider = walletProvider;
       if (!provider) throw new Error("No electrum provider selected for the wallet");
       const activeWallet = wallet.value;
-      const electrumConnectionPromise = connectElectrum(provider)
-        .then(() => activeWallet.setProvider(provider))
-        .then(() => true)
+      const electrumConnectionPromise = activeWallet.setProvider(provider).then(() => true)
         .catch(error => {
           displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server: electrumServer })))
           // still log the original error for debugging
@@ -574,7 +574,8 @@ export const useStore = defineStore('store', () => {
         return;
       }
       // Fetch wallet utxos first, this result will be used in consecutive calls to avoid duplicate getUtxos() calls.
-      // For HD wallets this also awaits address discovery (watchPromise), which primes per-address utxos and history.
+      // For HD wallets this also awaits address discovery, which primes per-address utxos and history,
+      // and rejects if a subscription or first fetch of it failed.
       console.time('fetch wallet utxos');
       const walletAddressUtxos = await wallet.value.getUtxos()
       console.timeEnd('fetch wallet utxos');
@@ -1065,7 +1066,7 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Fetches wallet history via mainnet-js getHistory().
+  // Fetches wallet history via the library's getHistory().
   // When called with a capped count, auto-schedules a full background refresh via requestIdleCallback.
   let historyRequestId = 0;
   // Categories already queried for history metadata this session, so categories without
@@ -1176,12 +1177,12 @@ export const useStore = defineStore('store', () => {
   }
 
   // Fetch BCH exchange rate for fiat display
-  // mainnet-js has its own ~4 min TTL cache but we store the rate centrally for reactive access
+  // the library has its own ~4 min TTL cache but we store the rate centrally for reactive access
   async function fetchExchangeRate() {
     try {
       const initialization = currentInitialization;
       const currency = settingsStore.currency;
-      const quote = await ExchangeRate.getQuote(currency);
+      const quote = await ExchangeRate.getQuote(currency, { staleOnError: true });
       // discard a rate that no longer belongs: the state may have been reset, or the user may
       // have switched currency, which starts a second fetch that can resolve before this one
       if (initialization !== currentInitialization || currency !== settingsStore.currency) return;
@@ -1368,9 +1369,9 @@ export const useStore = defineStore('store', () => {
   // Refetch exchange rate when user changes currency
   watch(() => settingsStore.currency, () => void fetchExchangeRate());
   // Keep the default-server list current after a settings change. This governs the server used when
-  // a wallet is constructed for a network not yet connected this session (mainnet-js caches a global
-  // provider per network on first construction, so an already-connected network keeps its provider
-  // until it reconnects). The active wallet's server is swapped directly by the settings handler.
+  // a wallet is constructed for a network not yet connected this session (the library keeps the
+  // global provider per network it made on first construction, so an already-connected network
+  // keeps its server). The active wallet moves to the new server through selectElectrumProvider.
   watch([() => settingsStore.electrumServerMainnet, () => settingsStore.electrumServerChipnet], setDefaultElectrumServers);
 
   async function fetchTokenInfo(categoryId: string) {
@@ -1453,9 +1454,9 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Token coins are held back the same way BCH coins are. That took the pool narrowing to reach
-  // every spend path, mainnet-js's token methods included (see the pnpm patch), and the shortfall
-  // messages below to say why a send that used to fit no longer does.
+  // Token coins are held back the same way BCH coins are. That takes the pool narrowing to reach
+  // every spend path, the library's token methods included, and the shortfall explanation below to
+  // say why a send that used to fit no longer does.
   // Keyed by outpoint, so a coin this wallet made but has not seen yet can be held back too. A
   // resolve reserves what it found in one go, since the refresh at the end costs an electrum call.
   async function reserveOutpoints(outpoints: Outpoint[], reason: ReservationReason) {
@@ -1546,7 +1547,7 @@ export const useStore = defineStore('store', () => {
   }
 
   // A spend that names one specific coin, an NFT transfer or burn, cannot fall back on another the
-  // way an amount can, so a held back one is refused here rather than left to fail on mainnet-js's
+  // way an amount can, so a held back one is refused here rather than left to fail on the library's
   // terms. Frozen coins are spendable deliberately, but from utxo management rather than from here.
   function checkTokenUtxosSpendable(utxos: Utxo[]) {
     const held = utxos.find(utxo => outpointOf(utxo) in reservedUtxos.value);
@@ -1582,7 +1583,7 @@ export const useStore = defineStore('store', () => {
       const config = await spendConfig();
       return spendExplained(() => wallet.value.sendMax(cashaddr, config));
     },
-    // mainnet-js takes the first vout-0 BCH coin of the pool it is handed as the genesis input,
+    // the library takes the first vout-0 BCH coin of the pool it is handed as the genesis input,
     // and that coin's txid becomes the category, so the picked coin goes at the front of the pool.
     async tokenGenesis(
       genesisInput: Utxo,

@@ -227,6 +227,4 @@ vi.mock('src/utils/utils', () => ({
   }),
   convertElectrumTokenData: vi.fn(),
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),
-  // the windows are the helper's own concern, tested in utils.test.ts; here a connect is one call
-  connectElectrum: vi.fn((provider: { connect: () => Promise<void> }) => provider.connect()),
 }))

@@ -13,7 +13,7 @@ export function addressQueryBytecode(query: string): string | undefined {
   return binToHex(result.bytecode);
 }
 
-// mainnet-js records the locking bytecode of every input and output except a coinbase input
+// The library records the locking bytecode of every input and output except a coinbase input
 export function txInvolvesBytecode(tx: TransactionHistoryItem, lockingBytecodes: Set<string>): boolean {
   return [...tx.inputs, ...tx.outputs].some(inOutput =>
     inOutput.lockingBytecode !== undefined && lockingBytecodes.has(inOutput.lockingBytecode)

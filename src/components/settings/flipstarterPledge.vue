@@ -157,9 +157,9 @@
       const { txId } = await store.spend.send([{ cashaddr: pledgeAddress, value: donationAmount }]);
       if (!txId) throw new Error(t('flipstarter.errors.noBroadcastTxid'));
 
-      // Not read from the wallet's utxo set, which trails a send. Output 0 relies on mainnet-js's
+      // Not read from the wallet's utxo set, which trails a send. Output 0 relies on the library's
       // fixed ordering: requested outputs first in request order, change appended after them.
-      // Note: update if/when mainnet-js randomizes output order
+      // Note: update if/when the library randomizes output order
       const pledgeUtxo = { txid: txId, vout: 0, satoshis: donationAmount, address: pledgeAddress };
 
       // Reserved before signing, so nothing can spend the coin from the moment it exists

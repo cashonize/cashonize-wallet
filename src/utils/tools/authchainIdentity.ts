@@ -158,8 +158,9 @@ export function reserveAddOutputs(
 }
 
 // A mint from an identity UTXO is an authchain operation like the rest: the identity output
-// first, keeping the minting NFT and any reserve here, then the minted NFTs. mainnet-js's
-// tokenMint happens to order a mint this way; building it here makes that the rule rather than luck.
+// first, keeping the minting NFT and any reserve here, then the minted NFTs. The library's
+// tokenMint would return the minting NFT to its token change address in whatever place it builds;
+// building it here makes output 0 the rule.
 export function mintOutputs(
   authUtxo: Utxo,
   addresses: { bch: string, token: string },

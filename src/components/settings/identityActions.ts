@@ -9,7 +9,7 @@ import { handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
 export type CardAction = 'publish' | 'issue' | 'addToReserve' | 'transfer' | 'transferKey' | 'remove'
 export interface OpenAction { category: string; action: CardAction }
 
-export interface Outcome { txId: string | undefined; message: string; title: string }
+export interface Outcome { txId: string; message: string; title: string }
 
 // The broadcast reported when a spend went through, an error shown rather than thrown. Each
 // handler keeps its own validation, confirmation and outputs, and returns nothing when the user

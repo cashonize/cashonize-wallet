@@ -21,7 +21,7 @@ export async function clearElectrumCache(): Promise<void> {
 
 // Object stores can only be created during an upgrade, which runs only when the version asked
 // for is higher than the one stored. Opening without a version creates this database at version
-// 1 with no store, and mainnet-js opens its caches at version 1 too, so it would never upgrade
+// 1 with no store, and the library opens its caches at version 1 too, so it would never upgrade
 // and never add its own. Match its version and create the store, which it names after the database.
 export async function openIndexedDB(dbName: string): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {

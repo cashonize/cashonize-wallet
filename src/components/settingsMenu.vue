@@ -403,7 +403,7 @@
     if (confirmed) {
       // TODO: see if we need 'resetWalletState' to cancel subscriptions, etc.
 
-      // mainnet-js databases: wallet keys, electrum cache, HD wallet address/UTXO cache
+      // the library's databases: wallet keys, electrum cache, HD wallet address/UTXO cache
       indexedDB.deleteDatabase("bitcoincash");
       indexedDB.deleteDatabase("bchtest");
       indexedDB.deleteDatabase("ElectrumNetworkProviderCache");

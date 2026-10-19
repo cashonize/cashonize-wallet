@@ -382,7 +382,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     } else if (provider === "coinbase") {
       Config.GetExchangeRateFn = getExchangeRateCoinbase;
     } else {
-      // "default" - use mainnet-js default behavior
+      // "default" - use the library's default behavior
       Config.GetExchangeRateFn = undefined;
     }
   }
