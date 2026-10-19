@@ -1,4 +1,4 @@
-// Shared helpers for the Cashonize E2E suites (walletconnect.test.ts, cashconnect.test.ts).
+// Shared helpers for the Cashonize E2E suites.
 
 import { expect, type Page } from '@playwright/test'
 
@@ -18,23 +18,48 @@ export async function waitForDialog(page: Page, timeout = 15_000) {
   return dialog
 }
 
+export interface ImportOptions {
+  seedPhrase: string
+  walletType?: 'single' | 'hd'
+  derivationPath?: 'standard' | 'bitcoindotcom' | 'slp'
+  walletName?: string
+  // Pick the 24 word layout before pasting, as a user may; a paste switches to it as well
+  pick24Words?: boolean
+}
+
+// Run the onboarding import up to the preferences step. Wallet type and derivation path stay
+// at the onboarding defaults (single address, standard path) unless given.
+export async function importWalletOnboarding(page: Page, options: ImportOptions) {
+  await page.goto(CASHONIZE_URL)
+  await page.getByRole('button', { name: 'Import wallet' }).click()
+
+  if (options.walletName) await page.locator('#walletNameImport').fill(options.walletName)
+  if (options.pick24Words) await page.getByLabel('24 words').check()
+
+  // Paste the seed phrase into the first field — onWordInput distributes the words
+  const firstSeedInput = page.locator('.seed-words-grid input').first()
+  await firstSeedInput.fill(options.seedPhrase)
+  await firstSeedInput.dispatchEvent('input')
+
+  if (options.walletType) {
+    await page.locator('select').filter({ has: page.locator('option[value="hd"]') }).selectOption(options.walletType)
+  }
+  if (options.derivationPath) {
+    await page.locator('select').filter({ has: page.locator('option[value="bitcoindotcom"]') }).selectOption(options.derivationPath)
+  }
+  await page.getByRole('button', { name: 'Import wallet' }).click()
+  await page.getByRole('button', { name: 'Finish Setup' }).waitFor({ timeout: 15_000 })
+}
+
 // Run the wallet onboarding (importing E2E_SEED_PHRASE when set, creating a fresh wallet
 // otherwise) and switch the wallet to chipnet. Leaves the wallet on the Wallet tab.
 export async function setupWalletOnChipnet(walletPage: Page) {
-  await walletPage.goto(CASHONIZE_URL)
-
   if (SEED_PHRASE) {
     // Import funded wallet
-    await walletPage.getByRole('button', { name: 'Import wallet' }).click()
-
-    // Paste seed phrase — onWordInput distributes words across all 12 fields
-    const firstSeedInput = walletPage.locator('.seed-words-grid input').first()
-    await firstSeedInput.fill(SEED_PHRASE)
-    await firstSeedInput.dispatchEvent('input')
-
-    await walletPage.getByRole('button', { name: 'Import wallet' }).click()
+    await importWalletOnboarding(walletPage, { seedPhrase: SEED_PHRASE })
   } else {
     // Create a new wallet (no funds)
+    await walletPage.goto(CASHONIZE_URL)
     await walletPage.getByRole('button', { name: 'Create new wallet' }).click()
     await walletPage.getByRole('button', { name: 'Create wallet' }).click()
   }
