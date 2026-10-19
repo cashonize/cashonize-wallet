@@ -134,8 +134,21 @@ describe("parsePayProParams", () => {
     expect(paramsOf(`C=${category}&F=250`)).toEqual({ category, fungibleAmount: 250n });
   });
 
-  it("should leave both undefined for a plain bch request", () => {
-    expect(paramsOf("amount=0.05")).toEqual({ category: undefined, fungibleAmount: undefined });
+  it("should leave the token params undefined for a plain bch request", () => {
+    expect(paramsOf("amount=0.05")).toEqual({ satoshis: 5_000_000n, category: undefined, fungibleAmount: undefined });
+  });
+
+  it("should read the bch amount from s= as satoshis", () => {
+    expect(paramsOf("s=123400").satoshis).toBe(123_400n);
+    expect(paramsOf("S=123400").satoshis).toBe(123_400n);
+  });
+
+  it("should read the bch amount from amount= when there is no s=", () => {
+    expect(paramsOf("amount=0.001234").satoshis).toBe(123_400n);
+  });
+
+  it("should keep satoshi amounts too large for a number exact", () => {
+    expect(paramsOf("s=9007199254740993").satoshis).toBe(9_007_199_254_740_993n);
   });
 });
 
@@ -152,6 +165,20 @@ describe("getPaymentRequestValidationError", () => {
 
   it("should accept a valid request", () => {
     expect(errorOf("amount=1&message=Hi")).toBeNull();
+  });
+
+  it("should accept an expiring request that uses s=, as the spec asks", () => {
+    expect(errorOf(`s=123400&e=${expiration}`)).toBeNull();
+  });
+
+  it("should refuse a malformed s=", () => {
+    expect(errorOf("s=1.5")).toBe("Payment request has invalid amount format");
+    expect(errorOf("s=-1")).toBe("Payment request has invalid amount format");
+    expect(errorOf("s=")).toBe("Payment request has invalid amount format");
+  });
+
+  it("should refuse a request that sets both amount= and s=", () => {
+    expect(errorOf("amount=1&s=100000000")).toBe("Invalid payment request: it sets both amount and s");
   });
 
   it("should refuse each BIP21 error", () => {

@@ -5,10 +5,10 @@
  * PayPro spec: https://github.com/bitjson/chip-paypro
  *
  * Only some of PayPro's parameters are implemented: c for the category and f for the fungible
- * amount, with ft accepted as the alias other wallets and older requests use, and e for the
- * expiration, which refuses a request once it has passed. Its n and s parameters and its
- * alphanumeric QR mode are not handled, and the amount of a plain BCH request is written as
- * BIP21's amount= rather than the CHIP's s=.
+ * amount, with ft accepted as the alias other wallets and older requests use, s for the amount in
+ * satoshis next to BIP21's amount=, and e for the expiration, which refuses a request once it has
+ * passed. Its n parameter and its alphanumeric QR mode are not handled, and the amount of a plain
+ * BCH request is written as BIP21's amount= rather than the CHIP's s=.
  *
  * Every mention of those parameter names lives here, so reading a request and building one
  * cannot drift apart.
@@ -21,32 +21,44 @@ import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
 export interface PayProParams {
+  /** Requested BCH amount in satoshis, from s= or BIP21's amount= */
+  satoshis?: bigint | undefined;
   /** Token category being requested */
   category?: string | undefined;
   /** Fungible amount in base units, undefined when absent or not a plain integer */
   fungibleAmount?: bigint | undefined;
 }
 
-// The amount arrives in base units and is read as a bigint, token supplies go well past what
-// a number holds exactly.
+// The amounts arrive in base units and are read as bigints, token supplies go well past what
+// a number holds exactly. A malformed s= or one next to amount= is refused by the validation.
 export function parsePayProParams(parsed: Bip21ParseResult): PayProParams {
   const fungibleAmountParam = parsed.otherParams?.f ?? parsed.otherParams?.ft;
   const hasValidAmount = fungibleAmountParam !== undefined && /^\d+$/.test(fungibleAmountParam);
+  const satoshisParam = parsed.otherParams?.s;
+  let satoshis = parsed.satoshis;
+  if (satoshisParam !== undefined && /^\d+$/.test(satoshisParam)) satoshis = BigInt(satoshisParam);
   return {
+    satoshis,
     category: parsed.otherParams?.c,
     fungibleAmount: hasValidAmount ? BigInt(fungibleAmountParam) : undefined
   };
 }
 
 /**
- * Check a parsed request for what should block paying it: the BIP21 errors, then PayPro's
- * expiration, a Unix timestamp in seconds. A malformed one is refused too, since whether the
- * request is still valid cannot be told.
+ * Check a parsed request for what should block paying it: the BIP21 errors, a malformed s= or one
+ * next to amount=, which the spec makes an error, then PayPro's expiration, a Unix timestamp in
+ * seconds. A malformed expiration is refused too, since whether the request is still valid
+ * cannot be told.
  * @returns Error message string if it cannot be paid, null if it can
  */
 export function getPaymentRequestValidationError(parsed: Bip21ParseResult): string | null {
   const bip21Error = getBip21ValidationError(parsed);
   if (bip21Error) return bip21Error;
+  const satoshis = parsed.otherParams?.s;
+  if (satoshis !== undefined) {
+    if (!/^\d+$/.test(satoshis)) return t('bip21.errors.invalidAmountFormat');
+    if (parsed.satoshis !== undefined) return t('bip21.errors.conflictingAmounts');
+  }
   const expiration = parsed.otherParams?.e;
   if (expiration !== undefined) {
     if (!/^\d+$/.test(expiration)) return t('bip21.errors.invalidExpiration');
@@ -59,8 +71,6 @@ export function getPaymentRequestValidationError(parsed: Bip21ParseResult): stri
 export interface PaymentRequestParams extends PayProParams {
   /** Full cashaddress including the scheme prefix, as the wallet hands it out */
   address: string;
-  /** Requested amount in satoshis, left out of the URI when zero or undefined */
-  satoshis?: bigint | undefined;
   /** Note for the payer, shown by wallets that display it */
   message?: string | undefined;
 }
@@ -69,7 +79,7 @@ export interface PaymentRequestParams extends PayProParams {
  * Build a payment request URI.
  *
  * Only emits the parameters Cashonize itself understands when paying, so a request
- * generated here can always be paid back by another Cashonize wallet.
+ * generated here can always be paid back by another Cashonize wallet. A zero amount is left out.
  */
 export function buildPaymentRequestUri({ address, satoshis, message, category, fungibleAmount }: PaymentRequestParams) {
   const params: string[] = [];

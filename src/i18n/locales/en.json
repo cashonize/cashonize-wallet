@@ -58,6 +58,7 @@
       "unsupportedPaymentRequest": "Unsupported payment request",
       "duplicateParameters": "Invalid payment request: duplicate parameters",
       "invalidAmountFormat": "Payment request has invalid amount format",
+      "conflictingAmounts": "Invalid payment request: it sets both amount and s",
       "invalidExpiration": "Payment request has an invalid expiration",
       "requestExpired": "This payment request has expired"
     }
@@ -186,6 +187,7 @@
       "noBalance": "Wallet doesn't hold any Bitcoin Cash",
       "noDestination": "No destination address provided",
       "noAmount": "No valid amount provided",
+      "invalidAmount": "Enter a positive amount: whole satoshis, or BCH with at most 8 decimals",
       "insufficientFunds": "Not enough BCH in wallet",
       "invalidAddress": "Invalid BCH address provided",
       "notCashaddress": "Not a cashaddress on current network"

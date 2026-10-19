@@ -58,6 +58,7 @@
       "unsupportedPaymentRequest": "Solicitud de pago no soportada",
       "duplicateParameters": "Solicitud de pago inválida: parámetros duplicados",
       "invalidAmountFormat": "La solicitud de pago tiene un formato de monto inválido",
+      "conflictingAmounts": "Solicitud de pago inválida: define tanto amount como s",
       "invalidExpiration": "La solicitud de pago tiene una fecha de vencimiento inválida",
       "requestExpired": "Esta solicitud de pago ha vencido"
     }
@@ -186,6 +187,7 @@
       "noBalance": "La billetera no tiene Bitcoin Cash",
       "noDestination": "No se proporcionó una dirección de destino",
       "noAmount": "No se proporcionó un monto válido",
+      "invalidAmount": "Introduce un monto positivo: satoshis enteros, o BCH con 8 decimales como máximo",
       "insufficientFunds": "No hay suficiente BCH en la billetera",
       "invalidAddress": "Se proporcionó una dirección BCH inválida",
       "notCashaddress": "No es una cashaddress en la red actual"

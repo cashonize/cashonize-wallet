@@ -3,7 +3,7 @@
   import { convert } from 'mainnet-js'
   import { decodeCashAddress } from "@bitauth/libauth"
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
-  import { copyToClipboard, formatFiatAmount, convertToCurrency } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount, convertToCurrency, sendAmountToSatoshis } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, addressFromUri, formatSatoshisAsBch } from 'src/utils/payments/bip21';
   import { parsePayProParams, getPaymentRequestValidationError } from 'src/utils/payments/paymentRequest';
   import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
@@ -146,7 +146,7 @@
       }
 
       // Token payment requests are paid from the token's own send form
-      const requestedCategory = parsePayProParams(parsed).category;
+      const { category: requestedCategory, satoshis: requestedSatoshis } = parsePayProParams(parsed);
       if(requestedCategory){
         notifyTokenPaymentRequest(requestedCategory);
         return;
@@ -156,9 +156,9 @@
       destinationAddr.value = parsed.address;
 
       // Set the amount if present
-      if(parsed.satoshis !== undefined){
-        let bchAmount = Number(formatSatoshisAsBch(parsed.satoshis));
-        if(settingsStore.bchUnit == "sat") bchAmount = Number(parsed.satoshis);
+      if(requestedSatoshis !== undefined){
+        let bchAmount = Number(formatSatoshisAsBch(requestedSatoshis));
+        if(settingsStore.bchUnit == "sat") bchAmount = Number(requestedSatoshis);
         bchSendAmount.value = bchAmount;
         void setCurrencyAmount();
       }
@@ -200,7 +200,12 @@
       currencySendAmount.value = undefined
       return
     }
-    const newCurrencyValue = await convert(bchSendAmount.value, settingsStore.bchUnit, settingsStore.currency);
+    const amountSats = sendAmountToSatoshis(bchSendAmount.value, settingsStore.bchUnit);
+    if(amountSats === undefined){
+      currencySendAmount.value = undefined
+      return
+    }
+    const newCurrencyValue = await convert(Number(amountSats), "sat", settingsStore.currency);
     currencySendAmount.value = Number(newCurrencyValue.toFixed(2));
   }
   async function setBchAmount() {
@@ -234,7 +239,9 @@
       // check for valid inputs
       if(!destinationAddr.value) throw new Error(t('wallet.errors.noDestination'))
       if(!bchSendAmount.value) throw new Error(t('wallet.errors.noAmount'))
-      if(bchSendAmount.value > (maxAmountToSendInBchUnit.value ?? 0)) throw new Error(t('wallet.errors.insufficientFunds'))
+      const amountSats = sendAmountToSatoshis(bchSendAmount.value, settingsStore.bchUnit)
+      if(amountSats === undefined) throw new Error(t('wallet.errors.invalidAmount'))
+      if(amountSats > (store.maxAmountToSend ?? 0n)) throw new Error(t('wallet.errors.insufficientFunds'))
       const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
         invalidAddress: t('wallet.errors.invalidAddress'),
         wrongNetwork: t('wallet.errors.notCashaddress'),
@@ -253,8 +260,6 @@
         if (!confirmed) return
       }
 
-      let amountSats = BigInt(Math.round(bchSendAmount.value * 100_000_000))
-      if(settingsStore.bchUnit === 'sat') amountSats = BigInt(bchSendAmount.value)
       const sendBchOutput = { cashaddr: destinationAddr.value, value:amountSats } ;
       notifySending(t('wallet.sendingTransaction'));
       const { txId } = await store.spend.send([ sendBchOutput ]);
