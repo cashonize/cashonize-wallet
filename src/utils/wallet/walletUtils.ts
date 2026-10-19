@@ -1,4 +1,15 @@
-import { Wallet, HDWallet, Config, namedWalletExists, saveNamedWallet } from "@cashonize/bch-wallet-lib"
+import {
+  Wallet,
+  HDWallet,
+  Config,
+  NetworkType,
+  getAddrsByXpubKey,
+  getNetworkProvider,
+  getXPubKey,
+  namedWalletExists,
+  saveNamedWallet,
+} from "@cashonize/bch-wallet-lib"
+import { deriveSeedFromBip39Mnemonic } from "@bitauth/libauth"
 import { Notify } from "quasar"
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
@@ -52,41 +63,46 @@ const SCAN_BATCH_SIZE = 10;
  * to the standard gap limit on both the receive and change chains: activity
  * beyond the first receive address means the seed phrase was used as an HD
  * wallet, so a single address import would miss funds.
+ * The addresses are derived from each path's xpub and their history asked of the
+ * mainnet provider directly: a wallet built per address would subscribe to it.
  */
 export async function scanDerivationPaths(seedPhrase: string): Promise<DerivationPathScanResult> {
-  const normalizedSeedPhrase = normalizeSeedPhrase(seedPhrase);
+  const seed = deriveSeedFromBip39Mnemonic(normalizeSeedPhrase(seedPhrase));
+  // the global provider a mainnet wallet is constructed on, made from the selected server
+  const provider = getNetworkProvider(NetworkType.Mainnet);
+  // the receive and change chains are unhardened, so the parent's xpub derives every address
+  const xpubOf = (pathType: DerivationPathType) => getXPubKey(seed, DERIVATION_PATHS[pathType].parent, "mainnet");
 
-  async function addressHasActivity(fullDerivationPath: string): Promise<boolean> {
-    const addressWallet = await Wallet.fromId(`seed:mainnet:${normalizedSeedPhrase}:${fullDerivationPath}`);
-    const history = await addressWallet.getRawHistory();
+  async function addressHasActivity(address: string): Promise<boolean> {
+    const history = await provider.getHistory(address);
     return history.length > 0;
   }
 
   // Receive and change chains are interleaved by index so the addresses most
   // likely to be used are checked first, letting the scan end early on the
   // first batch with activity
-  async function laterAddressesHaveActivity(parentDerivationPath: string): Promise<boolean> {
-    const addressPaths: string[] = [];
-    for (let addressIndex = 0; addressIndex < GAP_LIMIT; addressIndex++) {
-      addressPaths.push(`${parentDerivationPath}/0/${addressIndex + 1}`);
-      addressPaths.push(`${parentDerivationPath}/1/${addressIndex}`);
-    }
-    for (let i = 0; i < addressPaths.length; i += SCAN_BATCH_SIZE) {
-      const batch = addressPaths.slice(i, i + SCAN_BATCH_SIZE);
+  async function laterAddressesHaveActivity(xpub: string): Promise<boolean> {
+    const receiveAddresses = getAddrsByXpubKey(xpub, "0/1", GAP_LIMIT);
+    const changeAddresses = getAddrsByXpubKey(xpub, "1/0", GAP_LIMIT);
+    const addresses = receiveAddresses.flatMap((receiveAddress, index) => [receiveAddress, changeAddresses[index]!]);
+    for (let i = 0; i < addresses.length; i += SCAN_BATCH_SIZE) {
+      const batch = addresses.slice(i, i + SCAN_BATCH_SIZE);
       const batchResults = await Promise.all(batch.map(addressHasActivity));
       if (batchResults.includes(true)) return true;
     }
     return false;
   }
 
+  const xpubs = SCANNED_PATH_TYPES.map(xpubOf);
   const pathHasActivity = await Promise.all(
-    SCANNED_PATH_TYPES.map((pathType) => addressHasActivity(DERIVATION_PATHS[pathType].full))
+    xpubs.map((xpub) => addressHasActivity(getAddrsByXpubKey(xpub, "0/0", 1)[0]!))
   );
   const usedPaths = SCANNED_PATH_TYPES.filter((_pathType, index) => pathHasActivity[index]);
 
   let multipleAddressesUsed = false;
   for (const usedPath of usedPaths) {
-    if (await laterAddressesHaveActivity(DERIVATION_PATHS[usedPath].parent)) {
+    const xpub = xpubs[SCANNED_PATH_TYPES.indexOf(usedPath)]!;
+    if (await laterAddressesHaveActivity(xpub)) {
       multipleAddressesUsed = true;
       break;
     }
@@ -200,9 +216,6 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     if (isQuotaExceededError(error)) {
       return makeError(t('walletUtils.errors.storageFull'), false);
     }
-    if (typeof error === 'string') {
-      return makeError(error, true);
-    }
     return makeError(t('walletUtils.errors.failedToCreateWallet'), false);
   }
 }
@@ -285,9 +298,6 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     if (isQuotaExceededError(error)) {
       return makeError(t('walletUtils.errors.storageFull'), false);
     }
-    if (typeof error === 'string') {
-      return makeError(error, true);
-    }
     return makeError(t('walletUtils.errors.invalidSeedPhrase'), false);
   }
 }
@@ -337,9 +347,6 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
   } catch (error) {
     if (isQuotaExceededError(error)) {
       return makeError(t('walletUtils.errors.storageFull'), false);
-    }
-    if (typeof error === 'string') {
-      return makeError(error, true);
     }
     return makeError(t('walletUtils.errors.failedToCreateWallet'), false);
   }
@@ -409,9 +416,6 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
   } catch (error) {
     if (isQuotaExceededError(error)) {
       return makeError(t('walletUtils.errors.storageFull'), false);
-    }
-    if (typeof error === 'string') {
-      return makeError(error, true);
     }
     return makeError(t('walletUtils.errors.invalidSeedPhrase'), false);
   }

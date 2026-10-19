@@ -5,14 +5,16 @@
  * Note: vi.mock() calls are hoisted, so mock functions must be defined at
  * module level to be available in both mock factories and test assertions.
  */
+import type * as BchWalletLib from '@cashonize/bch-wallet-lib'
 import { vi } from 'vitest'
 
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
-export const mockWalletFromId = vi.fn()
 export const mockHDWalletNamed = vi.fn()
 // Stores a wallet id under a name without constructing the wallet
 export const mockSaveNamedWallet = vi.fn()
+// The history the derivation path scan asks the mainnet provider for, per address
+export const mockGetHistory = vi.fn()
 
 // Mock functions for dependencies
 export const mockNamedWalletExists = vi.fn()
@@ -57,12 +59,16 @@ vi.mock('src/stores/settingsStore', () => ({
 
 vi.mock('src/utils/wallet/dbUtils', () => ({}))
 
-vi.mock('@cashonize/bch-wallet-lib', () => ({
+// The derivation helpers are the real ones: the scan's addresses are checked against libauth's
+vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
+  NetworkType: (await importOriginal<typeof BchWalletLib>()).NetworkType,
+  getXPubKey: (await importOriginal<typeof BchWalletLib>()).getXPubKey,
+  getAddrsByXpubKey: (await importOriginal<typeof BchWalletLib>()).getAddrsByXpubKey,
+  getNetworkProvider: vi.fn(() => ({ getHistory: mockGetHistory })),
   namedWalletExists: mockNamedWalletExists,
   saveNamedWallet: mockSaveNamedWallet,
   Wallet: {
     named: mockWalletNamed,
-    fromId: mockWalletFromId,
   },
   HDWallet: {
     named: mockHDWalletNamed,

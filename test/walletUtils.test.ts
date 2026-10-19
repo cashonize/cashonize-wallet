@@ -16,12 +16,19 @@ import {
   mockSetBackupStatus,
   mockSetWalletType,
   mockClearWalletSettings,
-  mockWalletFromId,
+  mockGetHistory,
   localStorageMock,
 } from './mocks/walletUtils.mocks'
 
 // Import module under test after mocks
 import { createNewWallet, importWallet, createNewHDWallet, importHDWallet, validateWalletName, scanDerivationPaths } from '../src/utils/wallet/walletUtils'
+import {
+  deriveHdPath,
+  deriveHdPrivateNodeFromSeed,
+  deriveSeedFromBip39Mnemonic,
+  publicKeyToP2pkhCashAddress,
+  secp256k1,
+} from '@bitauth/libauth'
 
 describe('validateWalletName', () => {
   it('returns null for valid names', () => {
@@ -1012,16 +1019,36 @@ describe('importHDWallet', () => {
 describe('scanDerivationPaths', () => {
   const seedPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
-  // Every address of the seed phrase is a wallet made from a seed id, `seed:<network>:<mnemonic>:
-  // <path>`; only the listed derivation paths report an on-chain transaction history
+  // The address at a full derivation path, derived here with libauth alone
+  const rootNode = deriveHdPrivateNodeFromSeed(deriveSeedFromBip39Mnemonic(seedPhrase), { throwErrors: true })
+  const pathOfAddress = new Map<string, string>()
+  function addressAt(derivationPath: string) {
+    const node = deriveHdPath(rootNode, derivationPath)
+    if (typeof node === 'string') throw new Error(node)
+    const publicKey = secp256k1.derivePublicKeyCompressed(node.privateKey)
+    if (typeof publicKey === 'string') throw new Error(publicKey)
+    const { address } = publicKeyToP2pkhCashAddress({ publicKey })
+    pathOfAddress.set(address, derivationPath)
+    return address
+  }
+  for (const parent of ["m/44'/145'/0'", "m/44'/0'/0'", "m/44'/245'/0'"]) {
+    for (let index = 0; index <= 20; index++) {
+      addressAt(`${parent}/0/${index}`)
+      addressAt(`${parent}/1/${index}`)
+    }
+  }
+
+  // Only the listed derivation paths report an on-chain transaction history
   function givenHistoryOnPaths(pathsWithHistory: string[]) {
-    mockWalletFromId.mockImplementation((walletId: string) => Promise.resolve({
-      getRawHistory: () => Promise.resolve(pathsWithHistory.includes(walletId.split(':')[3]!) ? [{ tx_hash: 'abc' }] : [])
-    }))
+    mockGetHistory.mockImplementation((address: string) => {
+      const derivationPath = pathOfAddress.get(address)
+      if (!derivationPath) throw new Error(`not an address of the seed phrase: ${address}`)
+      return Promise.resolve(pathsWithHistory.includes(derivationPath) ? [{ tx_hash: 'abc', height: 1 }] : [])
+    })
   }
 
   function scannedPaths() {
-    return mockWalletFromId.mock.calls.map(call => (call[0] as string).split(':')[3]!)
+    return mockGetHistory.mock.calls.map(call => pathOfAddress.get(call[0] as string))
   }
 
   beforeEach(() => {
@@ -1065,5 +1092,29 @@ describe('scanDerivationPaths', () => {
 
     expect(result.usedPaths).toEqual(['slp'])
     expect(result.multipleAddressesUsed).toBe(true)
+  })
+
+  // receive and change interleaved by index, ten at a time, up to the gap limit
+  it('scans a used path to the gap limit in batches, interleaving receive and change', async () => {
+    givenHistoryOnPaths(["m/44'/145'/0'/0/0"])
+
+    const result = await scanDerivationPaths(seedPhrase)
+
+    expect(result.multipleAddressesUsed).toBe(false)
+    const later = scannedPaths().slice(3)
+    expect(later).toHaveLength(40)
+    expect(later.slice(0, 4)).toEqual([
+      "m/44'/145'/0'/0/1", "m/44'/145'/0'/1/0", "m/44'/145'/0'/0/2", "m/44'/145'/0'/1/1",
+    ])
+    expect(later.at(-1)).toBe("m/44'/145'/0'/1/19")
+  })
+
+  it('stops at the first batch with activity', async () => {
+    givenHistoryOnPaths(["m/44'/145'/0'/0/0", "m/44'/145'/0'/1/2"])
+
+    const result = await scanDerivationPaths(seedPhrase)
+
+    expect(result.multipleAddressesUsed).toBe(true)
+    expect(scannedPaths()).toHaveLength(3 + 10)
   })
 })
