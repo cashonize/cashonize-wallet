@@ -96,21 +96,43 @@
 
   // Load the wallet's DeFi positions and prices; 'force' bypasses the fiat-value display
   // setting since the user explicitly opened the portfolio (the price fetches are cached
-  // for 5 minutes)
+  // for 5 minutes). A load asked for while one runs is run once after it, never alongside.
+  let loading = false
+  let loadAgain = false
   async function loadPortfolioData() {
-    // unawaited: waiting on the full history should not hold up the view's loading gate.
-    // The spinner only accompanies the first lookup and retries after a failure;
-    // re-entries with data on screen refresh silently behind the rows already shown.
-    if (store.tapswapListings === null || store.hodlContracts === null || store.announcedAssetsError) {
-      checkingAdditionalContractAssets.value = true
+    if (loading) {
+      loadAgain = true
+      return
     }
-    void store.fetchWalletAnnouncedAssets().finally(() => {
-      checkingAdditionalContractAssets.value = false
-    })
-    await store.fetchWalletCauldronPools()
-    await store.fetchWalletBadgerLocks()
-    // after the pools, so the pools' tokens are priced along with the held ones
-    await store.fetchCauldronPricesForTokens(true)
+    loading = true
+    try {
+      do {
+        loadAgain = false
+        // unawaited: waiting on the full history should not hold up the view's loading gate.
+        // The spinner only accompanies the first lookup and retries after a failure;
+        // re-entries with data on screen refresh silently behind the rows already shown.
+        if (store.tapswapListings === null || store.hodlContracts === null || store.announcedAssetsError) {
+          checkingAdditionalContractAssets.value = true
+        }
+        void store.fetchWalletAnnouncedAssets().finally(() => {
+          checkingAdditionalContractAssets.value = false
+        })
+        // independent lookups, so the slowest sets the time rather than their sum
+        await Promise.all([
+          store.fetchWalletCauldronPools(),
+          store.fetchWalletBadgerLocks(),
+          store.fetchCauldronPricesForTokens(true),
+        ])
+        // a pool can hold a token the wallet does not, which needs a price of its own; the held
+        // tokens' prices come from cache on this second pass
+        const prices = store.cauldronPrices ?? {}
+        if (store.cauldronPools?.some(pool => !(pool.tokenId in prices))) {
+          await store.fetchCauldronPricesForTokens(true)
+        }
+      } while (loadAgain)
+    } finally {
+      loading = false
+    }
   }
   // The view is kept alive: onActivated covers entering it, so watching the token list while
   // another view is shown only scans for pools nobody looks at, which re-entry redoes anyway.
@@ -121,7 +143,9 @@
     void loadPortfolioData()
   })
   onDeactivated(() => { isActive.value = false })
-  watch(() => store.tokenList, () => {
+  // the token list is replaced only when its tokens changed; with the balance it moves when this
+  // wallet creates or withdraws a pool (tokens) or a Badgers lock (BCH only)
+  watch([() => store.tokenList, () => store.balance], () => {
     if (isActive.value) void loadPortfolioData()
   })
 
