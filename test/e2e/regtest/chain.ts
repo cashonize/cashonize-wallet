@@ -10,14 +10,17 @@ export const RPC_PORT = 18543
 export const FULCRUM_WS_PORT = 60103
 export const PROXY_PORT = 60104
 export const PROXY_CONTROL_PORT = 60105
+export const PROXY_TLS_PORT = 60106
 const RPC_AUTH = 'Basic ' + Buffer.from('e2e:e2e').toString('base64')
 
 // The key of env.sh's FUNDER_ADDRESS, a regtest-only key
 const FUNDER_WIF = 'cNfsPtqN2bMRS7vH5qd8tR8GMvgXyL5BjnGAKgZ8DYEiCrCCQcP6'
 const FUNDER_ADDRESS = 'bchreg:qpttdv3qg2usm4nm7talhxhl05mlhms3ys43u76rn0'
 
-// The server the app is pointed at, its custom chipnet electrum server
+// The server the app is pointed at, its custom chipnet electrum server (proxy instance A)
 export const APP_ELECTRUM_SERVER = `ws://127.0.0.1:${PROXY_PORT}`
+// Proxy instance B, as a user types a server into the settings form: host:port, reached over wss://
+export const SECOND_ELECTRUM_SERVER = `127.0.0.1:${PROXY_TLS_PORT}`
 
 export async function rpc<T = unknown>(method: string, params: unknown[] = []): Promise<T> {
   const response = await fetch(`http://127.0.0.1:${RPC_PORT}/`, {

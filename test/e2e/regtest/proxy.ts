@@ -4,8 +4,9 @@
 // the app's connection right after a broadcast reached the server.
 
 import { createServer, type Server } from 'node:http'
+import { createServer as createHttpsServer } from 'node:https'
 import { WebSocket, WebSocketServer, type RawData } from 'ws'
-import { FULCRUM_WS_PORT, PROXY_CONTROL_PORT, PROXY_PORT, toChipnet, toRegtest } from './chain'
+import { FULCRUM_WS_PORT, PROXY_CONTROL_PORT, PROXY_PORT, PROXY_TLS_PORT, toChipnet, toRegtest } from './chain'
 
 const CASHADDR = /^(bchtest|bchreg):[qpzr][02-9ac-hj-np-z]+$/
 
@@ -44,51 +45,112 @@ export interface Proxy {
   close(): Promise<void>
 }
 
-export function startProxy(): Proxy {
+// What one proxy instance saw: the app's connections open to it now, and every address the app
+// asked it about (blockchain.address.*), in the app's bchtest form
+export interface InstanceStats {
+  connections: number
+  addresses: string[]
+}
+
+interface Instance {
+  server: WebSocketServer
+  stats: { addresses: Set<string> }
+}
+
+// Proxy instance A takes plain ws://, as the app's stored setting can name it; B serves wss:// on a
+// self-signed certificate, as the settings form only makes wss:// URLs, so a test can switch the
+// app from A to B the way a user switches servers
+export function startProxy(tls: { key: string, cert: string }): Proxy {
   let dropNextBroadcast = false
-  const wss = new WebSocketServer({ host: '127.0.0.1', port: PROXY_PORT })
-  wss.on('connection', client => {
-    const upstream = new WebSocket(`ws://127.0.0.1:${FULCRUM_WS_PORT}`)
-    const pending: string[] = []
-    upstream.on('open', () => {
-      for (const frame of pending.splice(0)) upstream.send(frame)
+
+  const instance = (server: WebSocketServer): Instance => {
+    const stats = { addresses: new Set<string>() }
+    server.on('connection', client => {
+      const upstream = new WebSocket(`ws://127.0.0.1:${FULCRUM_WS_PORT}`)
+      const pending: string[] = []
+      upstream.on('open', () => {
+        for (const frame of pending.splice(0)) upstream.send(frame)
+      })
+      client.on('message', data => {
+        const original = text(data)
+        recordAddresses(original, stats.addresses)
+        const frame = rewriteFrame(original, 'bchtest')
+        const isBroadcast = frame.includes('"blockchain.transaction.broadcast"')
+        if (upstream.readyState === WebSocket.OPEN) upstream.send(frame)
+        else pending.push(frame)
+        if (isBroadcast && dropNextBroadcast) {
+          dropNextBroadcast = false
+          // the broadcast is on its way to the server, the app never hears its answer
+          client.terminate()
+        }
+      })
+      upstream.on('message', data => {
+        if (client.readyState === WebSocket.OPEN) client.send(rewriteFrame(text(data), 'bchreg'))
+      })
+      client.on('close', () => upstream.close())
+      upstream.on('close', () => client.close())
+      client.on('error', () => upstream.close())
+      upstream.on('error', () => client.close())
     })
-    client.on('message', data => {
-      const frame = rewriteFrame(text(data), 'bchtest')
-      const isBroadcast = frame.includes('"blockchain.transaction.broadcast"')
-      if (upstream.readyState === WebSocket.OPEN) upstream.send(frame)
-      else pending.push(frame)
-      if (isBroadcast && dropNextBroadcast) {
-        dropNextBroadcast = false
-        // the broadcast is on its way to the server, the app never hears its answer
-        client.terminate()
-      }
-    })
-    upstream.on('message', data => {
-      if (client.readyState === WebSocket.OPEN) client.send(rewriteFrame(text(data), 'bchreg'))
-    })
-    client.on('close', () => upstream.close())
-    upstream.on('close', () => client.close())
-    client.on('error', () => upstream.close())
-    upstream.on('error', () => client.close())
-  })
+    return { server, stats }
+  }
+
+  const a = instance(new WebSocketServer({ host: '127.0.0.1', port: PROXY_PORT }))
+  const httpsServer = createHttpsServer(tls).listen(PROXY_TLS_PORT, '127.0.0.1')
+  const b = instance(new WebSocketServer({ server: httpsServer }))
+  const instances = { a, b }
 
   const control: Server = createServer((request, response) => {
     if (request.url === '/drop-next-broadcast') dropNextBroadcast = true
-    if (request.url === '/reset') dropNextBroadcast = false
+    if (request.url === '/reset') {
+      dropNextBroadcast = false
+      for (const { stats } of Object.values(instances)) stats.addresses.clear()
+    }
+    if (request.url === '/stats') {
+      const stats = Object.fromEntries(Object.entries(instances).map(([name, { server, stats }]) => [name, {
+        connections: [...server.clients].filter(client => client.readyState === WebSocket.OPEN).length,
+        addresses: [...stats.addresses],
+      } satisfies InstanceStats]))
+      response.end(JSON.stringify(stats))
+      return
+    }
     response.end('ok')
   }).listen(PROXY_CONTROL_PORT, '127.0.0.1')
 
   return {
-    close: () => new Promise(resolve => {
-      for (const client of wss.clients) client.terminate()
+    close: async () => {
+      for (const { server } of Object.values(instances)) {
+        for (const client of server.clients) client.terminate()
+        await new Promise<void>(resolve => server.close(() => resolve()))
+      }
+      httpsServer.close()
       control.close()
-      wss.close(() => resolve())
-    }),
+    },
+  }
+}
+
+function recordAddresses(frame: string, addresses: Set<string>) {
+  for (const line of frame.split('\n')) {
+    if (!line.trim()) continue
+    try {
+      const messages = [JSON.parse(line) as unknown].flat() as { method?: string, params?: unknown[] }[]
+      for (const { method, params } of messages) {
+        if (!method?.startsWith('blockchain.address.')) continue
+        const address = params?.[0]
+        if (typeof address === 'string') addresses.add(address)
+      }
+    } catch {
+      // not JSON: nothing to record
+    }
   }
 }
 
 // For the tests, which run in other processes than the proxy
 export async function dropNextBroadcast(): Promise<void> {
   await fetch(`http://127.0.0.1:${PROXY_CONTROL_PORT}/drop-next-broadcast`)
+}
+
+export async function proxyStats(): Promise<{ a: InstanceStats, b: InstanceStats }> {
+  const response = await fetch(`http://127.0.0.1:${PROXY_CONTROL_PORT}/stats`)
+  return await response.json() as { a: InstanceStats, b: InstanceStats }
 }

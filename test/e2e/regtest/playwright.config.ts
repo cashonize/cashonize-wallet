@@ -11,6 +11,9 @@ export default defineConfig({
   globalSetup: './globalSetup.ts',
   use: {
     headless: true,
+    // the proxy's wss:// instance has a self-signed certificate, as a local Fulcrum often has. This
+    // covers the whole browser context, so no https certificate is checked in this suite.
+    ignoreHTTPSErrors: true,
     locale: 'en-US',
     timezoneId: 'UTC',
   },

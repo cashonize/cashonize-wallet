@@ -104,9 +104,9 @@ There is a test dapp for WalletConnect E2E tests in `test/e2e/test-dapp` with it
 
 ### Run the regtest E2E tests
 
-`pnpm test:e2e:regtest` runs the app against a fresh local regtest chain instead of public chipnet, with no faucet or funded seed phrase needed. It needs local [BCHN](https://bitcoincashnode.org/) and [Fulcrum](https://github.com/cculianu/Fulcrum) binaries, at `~/BCH-infra/bchn/bin/bitcoind` and `~/BCH-infra/fulcrum/Fulcrum` or wherever `BITCOIND_PATH` and `FULCRUM_PATH` point, and `ss` and `curl`, which the start script uses. Each run starts its chain in `~/BCH-infra/regtest-cashonize-e2e` (old runs stay until removed) and stops it afterwards.
+`pnpm test:e2e:regtest` runs the app against a fresh local regtest chain instead of public chipnet, with no faucet or funded seed phrase needed. It needs local [BCHN](https://bitcoincashnode.org/) and [Fulcrum](https://github.com/cculianu/Fulcrum) binaries, at `~/BCH-infra/bchn/bin/bitcoind` and `~/BCH-infra/fulcrum/Fulcrum` or wherever `BITCOIND_PATH` and `FULCRUM_PATH` point, and `ss`, `curl` and `openssl`, which the start script and the per-run certificate use. Each run starts its chain in `~/BCH-infra/regtest-cashonize-e2e` (old runs stay until removed) and stops it afterwards.
 
-The app runs in chipnet mode against that chain, through a proxy that maps its `bchtest:` addresses to the chain's `bchreg:` ones. The tests fund the wallet from coinbases mined to a test key and mine blocks as they need them.
+The app runs in chipnet mode against that chain, through a proxy that maps its `bchtest:` addresses to the chain's `bchreg:` ones. The proxy runs as two instances, one over `ws://` and one over `wss://` with a self-signed certificate, so a test can switch the app between servers from the settings form, and it reports what each instance saw. The tests fund the wallet from coinbases mined to a test key and mine blocks as they need them.
 
 `test/e2e/regtest/knownFailing.test.ts` holds known bugs as tests of the right behavior marked `test.fail()`: they keep the suite green, and one that starts passing fails the run until its `test.fail()` is removed.
 

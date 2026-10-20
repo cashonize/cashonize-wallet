@@ -40,12 +40,40 @@ export async function openRegtestWallet(page: Page, options: WalletOptions = {})
   }
   await page.getByRole('button', { name: 'Finish Setup' }).click()
   await page.locator('nav').waitFor({ timeout: 15_000 })
+  await switchToChipnet(page)
+}
 
-  // onboarding opens the wallet on mainnet; the developer settings switch it to chipnet
+// Onboarding, and adding a wallet, open the new wallet on mainnet whatever the stored network
+// says; the developer settings switch it to chipnet
+async function switchToChipnet(page: Page) {
   await page.locator('nav img[src*="settings"]').click()
   await page.getByText('Developer settings').click()
   await page.locator('select').first().selectOption('chipnet')
   await expect(page.locator('.depositAddr').first()).toHaveText(/^bchtest:/, { timeout: 30_000 })
+}
+
+// Switches the chipnet electrum server the way a user does: a custom server in the advanced settings
+export async function switchChipnetServer(page: Page, server: string) {
+  await page.locator('nav img[src*="settings"]').click()
+  await page.getByText('Advanced settings').click()
+  await page.locator('div:has(> label:text-is("Electrum server chipnet:")) > select').selectOption('custom')
+  const input = page.getByPlaceholder('e.g. 127.0.0.1 or fulcrum.example.com:443')
+  await input.fill(server)
+  await input.press('Enter')
+  await expect(page.locator('.depositAddr').first()).toHaveText(/^bchtest:/, { timeout: 30_000 })
+}
+
+// Adds and opens another wallet from the wallet menu, then puts it on chipnet
+export async function addWallet(page: Page, name: string, walletType: 'single' | 'hd' = 'single') {
+  await page.locator('nav').getByText('Wallet', { exact: true }).click()
+  await page.locator('legend.walletName').click()
+  await page.getByText('Add Wallet').click()
+  await page.getByPlaceholder('Enter wallet name').fill(name)
+  await page.locator('input[type="button"][value="Continue"]').click()
+  await page.locator('select').filter({ has: page.locator('option[value="hd"]') }).selectOption(walletType)
+  await page.locator('input[type="button"][value="Create new wallet"]').click()
+  await expect(page.locator('legend.walletName')).toContainText(name, { timeout: 30_000 })
+  await switchToChipnet(page)
 }
 
 export async function depositAddress(page: Page): Promise<string> {
