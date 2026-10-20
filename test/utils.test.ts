@@ -9,6 +9,11 @@ describe('test electrumWssUrl', () => {
     expect(electrumWssUrl("fulcrum.pat.mn:443")).toBe("wss://fulcrum.pat.mn:443");
     expect(electrumWssUrl("127.0.0.1:50004")).toBe("wss://127.0.0.1:50004");
   })
+  it('should take an unencrypted ws:// server on this machine only', () => {
+    expect(electrumWssUrl("ws://127.0.0.1:60104")).toBe("ws://127.0.0.1:60104");
+    expect(electrumWssUrl("ws://localhost:60104")).toBe("ws://localhost:60104");
+    expect(electrumWssUrl("ws://electrum.example.com:50003")).not.toMatch(/^ws:\/\//);
+  })
 })
 
 describe('test chaingraphGraphqlUrl', () => {
