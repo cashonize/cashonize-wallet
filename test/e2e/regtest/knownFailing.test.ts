@@ -3,9 +3,9 @@
 // fix also removes its test.fail(). Most are fixed by the move to bch-wallet-lib (#371).
 
 import { expect, test } from '@playwright/test'
-import { SECOND_ELECTRUM_SERVER, createToken, decodedTransaction, fund, fundTokenCoins, randomAddress, rpc, spentCoins, spentTokenCoins } from './chain'
+import { SECOND_ELECTRUM_SERVER, createToken, decodedTransaction, fund, fundTokenCoins, issuerTokens, randomAddress, rpc, spentCoins, spentTokenCoins } from './chain'
 import { dropNextBroadcast, proxyStats } from './proxy'
-import { addWallet, broadcastTxid, confirmIfAsked, depositAddress, errorNotification, expectBalance, openRegtestWallet, openTokenItem, sendFungibleTokens, switchChipnetServer, tokenDepositAddress } from './app'
+import { addWallet, broadcastTxid, confirmIfAsked, depositAddress, errorNotification, expectBalance, openRegtestWallet, openTokenItem, sendFungibleTokens, sendNft, switchChipnetServer, tokenDepositAddress } from './app'
 
 test.use({ colorScheme: 'light' })
 
@@ -52,6 +52,28 @@ test.fail('a token send pays a fee for the coins it spends, not for every coin o
   // the send going through is the assertion: on mainnet-js the app shows the shortfall instead,
   // which sendFungibleTokens throws on
   await sendFungibleTokens(page, category, randomAddress('p2pkhWithTokens'), '5')
+})
+
+// mainnet-js adds a send's token change for every category it sends, with the first output's NFT
+// on it. A mutable NFT send from a wallet holding fungible tokens of the category so puts a
+// second copy of the mutable NFT on the change, which only a minting NFT among the inputs can
+// back: the one carrying the fungible reserve, pulled in with every coin of the category and
+// returned nowhere, so it is burned
+test.fail('a mutable NFT send keeps one copy of it and the minting NFT the wallet holds', async ({ page }) => {
+  await openRegtestWallet(page)
+  await fund(await depositAddress(page), 100_000n)
+  const { category, mutable } = await issuerTokens(await tokenDepositAddress(page), 1000n)
+  await expectBalance(page, '0.001')
+
+  const txid = await sendNft(page, category, mutable, randomAddress('p2pkhWithTokens'))
+
+  const outputs = (await decodedTransaction(txid)).vout.filter(output => output.tokenData?.category === category)
+  expect(outputs.filter(output => output.tokenData!.nft?.capability === 'mutable')).toHaveLength(1)
+  // a send that spends the minting NFT returns it; one that leaves it alone keeps it too
+  const spent = await spentTokenCoins(txid)
+  const mintingSpent = spent.some(token => token?.category === category && token.nft?.capability === 'minting')
+  const mintingReturned = outputs.some(output => output.tokenData!.nft?.capability === 'minting')
+  expect(mintingSpent && !mintingReturned).toBe(false)
 })
 
 // mainnet-js returns a mint's minting NFT to the address it came from, so an HD wallet's token

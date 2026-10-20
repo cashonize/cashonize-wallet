@@ -3,7 +3,7 @@
 // chain through proxy.ts, so its bchtest addresses map to bchreg ones here.
 
 import { decodeCashAddress, encodeCashAddress, generateRandomBytes } from '@bitauth/libauth'
-import { DefaultProvider, RegTestWallet, SendRequest, TokenGenesisRequest, TokenSendRequest } from 'mainnet-js'
+import { DefaultProvider, RegTestWallet, SendRequest, TokenGenesisRequest, TokenMintRequest, TokenSendRequest } from 'mainnet-js'
 
 // as env.sh
 export const RPC_PORT = 18543
@@ -108,6 +108,24 @@ export async function fundTokenCoins(tokenAddress: string, coins: number, amount
   await wallet.send(requests)
   await mine()
   return category
+}
+
+// An issuer's holdings at an app token address (either prefix), each confirmed: a mutable NFT of
+// a new category, and that category's minting NFT carrying a reserve of `reserve` fungible tokens.
+// Returns the category and the mutable NFT's outpoint.
+export async function issuerTokens(tokenAddress: string, reserve: bigint) {
+  const wallet = await funderWallet()
+  const category = await createToken(wallet.tokenaddr, { amount: reserve, nft: { capability: 'minting', commitment: '' } })
+  const { txId: mintTxid } = await wallet.tokenMint(category, new TokenMintRequest({
+    cashaddr: toRegtest(tokenAddress), nft: { capability: 'mutable', commitment: '01' }, value: 1000n,
+  }))
+  await mine()
+  const mutableVout = (await decodedTransaction(mintTxid!)).vout.findIndex(output => output.tokenData?.nft?.capability === 'mutable')
+  await wallet.send([new TokenSendRequest({
+    cashaddr: toRegtest(tokenAddress), category, amount: reserve, nft: { capability: 'minting', commitment: '' }, value: 1000n,
+  })])
+  await mine()
+  return { category, mutable: { txid: mintTxid!, vout: mutableVout } }
 }
 
 export interface DecodedTransaction {
