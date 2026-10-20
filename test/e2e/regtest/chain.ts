@@ -3,7 +3,7 @@
 // chain through proxy.ts, so its bchtest addresses map to bchreg ones here.
 
 import { decodeCashAddress, encodeCashAddress, generateRandomBytes } from '@bitauth/libauth'
-import { DefaultProvider, RegTestWallet, SendRequest } from 'mainnet-js'
+import { DefaultProvider, RegTestWallet, SendRequest, TokenGenesisRequest, TokenSendRequest } from 'mainnet-js'
 
 // as env.sh
 export const RPC_PORT = 18543
@@ -74,6 +74,39 @@ export async function fund(address: string, satoshis: bigint): Promise<string> {
   return txId!
 }
 
+export interface TokenOptions {
+  amount?: bigint
+  nft?: { capability: 'none' | 'mutable' | 'minting', commitment: string }
+  value?: bigint
+}
+
+// Creates a token category on one coin at an app token address (either prefix) and confirms it,
+// returning the category
+export async function createToken(tokenAddress: string, { amount, nft, value = 1000n }: TokenOptions): Promise<string> {
+  const wallet = await funderWallet()
+  const request: ConstructorParameters<typeof TokenGenesisRequest>[0] = { cashaddr: toRegtest(tokenAddress), value }
+  if (amount !== undefined) request.amount = amount
+  if (nft) request.nft = { capability: nft.capability, commitment: nft.commitment }
+  const { categories } = await wallet.tokenGenesis(new TokenGenesisRequest(request))
+  await mine()
+  const category = categories?.[0]
+  if (!category) throw new Error('the genesis returned no category')
+  return category
+}
+
+// Pays an app token address `coins` separate coins of one new category, `amount` tokens each,
+// in one confirmed transaction, returning the category
+export async function fundTokenCoins(tokenAddress: string, coins: number, amount: bigint): Promise<string> {
+  const wallet = await funderWallet()
+  const category = await createToken(wallet.tokenaddr, { amount: amount * BigInt(coins) })
+  const requests = Array.from({ length: coins }, () => new TokenSendRequest({
+    cashaddr: toRegtest(tokenAddress), category, amount, value: 1000n,
+  }))
+  await wallet.send(requests)
+  await mine()
+  return category
+}
+
 export interface DecodedTransaction {
   vin: { txid: string, vout: number }[]
   vout: { value: number, scriptPubKey: { addresses?: string[] }, tokenData?: { category: string, amount: string, nft?: { capability: string, commitment: string } } }[]
@@ -81,4 +114,18 @@ export interface DecodedTransaction {
 
 export async function decodedTransaction(txid: string): Promise<DecodedTransaction> {
   return rpc<DecodedTransaction>('getrawtransaction', [txid, 1])
+}
+
+// The token data of the coins a transaction spends, read from the transactions that made them
+export async function spentTokenCoins(txid: string) {
+  return (await spentCoins(txid)).map(coin => coin.tokenData)
+}
+
+// The coins a transaction spends, as the transactions that made them have them
+export async function spentCoins(txid: string) {
+  const transaction = await decodedTransaction(txid)
+  return Promise.all(transaction.vin.map(async input => {
+    const previous = await decodedTransaction(input.txid)
+    return previous.vout[input.vout]!
+  }))
 }

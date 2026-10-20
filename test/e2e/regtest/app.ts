@@ -5,22 +5,27 @@ import { expect, type Page } from '@playwright/test'
 import { CASHONIZE_URL, importWalletOnboarding, type ImportOptions } from '../helpers'
 import { APP_ELECTRUM_SERVER } from './chain'
 
-// The app's chipnet server is the regtest one from the first load on
-async function pointAppAtRegtest(page: Page) {
-  await page.addInitScript(server => {
+// The app's chipnet server is the regtest one from the first load on, with any other settings.
+// The chipnet token metadata indexer knows none of the chain's tokens, so it is not asked.
+async function pointAppAtRegtest(page: Page, settings: Record<string, string>) {
+  await page.route('https://bcmr-chipnet.paytaca.com/**', route => route.abort())
+  await page.addInitScript(({ server, settings }) => {
     localStorage.setItem('electrum-chipnet', server)
-  }, APP_ELECTRUM_SERVER)
+    for (const [key, value] of Object.entries(settings)) localStorage.setItem(key, value)
+  }, { server: APP_ELECTRUM_SERVER, settings })
 }
 
 export interface WalletOptions {
   walletType?: 'single' | 'hd'
   // imports this seed phrase instead of creating a wallet
   seedPhrase?: string
+  // localStorage settings, e.g. { mintNfts: 'true' }
+  settings?: Record<string, string>
 }
 
 // Creates (or imports) a wallet and leaves it on the Wallet tab, connected to the regtest chain
 export async function openRegtestWallet(page: Page, options: WalletOptions = {}) {
-  await pointAppAtRegtest(page)
+  await pointAppAtRegtest(page, options.settings ?? {})
   if (options.seedPhrase) {
     const importOptions: ImportOptions = { seedPhrase: options.seedPhrase }
     if (options.walletType) importOptions.walletType = options.walletType
@@ -60,7 +65,7 @@ export async function expectBalance(page: Page, tbch: string) {
 // the broadcast has an outcome
 export async function confirmIfAsked(page: Page) {
   const confirm = page.locator('.q-dialog:visible').getByRole('button', { name: 'Confirm' })
-  const outcome = page.getByText('Transaction successfully sent!').or(errorNotification(page))
+  const outcome = page.locator('.q-dialog:visible').getByText('Transaction Sent!').or(errorNotification(page))
   await expect(confirm.or(outcome).first()).toBeVisible({ timeout: 60_000 })
   if (await confirm.isVisible()) await confirm.click()
 }
@@ -73,7 +78,7 @@ export function errorNotification(page: Page) {
 // Waits for the success dialog a broadcast opens and returns the txid it shows, closing it; an
 // error notification instead fails with its text
 export async function broadcastTxid(page: Page): Promise<string> {
-  const success = page.getByText('Transaction successfully sent!')
+  const success = page.locator('.q-dialog:visible').getByText('Transaction Sent!')
   const failure = errorNotification(page)
   await expect(success.or(failure).first()).toBeVisible({ timeout: 60_000 })
   if (await failure.first().isVisible()) throw new Error(`the app showed an error: ${await failure.first().innerText()}`)
@@ -90,6 +95,25 @@ export async function sendBch(page: Page, address: string, tbch: string): Promis
   await page.locator('input[name="addressInput"]').fill(address)
   await page.locator('input[name="currencyInput"]').fill(tbch)
   await page.locator('input.primaryButton[type="button"]').click()
+  await confirmIfAsked(page)
+  return broadcastTxid(page)
+}
+
+// The token's item on the Tokens tab, found by its category
+export async function openTokenItem(page: Page, category: string) {
+  await page.locator('nav').getByText('Tokens', { exact: true }).click()
+  const item = page.locator('.item').filter({ hasText: category.slice(0, 10) }).first()
+  await expect(item).toBeVisible({ timeout: 30_000 })
+  return item
+}
+
+// Sends fungible tokens from the token's item and returns the txid
+export async function sendFungibleTokens(page: Page, category: string, address: string, amount: string): Promise<string> {
+  const item = await openTokenItem(page, category)
+  await item.locator('.actionBar').getByText('Send', { exact: false }).first().click()
+  await item.locator('input[name="tokenAddress"]').fill(address)
+  await item.locator('input[name="tokenAmountInput"]').first().fill(amount)
+  await item.locator('input.primaryButton[type="button"]').click()
   await confirmIfAsked(page)
   return broadcastTxid(page)
 }
