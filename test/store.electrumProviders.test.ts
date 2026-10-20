@@ -6,6 +6,7 @@ import { localStorageMock, mockMainnetWallet } from './mocks/store.mocks'
 
 import { createProvider, NetworkType, setGlobalProvider } from '@cashonize/bch-wallet-lib'
 import { useSettingsStore } from '../src/stores/settingsStore'
+import { displayAndLogError } from '../src/utils/errorHandling'
 
 // The store reads the settings store as it loads, so the reactive settings are in place first:
 // reactive, so that the store sees a server change as the settings menu makes it
@@ -130,5 +131,80 @@ describe('the electrum providers of the selected servers', () => {
     await flush()
     expect(madeFor('wss://b.example:50004').disconnect).toHaveBeenCalledOnce()
     expect(madeFor('wss://a.example:50004').disconnect).not.toHaveBeenCalled()
+  })
+
+  // the library rolls the wallet back onto the old provider, which must stay until a move succeeds
+  it('keeps the old provider while a move to the new server fails, and disconnects it once one succeeds', async () => {
+    const store = useStore()
+    await flush()
+    const oldProvider = madeFor('wss://a.example:50004')
+    const wallet = walletOn(oldProvider)
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    settings.electrumServerMainnet = 'c.example'
+    await store.selectElectrumProvider(NetworkType.Mainnet)
+    wallet.setProvider.mockRejectedValueOnce(new Error('unreachable'))
+    await store.initializeWallet()
+    expect(wallet.provider).toBe(oldProvider)
+    expect(oldProvider.disconnect).not.toHaveBeenCalled()
+
+    await store.initializeWallet()
+    expect(wallet.provider).toBe(madeFor('wss://c.example:50004'))
+    expect(oldProvider.disconnect).toHaveBeenCalledOnce()
+  })
+
+  // the move to the server changed away from fails as its provider is retired; only the newest
+  // server's outcome is the user's to see
+  it('ends on the last of two quick server changes, without an error for the one in between', async () => {
+    const store = useStore()
+    await flush()
+    const first = madeFor('wss://a.example:50004')
+    const wallet = walletOn(first)
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    let failMove!: (error: Error) => void
+    wallet.setProvider.mockImplementationOnce(() => new Promise<void>((_resolve, reject) => { failMove = reject }))
+    settings.electrumServerMainnet = 'b2.example'
+    await store.selectElectrumProvider(NetworkType.Mainnet)
+    const slowMove = store.initializeWallet()
+    await flush()
+
+    settings.electrumServerMainnet = 'c.example'
+    await store.selectElectrumProvider(NetworkType.Mainnet)
+    await flush()
+    // the wallet never got onto the one in between, so it goes at once
+    expect(madeFor('wss://b2.example:50004').disconnect).toHaveBeenCalledOnce()
+    failMove(new Error('The electrum transport was closed.'))
+    await slowMove
+    await store.initializeWallet()
+
+    expect(wallet.provider).toBe(madeFor('wss://c.example:50004'))
+    expect(first.disconnect).toHaveBeenCalledOnce()
+    expect(displayAndLogError).not.toHaveBeenCalled()
+  })
+
+  it('leaves no connection open on the network it switches away from', async () => {
+    const store = useStore()
+    await flush()
+    const mainnetProvider = madeFor('wss://a.example:50004')
+    await store.setWallet(walletOn(mainnetProvider) as never)
+
+    await store.setWallet({ ...walletOn(madeFor('wss://b.example:50004')), network: 'chipnet' } as never)
+    await flush()
+    expect(mainnetProvider.disconnect).toHaveBeenCalledOnce()
+    // a fresh one for the same server takes its place, to connect once mainnet is used again
+    expect(made.filter(provider => provider.server === 'wss://a.example:50004')).toHaveLength(2)
+    expect(setGlobalProvider).toHaveBeenLastCalledWith('mainnet', made.at(-1))
+  })
+
+  it('refuses a server address the library does not take, before anything changes', async () => {
+    const store = useStore()
+    await flush()
+    vi.mocked(createProvider).mockRejectedValueOnce(new Error('Unsupported electrum server URL'))
+
+    await expect(store.validateElectrumServer('chipnet', 'not a server')).rejects.toThrow()
+    await expect(store.validateElectrumServer('chipnet', 'fulcrum.example:50004')).resolves.toBeUndefined()
   })
 })

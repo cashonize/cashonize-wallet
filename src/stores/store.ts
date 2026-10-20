@@ -413,10 +413,11 @@ export const useStore = defineStore('store', () => {
   const selectedProviders: Partial<Record<ProviderNetwork, { server: string; provider: Promise<ElectrumNetworkProvider> }>> = {};
   const replacedProviders = new Set<ElectrumNetworkProvider>();
 
-  function providerForSelectedServer(network: ProviderNetwork): Promise<ElectrumNetworkProvider> {
+  // `fresh` makes a new one for an unchanged server too, which connects only once it is used
+  function providerForSelectedServer(network: ProviderNetwork, fresh = false): Promise<ElectrumNetworkProvider> {
     const server = electrumWssUrl(network === 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet);
     const selected = selectedProviders[network];
-    if (selected?.server === server) return selected.provider;
+    if (selected?.server === server && !fresh) return selected.provider;
     const provider = createProvider(network, server, { connectTimeout: ELECTRUM_CONNECT_TIMEOUT_MS })
       .then((made) => {
         setGlobalProvider(network, made);
@@ -448,6 +449,12 @@ export const useStore = defineStore('store', () => {
   void providerForSelectedServer('mainnet');
   void providerForSelectedServer('testnet');
 
+  // Whether the library takes a server address, checked before a setting changes to it; the
+  // provider made for the check connects to nothing
+  async function validateElectrumServer(network: 'mainnet' | 'chipnet', server: string) {
+    await createProvider(network === 'mainnet' ? 'mainnet' : 'testnet', electrumWssUrl(server));
+  }
+
   // The provider of the selected server of the wallet's network, which initializeWallet puts the
   // wallet on (a wallet constructed after the server was selected is on it already)
   let walletProvider: ElectrumNetworkProvider | undefined;
@@ -461,8 +468,13 @@ export const useStore = defineStore('store', () => {
   async function setWallet(newWallet: WalletType){
     const identitiesStore = useIdentitiesStore();
     await selectElectrumProvider(newWallet.network);
+    const previousNetwork = _wallet.value?.network;
     _wallet.value?.stop().catch(() => {});
     _wallet.value = newWallet;
+    // the network left keeps no connection open: a fresh provider for its server connects once used
+    if (previousNetwork && previousNetwork !== newWallet.network) {
+      void providerForSelectedServer(previousNetwork == NetworkType.Mainnet ? 'mainnet' : 'testnet', true);
+    }
     const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
     txNotes.value = loadTxNotes(newNetwork, newWallet.name);
     dappActivity.value = loadDappActivity(newNetwork, newWallet.name);
@@ -602,6 +614,8 @@ export const useStore = defineStore('store', () => {
           return true;
         })
         .catch(error => {
+          // a server change since replaced this provider, and the move to the newer one reports
+          if (provider !== walletProvider) return false;
           displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server: electrumServer })))
           // still log the original error for debugging
           console.error("Electrum connect error:", error)
@@ -1830,6 +1844,7 @@ export const useStore = defineStore('store', () => {
     changeView,
     setWallet,
     selectElectrumProvider,
+    validateElectrumServer,
     initializeWallet,
     resetWalletState,
     updateWalletUtxos,

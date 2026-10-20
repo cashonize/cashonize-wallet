@@ -225,6 +225,13 @@
     const trimmedServer = customServer.trim().replace(/^(wss?|https?):\/\//i, "").replace(/\/+$/, "");
     if (!trimmedServer) return;
     if(!store._wallet) throw new Error('No wallet set in global store');
+    // an address the library refuses changes nothing, rather than leaving the wallet reset
+    try {
+      await store.validateElectrumServer(targetNetwork, trimmedServer);
+    } catch {
+      displayAndLogError(new Error(t('settings.advanced.electrumInvalidUrl')));
+      return;
+    }
     store.changeView(1)
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
