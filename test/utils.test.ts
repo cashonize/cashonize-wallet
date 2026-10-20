@@ -1,4 +1,4 @@
-import { chaingraphGraphqlUrl, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sendAmountToSatoshis } from "../src/utils/utils";
+import { chaingraphGraphqlUrl, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sameTokenList, sendAmountToSatoshis } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
 
 describe('test electrumWssUrl', () => {
@@ -161,3 +161,25 @@ describe('sendAmountToSatoshis', () => {
     }
   });
 });
+
+describe('sameTokenList', () => {
+  const category = '0123456789abcdef'.repeat(4)
+  const nft = { txid: 'cc'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest', token: { category, amount: 0n, nft: { capability: 'none' as const, commitment: '01' } } }
+
+  it('is the same for a rebuilt list with the same entries', () => {
+    expect(sameTokenList(
+      [{ category, amount: 5n }, { category: 'ab'.repeat(32), nfts: [nft] }],
+      [{ category, amount: 5n }, { category: 'ab'.repeat(32), nfts: [{ ...nft }] }],
+    )).toBe(true)
+  })
+
+  it('differs on an amount, an NFT coin or the order', () => {
+    const other = { category: 'ab'.repeat(32), amount: 1n }
+    expect(sameTokenList([{ category, amount: 5n }], [{ category, amount: 6n }])).toBe(false)
+    expect(sameTokenList(
+      [{ category, nfts: [nft] }],
+      [{ category, nfts: [{ ...nft, vout: 1 }] }],
+    )).toBe(false)
+    expect(sameTokenList([{ category, amount: 5n }, other], [other, { category, amount: 5n }])).toBe(false)
+  })
+})

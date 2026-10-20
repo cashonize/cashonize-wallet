@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, shallowRef, reactive, computed, watch } from 'vue'
+import { ref, shallowRef, reactive, computed, watch, toRaw } from 'vue'
 import {
   HDWallet,
   TestNetHDWallet,
@@ -37,7 +37,7 @@ import {
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
+import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, sameTokenList, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -1216,7 +1216,11 @@ export const useStore = defineStore('store', () => {
     }
     const otherTokenList = unsortedTokenList.filter(token => !settingsStore.featuredTokens.includes(token.category));
 
-    tokenList.value = [...featuredTokenList, ...otherTokenList];
+    const sortedTokenList = [...featuredTokenList, ...otherTokenList];
+    // assigned only when it changed, so what watches it does not rerun on the refreshes of the
+    // wallet's coins that change nothing in it, several per send; read raw to skip the proxies
+    if (tokenList.value && sameTokenList(toRaw(tokenList.value), sortedTokenList)) return;
+    tokenList.value = sortedTokenList;
   }
 
   // Fetch token metadata from BCMR indexer
