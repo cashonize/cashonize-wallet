@@ -32,7 +32,7 @@ overrides:
   '@bitauth/libauth': 3.1.0-next.8
   '@reown/walletkit': 1.6.0
   '@walletconnect/core': 2.25.0
-  '@wizardconnect/core': 0.2.4
+  '@wizardconnect/core': 0.2.5
   mainnet-js: 3.1.7
 
 # Packages explicitly allowed to run install/build lifecycle scripts. Everything else is

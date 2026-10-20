@@ -34,7 +34,7 @@
     "@quasar/extras": "^2.1.0",
     "@reown/walletkit": "1.6.0",
     "@walletconnect/core": "2.25.0",
-    "@wizardconnect/core": "0.2.4",
+    "@wizardconnect/core": "0.2.5",
     "@wizardconnect/wallet": "0.2.3",
     "gql.tada": "^1.11.3",
     "mainnet-js": "3.1.7",

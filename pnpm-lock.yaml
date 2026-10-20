@@ -9,7 +9,7 @@ overrides:
   '@bitauth/libauth': 3.1.0-next.8
   '@reown/walletkit': 1.6.0
   '@walletconnect/core': 2.25.0
-  '@wizardconnect/core': 0.2.4
+  '@wizardconnect/core': 0.2.5
   mainnet-js: 3.1.7
 
 patchedDependencies:
@@ -53,8 +53,8 @@ importers:
         specifier: 2.25.0
         version: 2.25.0(typescript@6.0.3)(zod@4.6.5)
       '@wizardconnect/core':
-        specifier: 0.2.4
-        version: 0.2.4(typescript@6.0.3)
+        specifier: 0.2.5
+        version: 0.2.5(typescript@6.0.3)
       '@wizardconnect/wallet':
         specifier: 0.2.3
         version: 0.2.3(typescript@6.0.3)
@@ -1024,8 +1024,8 @@ packages:
   '@walletconnect/window-metadata@1.0.1':
     resolution: {integrity: sha512-9koTqyGrM2cqFRW517BPY/iEtUDx2r1+Pwwu5m7sJ7ka79wi3EyqhqcICk/yDmv6jAS1rjKgTKXlEhanYjijcA==}
 
-  '@wizardconnect/core@0.2.4':
-    resolution: {integrity: sha512-CHcm3YWEdZHGSH6+Ml2H8LE4HCe2DWKX6PbzvGIaExYg1LGbiTXABPoBWMhCOibcQFz3BIgjfcewP29M0JFrUw==}
+  '@wizardconnect/core@0.2.5':
+    resolution: {integrity: sha512-4O4YCpudKGyPDB5zuKBlhh2x8dHonLc3J+xiEmkPeiIHKwT2k0gXrBeZUWdWSuVMAmPU+YYfaBakWSt824Pn8Q==}
 
   '@wizardconnect/wallet@0.2.3':
     resolution: {integrity: sha512-god55ulA6nT5+VnL8pDypMr4ZqgkwvhNRswsnY3JBL6P6HHXVemM9PIciSIauTi7dBMqT3+4t3lD3dtJUU1gfA==}
@@ -2684,6 +2684,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.22.0:
+    resolution: {integrity: sha512-Ydggc987+RO0AnWtZ/7Wq9FtNvcrL1b/RO0ud9mWjUPgDrsAAwQSF51sm2hm1XofbU/4jkpGEsLFsZZxU+1DOg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   wsl-utils@1.0.1:
     resolution: {integrity: sha512-c16PKLIRxBYpR3jSWsdS7SFp0COm5SOQdiFjY818dYFHJbMGuLBszpF07LBWmOS1uzrHa9VGdynsEgoeKy0oOQ==}
     engines: {node: '>=20'}
@@ -3865,15 +3877,15 @@ snapshots:
       '@walletconnect/window-getters': 1.0.1
       tslib: 1.14.1
 
-  '@wizardconnect/core@0.2.4(typescript@6.0.3)':
+  '@wizardconnect/core@0.2.5(typescript@6.0.3)':
     dependencies:
       '@bch-wc2/interfaces': 0.0.8(@bitauth/libauth@3.1.0-next.8)
       '@bitauth/libauth': 3.1.0-next.8
       eventemitter3: 5.0.4
-      isomorphic-ws: 5.0.0(ws@8.21.0)
+      isomorphic-ws: 5.0.0(ws@8.22.0)
       lossless-json: 4.3.0
       nostr-tools: 2.23.9(typescript@6.0.3)
-      ws: 8.21.0
+      ws: 8.22.0
     transitivePeerDependencies:
       - bufferutil
       - typescript
@@ -3882,7 +3894,7 @@ snapshots:
   '@wizardconnect/wallet@0.2.3(typescript@6.0.3)':
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
-      '@wizardconnect/core': 0.2.4(typescript@6.0.3)
+      '@wizardconnect/core': 0.2.5(typescript@6.0.3)
       eventemitter3: 5.0.4
     transitivePeerDependencies:
       - bufferutil
@@ -4402,9 +4414,9 @@ snapshots:
 
   isobject@3.0.1: {}
 
-  isomorphic-ws@5.0.0(ws@8.21.0):
+  isomorphic-ws@5.0.0(ws@8.22.0):
     dependencies:
-      ws: 8.21.0
+      ws: 8.22.0
 
   jiti@2.7.0: {}
 
@@ -5286,6 +5298,8 @@ snapshots:
   ws@7.5.13: {}
 
   ws@8.21.0: {}
+
+  ws@8.22.0: {}
 
   wsl-utils@1.0.1:
     dependencies:
