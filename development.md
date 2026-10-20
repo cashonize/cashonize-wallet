@@ -102,5 +102,13 @@ If you already have the Cashonize dev server running (on port 9000) Playwright w
 
 There is a test dapp for WalletConnect E2E tests in `test/e2e/test-dapp` with its own [README](test/e2e/test-dapp/README.md). If you already have it running (on port 5188) Playwright will use that. Otherwise it will launch the dev server for that app automatically before running tests.
 
+### Run the regtest E2E tests
+
+`pnpm test:e2e:regtest` runs the app against a fresh local regtest chain instead of public chipnet, with no faucet or funded seed phrase needed. It needs local [BCHN](https://bitcoincashnode.org/) and [Fulcrum](https://github.com/cculianu/Fulcrum) binaries, at `~/BCH-infra/bchn/bin/bitcoind` and `~/BCH-infra/fulcrum/Fulcrum` or wherever `BITCOIND_PATH` and `FULCRUM_PATH` point, and `ss` and `curl`, which the start script uses. Each run starts its chain in `~/BCH-infra/regtest-cashonize-e2e` (old runs stay until removed) and stops it afterwards.
+
+The app runs in chipnet mode against that chain, through a proxy that maps its `bchtest:` addresses to the chain's `bchreg:` ones. The tests fund the wallet from coinbases mined to a test key and mine blocks as they need them.
+
+`test/e2e/regtest/knownFailing.test.ts` holds known bugs as tests of the right behavior marked `test.fail()`: they keep the suite green, and one that starts passing fails the run until its `test.fail()` is removed.
+
 ### Customize the configuration
 See [The quasar.config file](https://quasar.dev/quasar-cli-vite/quasar-config-file).
