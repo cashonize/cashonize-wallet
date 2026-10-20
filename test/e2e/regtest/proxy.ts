@@ -6,7 +6,7 @@
 import { createServer, type Server } from 'node:http'
 import { createServer as createHttpsServer } from 'node:https'
 import { WebSocket, WebSocketServer, type RawData } from 'ws'
-import { FULCRUM_WS_PORT, PROXY_CONTROL_PORT, PROXY_PORT, PROXY_TLS_PORT, toChipnet, toRegtest } from './chain'
+import { FULCRUM_WS_PORT, FUNDER_PROXY_PORT, PROXY_CONTROL_PORT, PROXY_PORT, PROXY_TLS_PORT, toChipnet, toRegtest } from './chain'
 
 const CASHADDR = /^(bchtest|bchreg):[qpzr][02-9ac-hj-np-z]+$/
 
@@ -63,7 +63,8 @@ interface Instance {
 export function startProxy(tls: { key: string, cert: string }): Proxy {
   let dropNextBroadcast = false
 
-  const instance = (server: WebSocketServer): Instance => {
+  // `droppable`: whether a dropped broadcast can hit it, which is for the app's connections only
+  const instance = (server: WebSocketServer, droppable = true): Instance => {
     const stats = { addresses: new Set<string>() }
     server.on('connection', client => {
       const upstream = new WebSocket(`ws://127.0.0.1:${FULCRUM_WS_PORT}`)
@@ -78,7 +79,7 @@ export function startProxy(tls: { key: string, cert: string }): Proxy {
         const isBroadcast = frame.includes('"blockchain.transaction.broadcast"')
         if (upstream.readyState === WebSocket.OPEN) upstream.send(frame)
         else pending.push(frame)
-        if (isBroadcast && dropNextBroadcast) {
+        if (isBroadcast && droppable && dropNextBroadcast) {
           dropNextBroadcast = false
           // the broadcast is on its way to the server, the app never hears its answer
           client.terminate()
@@ -99,6 +100,9 @@ export function startProxy(tls: { key: string, cert: string }): Proxy {
   const httpsServer = createHttpsServer(tls).listen(PROXY_TLS_PORT, '127.0.0.1')
   const b = instance(new WebSocketServer({ server: httpsServer }))
   const instances = { a, b }
+  // the test process's funder wallet, kept apart so that its connection and addresses never count
+  // as the app's
+  const funder = instance(new WebSocketServer({ host: '127.0.0.1', port: FUNDER_PROXY_PORT }), false)
 
   const control: Server = createServer((request, response) => {
     if (request.url === '/drop-next-broadcast') dropNextBroadcast = true
@@ -119,7 +123,7 @@ export function startProxy(tls: { key: string, cert: string }): Proxy {
 
   return {
     close: async () => {
-      for (const { server } of Object.values(instances)) {
+      for (const { server } of [a, b, funder]) {
         for (const client of server.clients) client.terminate()
         await new Promise<void>(resolve => server.close(() => resolve()))
       }

@@ -1429,6 +1429,7 @@
     "advanced": {
       "electrumMainnet": "Electrum-Server mainnet:",
       "electrumChipnet": "Electrum-Server chipnet:",
+      "electrumInvalidUrl": "Ungültige Electrum-Server-Adresse",
       "electrumHint": "Die Verbindung der Wallet zum BCH-Netzwerk. Guthaben, Transaktionsverlauf und das Senden laufen über diesen Server.",
       "tokenMetadataIndexer": "Token-Metadaten-Indexer:",
       "tokenMetadataIndexerHint": "Ein BCMR-Indexer, der Token-Metadaten nach Kategorie liefert: Namen, Icons, Dezimalstellen, NFT-Typen. Nur Token-Identitäten; andere Identitäten liest die Identitäten-Seite aus ihren eigenen Registries.",

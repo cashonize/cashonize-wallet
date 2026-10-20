@@ -10,6 +10,7 @@ import {
   Config,
   createProvider,
   DefaultProvider,
+  setGlobalProvider,
   deleteNamedWallet,
   getNamedWalletId,
   convert,
@@ -123,12 +124,11 @@ Config.EnforceCashTokenReceiptAddresses = true;
 Config.UseIndexedDBCache = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
 
-// Point the library's default electrum servers at the user's selected servers. A wallet is
-// constructed on the global provider of its network, made from these defaults, and subscribes
-// straight away (an HD wallet starts address discovery) before initializeWallet moves it onto the
-// provider setWallet made. Without this the library falls back to its built-in servers, leaking
-// the wallet's addresses to a server the user never selected. Kept in sync with settings via a
-// watch (see below).
+// Point the library's default electrum servers at the user's selected servers, for a global
+// provider the library would make itself: the store sets its own, for the selected server, as the
+// global provider of each network (see selectedProviders). Without this the library falls back to
+// its built-in servers, leaking the wallet's addresses to a server the user never selected. Kept
+// in sync with settings via a watch (see below).
 function setDefaultElectrumServers() {
   DefaultProvider.servers.mainnet = [electrumWssUrl(settingsStore.electrumServerMainnet)];
   DefaultProvider.servers.testnet = [electrumWssUrl(settingsStore.electrumServerChipnet)];
@@ -404,15 +404,62 @@ export const useStore = defineStore('store', () => {
 
   const canGoBack = computed(() => viewStack.length > 1);
 
-  // The provider of the selected electrum server. A wallet is constructed on the library's
-  // global provider, so initializeWallet moves it onto this one, and tries again on a retry.
+  // The provider of each network's selected electrum server. It is also the library's global
+  // provider of that network, so a wallet constructed anywhere (loading, creating and importing,
+  // the derivation path scan, the sweep) starts on the selected server rather than being moved
+  // there after it subscribed. Wallet switches share it, and a server change replaces it; the
+  // replaced one is disconnected once no wallet is on it any more.
+  type ProviderNetwork = 'mainnet' | 'testnet';
+  const selectedProviders: Partial<Record<ProviderNetwork, { server: string; provider: Promise<ElectrumNetworkProvider> }>> = {};
+  const replacedProviders = new Set<ElectrumNetworkProvider>();
+
+  // `fresh` makes a new one for an unchanged server too, which connects only once it is used
+  function providerForSelectedServer(network: ProviderNetwork, fresh = false): Promise<ElectrumNetworkProvider> {
+    const server = electrumWssUrl(network === 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet);
+    const selected = selectedProviders[network];
+    if (selected?.server === server && !fresh) return selected.provider;
+    const provider = createProvider(network, server, { connectTimeout: ELECTRUM_CONNECT_TIMEOUT_MS })
+      .then((made) => {
+        setGlobalProvider(network, made);
+        return made;
+      });
+    selectedProviders[network] = { server, provider };
+    // one that cannot be made (a server address the library refuses) is not kept, so the next call
+    // tries again; its rejection reaches whoever awaits it, and is no unhandled rejection otherwise
+    provider.catch(() => {
+      if (selectedProviders[network]?.provider === provider) delete selectedProviders[network];
+    });
+    if (selected) selected.provider.then(retireProvider, () => {});
+    return provider;
+  }
+
+  // The active wallet may still be on a replaced provider until initializeWallet moves it
+  function retireProvider(provider: ElectrumNetworkProvider) {
+    replacedProviders.add(provider);
+    disconnectReplacedProviders();
+  }
+  function disconnectReplacedProviders() {
+    for (const provider of replacedProviders) {
+      if (_wallet.value?.provider === provider) continue;
+      replacedProviders.delete(provider);
+      provider.disconnect().catch(() => {});
+    }
+  }
+  // made now, so that the first wallet constructed already finds them
+  void providerForSelectedServer('mainnet');
+  void providerForSelectedServer('testnet');
+
+  // Whether the library takes a server address, checked before a setting changes to it; the
+  // provider made for the check connects to nothing
+  async function validateElectrumServer(network: 'mainnet' | 'chipnet', server: string) {
+    await createProvider(network === 'mainnet' ? 'mainnet' : 'testnet', electrumWssUrl(server));
+  }
+
+  // The provider of the selected server of the wallet's network, which initializeWallet puts the
+  // wallet on (a wallet constructed after the server was selected is on it already)
   let walletProvider: ElectrumNetworkProvider | undefined;
   async function selectElectrumProvider(walletNetwork: NetworkType) {
-    const isMainnet = walletNetwork == NetworkType.Mainnet;
-    const server = isMainnet ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet;
-    walletProvider = await createProvider(isMainnet ? "mainnet" : "testnet", electrumWssUrl(server), {
-      connectTimeout: ELECTRUM_CONNECT_TIMEOUT_MS,
-    });
+    walletProvider = await providerForSelectedServer(walletNetwork == NetworkType.Mainnet ? 'mainnet' : 'testnet');
   }
 
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
@@ -421,8 +468,13 @@ export const useStore = defineStore('store', () => {
   async function setWallet(newWallet: WalletType){
     const identitiesStore = useIdentitiesStore();
     await selectElectrumProvider(newWallet.network);
+    const previousNetwork = _wallet.value?.network;
     _wallet.value?.stop().catch(() => {});
     _wallet.value = newWallet;
+    // the network left keeps no connection open: a fresh provider for its server connects once used
+    if (previousNetwork && previousNetwork !== newWallet.network) {
+      void providerForSelectedServer(previousNetwork == NetworkType.Mainnet ? 'mainnet' : 'testnet', true);
+    }
     const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
     txNotes.value = loadTxNotes(newNetwork, newWallet.name);
     dappActivity.value = loadDappActivity(newNetwork, newWallet.name);
@@ -556,8 +608,14 @@ export const useStore = defineStore('store', () => {
       const provider = walletProvider;
       if (!provider) throw new Error("No electrum provider selected for the wallet");
       const activeWallet = wallet.value;
-      const electrumConnectionPromise = activeWallet.setProvider(provider).then(() => true)
+      const electrumConnectionPromise = activeWallet.setProvider(provider)
+        .then(() => {
+          disconnectReplacedProviders();
+          return true;
+        })
         .catch(error => {
+          // a server change since replaced this provider, and the move to the newer one reports
+          if (provider !== walletProvider) return false;
           displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server: electrumServer })))
           // still log the original error for debugging
           console.error("Electrum connect error:", error)
@@ -1363,11 +1421,13 @@ export const useStore = defineStore('store', () => {
 
   // Refetch exchange rate when user changes currency
   watch(() => settingsStore.currency, () => void fetchExchangeRate());
-  // Keep the default-server list current after a settings change. This governs the server used when
-  // a wallet is constructed for a network not yet connected this session (the library keeps the
-  // global provider per network it made on first construction, so an already-connected network
-  // keeps its server). The active wallet moves to the new server through selectElectrumProvider.
-  watch([() => settingsStore.electrumServerMainnet, () => settingsStore.electrumServerChipnet], setDefaultElectrumServers);
+  // A server change replaces the network's provider at once, so the next wallet constructed starts
+  // on the new server; the active wallet moves there through selectElectrumProvider
+  watch([() => settingsStore.electrumServerMainnet, () => settingsStore.electrumServerChipnet], () => {
+    setDefaultElectrumServers();
+    void providerForSelectedServer('mainnet');
+    void providerForSelectedServer('testnet');
+  });
 
   async function fetchTokenInfo(categoryId: string) {
     const res = await cachedFetch(`${tokenMetadataIndexer.value}/tokens/${categoryId}/`);
@@ -1784,6 +1844,7 @@ export const useStore = defineStore('store', () => {
     changeView,
     setWallet,
     selectElectrumProvider,
+    validateElectrumServer,
     initializeWallet,
     resetWalletState,
     updateWalletUtxos,

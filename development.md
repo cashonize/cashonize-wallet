@@ -108,7 +108,7 @@ There is a test dapp for WalletConnect E2E tests in `test/e2e/test-dapp` with it
 
 The app runs in chipnet mode against that chain, through a proxy that maps its `bchtest:` addresses to the chain's `bchreg:` ones. The proxy runs as two instances, one over `ws://` and one over `wss://` with a self-signed certificate, so a test can switch the app between servers from the settings form, and it reports what each instance saw. The tests fund the wallet from coinbases mined to a test key and mine blocks as they need them.
 
-`test/e2e/regtest/knownFailing.test.ts` holds known bugs as tests of the right behavior marked `test.fail()`: they keep the suite green, and one that starts passing fails the run until its `test.fail()` is removed and it moves to `regressions.test.ts`, which holds the bugs fixed since.
+The suite tests what a user does with the wallet; how transactions are built (coin selection, change, fees, token conservation) is tested in the library. A known bug can go in as a test of the right behavior marked `test.fail()`: it keeps the suite green, and once the bug is fixed the test starts passing, which fails the run until its `test.fail()` is removed and it moves to `regressions.test.ts`, which holds the bugs fixed since.
 
 ### Customize the configuration
 See [The quasar.config file](https://quasar.dev/quasar-cli-vite/quasar-config-file).

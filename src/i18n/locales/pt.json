@@ -1429,6 +1429,7 @@
     "advanced": {
       "electrumMainnet": "Servidor Electrum mainnet:",
       "electrumChipnet": "Servidor Electrum chipnet:",
+      "electrumInvalidUrl": "Endereço do servidor Electrum inválido",
       "electrumHint": "A conexão da carteira com a rede BCH. Saldos, histórico de transações e envios passam por este servidor.",
       "tokenMetadataIndexer": "Indexador de metadados de tokens:",
       "tokenMetadataIndexerHint": "Um indexador BCMR que serve metadados de tokens por categoria: nomes, ícones, decimais, tipos de NFT. Só identidades de tokens; as outras identidades são lidas dos seus próprios registros pela página de identidades.",

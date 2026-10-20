@@ -31,10 +31,24 @@ const storage = vi.hoisted(() => {
 })
 vi.stubGlobal('localStorage', storage)
 
+// The provider the wallets run on: the store makes the one createProvider returns the global
+// provider of mainnet, where a wallet is constructed
+const { fakeProvider } = vi.hoisted(() => ({
+  fakeProvider: {
+    network: 'mainnet',
+    connect: () => Promise.resolve(),
+    subscribeToAddress: (address: string, callback: (data: [string, string]) => void) => {
+      queueMicrotask(() => callback([address, 'status']))
+      return Promise.resolve(() => Promise.resolve())
+    },
+    getUtxos: () => Promise.resolve(walletCoins),
+    getHistory: () => Promise.resolve([]),
+    getBlockHeight: () => Promise.resolve(900_000),
+  } as unknown as ElectrumNetworkProvider,
+}))
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   ...await importOriginal<typeof BchWalletLib>(),
-  // setWallet makes a provider for the selected server; these spends never reach it
-  createProvider: vi.fn().mockResolvedValue({}),
+  createProvider: vi.fn().mockResolvedValue(fakeProvider),
 }))
 vi.mock('src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
@@ -63,17 +77,6 @@ const category = '33'.repeat(32)
 const minting = { capability: NFTCapability.minting, commitment: '' }
 
 let walletCoins: Utxo[] = []
-const fakeProvider = {
-  network: 'mainnet',
-  connect: () => Promise.resolve(),
-  subscribeToAddress: (address: string, callback: (data: [string, string]) => void) => {
-    queueMicrotask(() => callback([address, 'status']))
-    return Promise.resolve(() => Promise.resolve())
-  },
-  getUtxos: () => Promise.resolve(walletCoins),
-  getHistory: () => Promise.resolve([]),
-  getBlockHeight: () => Promise.resolve(900_000),
-} as unknown as ElectrumNetworkProvider
 
 let address: string
 let tokenAddress: string
