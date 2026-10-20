@@ -9,6 +9,7 @@ import type * as BchWalletLib from '@cashonize/bch-wallet-lib'
 import type * as ZodValidation from 'src/utils/zodValidation'
 import type * as ErrorHandling from 'src/utils/errorHandling'
 import type * as Utils from 'src/utils/utils'
+import type * as CacheUtils from 'src/utils/cacheUtils'
 import { vi } from 'vitest'
 
 // Mock wallet instances
@@ -201,8 +202,9 @@ vi.mock('src/utils/errorHandling', async (importOriginal) => ({
 }))
 
 // Mock cacheUtils
-vi.mock('src/utils/cacheUtils', () => ({
+vi.mock('src/utils/cacheUtils', async (importOriginal) => ({
   cachedFetch: vi.fn(),
+  isFreshLookup: (await importOriginal<typeof CacheUtils>()).isFreshLookup,
 }))
 
 // Mock zodValidation

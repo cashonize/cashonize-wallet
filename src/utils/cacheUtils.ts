@@ -6,6 +6,11 @@ const CACHE_TTL_MS = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000;
 // the fetch for the browser's own timeout, minutes on some; the wallet init awaits these
 const CACHED_FETCH_TIMEOUT_MS = 15_000;
 
+// Whether a result kept with the key it was looked up for still answers a lookup for `key`
+export function isFreshLookup(lookup: { key: string, at: number } | undefined, key: string, ttlMs: number): boolean {
+  return lookup?.key === key && Date.now() - lookup.at < ttlMs;
+}
+
 export async function getElectrumCacheSize(): Promise<number> {
   const dbName = "ElectrumNetworkProviderCache";
   const db = await openIndexedDB(dbName);
