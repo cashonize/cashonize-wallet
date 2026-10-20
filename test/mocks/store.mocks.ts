@@ -60,6 +60,7 @@ vi.stubGlobal('localStorage', localStorageMock)
 // The provider the store makes for the selected server; the wallets' setProvider takes it
 export const mockProvider = {
   connect: vi.fn().mockResolvedValue(undefined),
+  disconnect: vi.fn().mockResolvedValue(true),
   getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
 }
 
@@ -99,6 +100,7 @@ vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   balanceResponseFromSatoshi: vi.fn().mockReturnValue({ sat: 0, bch: 0 }),
   binToHex: vi.fn((arr: Uint8Array) => Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')),
   createProvider: vi.fn().mockResolvedValue(mockProvider),
+  setGlobalProvider: vi.fn(),
   DefaultProvider: {
     servers: { mainnet: [], testnet: [], regtest: [] },
   },

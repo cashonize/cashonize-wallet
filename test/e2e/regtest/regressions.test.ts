@@ -1,10 +1,10 @@
-// Wallet flows that broke on mainnet-js and work on bch-wallet-lib (#371). How the library builds
+// Wallet flows that broke and were fixed, each a test of the right behavior. How the library builds
 // transactions (coin selection, change, fees, token conservation) is tested in the library.
 
 import { expect, test } from '@playwright/test'
-import { createToken, fund, randomAddress, rpc } from './chain'
-import { dropNextBroadcast } from './proxy'
-import { broadcastTxid, depositAddress, errorNotification, expectBalance, openRegtestWallet, tokenDepositAddress } from './app'
+import { SECOND_ELECTRUM_SERVER, createToken, fund, randomAddress, rpc } from './chain'
+import { dropNextBroadcast, proxyStats } from './proxy'
+import { addWallet, broadcastTxid, depositAddress, errorNotification, expectBalance, openRegtestWallet, switchChipnetServer, tokenDepositAddress } from './app'
 
 test.use({ colorScheme: 'light' })
 
@@ -47,4 +47,38 @@ test('a send whose connection dropped after the broadcast left is reported sent'
   await expect.poll(async () => (await rpc<string[]>('getrawmempool')).length, { timeout: 30_000 }).toBe(1)
   const [inMempool] = await rpc<string[]>('getrawmempool')
   expect(await broadcastTxid(page)).toBe(inMempool)
+})
+
+// A server change made a new connection and never closed the one it replaced, so the deselected
+// server kept the app's connection and its header subscription (#375)
+test('a server change leaves no connection open on the server it replaced', async ({ page }) => {
+  await openRegtestWallet(page)
+  await fund(await depositAddress(page), 100_000n)
+  await expectBalance(page, '0.001')
+  await expect.poll(async () => (await proxyStats()).a.connections).toBeGreaterThan(0)
+
+  await switchChipnetServer(page, SECOND_ELECTRUM_SERVER)
+  await expectBalance(page, '0.001')
+  await expect.poll(async () => (await proxyStats()).b.connections).toBeGreaterThan(0)
+
+  await expect.poll(async () => (await proxyStats()).a.connections, { timeout: 15_000 }).toBe(0)
+})
+
+// After a server change, the next wallet of a network already connected was made on the old
+// server, which saw its addresses before the wallet moved to the selected one: an HD wallet starts
+// its address discovery as it is made, on the library's global provider of the network (#375)
+test('an HD wallet opened after a server change asks the old server about none of its addresses', async ({ page }) => {
+  await openRegtestWallet(page, { walletType: 'hd' })
+  await switchChipnetServer(page, SECOND_ELECTRUM_SERVER)
+
+  await addWallet(page, 'second', 'hd')
+  const address = await depositAddress(page)
+  const askedAbout = async () => {
+    const { a, b } = await proxyStats()
+    return [...a.addresses, ...b.addresses].includes(address)
+  }
+  await expect.poll(askedAbout).toBe(true)
+
+  const askedOldServer = (await proxyStats()).a.addresses.includes(address)
+  expect(askedOldServer, 'the server replaced before the wallet was made was asked about it').toBe(false)
 })
