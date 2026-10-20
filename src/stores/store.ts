@@ -1049,18 +1049,15 @@ export const useStore = defineStore('store', () => {
     }
   }
 
+  // A refresh that fails leaves the list one update behind, not wrong for long: the next
+  // notification or read fetches again, and a spend from coins already spent is refused by the
+  // library. It runs after every send, so a failure is logged rather than shown over a success.
   async function updateWalletUtxos() {
     try {
       walletUtxos.value = await wallet.value.getUtxos();
       updateTokenList()
     } catch(error) {
-      const errorMessage = typeof error == 'string' ? error : t('store.errors.errorFetchingUtxos');
-      console.error(errorMessage)
-      Notify.create({
-        message: errorMessage,
-        icon: 'warning',
-        color: "red"
-      })
+      console.error(t('store.errors.errorFetchingUtxos'), error)
     }
   }
 

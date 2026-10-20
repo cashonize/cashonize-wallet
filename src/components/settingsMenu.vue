@@ -172,13 +172,10 @@
   void loadCacheSizes()
 
   // store watches settingsStore.currency and refetches the exchange rate automatically
-  async function changeCurrency(){
+  function changeCurrency(){
     settingsStore.currency = selectedCurrency.value;
     localStorage.setItem("currency", selectedCurrency.value);
     store.changeView(1);
-    if (store.wallet) {
-      store.balance = await store.wallet.getBalance();
-    }
   }
   function changeUnit(){
     settingsStore.bchUnit = selectedUnit.value;
