@@ -3,7 +3,9 @@
     "actions": {
       "back": "Back",
       "send": "Send",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "broadcastAgain": "Broadcast again",
+      "dismiss": "Dismiss"
     },
     "status": {
       "sending": "Sending..."
@@ -19,8 +21,8 @@
         "missingInputs": "The transaction was rejected because one of its UTXOs is missing or already spent. Nothing was sent, so you can try again.",
         "missingInputsDapp": "The transaction was rejected because one of its UTXOs is missing or already spent. Nothing was sent. The dApp has to build the transaction again: refresh the dApp and repeat the action.",
         "notYetFinal": "The transaction was rejected because it is time-locked and the lock has not been reached yet. Retrying now will not help, wait until the lock has passed.",
-        "timeout": "The server did not respond in time. The transaction may still have been sent, so check your transaction history before trying again.",
-        "unconfirmed": "The transaction was broadcast, but the server did not confirm that it received it. It may still go through, so check your transaction history before trying again."
+        "unknownOutcome": "The server could not confirm whether the transaction went out, so it may or may not have been sent. Check your transaction history, or broadcast the same transaction again, which can never pay twice. Do not send it again as a new payment.",
+        "unknownOutcomeDapp": "The server could not confirm whether the dApp's transaction went out, so it may or may not have been sent. Check your transaction history, or broadcast the same transaction again, which can never pay twice."
       }
     },
     "attention": "Attention:",
@@ -85,7 +87,8 @@
   "store": {
     "notifications": {
       "receivedBch": "Received {amount} {unit} ({fiatValue})",
-      "receivedTokens": "Received new {tokenType}"
+      "receivedTokens": "Received new {tokenType}",
+      "broadcastAgainSent": "Transaction {txId} was broadcast"
     },
     "errors": {
       "cannotDeleteActiveWallet": "Cannot delete the currently active wallet",
@@ -110,7 +113,8 @@
       "identityMerge": "This request would spend two of your identities in one transaction, which merges them into one. Merging identities is not supported by this wallet yet, so it was refused.",
       "reservedInputs": "This request would spend a UTXO the wallet is holding back, so it was refused. The UTXO Management page shows which UTXOs are held and why.",
       "identityHeld": "This request would spend the identity UTXO of {name}, which connected apps are not allowed to, so it was refused. To manage identities through a connected app, turn on \"Let connected apps spend identity UTXOs\" under user options.",
-      "dappRefusedTitle": "Request refused"
+      "dappRefusedTitle": "Request refused",
+      "broadcastAgainWalletSwitched": "Another wallet is open now. Switch back to the wallet that made the transaction to broadcast it again."
     }
   },
   "onboarding": {

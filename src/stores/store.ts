@@ -14,6 +14,7 @@ import {
   getNamedWalletId,
   convert,
   ExchangeRate,
+  BroadcastTimeoutError,
   InsufficientFundsError,
   UtxoNotAvailableError,
   type Utxo,
@@ -52,7 +53,7 @@ import { useIdentitiesStore } from "./identitiesStore"
 import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
 import { useWizardconnectStore } from "./wizardconnectStore"
-import { displayAndLogError } from "src/utils/errorHandling"
+import { ActionableError, displayAndLogError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch } from "src/utils/cacheUtils"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
@@ -1515,14 +1516,26 @@ export const useStore = defineStore('store', () => {
     return { bch: wallet.value.getDepositAddress(), token: wallet.value.getTokenDepositAddress() };
   }
 
+  // A spend's steps after its broadcast, which run again when a broadcast whose outcome was
+  // unknown is broadcast again
+  type AfterBroadcast = (txId: string) => void | Promise<void>;
+  // What a spend holds back of its own outputs when its broadcast's outcome is unknown: the
+  // transaction may have gone through, and a next spend must not take that output in the meantime
+  type HoldBack = (txId: string) => Promise<void>;
+
   // A spend that falls short while UTXOs are held back may have fallen short for that reason, and
   // the library cannot say so: it counted only the pool it was handed. So the reason is said after
   // its message, on a shortfall and no other error: every wallet holding an identity has a
   // reservation, and the sentence on a rejected broadcast would point its holder at releasing
   // the authhead.
-  async function spendExplained<T>(makeTransaction: () => Promise<T>): Promise<T> {
+  async function spendExplained<T extends { txId?: string }>(
+    makeTransaction: () => Promise<T>,
+    afterBroadcast?: AfterBroadcast,
+    holdBack?: HoldBack,
+  ): Promise<T> {
+    let response: T;
     try {
-      return await makeTransaction();
+      response = await makeTransaction();
     } catch (error) {
       // a reservation outliving its coin holds nothing back, so it explains nothing
       if (reservedWalletUtxos.value?.length && error instanceof InsufficientFundsError) {
@@ -1534,16 +1547,46 @@ export const useStore = defineStore('store', () => {
         const message = error.reason === 'excluded' ? t('store.errors.tokenUtxoHeldBack') : t('store.errors.utxoNotAvailable');
         throw new Error(message, { cause: error });
       }
-      throw explainBroadcastError(error);
+      if (holdBack && error instanceof BroadcastTimeoutError) await holdBack(error.txid);
+      throw explainBroadcastError(error, afterBroadcast);
     }
+    if (afterBroadcast && response.txId) await afterBroadcast(response.txId);
+    return response;
   }
 
-  // A rejected broadcast said in the user's terms, the node's own words kept as the cause
-  function explainBroadcastError(error: unknown) {
+  // A rejected broadcast said in the user's terms, the node's own words kept as the cause. One
+  // whose outcome is unknown offers to broadcast the same transaction again.
+  function explainBroadcastError(error: unknown, afterBroadcast?: AfterBroadcast) {
     const errorKind = classifyBroadcastError(error);
     if (errorKind === 'other') return error;
     console.error(error);
-    return new Error(broadcastErrorMessage(errorKind, false), { cause: error });
+    const message = broadcastErrorMessage(errorKind, false);
+    if (error instanceof BroadcastTimeoutError) {
+      const started = currentInitialization;
+      return new ActionableError(message, {
+        cause: error,
+        action: {
+          label: t('common.actions.broadcastAgain'),
+          run: () => broadcastAgain(error.transaction, started, afterBroadcast),
+        },
+      });
+    }
+    return new Error(message, { cause: error });
+  }
+
+  // A broadcast whose outcome is unknown is settled by broadcasting the same transaction again:
+  // the node takes it or answers that it already holds it, so it can never pay twice, where
+  // sending again builds a new transaction from other coins. The steps after the broadcast run
+  // then, so they are refused once another wallet is open.
+  async function broadcastAgain(transaction: string, started: number, afterBroadcast?: AfterBroadcast) {
+    if (walletSwitchedSince(started)) throw new Error(t('store.errors.broadcastAgainWalletSwitched'));
+    const { txId } = await spendExplained(
+      async () => ({ txId: await wallet.value.submitTransaction(hexToBin(transaction)) }),
+      afterBroadcast,
+    );
+    Notify.create({ type: 'positive', message: t('store.notifications.broadcastAgainSent', { txId }) });
+    await updateWalletUtxos();
+    void updateWalletHistory();
   }
 
   // A spend that names one specific coin, an NFT transfer or burn, cannot fall back on another the
@@ -1563,24 +1606,27 @@ export const useStore = defineStore('store', () => {
   // the transaction and no change returns. A reservation on the coin is dropped only once
   // broadcast, so a failure leaves the coin held rather than released into the next unrelated send.
   async function sendSingleCoin(utxo: Utxo, cashaddr: string) {
+    const afterBroadcast = async () => {
+      // The coin is gone, so refresh before dropping the reservation: otherwise the spendable
+      // pool still holds it and the max-amount refresh asks the server about a spent outpoint
+      await updateWalletUtxos();
+      const outpoint = outpointOf(utxo);
+      if (outpoint in reservedUtxos.value) await dropReservation(outpoint);
+      else await refreshMaxAmountToSend();
+    };
     const response = await wallet.value.sendMax(cashaddr, { utxoIds: [utxo] })
       .catch((error: unknown) => {
-        throw explainBroadcastError(error);
+        throw explainBroadcastError(error, afterBroadcast);
       });
-    // The coin is gone, so refresh before dropping the reservation: otherwise the spendable
-    // pool still holds it and the max-amount refresh asks the server about a spent outpoint
-    await updateWalletUtxos();
-    const outpoint = outpointOf(utxo);
-    if (outpoint in reservedUtxos.value) await dropReservation(outpoint);
-    else await refreshMaxAmountToSend();
+    await afterBroadcast();
     return response;
   }
 
   const spend = {
     // An NFT send names its coins in ensureUtxos: matched by commitment alone, a mutable NFT spent
     // elsewhere since it was shown would be minted anew off the category's minting NFT
-    async send(requests: SendRequestType, ensureUtxos: Utxo[] = []) {
-      return spendExplained(() => wallet.value.send(requests, { ...spendConfig(), ensureUtxos }));
+    async send(requests: SendRequestType, ensureUtxos: Utxo[] = [], afterBroadcast?: AfterBroadcast, holdBack?: HoldBack) {
+      return spendExplained(() => wallet.value.send(requests, { ...spendConfig(), ensureUtxos }), afterBroadcast, holdBack);
     },
     async sendMax(cashaddr: string) {
       return spendExplained(() => wallet.value.sendMax(cashaddr, spendConfig()));
@@ -1631,23 +1677,28 @@ export const useStore = defineStore('store', () => {
       // held back coin among the ones asked for included
       const authOutpoint = outpointOf(authUtxo);
       const excludeUtxoIds = Object.keys(reservedUtxos.value).filter(outpoint => outpoint !== authOutpoint);
-      const response = await spendExplained(() => wallet.value.send(requests, {
+      // The authhead has moved to output 0 of this transaction. When that is ours, it is held back
+      // now, before the wallet's own view or Chaingraph has seen the transaction: the first request
+      // says where it went, which no utxo snapshot can yet. A transfer's output 0 is not ours. A
+      // broadcast whose outcome is unknown holds it back too, as it may have gone through.
+      const holdBackNewAuthhead = async (txId: string) => {
+        const first = Array.isArray(requests) ? requests[0] : requests;
+        const newAuthhead = `${txId}:0`;
+        if (first && 'cashaddr' in first && ownsAddress(first.cashaddr) && !reservedUtxos.value[newAuthhead]) {
+          await reserveOutpoints([newAuthhead], 'auth');
+        }
+      };
+      const afterBroadcast = async (txId: string) => {
+        await holdBackNewAuthhead(txId);
+        await updateWalletUtxos();
+        await identitiesStore.refreshIdentities();
+      };
+      return spendExplained(() => wallet.value.send(requests, {
         ...options,
         tokenUtxoIds: [authUtxo, ...categoryUtxos],
         excludeUtxoIds,
         ensureUtxos: [authUtxo],
-      }));
-      // The authhead has moved to output 0 of this transaction. When that is ours, it is held back
-      // now, before the wallet's own view or Chaingraph has seen the transaction: the first request
-      // says where it went, which no utxo snapshot can yet. A transfer's output 0 is not ours.
-      const first = Array.isArray(requests) ? requests[0] : requests;
-      const newAuthhead = `${response.txId}:0`;
-      if (first && 'cashaddr' in first && ownsAddress(first.cashaddr) && !reservedUtxos.value[newAuthhead]) {
-        await reserveOutpoints([newAuthhead], 'auth');
-      }
-      await updateWalletUtxos();
-      await identitiesStore.refreshIdentities();
-      return response;
+      }), afterBroadcast, holdBackNewAuthhead);
     },
 
     // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
@@ -1688,6 +1739,7 @@ export const useStore = defineStore('store', () => {
     reserveOutpoints,
     currentInitializationToken,
     walletSwitchedSince,
+    broadcastAgain,
     dropReservation,
     utxoLabels,
     setUtxoLabel,

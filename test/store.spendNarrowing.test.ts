@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
+import { encodeCashAddress, hexToBin } from '@bitauth/libauth'
 import { BroadcastRejectedError, BroadcastTimeoutError, InsufficientFundsError, UtxoNotAvailableError, type Utxo } from '@cashonize/bch-wallet-lib'
 
 import {
@@ -9,6 +10,7 @@ import {
 
 import { useStore } from '../src/stores/store'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
+import { ActionableError } from '../src/utils/errorHandling'
 
 const category = '0123456789abcdef'.repeat(4)
 
@@ -33,6 +35,7 @@ function createMockWallet() {
     sendMax: vi.fn().mockResolvedValue({ txId: 'sent-tx' }),
     tokenMint: vi.fn().mockResolvedValue({ txId: 'mint-tx' }),
     tokenBurn: vi.fn().mockResolvedValue({ txId: 'burn-tx' }),
+    submitTransaction: vi.fn().mockResolvedValue('again-tx'),
   }
 }
 
@@ -220,16 +223,64 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
       .rejects.toThrow(/^broadcast failed$/)
   })
 
-  // the server took the broadcast but never confirmed it: the payment may still go through, so
-  // the user is told to check before sending again
-  it('says a broadcast the server did not confirm in the user\'s terms', async () => {
+  // the payment may have gone out, so the user is offered the same transaction again, which can
+  // never pay twice, rather than a new send
+  it('offers to broadcast the same transaction again when the outcome is unknown', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
-    const unconfirmed = new BroadcastTimeoutError('not reported', { txid: 'ef'.repeat(32), transaction: '0200' })
-    wallet.send.mockRejectedValue(unconfirmed)
+    const unknown = new BroadcastTimeoutError('connection lost', { txid: 'ef'.repeat(32), transaction: '0200' })
+    wallet.send.mockRejectedValue(unknown)
 
-    const sending = store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }])
-    await expect(sending).rejects.toThrow(/check your transaction history/)
-    await expect(sending).rejects.toMatchObject({ cause: unconfirmed })
+    const error = await store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }]).catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(ActionableError)
+    expect((error as Error).message).toMatch(/broadcast the same transaction again/)
+    expect((error as Error).cause).toBe(unknown)
+
+    await (error as ActionableError).action.run()
+    expect(wallet.submitTransaction).toHaveBeenCalledWith(hexToBin('0200'))
+    expect(wallet.send).toHaveBeenCalledTimes(1)
+  })
+
+  // the steps after the broadcast are part of the spend: broadcasting again runs them too
+  it('runs the steps after the broadcast when it broadcasts again', async () => {
+    const { wallet, store } = await storeHoldingTokenCoin()
+    wallet.sendMax.mockRejectedValue(new BroadcastTimeoutError('timed out', { txid: 'ef'.repeat(32), transaction: '0200' }))
+
+    const error = await store.spend.releaseReservedCoin(tokenCoin).catch((e: unknown) => e)
+    expect(store.reservedUtxos[outpointOf(tokenCoin)]).toBe('manual')
+
+    await (error as ActionableError).action.run()
+    expect(store.reservedUtxos[outpointOf(tokenCoin)]).toBeUndefined()
+  })
+
+  // the identity may have moved to the unknown transaction's output 0: a send in the meantime must
+  // not take it, so it is held back at once rather than only once broadcast again
+  it('holds back the new authhead of an identity spend whose outcome is unknown', async () => {
+    const ownAddress = encodeCashAddress({ prefix: 'bitcoincash', type: 'p2pkh', payload: new Uint8Array(20).fill(0x11) }).address
+    const { wallet, store } = await storeHoldingTokenCoin()
+    Object.assign(wallet, { hasAddress: (address: string) => address === ownAddress })
+    const txid = 'ef'.repeat(32)
+    wallet.send.mockRejectedValue(new BroadcastTimeoutError('timed out', { txid, transaction: '0200' }))
+
+    await expect(store.spend.spendAuthUtxo(tokenCoin, [{ cashaddr: ownAddress, value: 1000n }])).rejects.toThrow()
+    expect(store.reservedUtxos[`${txid}:0`]).toBe('auth')
+
+    // a transfer's output 0 is not this wallet's, so there is nothing to hold back
+    const otherTxid = 'ab'.repeat(32)
+    wallet.send.mockRejectedValue(new BroadcastTimeoutError('timed out', { txid: otherTxid, transaction: '0200' }))
+    await expect(store.spend.spendAuthUtxo(tokenCoin, [{ cashaddr: 'bitcoincash:qdest', value: 1000n }])).rejects.toThrow()
+    expect(store.reservedUtxos[`${otherTxid}:0`]).toBeUndefined()
+  })
+
+  // those steps act on the wallet that made the transaction, so another one open refuses them
+  it('refuses to broadcast again once another wallet is open', async () => {
+    const { wallet, store } = await storeHoldingTokenCoin()
+    wallet.send.mockRejectedValue(new BroadcastTimeoutError('timed out', { txid: 'ef'.repeat(32), transaction: '0200' }))
+    const error = await store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }]).catch((e: unknown) => e)
+
+    // the state a switch discards, as switching to another wallet does first
+    await store.resetWalletState()
+    await expect((error as ActionableError).action.run()).rejects.toThrow(/Another wallet is open/)
+    expect(wallet.submitTransaction).not.toHaveBeenCalled()
   })
 
   // the node's reject reason means nothing to a user, so they get the classified message and

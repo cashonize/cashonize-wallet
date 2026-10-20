@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BroadcastRejectedError, BroadcastTimeoutError, ElectrumTimeoutError } from '@cashonize/bch-wallet-lib'
+import { BroadcastRejectedError, BroadcastTimeoutError } from '@cashonize/bch-wallet-lib'
 import { classifyBroadcastError } from '../src/utils/wallet/broadcastErrors'
 
 // A refusal as the library throws it: the server's text as the message, the node's reason parsed out
@@ -18,13 +18,10 @@ describe('classifyBroadcastError', () => {
     expect(classifyBroadcastError(rejected(reason))).toBe(kind)
   })
 
-  it('reads a timed out broadcast as a timeout', () => {
-    expect(classifyBroadcastError(new ElectrumTimeoutError('electrum request timed out'))).toBe('timeout')
-  })
-
-  // the server took the broadcast but neither reported nor holds the transaction: it may still go through
-  it('reads a broadcast the server never confirmed as unconfirmed', () => {
-    expect(classifyBroadcastError(new BroadcastTimeoutError('not reported', { txid: 'ab'.repeat(32), transaction: '0200' }))).toBe('unconfirmed')
+  // timed out, lost its connection, or taken but never reported, and not held by the server when
+  // asked: it may still go through
+  it('reads a broadcast whose outcome is unknown as such', () => {
+    expect(classifyBroadcastError(new BroadcastTimeoutError('not reported', { txid: 'ab'.repeat(32), transaction: '0200' }))).toBe('unknown-outcome')
   })
 
   // a lost connection or any other error is no refusal, whatever its text says

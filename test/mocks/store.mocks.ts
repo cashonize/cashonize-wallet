@@ -7,6 +7,7 @@
  */
 import type * as BchWalletLib from '@cashonize/bch-wallet-lib'
 import type * as ZodValidation from 'src/utils/zodValidation'
+import type * as ErrorHandling from 'src/utils/errorHandling'
 import { vi } from 'vitest'
 
 // Mock wallet instances
@@ -190,8 +191,9 @@ vi.mock('quasar', () => ({
   },
 }))
 
-// Mock utils that use quasar
-vi.mock('src/utils/errorHandling', () => ({
+// Mock utils that use quasar; the error class is the real one, which the spend errors are made of
+vi.mock('src/utils/errorHandling', async (importOriginal) => ({
+  ActionableError: (await importOriginal<typeof ErrorHandling>()).ActionableError,
   displayAndLogError: vi.fn(),
 }))
 

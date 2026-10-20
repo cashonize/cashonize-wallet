@@ -3,7 +3,9 @@
     "actions": {
       "back": "Zurück",
       "send": "Senden",
-      "confirm": "Bestätigen"
+      "confirm": "Bestätigen",
+      "broadcastAgain": "Erneut senden",
+      "dismiss": "Schließen"
     },
     "status": {
       "sending": "Senden..."
@@ -19,8 +21,8 @@
         "missingInputs": "Die Transaktion wurde abgelehnt, weil einer ihrer UTXOs fehlt oder bereits ausgegeben wurde. Es wurde nichts gesendet, du kannst es also erneut versuchen.",
         "missingInputsDapp": "Die Transaktion wurde abgelehnt, weil einer ihrer UTXOs fehlt oder bereits ausgegeben wurde. Es wurde nichts gesendet. Die dApp muss die Transaktion neu erstellen: Lade die dApp neu und wiederhole die Aktion.",
         "notYetFinal": "Die Transaktion wurde abgelehnt, weil sie zeitlich gesperrt ist und die Sperre noch nicht erreicht wurde. Ein erneuter Versuch hilft jetzt nicht, warte bis die Sperre abgelaufen ist.",
-        "timeout": "Der Server hat nicht rechtzeitig geantwortet. Die Transaktion wurde möglicherweise trotzdem gesendet, prüfe daher deinen Transaktionsverlauf, bevor du es erneut versuchst.",
-        "unconfirmed": "Die Transaktion wurde gesendet, aber der Server hat ihren Empfang nicht bestätigt. Sie kann trotzdem noch durchgehen, prüfe daher deinen Transaktionsverlauf, bevor du es erneut versuchst."
+        "unknownOutcome": "Der Server konnte nicht bestätigen, ob die Transaktion gesendet wurde, sie wurde also möglicherweise gesendet oder auch nicht. Prüfe deinen Transaktionsverlauf oder sende dieselbe Transaktion erneut, was nie doppelt zahlen kann. Sende sie nicht noch einmal als neue Zahlung.",
+        "unknownOutcomeDapp": "Der Server konnte nicht bestätigen, ob die Transaktion der dApp gesendet wurde, sie wurde also möglicherweise gesendet oder auch nicht. Prüfe deinen Transaktionsverlauf oder sende dieselbe Transaktion erneut, was nie doppelt zahlen kann."
       }
     },
     "attention": "Achtung:",
@@ -85,7 +87,8 @@
   "store": {
     "notifications": {
       "receivedBch": "{amount} {unit} erhalten ({fiatValue})",
-      "receivedTokens": "Neue {tokenType} erhalten"
+      "receivedTokens": "Neue {tokenType} erhalten",
+      "broadcastAgainSent": "Transaktion {txId} wurde gesendet"
     },
     "errors": {
       "cannotDeleteActiveWallet": "Das aktive Wallet kann nicht gelöscht werden",
@@ -110,7 +113,8 @@
       "identityMerge": "Diese Anfrage würde zwei deiner Identitäten in einer Transaktion ausgeben, was sie zu einer verschmilzt. Identitäten zu verschmelzen unterstützt dieses Wallet noch nicht, deshalb wurde sie abgelehnt.",
       "reservedInputs": "Diese Anfrage würde einen UTXO ausgeben, den die Wallet zurückhält, und wurde daher abgelehnt. Die Seite UTXO-Verwaltung zeigt, welche UTXOs zurückgehalten werden und warum.",
       "identityHeld": "Diese Anfrage würde den Identitäts-UTXO von {name} ausgeben, was verbundene Apps nicht dürfen, und wurde daher abgelehnt. Um Identitäten über eine verbundene App zu verwalten, schalte \"Verbundene Apps dürfen Identitäts-UTXOs ausgeben\" in den Benutzeroptionen ein.",
-      "dappRefusedTitle": "Anfrage abgelehnt"
+      "dappRefusedTitle": "Anfrage abgelehnt",
+      "broadcastAgainWalletSwitched": "Inzwischen ist eine andere Wallet geöffnet. Wechsle zurück zu der Wallet, die die Transaktion erstellt hat, um sie erneut zu senden."
     }
   },
   "onboarding": {

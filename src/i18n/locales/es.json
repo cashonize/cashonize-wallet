@@ -3,7 +3,9 @@
     "actions": {
       "back": "Volver",
       "send": "Enviar",
-      "confirm": "Confirmar"
+      "confirm": "Confirmar",
+      "broadcastAgain": "Transmitir de nuevo",
+      "dismiss": "Cerrar"
     },
     "status": {
       "sending": "Enviando..."
@@ -19,8 +21,8 @@
         "missingInputs": "La transacción fue rechazada porque uno de sus UTXOs falta o ya fue gastado. No se envió nada, así que puedes intentarlo de nuevo.",
         "missingInputsDapp": "La transacción fue rechazada porque uno de sus UTXOs falta o ya fue gastado. No se envió nada. La dApp tiene que crear la transacción de nuevo: recarga la dApp y repite la acción.",
         "notYetFinal": "La transacción fue rechazada porque tiene un bloqueo de tiempo que aún no se ha alcanzado. Reintentar ahora no servirá, espera hasta que pase el bloqueo.",
-        "timeout": "El servidor no respondió a tiempo. Es posible que la transacción se haya enviado igualmente, así que revisa tu historial de transacciones antes de volver a intentarlo.",
-        "unconfirmed": "La transacción se envió, pero el servidor no confirmó haberla recibido. Aún puede completarse, así que revisa tu historial de transacciones antes de volver a intentarlo."
+        "unknownOutcome": "El servidor no pudo confirmar si la transacción salió, así que puede que se haya enviado o no. Revisa tu historial de transacciones, o transmite de nuevo la misma transacción, lo que nunca puede pagar dos veces. No la envíes otra vez como un pago nuevo.",
+        "unknownOutcomeDapp": "El servidor no pudo confirmar si la transacción de la dApp salió, así que puede que se haya enviado o no. Revisa tu historial de transacciones, o transmite de nuevo la misma transacción, lo que nunca puede pagar dos veces."
       }
     },
     "attention": "Atención:",
@@ -85,7 +87,8 @@
   "store": {
     "notifications": {
       "receivedBch": "Recibido {amount} {unit} ({fiatValue})",
-      "receivedTokens": "Recibido nuevo {tokenType}"
+      "receivedTokens": "Recibido nuevo {tokenType}",
+      "broadcastAgainSent": "La transacción {txId} fue transmitida"
     },
     "errors": {
       "cannotDeleteActiveWallet": "No se puede eliminar la billetera actualmente activa",
@@ -110,7 +113,8 @@
       "identityMerge": "Esta solicitud gastaría dos de tus identidades en una sola transacción, lo que las fusiona en una. Esta billetera todavía no admite fusionar identidades, así que se rechazó.",
       "reservedInputs": "Esta solicitud gastaría un UTXO que la cartera está reteniendo, así que fue rechazada. La página de Gestión de UTXO muestra qué UTXOs están retenidos y por qué.",
       "identityHeld": "Esta solicitud gastaría el UTXO de identidad de {name}, algo que las apps conectadas no tienen permitido, así que se rechazó. Para gestionar identidades mediante una app conectada, activa \"Permitir que las apps conectadas gasten UTXOs de identidad\" en las opciones de usuario.",
-      "dappRefusedTitle": "Solicitud rechazada"
+      "dappRefusedTitle": "Solicitud rechazada",
+      "broadcastAgainWalletSwitched": "Ahora hay otra billetera abierta. Vuelve a la billetera que creó la transacción para transmitirla de nuevo."
     }
   },
   "onboarding": {
