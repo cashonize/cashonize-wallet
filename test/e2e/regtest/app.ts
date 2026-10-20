@@ -146,16 +146,3 @@ export async function sendFungibleTokens(page: Page, category: string, address: 
   return broadcastTxid(page)
 }
 
-// Sends one NFT, found by its outpoint among the category's NFTs, and returns the txid
-export async function sendNft(page: Page, category: string, nft: { txid: string, vout: number }, address: string): Promise<string> {
-  await page.locator('nav').getByText('Tokens', { exact: true }).click()
-  const item = page.locator(`#id${category.slice(0, 10)}nft`)
-  await expect(item).toBeVisible({ timeout: 30_000 })
-  await item.locator('.showChildNftsToggle').click()
-  const child = page.locator(`#nft-utxo-${nft.txid}-${nft.vout}`)
-  await child.locator('.actionBar').getByText('Send', { exact: false }).first().click()
-  await child.locator('input[name="tokenAddress"]').fill(address)
-  await child.locator('input.primaryButton[type="button"]').click()
-  await confirmIfAsked(page)
-  return broadcastTxid(page)
-}

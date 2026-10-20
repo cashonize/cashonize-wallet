@@ -3,7 +3,7 @@
 // chain through proxy.ts, so its bchtest addresses map to bchreg ones here.
 
 import { decodeCashAddress, encodeCashAddress, generateRandomBytes } from '@bitauth/libauth'
-import { DefaultProvider, TestNetWallet, TokenGenesisRequest, TokenMintRequest, TokenSendRequest } from '@cashonize/bch-wallet-lib'
+import { DefaultProvider, TestNetWallet, TokenGenesisRequest } from '@cashonize/bch-wallet-lib'
 
 // as env.sh
 export const RPC_PORT = 18543
@@ -99,37 +99,6 @@ export async function createToken(tokenAddress: string, { amount, nft, value = 1
   return category
 }
 
-// Pays an app token address `coins` separate coins of one new category, `amount` tokens each,
-// in one confirmed transaction, returning the category
-export async function fundTokenCoins(tokenAddress: string, coins: number, amount: bigint): Promise<string> {
-  const wallet = await funderWallet()
-  const category = await createToken(wallet.tokenaddr, { amount: amount * BigInt(coins) })
-  const requests = Array.from({ length: coins }, () => new TokenSendRequest({
-    cashaddr: toChipnet(tokenAddress), category, amount, value: 1000n,
-  }))
-  await wallet.send(requests)
-  await mine()
-  return category
-}
-
-// An issuer's holdings at an app token address (either prefix), each confirmed: a mutable NFT of
-// a new category, and that category's minting NFT carrying a reserve of `reserve` fungible tokens.
-// Returns the category and the mutable NFT's outpoint.
-export async function issuerTokens(tokenAddress: string, reserve: bigint) {
-  const wallet = await funderWallet()
-  const category = await createToken(wallet.tokenaddr, { amount: reserve, nft: { capability: 'minting', commitment: '' } })
-  const { txId: mintTxid } = await wallet.tokenMint(new TokenMintRequest({
-    category, cashaddr: toChipnet(tokenAddress), nft: { capability: 'mutable', commitment: '01' }, value: 1000n,
-  }))
-  await mine()
-  const mutableVout = (await decodedTransaction(mintTxid)).vout.findIndex(output => output.tokenData?.nft?.capability === 'mutable')
-  await wallet.send([new TokenSendRequest({
-    cashaddr: toChipnet(tokenAddress), category, amount: reserve, nft: { capability: 'minting', commitment: '' }, value: 1000n,
-  })])
-  await mine()
-  return { category, mutable: { txid: mintTxid, vout: mutableVout } }
-}
-
 export interface DecodedTransaction {
   vin: { txid: string, vout: number }[]
   vout: { value: number, scriptPubKey: { addresses?: string[] }, tokenData?: { category: string, amount: string, nft?: { capability: string, commitment: string } } }[]
@@ -139,16 +108,3 @@ export async function decodedTransaction(txid: string): Promise<DecodedTransacti
   return rpc<DecodedTransaction>('getrawtransaction', [txid, 1])
 }
 
-// The token data of the coins a transaction spends, read from the transactions that made them
-export async function spentTokenCoins(txid: string) {
-  return (await spentCoins(txid)).map(coin => coin.tokenData)
-}
-
-// The coins a transaction spends, as the transactions that made them have them
-export async function spentCoins(txid: string) {
-  const transaction = await decodedTransaction(txid)
-  return Promise.all(transaction.vin.map(async input => {
-    const previous = await decodedTransaction(input.txid)
-    return previous.vout[input.vout]!
-  }))
-}
