@@ -11,6 +11,7 @@ export const FULCRUM_WS_PORT = 60103
 export const PROXY_PORT = 60104
 export const PROXY_CONTROL_PORT = 60105
 export const PROXY_TLS_PORT = 60106
+export const FUNDER_PROXY_PORT = 60107
 const RPC_AUTH = 'Basic ' + Buffer.from('e2e:e2e').toString('base64')
 
 // The key of env.sh's FUNDER_ADDRESS, a regtest-only key
@@ -62,11 +63,11 @@ export function randomAddress(type: 'p2pkh' | 'p2pkhWithTokens' = 'p2pkh'): stri
 }
 
 // bch-wallet-lib exports no regtest wallet class, so the funder is a chipnet wallet that reaches
-// the chain through the proxy, as the app does
+// the chain through a proxy instance of its own, out of the app's connection counts
 let funder: TestNetWallet | undefined
 export async function funderWallet(): Promise<TestNetWallet> {
   if (funder) return funder
-  DefaultProvider.servers.testnet = [APP_ELECTRUM_SERVER]
+  DefaultProvider.servers.testnet = [`ws://127.0.0.1:${FUNDER_PROXY_PORT}`]
   funder = await TestNetWallet.fromWIF(FUNDER_WIF)
   return funder
 }
