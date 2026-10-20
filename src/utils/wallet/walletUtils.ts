@@ -1,8 +1,19 @@
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, Config } from "mainnet-js"
+import {
+  Wallet,
+  HDWallet,
+  Config,
+  NetworkType,
+  getAddrsByXpubKey,
+  getNetworkProvider,
+  getXPubKey,
+  namedWalletExists,
+  saveNamedWallet,
+} from "@cashonize/bch-wallet-lib"
+import { deriveSeedFromBip39Mnemonic } from "@bitauth/libauth"
 import { Notify } from "quasar"
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
-import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
+import { getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
 import { isQuotaExceededError } from 'src/utils/errorHandling'
 import { isValidBip39Mnemonic, normalizeSeedPhrase } from 'src/utils/utils'
 import { i18n } from 'src/boot/i18n'
@@ -11,8 +22,8 @@ const { t } = i18n.global
 export type DerivationPathType = "standard" | "bitcoindotcom" | "slp";
 
 // BIP44 derivation paths for BCH wallets
-// - parent: used by mainnet-js Config when generating new wallets via Wallet.named()
-// - full: used in explicit walletId strings for Wallet.replaceNamed() imports
+// - parent: used by the library's Config when generating new wallets via Wallet.named()
+// - full: used in explicit walletId strings for saveNamedWallet() imports
 export const DERIVATION_PATHS = {
   // BCH coin type, used by the large majority of BCH wallets
   standard: {
@@ -52,41 +63,46 @@ const SCAN_BATCH_SIZE = 10;
  * to the standard gap limit on both the receive and change chains: activity
  * beyond the first receive address means the seed phrase was used as an HD
  * wallet, so a single address import would miss funds.
+ * The addresses are derived from each path's xpub and their history asked of the
+ * mainnet provider directly: a wallet built per address would subscribe to it.
  */
 export async function scanDerivationPaths(seedPhrase: string): Promise<DerivationPathScanResult> {
-  const normalizedSeedPhrase = normalizeSeedPhrase(seedPhrase);
+  const seed = deriveSeedFromBip39Mnemonic(normalizeSeedPhrase(seedPhrase));
+  // the global provider a mainnet wallet is constructed on, made from the selected server
+  const provider = getNetworkProvider(NetworkType.Mainnet);
+  // the receive and change chains are unhardened, so the parent's xpub derives every address
+  const xpubOf = (pathType: DerivationPathType) => getXPubKey(seed, DERIVATION_PATHS[pathType].parent, "mainnet");
 
-  async function addressHasActivity(fullDerivationPath: string): Promise<boolean> {
-    const addressWallet = await Wallet.fromSeed(normalizedSeedPhrase, fullDerivationPath);
-    const history = await addressWallet.getRawHistory();
+  async function addressHasActivity(address: string): Promise<boolean> {
+    const history = await provider.getHistory(address);
     return history.length > 0;
   }
 
   // Receive and change chains are interleaved by index so the addresses most
   // likely to be used are checked first, letting the scan end early on the
   // first batch with activity
-  async function laterAddressesHaveActivity(parentDerivationPath: string): Promise<boolean> {
-    const addressPaths: string[] = [];
-    for (let addressIndex = 0; addressIndex < GAP_LIMIT; addressIndex++) {
-      addressPaths.push(`${parentDerivationPath}/0/${addressIndex + 1}`);
-      addressPaths.push(`${parentDerivationPath}/1/${addressIndex}`);
-    }
-    for (let i = 0; i < addressPaths.length; i += SCAN_BATCH_SIZE) {
-      const batch = addressPaths.slice(i, i + SCAN_BATCH_SIZE);
+  async function laterAddressesHaveActivity(xpub: string): Promise<boolean> {
+    const receiveAddresses = getAddrsByXpubKey(xpub, "0/1", GAP_LIMIT);
+    const changeAddresses = getAddrsByXpubKey(xpub, "1/0", GAP_LIMIT);
+    const addresses = receiveAddresses.flatMap((receiveAddress, index) => [receiveAddress, changeAddresses[index]!]);
+    for (let i = 0; i < addresses.length; i += SCAN_BATCH_SIZE) {
+      const batch = addresses.slice(i, i + SCAN_BATCH_SIZE);
       const batchResults = await Promise.all(batch.map(addressHasActivity));
       if (batchResults.includes(true)) return true;
     }
     return false;
   }
 
+  const xpubs = SCANNED_PATH_TYPES.map(xpubOf);
   const pathHasActivity = await Promise.all(
-    SCANNED_PATH_TYPES.map((pathType) => addressHasActivity(DERIVATION_PATHS[pathType].full))
+    xpubs.map((xpub) => addressHasActivity(getAddrsByXpubKey(xpub, "0/0", 1)[0]!))
   );
   const usedPaths = SCANNED_PATH_TYPES.filter((_pathType, index) => pathHasActivity[index]);
 
   let multipleAddressesUsed = false;
   for (const usedPath of usedPaths) {
-    if (await laterAddressesHaveActivity(DERIVATION_PATHS[usedPath].parent)) {
+    const xpub = xpubs[SCANNED_PATH_TYPES.indexOf(usedPath)]!;
+    if (await laterAddressesHaveActivity(xpub)) {
       multipleAddressesUsed = true;
       break;
     }
@@ -157,8 +173,8 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
 
   try {
     // Check if wallet already exists in either network DB
-    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
@@ -166,20 +182,22 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     const store = useStore();
     const settingsStore = useSettingsStore();
 
-    // mainnet-js defaults to m/44'/0'/0' (bitcoindotcom), override to use BCH standard
+    // the library's default is the BCH standard path too; set here so a new wallet's path never
+    // depends on the library's default
     Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
     // .named() deliberately creates the new wallet here (non-existence checked above),
     // elsewhere wallets should be loaded through store.loadExistingWallet
     const mainnetWallet = await Wallet.named(trimmedName);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
-    await TestNetWallet.replaceNamed(trimmedName, walletId);
+    // stored without constructing it, so the chipnet copy opens no subscription
+    await saveNamedWallet(trimmedName, walletId, "bchtest");
 
     // Update store state
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    store.setWallet(mainnetWallet);
+    await store.setWallet(mainnetWallet);
 
     // Refresh available wallets list
     await store.refreshAvailableWallets();
@@ -197,9 +215,6 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
   } catch (error) {
     if (isQuotaExceededError(error)) {
       return makeError(t('walletUtils.errors.storageFull'), false);
-    }
-    if (typeof error === 'string') {
-      return makeError(error, true);
     }
     return makeError(t('walletUtils.errors.failedToCreateWallet'), false);
   }
@@ -238,8 +253,8 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
 
   try {
     // Check if wallet already exists in either network DB
-    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
@@ -249,11 +264,12 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
 
     const fullDerivationPath = DERIVATION_PATHS[derivationPath].full;
 
+    // stored without constructing them; the mainnet one is loaded by name below
     const walletId = `seed:mainnet:${normalizedSeedPhrase}:${fullDerivationPath}`;
-    await Wallet.replaceNamed(trimmedName, walletId);
+    await saveNamedWallet(trimmedName, walletId, "bitcoincash");
 
     const walletIdTestnet = `seed:testnet:${normalizedSeedPhrase}:${fullDerivationPath}`;
-    await TestNetWallet.replaceNamed(trimmedName, walletIdTestnet);
+    await saveNamedWallet(trimmedName, walletIdTestnet, "bchtest");
 
     const mainnetWallet = await Wallet.named(trimmedName);
 
@@ -262,7 +278,7 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     localStorage.setItem('activeWalletName', trimmedName);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    store.setWallet(mainnetWallet);
+    await store.setWallet(mainnetWallet);
 
     // Refresh available wallets list
     await store.refreshAvailableWallets();
@@ -282,9 +298,6 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     if (isQuotaExceededError(error)) {
       return makeError(t('walletUtils.errors.storageFull'), false);
     }
-    if (typeof error === 'string') {
-      return makeError(error, true);
-    }
     return makeError(t('walletUtils.errors.invalidSeedPhrase'), false);
   }
 }
@@ -299,8 +312,8 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
   const trimmedName = name.trim();
 
   try {
-    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
@@ -313,13 +326,14 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
     // elsewhere wallets should be loaded through store.loadExistingWallet
     const mainnetWallet = await HDWallet.named(trimmedName);
     const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
-    await TestNetHDWallet.replaceNamed(trimmedName, walletId);
+    // stored without constructing it, so the chipnet copy starts no discovery
+    await saveNamedWallet(trimmedName, walletId, "bchtest");
 
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    store.setWallet(mainnetWallet);
+    await store.setWallet(mainnetWallet);
 
     settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)
@@ -333,9 +347,6 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
   } catch (error) {
     if (isQuotaExceededError(error)) {
       return makeError(t('walletUtils.errors.storageFull'), false);
-    }
-    if (typeof error === 'string') {
-      return makeError(error, true);
     }
     return makeError(t('walletUtils.errors.failedToCreateWallet'), false);
   }
@@ -366,8 +377,8 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
   }
 
   try {
-    const existsMainnet = await namedWalletExistsInDb(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExistsInDb(trimmedName, "bchtest");
+    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
+    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
     if (existsMainnet || existsChipnet) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
@@ -377,11 +388,12 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
 
     const parentDerivationPath = DERIVATION_PATHS[derivationPath].parent;
 
+    // stored without constructing them; the mainnet one is loaded by name below
     const walletId = `hd:mainnet:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
-    await HDWallet.replaceNamed(trimmedName, walletId);
+    await saveNamedWallet(trimmedName, walletId, "bitcoincash");
 
     const walletIdTestnet = `hd:testnet:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
-    await TestNetHDWallet.replaceNamed(trimmedName, walletIdTestnet);
+    await saveNamedWallet(trimmedName, walletIdTestnet, "bchtest");
 
     const mainnetWallet = await HDWallet.named(trimmedName);
 
@@ -389,7 +401,7 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
     localStorage.setItem('activeWalletName', trimmedName);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    store.setWallet(mainnetWallet);
+    await store.setWallet(mainnetWallet);
 
     settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)
@@ -404,9 +416,6 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
   } catch (error) {
     if (isQuotaExceededError(error)) {
       return makeError(t('walletUtils.errors.storageFull'), false);
-    }
-    if (typeof error === 'string') {
-      return makeError(error, true);
     }
     return makeError(t('walletUtils.errors.invalidSeedPhrase'), false);
   }

@@ -3,7 +3,7 @@
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
   import nftMintForm from './nftMintForm.vue'
-  import { TokenSendRequest, type TokenI } from "mainnet-js"
+  import { TokenSendRequest, type TokenI } from "@cashonize/bch-wallet-lib"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
@@ -294,7 +294,7 @@
         }))
       })
       notifySending();
-      const { txId } = await store.spend.send(outputArray);
+      const { txId } = await store.spend.send(outputArray, selectedNftsList);
       const nftName = tokenName.value;
       let alertMessage = t('tokenItem.alerts.sentNfts', { count: nftCount, tokenId: category, address: destinationAddr.value });
       if (isAllSelected && nftName) {
@@ -336,7 +336,8 @@
       }
 
       const category = tokenData.value.category;
-      const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
+      const nftUtxo = tokenData.value.nfts[0]!;
+      const nftInfo = nftUtxo.token as TokenI;
       notifySending();
       const { txId } = await store.spend.send([
         new TokenSendRequest({
@@ -347,7 +348,7 @@
             capability: nftInfo.nft!.capability,
           },
         }),
-      ]);
+      ], [nftUtxo]);
       const nftName = tokenName.value;
       let alertMessage = t('tokenItem.alerts.sentNft', { tokenId: category, address: destinationAddr.value });
       if (nftName) {

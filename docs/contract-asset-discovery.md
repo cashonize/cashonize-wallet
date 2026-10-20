@@ -31,9 +31,9 @@ They cannot be searched by key:
 Every one of these announcements shares one property: the user paid for the transaction from
 their own coins. The announcing transaction therefore spends an output of the wallet's, which
 puts it in the electrum history of that output's address, and the wallet loads its full
-history at open. mainnet-js fetches the raw transaction of every history item and of every
+history at open. bch-wallet-lib fetches the raw transaction of every history item and of every
 prevout, through its IndexedDB cache, and decodes them into history items carrying each
-output's address and token fields, with an OP_RETURN output's bytes in place of an address.
+output's address, locking bytecode and token fields, an OP_RETURN output's included.
 The announcements are read off those items: `fullWalletHistory` in `src/stores/store.ts`
 hands the readers the history on hand when it is complete, and starts the full load itself
 when only the capped one is, so the identity check at open does not wait for the browser to

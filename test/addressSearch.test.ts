@@ -1,5 +1,5 @@
 import { encodeCashAddress } from "@bitauth/libauth";
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 import { addressQueryBytecode, labelledAddressBytecodes, txInvolvesBytecode } from "../src/utils/history/addressSearch";
 
 const payload = new Uint8Array(20).fill(7);

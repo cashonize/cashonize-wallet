@@ -1,4 +1,4 @@
-import { OpReturnData, type Utxo } from "mainnet-js";
+import { OpReturnData, type Utxo } from "@cashonize/bch-wallet-lib";
 import { binToHex, hexToBin, CashAddressNetworkPrefix } from "@bitauth/libauth";
 import { resolveIdentities } from "../src/utils/tools/authchainIdentity";
 import {

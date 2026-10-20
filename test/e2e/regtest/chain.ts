@@ -3,7 +3,7 @@
 // chain through proxy.ts, so its bchtest addresses map to bchreg ones here.
 
 import { decodeCashAddress, encodeCashAddress, generateRandomBytes } from '@bitauth/libauth'
-import { DefaultProvider, RegTestWallet, SendRequest, TokenGenesisRequest, TokenMintRequest, TokenSendRequest } from 'mainnet-js'
+import { DefaultProvider, TestNetWallet, TokenGenesisRequest, TokenMintRequest, TokenSendRequest } from '@cashonize/bch-wallet-lib'
 
 // as env.sh
 export const RPC_PORT = 18543
@@ -61,20 +61,22 @@ export function randomAddress(type: 'p2pkh' | 'p2pkhWithTokens' = 'p2pkh'): stri
   return encoded.address
 }
 
-let funder: RegTestWallet | undefined
-export async function funderWallet(): Promise<RegTestWallet> {
+// bch-wallet-lib exports no regtest wallet class, so the funder is a chipnet wallet that reaches
+// the chain through the proxy, as the app does
+let funder: TestNetWallet | undefined
+export async function funderWallet(): Promise<TestNetWallet> {
   if (funder) return funder
-  DefaultProvider.servers.regtest = [`ws://127.0.0.1:${FULCRUM_WS_PORT}`]
-  funder = await RegTestWallet.fromWIF(FUNDER_WIF)
+  DefaultProvider.servers.testnet = [APP_ELECTRUM_SERVER]
+  funder = await TestNetWallet.fromWIF(FUNDER_WIF)
   return funder
 }
 
 // Pays an app address (either prefix) and confirms the payment
 export async function fund(address: string, satoshis: bigint): Promise<string> {
   const wallet = await funderWallet()
-  const { txId } = await wallet.send([new SendRequest({ cashaddr: toRegtest(address), value: satoshis })])
+  const { txId } = await wallet.send([{ cashaddr: toChipnet(address), value: satoshis }])
   await mine()
-  return txId!
+  return txId
 }
 
 export interface TokenOptions {
@@ -87,7 +89,7 @@ export interface TokenOptions {
 // returning the category
 export async function createToken(tokenAddress: string, { amount, nft, value = 1000n }: TokenOptions): Promise<string> {
   const wallet = await funderWallet()
-  const request: ConstructorParameters<typeof TokenGenesisRequest>[0] = { cashaddr: toRegtest(tokenAddress), value }
+  const request: ConstructorParameters<typeof TokenGenesisRequest>[0] = { cashaddr: toChipnet(tokenAddress), value }
   if (amount !== undefined) request.amount = amount
   if (nft) request.nft = { capability: nft.capability, commitment: nft.commitment }
   const { categories } = await wallet.tokenGenesis(new TokenGenesisRequest(request))
@@ -103,7 +105,7 @@ export async function fundTokenCoins(tokenAddress: string, coins: number, amount
   const wallet = await funderWallet()
   const category = await createToken(wallet.tokenaddr, { amount: amount * BigInt(coins) })
   const requests = Array.from({ length: coins }, () => new TokenSendRequest({
-    cashaddr: toRegtest(tokenAddress), category, amount, value: 1000n,
+    cashaddr: toChipnet(tokenAddress), category, amount, value: 1000n,
   }))
   await wallet.send(requests)
   await mine()
@@ -116,16 +118,16 @@ export async function fundTokenCoins(tokenAddress: string, coins: number, amount
 export async function issuerTokens(tokenAddress: string, reserve: bigint) {
   const wallet = await funderWallet()
   const category = await createToken(wallet.tokenaddr, { amount: reserve, nft: { capability: 'minting', commitment: '' } })
-  const { txId: mintTxid } = await wallet.tokenMint(category, new TokenMintRequest({
-    cashaddr: toRegtest(tokenAddress), nft: { capability: 'mutable', commitment: '01' }, value: 1000n,
+  const { txId: mintTxid } = await wallet.tokenMint(new TokenMintRequest({
+    category, cashaddr: toChipnet(tokenAddress), nft: { capability: 'mutable', commitment: '01' }, value: 1000n,
   }))
   await mine()
-  const mutableVout = (await decodedTransaction(mintTxid!)).vout.findIndex(output => output.tokenData?.nft?.capability === 'mutable')
+  const mutableVout = (await decodedTransaction(mintTxid)).vout.findIndex(output => output.tokenData?.nft?.capability === 'mutable')
   await wallet.send([new TokenSendRequest({
-    cashaddr: toRegtest(tokenAddress), category, amount: reserve, nft: { capability: 'minting', commitment: '' }, value: 1000n,
+    cashaddr: toChipnet(tokenAddress), category, amount: reserve, nft: { capability: 'minting', commitment: '' }, value: 1000n,
   })])
   await mine()
-  return { category, mutable: { txid: mintTxid!, vout: mutableVout } }
+  return { category, mutable: { txid: mintTxid, vout: mutableVout } }
 }
 
 export interface DecodedTransaction {

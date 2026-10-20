@@ -1,10 +1,14 @@
-import { Wallet, SignedMessage } from "mainnet-js";
+import { DefaultProvider, Wallet, SignedMessage } from "@cashonize/bch-wallet-lib";
 import { resolvePrivateKeyForAddress, verifyMessage } from "../src/utils/tools/messageSigning";
 
 // same throwaway key as wcSigning.test.ts
 const throwAwayTestKeyWif = 'L15RRkJJdgWARpbwHaZV4a99ciHhKEmWz8bR8aQ5T94FqhfAw3Ac'
 
+// a wallet subscribes to its address as it is constructed, so it gets a server that is never
+// there, and is stopped at once: only its keys are used
+DefaultProvider.servers.mainnet = ["wss://127.0.0.1:1"];
 const throwAwayWallet = await Wallet.fromWIF(throwAwayTestKeyWif);
+await throwAwayWallet.stop();
 const walletAddress = throwAwayWallet.cashaddr;
 const walletTokenAddress = throwAwayWallet.getTokenDepositAddress();
 const foreignAddress = "bitcoincash:qp63uahgrxged4z5jswyt5dn5v3lzsem6cy4spdc2h";
@@ -47,7 +51,7 @@ describe('verifyMessage', () => {
   })
   it('should keep producing the Electron Cash compatible signature encoding', () => {
     // Deterministic signatures (RFC 6979 nonces) make this a stable regression check
-    // that mainnet-js upgrades don't change the message signing encoding
+    // that library upgrades don't change the message signing encoding
     const expectedSignature = "INJhauXYToTLNPfp/2L2c0VgGkLqAs+93B1cohELpMbWFNfVsca40MT9AoDYAV8f7SqmJ578uc9i1iLkFwQQJ0Y=";
     const signature = SignedMessage.sign(testMessage, throwAwayWallet.privateKey).signature;
     expect(signature).toEqual(expectedSignature);

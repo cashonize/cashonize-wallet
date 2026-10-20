@@ -8,7 +8,7 @@
 // the identities page's job. Every other held coin in the same transaction still refuses.
 
 import { binToHex } from "@bitauth/libauth";
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 import { i18n } from 'src/boot/i18n';
 import {
   outpointOf,

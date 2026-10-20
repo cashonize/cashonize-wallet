@@ -1,6 +1,6 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, decodeHeader, type ElectrumNetworkProvider, type HexHeaderI, type Utxo, type TransactionHistoryItem } from "mainnet-js"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, decodeHeader, type HexHeaderI, type Utxo, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib"
 import type { BcmrTokenMetadata, ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
@@ -17,45 +17,11 @@ export function copyToClipboard(copyText:string|undefined){
   })
 }
 
-export function runAsyncVoid(fn: () => Promise<void>) {
-  void fn();
-}
-
 // Electrum servers are stored as "host" or "host:port", the conventional wss port 50004 applies when none is given.
 // A server on this machine may be given as "ws://host:port" instead, as a local regtest Fulcrum serves no TLS.
 export function electrumWssUrl(server: string): string {
   if (/^ws:\/\/(localhost|127\.0\.0\.1):\d+$/.test(server)) return server;
   return server.includes(":") ? `wss://${server}` : `wss://${server}:50004`;
-}
-
-// A first window short enough to keep a dead server from holding the wallet open, then a second
-// long enough for a slow but healthy handshake, a TLS setup on a poor cellular link
-const ELECTRUM_CONNECT_TIMEOUT_MS = 3000;
-const ELECTRUM_CONNECT_RETRY_TIMEOUT_MS = 12_000;
-
-async function connectWithin(provider: ElectrumNetworkProvider, timeoutMs: number) {
-  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
-  try {
-    await Promise.race([
-      provider.connect(),
-      new Promise((_, reject) => {
-        timeoutHandle = setTimeout(() => reject(new Error("ELECTRUM_CONNECT_TIMEOUT")), timeoutMs);
-      }),
-    ]);
-  } finally {
-    clearTimeout(timeoutHandle);
-  }
-}
-
-// provider.connect() returns at once when the socket connected meanwhile and otherwise awaits the
-// connection already under way, so the second window is a longer wait on the same attempt rather
-// than a new one. Rejects when both have passed.
-export async function connectElectrum(provider: ElectrumNetworkProvider): Promise<void> {
-  try {
-    await connectWithin(provider, ELECTRUM_CONNECT_TIMEOUT_MS);
-  } catch {
-    await connectWithin(provider, ELECTRUM_CONNECT_RETRY_TIMEOUT_MS);
-  }
 }
 
 // A three hour gap between blocks is exceedingly unlikely, leaving room for miner timestamps

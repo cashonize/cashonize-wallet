@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { OpReturnData } from 'mainnet-js'
+import { OpReturnData } from '@cashonize/bch-wallet-lib'
 import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth'
 
 import { parsePublicationOutput, filledLocations } from '../src/utils/tools/authchainIdentity'
@@ -42,6 +42,13 @@ describe('parsePublicationOutput', () => {
     const message = binToHex(OpReturnData.fromString('hello').buffer)
 
     expect(parsePublicationOutput(message)).toBeUndefined()
+  })
+
+  // an output on the chain can be anything: a hash push that claims more bytes than follow
+  it('reads a malformed publication as no publication', () => {
+    const truncated = publicationOutput(registryHash, []).slice(0, -2)
+
+    expect(parsePublicationOutput(truncated)).toBeUndefined()
   })
 })
 

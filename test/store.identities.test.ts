@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import type { Utxo } from 'mainnet-js'
+import type { Utxo } from '@cashonize/bch-wallet-lib'
 import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth'
 
 import {
@@ -92,10 +92,10 @@ function listIdentities(categories: string[]) {
   localStorageMock.setItem('identities-mainnet-testWallet', JSON.stringify(categories))
 }
 
-function startStore(walletUtxos: Utxo[]) {
+async function startStore(walletUtxos: Utxo[]) {
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
-  store.setWallet(createMockWallet() as never)
+  await store.setWallet(createMockWallet() as never)
   store.walletUtxos = walletUtxos
   return { store, identitiesStore }
 }
@@ -143,15 +143,15 @@ describe('the full history for its readers', () => {
   })
 
   const item = historyItem(authheadA, [p2pkhOutput()])
-  function startHistoryStore(getHistory: ReturnType<typeof vi.fn>) {
+  async function startHistoryStore(getHistory: ReturnType<typeof vi.fn>) {
     const store = useStore()
-    store.setWallet({ ...createMockWallet(), getHistory } as never)
+    await store.setWallet({ ...createMockWallet(), getHistory } as never)
     return store
   }
 
   it('hands out the history on hand when it is complete', async () => {
     const getHistory = vi.fn().mockResolvedValue([])
-    const store = startHistoryStore(getHistory)
+    const store = await startHistoryStore(getHistory)
     store.walletHistory = [item]
     store.isHistoryPartial = false
 
@@ -161,7 +161,7 @@ describe('the full history for its readers', () => {
 
   it('loads the full history once for readers asking together', async () => {
     const getHistory = vi.fn().mockResolvedValue([item])
-    const store = startHistoryStore(getHistory)
+    const store = await startHistoryStore(getHistory)
 
     const [first, second] = await Promise.all([store.fullWalletHistory(), store.fullWalletHistory()])
 
@@ -173,7 +173,7 @@ describe('the full history for its readers', () => {
 
   it('loads the rest when only the capped history is on hand', async () => {
     const getHistory = vi.fn().mockResolvedValue([item])
-    const store = startHistoryStore(getHistory)
+    const store = await startHistoryStore(getHistory)
     store.walletHistory = [item]
     store.isHistoryPartial = true
 
@@ -185,7 +185,7 @@ describe('the full history for its readers', () => {
 
   it('fails a reader when the history cannot be loaded', async () => {
     const getHistory = vi.fn().mockRejectedValue(new Error('electrum down'))
-    const store = startHistoryStore(getHistory)
+    const store = await startHistoryStore(getHistory)
 
     await expect(store.fullWalletHistory()).rejects.toThrow()
   })
@@ -206,7 +206,7 @@ describe('the identities notification', () => {
   // what it guards and lists it without being asked; that is worth telling them
   it('reports an identity found through a key the way detection reports one', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '0') })
-    const { store, identitiesStore } = startStore([authKeyUtxo(categoryA)])
+    const { store, identitiesStore } = await startStore([authKeyUtxo(categoryA)])
     store.tokenList = [{ category: categoryA, amount: 0n }]
 
     await identitiesStore.followTokenIdentities('open')
@@ -234,7 +234,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
-    const { store, identitiesStore } = startStore([authUtxo])
+    const { store, identitiesStore } = await startStore([authUtxo])
 
     await identitiesStore.refreshIdentities()
 
@@ -249,7 +249,7 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA])
     const oldAuthUtxo = utxo(authheadA, 0)
     const newAuthUtxo = utxo(movedAuthheadA, 0)
-    const { store, identitiesStore } = startStore([oldAuthUtxo])
+    const { store, identitiesStore } = await startStore([oldAuthUtxo])
     await identitiesStore.refreshIdentities()
 
     stubAuthheadQueries({ [categoryA]: movedAuthheadA })
@@ -267,7 +267,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const newAuthUtxo = utxo(movedAuthheadA, 0)
-    const { store, identitiesStore } = startStore([newAuthUtxo])
+    const { store, identitiesStore } = await startStore([newAuthUtxo])
     await store.reserveOutpoints([outpointOf(newAuthUtxo)], 'auth')
 
     await identitiesStore.refreshIdentities()
@@ -282,7 +282,7 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA, categoryB])
     const authUtxoA = utxo(authheadA, 0)
     const authUtxoB = utxo(authheadB, 0)
-    const { store, identitiesStore } = startStore([authUtxoA, authUtxoB])
+    const { store, identitiesStore } = await startStore([authUtxoA, authUtxoB])
     await identitiesStore.refreshIdentities()
 
     // categoryA now answers with a different authhead, categoryB's query fails outright
@@ -298,7 +298,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
-    const { store, identitiesStore } = startStore([authUtxo])
+    const { store, identitiesStore } = await startStore([authUtxo])
     await store.reserveOutpoints([outpointOf(authUtxo)], 'pledge')
 
     await identitiesStore.refreshIdentities()
@@ -314,7 +314,7 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA])
     const authUtxoA = utxo(authheadA, 0)
     const authUtxoB = utxo(authheadB, 0)
-    const { store, identitiesStore } = startStore([authUtxoA, authUtxoB])
+    const { store, identitiesStore } = await startStore([authUtxoA, authUtxoB])
     await identitiesStore.refreshIdentities()
     // categoryB is a held token category the list does not cover yet
     store.tokenList = [{ category: categoryB, amount: 100n }]
@@ -333,7 +333,7 @@ describe('auth reservations follow the authchain', () => {
   // not answer would be a wrong answer, not a missing one
   it('reports an outage from the follow at open and lists nothing', async () => {
     stubAuthheadQueries({})
-    const { store, identitiesStore } = startStore([utxo(authheadB, 0)])
+    const { store, identitiesStore } = await startStore([utxo(authheadB, 0)])
     await identitiesStore.refreshIdentities()
     store.tokenList = [{ category: categoryB, amount: 100n }]
 
@@ -357,7 +357,7 @@ describe('auth reservations follow the authchain', () => {
       txid: 'dd'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest',
       token: { category: categoryB, amount: 0n, nft: { commitment: 'ab', capability: 'none' } },
     }
-    const { store, identitiesStore } = startStore([key, collectible])
+    const { store, identitiesStore } = await startStore([key, collectible])
     store.tokenList = [{ category: categoryA, amount: 0n }, { category: categoryB, amount: 0n }]
     const asked: string[] = []
     const answer = globalThis.fetch
@@ -380,7 +380,7 @@ describe('auth reservations follow the authchain', () => {
   // does not know is left out of the group rather than shown as an answer
   it('follows the identity of a held token without listing it', async () => {
     stubAuthheadQueries({ [categoryB]: authheadB })
-    const { store, identitiesStore } = startStore([utxo('cafe'.repeat(16), 0)])
+    const { store, identitiesStore } = await startStore([utxo('cafe'.repeat(16), 0)])
     await identitiesStore.refreshIdentities()
     store.tokenList = [{ category: categoryA, amount: 5n }, { category: categoryB, amount: 100n }]
 
@@ -399,7 +399,7 @@ describe('auth reservations follow the authchain', () => {
   // visit; a token sent away leaves the group on the next pass
   it('asks at open about every held category, and drops a token sent away', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
-    const { store, identitiesStore } = startStore([])
+    const { store, identitiesStore } = await startStore([])
     await identitiesStore.refreshIdentities()
     store.tokenList = [{ category: categoryA, amount: 5n }]
     await identitiesStore.followTokenIdentities('open')
@@ -430,7 +430,7 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA, categoryB])
     const authUtxoA = utxo(authheadA, 0)
     const authUtxoB = utxo(authheadB, 0)
-    const { store, identitiesStore } = startStore([authUtxoA, authUtxoB])
+    const { store, identitiesStore } = await startStore([authUtxoA, authUtxoB])
     const reservedKey = 'reservedUtxos-mainnet-testWallet'
     const written = () => Object.keys(JSON.parse(localStorageMock.getItem(reservedKey) ?? '{}') as Record<string, unknown>)
 
@@ -445,7 +445,7 @@ describe('auth reservations follow the authchain', () => {
     expect(written()).toEqual([])
 
     // the switch lands during the refresh after the writes: both are already under this wallet's key
-    const again = startStore([authUtxoA, authUtxoB])
+    const again = await startStore([authUtxoA, authUtxoB])
     again.store.wallet.getMaxAmountToSend = vi.fn()
       .mockImplementationOnce(async () => {
         await again.store.resetWalletState({ resetDappConnections: false })
@@ -461,7 +461,7 @@ describe('auth reservations follow the authchain', () => {
   it('runs a resolve asked for during a follow pass, after it', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
     listIdentities([categoryA])
-    const { store, identitiesStore } = startStore([utxo(authheadA, 0)])
+    const { store, identitiesStore } = await startStore([utxo(authheadA, 0)])
     store.tokenList = [{ category: categoryB, amount: 100n }]
     const answer = globalThis.fetch
     let release: () => void = () => {}
@@ -489,7 +489,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
     listIdentities([categoryA])
     const authUtxoB = utxo(authheadB, 0)
-    const { store, identitiesStore } = startStore([utxo(authheadA, 0), authUtxoB])
+    const { store, identitiesStore } = await startStore([utxo(authheadA, 0), authUtxoB])
     const answer = globalThis.fetch
     let release: () => void = () => {}
     const gate = new Promise<void>(resolve => { release = resolve })
@@ -520,7 +520,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: payoutTxid })
     listIdentities([categoryA])
     const payout = utxo(payoutTxid, 0)
-    const { store, identitiesStore } = startStore([payout])
+    const { store, identitiesStore } = await startStore([payout])
     await identitiesStore.refreshIdentities()
     expect(store.reservedUtxos[outpointOf(payout)]).toBe('auth')
     vi.spyOn(store, 'fullWalletHistory').mockResolvedValue([
@@ -551,7 +551,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: payoutTxid })
     listIdentities([categoryA, categoryB])
     const payout = utxo(payoutTxid, 0)
-    const { store, identitiesStore } = startStore([payout])
+    const { store, identitiesStore } = await startStore([payout])
     vi.spyOn(store, 'fullWalletHistory').mockResolvedValue([
       historyItem(categoryA, [p2pkhOutput()]),
       historyItem(genesisTxid, [{ ...tokenOutput(categoryA, { commitment: '', capability: 'minting' }), lockingBytecode: contract }], [spendOf(categoryA, 0)]),
@@ -567,7 +567,7 @@ describe('auth reservations follow the authchain', () => {
   // the wallet's history is read at open; it failing to load must land on the identities
   // page, not flag a wallet that did load
   it('reports a failed lookup at open on the page rather than as a failed wallet', async () => {
-    const { store, identitiesStore } = startStore([utxo('cd'.repeat(32), 0)])
+    const { store, identitiesStore } = await startStore([utxo('cd'.repeat(32), 0)])
     vi.spyOn(store, 'fullWalletHistory').mockRejectedValue(new Error('history refused'))
 
     await identitiesStore.runChecksOnOpen()
@@ -581,7 +581,7 @@ describe('auth reservations follow the authchain', () => {
   // announced, the same as one found at open
   it('promotes a followed identity when its authhead arrives', async () => {
     stubAuthheadQueries({ [categoryB]: authheadB })
-    const { store, identitiesStore } = startStore([])
+    const { store, identitiesStore } = await startStore([])
     await identitiesStore.refreshIdentities()
     store.tokenList = [{ category: categoryB, amount: 100n }]
     await identitiesStore.followTokenIdentities('all')
@@ -604,7 +604,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0, { category: categoryA, amount: 1000n })
-    const { store, identitiesStore } = startStore([authUtxo])
+    const { store, identitiesStore } = await startStore([authUtxo])
 
     await identitiesStore.refreshIdentities()
 
@@ -619,7 +619,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '500') })
     listIdentities([categoryA])
     const key = authKeyUtxo(categoryA)
-    const { store, identitiesStore } = startStore([key])
+    const { store, identitiesStore } = await startStore([key])
 
     await identitiesStore.refreshIdentities()
 
@@ -639,7 +639,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(keyCategory, categoryA, '500') })
     listIdentities([categoryA])
     const key = authKeyUtxo(keyCategory)
-    const { store, identitiesStore } = startStore([key])
+    const { store, identitiesStore } = await startStore([key])
     store.bcmrRegistries = {
       [categoryA]: { name: 'Named', description: '', token: { category: categoryA, symbol: 'NMD' }, extensions: { authNft: keyCategory } },
     }
@@ -658,7 +658,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(otherKey, categoryA, '500') })
     listIdentities([categoryA])
     const lookalike = authKeyUtxo(categoryA)
-    const { store, identitiesStore } = startStore([lookalike])
+    const { store, identitiesStore } = await startStore([lookalike])
 
     await identitiesStore.refreshIdentities()
 
@@ -680,7 +680,7 @@ describe('auth reservations follow the authchain', () => {
     const collectionNft: Utxo = { ...authKeyUtxo(categoryA), token: { category: categoryA, amount: 0n, nft: { commitment: 'ab', capability: 'none' } } }
 
     stub()
-    const { store, identitiesStore } = startStore([collectionNft])
+    const { store, identitiesStore } = await startStore([collectionNft])
     await identitiesStore.refreshIdentities()
     expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
     expect(store.reservedUtxos).toEqual({})
@@ -708,7 +708,7 @@ describe('auth reservations follow the authchain', () => {
       { [keyCategory]: guardGenesis(keyCategory, '00') },
     )
     const key = authKeyUtxo(keyCategory)
-    const { store, identitiesStore } = startStore([key])
+    const { store, identitiesStore } = await startStore([key])
     store.tokenList = [{ category: keyCategory, amount: 0n }]
 
     await identitiesStore.followTokenIdentities('keys')
@@ -733,7 +733,7 @@ describe('auth reservations follow the authchain', () => {
       { [keyCategory]: guardGenesis(keyCategory, '00') },
     )
     const key = authKeyUtxo(keyCategory)
-    const { store, identitiesStore } = startStore([key])
+    const { store, identitiesStore } = await startStore([key])
     store.tokenList = [{ category: keyCategory, amount: 0n }]
 
     await identitiesStore.followTokenIdentities('open')
@@ -750,7 +750,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(keyCategory, categoryA, '500') })
     listIdentities([categoryA])
     const key = authKeyUtxo(keyCategory)
-    const { store, identitiesStore } = startStore([key])
+    const { store, identitiesStore } = await startStore([key])
 
     await identitiesStore.refreshIdentities()
 
@@ -773,7 +773,7 @@ describe('auth reservations follow the authchain', () => {
     )
     listIdentities([keyCategory])
     const key = authKeyUtxo(keyCategory)
-    const { store, identitiesStore } = startStore([key])
+    const { store, identitiesStore } = await startStore([key])
 
     await identitiesStore.refreshIdentities()
 
@@ -788,7 +788,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '500') })
     listIdentities([categoryA])
     const minting: Utxo = { ...authKeyUtxo(categoryA), token: { category: categoryA, amount: 0n, nft: { commitment: '00', capability: 'minting' } } }
-    const { store, identitiesStore } = startStore([minting])
+    const { store, identitiesStore } = await startStore([minting])
 
     await identitiesStore.refreshIdentities()
 
@@ -801,7 +801,7 @@ describe('auth reservations follow the authchain', () => {
   it('ignores an authNft that is not a category', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput('1122334455667788'.repeat(4), categoryA, '500') })
     listIdentities([categoryA])
-    const { store, identitiesStore } = startStore([])
+    const { store, identitiesStore } = await startStore([])
     store.bcmrRegistries = {
       [categoryA]: { name: 'Named', description: '', token: { category: categoryA, symbol: 'NMD' }, extensions: { authNft: 'not a category' } },
     }
@@ -816,7 +816,7 @@ describe('auth reservations follow the authchain', () => {
   // reserved before any coin list shows it, and the resolve that follows must not take it back
   it('keeps a created identity\'s reservation while the wallet has not seen the coin yet', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
-    const { store, identitiesStore } = startStore([])
+    const { store, identitiesStore } = await startStore([])
 
     await identitiesStore.listCreatedIdentity(categoryA, authheadA)
 
@@ -830,7 +830,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA }, { [categoryA]: guardedOutput(categoryA, categoryA, '500') })
     listIdentities([categoryA])
     const key = authKeyUtxo(categoryA)
-    const { store, identitiesStore } = startStore([key])
+    const { store, identitiesStore } = await startStore([key])
     await identitiesStore.refreshIdentities()
     expect(store.reservedUtxos[outpointOf(key)]).toBe('auth')
 
@@ -845,7 +845,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const nft = authKeyUtxo(categoryA)
-    const { store, identitiesStore } = startStore([nft])
+    const { store, identitiesStore } = await startStore([nft])
 
     await identitiesStore.refreshIdentities()
 
@@ -859,7 +859,7 @@ describe('auth reservations follow the authchain', () => {
   it('lists and holds back an authhead these keys genesised', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     const authUtxo = utxo(authheadA, 0)
-    const { store, identitiesStore } = startStore([authUtxo])
+    const { store, identitiesStore } = await startStore([authUtxo])
     const walk = genesisHistory(categoryA, authheadA)
 
     await identitiesStore.detectWalletIdentities(walk)
@@ -889,7 +889,7 @@ describe('auth reservations follow the authchain', () => {
   it('tells a watched identity that arrived while the app was closed as an arrival', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
-    const { store, identitiesStore } = startStore([])
+    const { store, identitiesStore } = await startStore([])
     await identitiesStore.refreshIdentities()
     expect(identitiesStore.identities?.[0]?.status).toBe('notHeld')
     expect(JSON.parse(localStorageMock.getItem('watchedIdentities-mainnet-testWallet') ?? '[]')).toEqual([categoryA])
@@ -915,7 +915,7 @@ describe('auth reservations follow the authchain', () => {
   it('keeps what was watched through a resolve that could not reach the server', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
-    const { identitiesStore } = startStore([])
+    const { identitiesStore } = await startStore([])
     await identitiesStore.refreshIdentities()
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))))
 
@@ -930,7 +930,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
-    const { identitiesStore } = startStore([authUtxo])
+    const { identitiesStore } = await startStore([authUtxo])
     await identitiesStore.refreshIdentities()
     await identitiesStore.removeIdentity(categoryA)
     const walk = genesisHistory(categoryA, authheadA)
@@ -949,7 +949,7 @@ describe('auth reservations follow the authchain', () => {
     const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
     stubAuthheadQueries({ [categoryA]: authheadA })
     serveRegistry()
-    const { store, identitiesStore } = startStore([authUtxo])
+    const { store, identitiesStore } = await startStore([authUtxo])
     const walk = [historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])]
 
     await identitiesStore.detectWalletIdentities(walk)
@@ -969,7 +969,7 @@ describe('auth reservations follow the authchain', () => {
     const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
     stubAuthheadQueries({ [categoryA]: movedAuthheadA })
     serveRegistry()
-    const { store, identitiesStore } = startStore([movedUtxo])
+    const { store, identitiesStore } = await startStore([movedUtxo])
 
     await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
 
@@ -984,7 +984,7 @@ describe('auth reservations follow the authchain', () => {
     const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
     stubAuthheadQueries({ [categoryA]: authheadA })
     serveRegistry()
-    const { identitiesStore } = startStore([authUtxo])
+    const { identitiesStore } = await startStore([authUtxo])
     const walk = [historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])]
     await identitiesStore.detectWalletIdentities(walk)
     const registryFetches = () => (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(([url]) => String(url).includes('registry.example')).length
@@ -1001,7 +1001,7 @@ describe('auth reservations follow the authchain', () => {
     const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
     stubAuthheadQueries({ [categoryA]: authheadA })
     serveRegistry()
-    const { identitiesStore } = startStore([utxo(authheadA, 1)])
+    const { identitiesStore } = await startStore([utxo(authheadA, 1)])
 
     await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
 
@@ -1015,7 +1015,7 @@ describe('auth reservations follow the authchain', () => {
     const { registryHex, serveRegistry } = publishedRegistry(Object.fromEntries(others.map(authbase => [authbase, {}])))
     stubAuthheadQueries({ [others[0]!]: authheadB })
     serveRegistry()
-    const { identitiesStore } = startStore([utxo(authheadA, 0)])
+    const { identitiesStore } = await startStore([utxo(authheadA, 0)])
 
     await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
 
@@ -1030,7 +1030,7 @@ describe('auth reservations follow the authchain', () => {
     const { registryHex, serveRegistry } = publishedRegistry({ [categoryB]: {} })
     stubAuthheadQueries({ [categoryB]: authheadB })
     serveRegistry()
-    const { store, identitiesStore } = startStore([authUtxo])
+    const { store, identitiesStore } = await startStore([authUtxo])
 
     await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
 
@@ -1044,7 +1044,7 @@ describe('auth reservations follow the authchain', () => {
     const { registryHex, serveRegistry } = publishedRegistry({ [categoryA]: {} })
     stubAuthheadQueries({ [categoryA]: authheadA })
     serveRegistry('{"identities":{}}')
-    const { identitiesStore } = startStore([authUtxo])
+    const { identitiesStore } = await startStore([authUtxo])
 
     await identitiesStore.detectWalletIdentities([historyItem(authheadA, [p2pkhOutput(), opReturnOutput(registryHex)])])
 
@@ -1057,7 +1057,7 @@ describe('auth reservations follow the authchain', () => {
   it('drops the publication checks once the publication changed, and keeps them while it has not', async () => {
     stubAuthheadQueries({ [categoryA]: authheadA, [categoryB]: authheadB })
     listIdentities([categoryA, categoryB])
-    const { identitiesStore } = startStore([utxo(authheadA, 0), utxo(authheadB, 0)])
+    const { identitiesStore } = await startStore([utxo(authheadA, 0), utxo(authheadB, 0)])
     await identitiesStore.refreshIdentities()
     // the stub answers with no publication, so A's earlier publication is the one that changed
     identitiesStore.identities = identitiesStore.identities!.map(identity =>
@@ -1076,7 +1076,7 @@ describe('auth reservations follow the authchain', () => {
     const txid = 'cafe'.repeat(16)
     stubAuthheadQueries({ [txid]: txid })
     const picked = utxo(txid, 0)
-    const { store, identitiesStore } = startStore([picked])
+    const { store, identitiesStore } = await startStore([picked])
 
     await identitiesStore.listCreatedIdentity(txid, txid)
 
@@ -1089,7 +1089,7 @@ describe('auth reservations follow the authchain', () => {
     stubAuthheadQueries({ [categoryA]: authheadA })
     listIdentities([categoryA])
     const authUtxo = utxo(authheadA, 0)
-    const { store, identitiesStore } = startStore([authUtxo])
+    const { store, identitiesStore } = await startStore([authUtxo])
     await identitiesStore.refreshIdentities()
 
     await identitiesStore.removeIdentity(categoryA)

@@ -10,10 +10,6 @@ overrides:
   '@reown/walletkit': 1.6.0
   '@walletconnect/core': 2.25.0
   '@wizardconnect/core': 0.2.5
-  mainnet-js: 3.1.7
-
-patchedDependencies:
-  mainnet-js@3.1.7: 9724965b50c2d6b75bd6c14c6b75c40a4c33eb9681d8f7554301692f10322ceb
 
 importers:
 
@@ -31,9 +27,9 @@ importers:
       '@cashconnect-js/nostr':
         specifier: 1.0.0-alpha.31
         version: 1.0.0-alpha.31
-      '@mainnet-cash/indexeddb-storage':
-        specifier: 3.1.7
-        version: 3.1.7
+      '@cashonize/bch-wallet-lib':
+        specifier: 0.1.0
+        version: 0.1.0
       '@noble/ciphers':
         specifier: 2.4.0
         version: 2.4.0
@@ -61,9 +57,6 @@ importers:
       gql.tada:
         specifier: ^1.11.3
         version: 1.11.3(graphql@17.0.2)(typescript@6.0.3)
-      mainnet-js:
-        specifier: 3.1.7
-        version: 3.1.7(patch_hash=9724965b50c2d6b75bd6c14c6b75c40a4c33eb9681d8f7554301692f10322ceb)
       pinia:
         specifier: ^4.0.3
         version: 4.0.3(@vue/devtools-api@7.7.10)(typescript@6.0.3)(vue@3.5.43(typescript@6.0.3))
@@ -240,6 +233,10 @@ packages:
   '@cashconnect-js/nostr@1.0.0-alpha.31':
     resolution: {integrity: sha512-/BebQtgfXrWQyhVPF3gvCYq1SCTeKQABEMbvzKeSi0pVdPYvchMjaOCAM2B0vRlnDHMbmXoc5z47GBXHvPO22g==}
 
+  '@cashonize/bch-wallet-lib@0.1.0':
+    resolution: {integrity: sha512-8LWBtgkYlduA/JXCoF86KVIKKQpb2yYCOSTuNO+OW8c8QIuk58LGdb3D25wP6rQvxFASxyJ1k3nxZizugsEyOw==}
+    engines: {node: ^26 || ^24 || ^22.12.0}
+
   '@clack/core@1.5.1':
     resolution: {integrity: sha512-iHTrHA8MtVuLl2TfZySmcKv1qO2PoyC9Z7pfSDozEuV5vtY3/wcOPKJXlqJ5Oq2Cx5DDGQGAMVx6HZfRRoVEbQ==}
     engines: {node: '>= 20.12.0'}
@@ -251,11 +248,14 @@ packages:
   '@electrum-cash/debug-logs@1.0.0':
     resolution: {integrity: sha512-GU/CvRR9lZ0d8gy9CXGW7f//OHCIydBavv9q+JcxjGj8Xr7HwlGqHx+Wzhx9y3YmJrXfExpgClcd++gTjdEmzA==}
 
-  '@electrum-cash/network@4.2.2':
-    resolution: {integrity: sha512-v2Wwt2o0VBBALPArx2dJEDvSqewKjiTW5KAd+jEXxxgdSxFygjJIrFcXryKOCv2CDbpE5+lXAogPAjx6FqW/nw==}
+  '@electrum-cash/network@4.4.8':
+    resolution: {integrity: sha512-fo/03qopaYdweO3JO5J2OL3gQz7fyil8NJaKg8Kid2bmF4uYulVuu9Q1W1bi4lRql5Dq9q7Z9LByShTi6pRbFg==}
 
-  '@electrum-cash/web-socket@1.2.3':
-    resolution: {integrity: sha512-sFWujTt98mvsMvE6gWjG44evkF3PcZhG1JffkkEUAVan+c9X51wkiWr3hkjPeIW0WfNpMTrFkvpGqVYmRj1RCA==}
+  '@electrum-cash/socket@4.2.0':
+    resolution: {integrity: sha512-xYqFLDc+eRTgAykAtHXOUfE6xvqfqWgTFLjSaLXwNMJ+iBH2vgZoMOH7K0uvgzdnM8TP84s64tup7TWpHkIA8w==}
+
+  '@electrum-cash/web-socket@4.2.0':
+    resolution: {integrity: sha512-Zu0jme7KUB3tT90u9YdpGUa1dX/IE4fyMTEmicpezEtxg9lXp5vGoqqvN32Ww/leJXN/ZmVHgMoXKuOeylGULQ==}
 
   '@eslint-community/eslint-utils@4.10.1':
     resolution: {integrity: sha512-cuadcxVFE8sDK6iWJbs8Sn0av2Nrh2QSGQhVlBW9AaAHqHwjWsZHT8LJ4hFGPh7ASBV2deFdM7H/DPjulmh8rg==}
@@ -376,9 +376,6 @@ packages:
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
-
-  '@mainnet-cash/indexeddb-storage@3.1.7':
-    resolution: {integrity: sha512-VUKtH9N1uUndNJOT+vA86K9B4j5OFvqv82s36lZSLHP2UpGh+sAAbQYw7YHiFNDuWb4arJAzX9N1sCZwOySQ2w==}
 
   '@monsterbitar/isomorphic-ws@5.3.1':
     resolution: {integrity: sha512-BWfWUffbg3uO4K6Cyokg9ff43lPaXAOZcCnNe1lcjCjUMDVrRAb5qEHG5qeJp3ud2SPYbORaNsls5as6SR3oig==}
@@ -1265,10 +1262,6 @@ packages:
     resolution: {integrity: sha512-aBfBS8eYIeXmpHI9ThIlA7/WLq+SLt18iXUZhb52rW89QLKQFoIpPG1bPeewoPZsTyjSSO3T7234FBVUM1V2rA==}
     engines: {node: '>=12'}
 
-  dotenv@10.0.0:
-    resolution: {integrity: sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==}
-    engines: {node: '>=10'}
-
   dotenv@17.4.2:
     resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
     engines: {node: '>=12'}
@@ -1741,9 +1734,6 @@ packages:
 
   magicast@0.5.5:
     resolution: {integrity: sha512-UicdXN8zQ3JHlxVq+28afMXPr1z7WNY6+7EJnzTdQWkTAlMLF5fNCCKxJHBQwGaNGR11581EiQmQzx73+MvszA==}
-
-  mainnet-js@3.1.7:
-    resolution: {integrity: sha512-rOBN+qVON7Lhh2jrMwIA26xv23dAFULMR+DT+g9al9GnmNSdsUL2RuN50eWwkUxE2T4YFdTWT30FUKZczl8hRw==}
 
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
@@ -2795,6 +2785,16 @@ snapshots:
       '@cashconnect-js/core': 1.0.0-alpha.31
       zod: 4.6.5
 
+  '@cashonize/bch-wallet-lib@0.1.0':
+    dependencies:
+      '@bitauth/libauth': 3.1.0-next.8
+      '@electrum-cash/network': 4.4.8
+      '@electrum-cash/web-socket': 4.2.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   '@clack/core@1.5.1':
     dependencies:
       fast-wrap-ansi: 0.2.2
@@ -2813,10 +2813,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@electrum-cash/network@4.2.2':
+  '@electrum-cash/network@4.4.8':
     dependencies:
       '@electrum-cash/debug-logs': 1.0.0
-      '@electrum-cash/web-socket': 1.2.3
+      '@electrum-cash/socket': 4.2.0
+      '@electrum-cash/web-socket': 4.2.0
       async-mutex: 0.5.0
       debug: 4.4.3
       eventemitter3: 5.0.4
@@ -2826,9 +2827,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@electrum-cash/web-socket@1.2.3':
+  '@electrum-cash/socket@4.2.0': {}
+
+  '@electrum-cash/web-socket@4.2.0':
     dependencies:
       '@electrum-cash/debug-logs': 1.0.0
+      '@electrum-cash/socket': 4.2.0
       '@monsterbitar/isomorphic-ws': 5.3.1(ws@8.22.0)
       '@types/ws': 8.18.1
       async-mutex: 0.5.0
@@ -2947,14 +2951,6 @@ snapshots:
       keyv: 5.6.0
 
   '@keyv/serialize@1.1.1': {}
-
-  '@mainnet-cash/indexeddb-storage@3.1.7':
-    dependencies:
-      mainnet-js: 3.1.7(patch_hash=9724965b50c2d6b75bd6c14c6b75c40a4c33eb9681d8f7554301692f10322ceb)
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
 
   '@monsterbitar/isomorphic-ws@5.3.1(ws@8.22.0)':
     dependencies:
@@ -4094,9 +4090,6 @@ snapshots:
     dependencies:
       dotenv: 17.4.2
 
-  dotenv@10.0.0:
-    optional: true
-
   dotenv@17.4.2: {}
 
   ee-first@1.1.1: {}
@@ -4517,17 +4510,6 @@ snapshots:
       '@babel/parser': 7.29.9
       '@babel/types': 7.29.8
       source-map-js: 1.2.2
-
-  mainnet-js@3.1.7(patch_hash=9724965b50c2d6b75bd6c14c6b75c40a4c33eb9681d8f7554301692f10322ceb):
-    dependencies:
-      '@bitauth/libauth': 3.1.0-next.8
-      '@electrum-cash/network': 4.2.2
-    optionalDependencies:
-      dotenv: 10.0.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
 
   merge2@1.4.1: {}
 

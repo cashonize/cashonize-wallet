@@ -5,21 +5,19 @@
  * Note: vi.mock() calls are hoisted, so mock functions must be defined at
  * module level to be available in both mock factories and test assertions.
  */
+import type * as BchWalletLib from '@cashonize/bch-wallet-lib'
 import { vi } from 'vitest'
 
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
-export const mockWalletReplaceNamed = vi.fn()
-export const mockWalletFromSeed = vi.fn()
-export const mockTestNetWalletReplaceNamed = vi.fn()
-
-// Mock functions for HD wallet classes
 export const mockHDWalletNamed = vi.fn()
-export const mockHDWalletReplaceNamed = vi.fn()
-export const mockTestNetHDWalletReplaceNamed = vi.fn()
+// Stores a wallet id under a name without constructing the wallet
+export const mockSaveNamedWallet = vi.fn()
+// The history the derivation path scan asks the mainnet provider for, per address
+export const mockGetHistory = vi.fn()
 
 // Mock functions for dependencies
-export const mockNamedWalletExistsInDb = vi.fn()
+export const mockNamedWalletExists = vi.fn()
 export const mockSetWallet = vi.fn()
 export const mockResetWalletState = vi.fn()
 export const mockRefreshAvailableWallets = vi.fn()
@@ -59,25 +57,21 @@ vi.mock('src/stores/settingsStore', () => ({
   }))
 }))
 
-vi.mock('src/utils/wallet/dbUtils', () => ({
-  namedWalletExistsInDb: mockNamedWalletExistsInDb
-}))
+vi.mock('src/utils/wallet/dbUtils', () => ({}))
 
-vi.mock('mainnet-js', () => ({
+// The derivation helpers are the real ones: the scan's addresses are checked against libauth's
+vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
+  NetworkType: (await importOriginal<typeof BchWalletLib>()).NetworkType,
+  getXPubKey: (await importOriginal<typeof BchWalletLib>()).getXPubKey,
+  getAddrsByXpubKey: (await importOriginal<typeof BchWalletLib>()).getAddrsByXpubKey,
+  getNetworkProvider: vi.fn(() => ({ getHistory: mockGetHistory })),
+  namedWalletExists: mockNamedWalletExists,
+  saveNamedWallet: mockSaveNamedWallet,
   Wallet: {
     named: mockWalletNamed,
-    replaceNamed: mockWalletReplaceNamed,
-    fromSeed: mockWalletFromSeed,
-  },
-  TestNetWallet: {
-    replaceNamed: mockTestNetWalletReplaceNamed,
   },
   HDWallet: {
     named: mockHDWalletNamed,
-    replaceNamed: mockHDWalletReplaceNamed,
-  },
-  TestNetHDWallet: {
-    replaceNamed: mockTestNetHDWalletReplaceNamed,
   },
   Config: {
     DefaultParentDerivationPath: '',

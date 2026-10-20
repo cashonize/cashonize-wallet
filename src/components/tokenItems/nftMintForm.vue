@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref } from 'vue';
-  import { TokenMintRequest, type NFTCapability, type Utxo } from "mainnet-js"
+  import { TokenMintRequest, type NFTCapability, type Utxo } from "@cashonize/bch-wallet-lib"
   import { mintOutputs } from 'src/utils/tools/authchainIdentity'
   import { bigIntToVmNumber, binToHex } from "@bitauth/libauth"
   import type { TokenActionType } from "src/interfaces/interfaces"
@@ -54,8 +54,8 @@
         recipientAddr = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
         destinationAddr.value = recipientAddr;
       }
-      // mainnet-js mints whatever list it is given, empty included, so an amount below one would
-      // broadcast a transaction that only moves the minting NFT, and the authhead with it
+      // The library's tokenMint refuses an empty list, but a mint from the identity UTXO is a plain
+      // send, so an amount below one would broadcast a transaction that only moves the authhead
       const mintAmount = Number(mintQuantity.value);
       if(!Number.isInteger(mintAmount) || mintAmount < 1) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
       if(mintAmount > maxNftsPerMint) throw new Error(t('tokenItem.errors.tooManyNfts', { max: maxNftsPerMint }));
@@ -107,18 +107,19 @@
       // A minting NFT that is the token's identity UTXO is held back, so minting from it is an
       // authchain operation: the identity output first, then the minted NFTs, through the spend
       // every identity operation uses. Any other minting NFT goes through tokenMint as before.
-      let txId: string | undefined;
+      let txId: string;
       if (props.identityUtxo) {
         const outputs = mintOutputs(props.identityUtxo, store.walletAddresses(), mints);
-        const mintOptions = { tokenOperation: 'mint' as const, checkTokenQuantities: false };
+        const mintOptions = { tokenOperation: 'mint' as const };
         ({ txId } = await store.spend.spendAuthUtxo(props.identityUtxo, outputs, [], mintOptions));
       } else {
         const mintRequests = mints.map(mint => new TokenMintRequest({
+          category: props.category,
           cashaddr: mint.cashaddr,
           nft: { commitment: mint.commitment, capability: mint.capability as NFTCapability },
           value: mint.value,
         }));
-        ({ txId } = await store.spend.tokenMint(props.category, mintRequests));
+        ({ txId } = await store.spend.tokenMint(mintRequests));
       }
       let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, tokenId: displayId });
       if (mintAmount == 1) {

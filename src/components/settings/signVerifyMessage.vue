@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
-  import { HDWallet, SignedMessage } from 'mainnet-js'
+  import { HDWallet, SignedMessage } from '@cashonize/bch-wallet-lib'
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'

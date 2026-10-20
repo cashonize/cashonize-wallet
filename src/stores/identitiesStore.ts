@@ -29,7 +29,7 @@ import {
 import { checkPublicationUri, fetchVerifiedRegistry, registryAuthbases, type PublicationUriStatus } from "src/utils/tools/registryFile"
 import { contractStateIdentities, detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
-import type { TransactionHistoryItem } from "mainnet-js"
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
 import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
 import { truncateHash } from "src/utils/utils"

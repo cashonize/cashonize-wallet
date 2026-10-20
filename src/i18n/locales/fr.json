@@ -3,7 +3,9 @@
     "actions": {
       "back": "Retour",
       "send": "Envoyer",
-      "confirm": "Confirmer"
+      "confirm": "Confirmer",
+      "broadcastAgain": "Diffuser à nouveau",
+      "dismiss": "Fermer"
     },
     "status": {
       "sending": "Envoi en cours..."
@@ -19,7 +21,8 @@
         "missingInputs": "La transaction a été rejetée car l'un de ses UTXO est manquant ou déjà dépensé. Rien n'a été envoyé, vous pouvez donc réessayer.",
         "missingInputsDapp": "La transaction a été rejetée car l'un de ses UTXO est manquant ou déjà dépensé. Rien n'a été envoyé. La dApp doit reconstruire la transaction : rechargez la dApp et répétez l'action.",
         "notYetFinal": "La transaction a été rejetée car elle est verrouillée dans le temps et le verrou n'est pas encore atteint. Réessayer maintenant n'aidera pas, attendez que le verrou soit passé.",
-        "timeout": "Le serveur n'a pas répondu à temps. La transaction a peut-être quand même été envoyée, vérifiez donc votre historique des transactions avant de réessayer."
+        "unknownOutcome": "Le serveur n'a pas pu confirmer si la transaction est partie : elle a peut-être été envoyée, ou peut-être pas. Vérifiez votre historique de transactions, ou diffusez à nouveau la même transaction, ce qui ne peut jamais payer deux fois. Ne la renvoyez pas comme un nouveau paiement.",
+        "unknownOutcomeDapp": "Le serveur n'a pas pu confirmer si la transaction de la dApp est partie : elle a peut-être été envoyée, ou peut-être pas. Vérifiez votre historique de transactions, ou diffusez à nouveau la même transaction, ce qui ne peut jamais payer deux fois."
       }
     },
     "attention": "Attention :",
@@ -84,7 +87,8 @@
   "store": {
     "notifications": {
       "receivedBch": "Reçu {amount} {unit} ({fiatValue})",
-      "receivedTokens": "Reçu nouveau {tokenType}"
+      "receivedTokens": "Reçu nouveau {tokenType}",
+      "broadcastAgainSent": "La transaction {txId} a été diffusée"
     },
     "errors": {
       "cannotDeleteActiveWallet": "Impossible de supprimer le portefeuille actuellement actif",
@@ -104,11 +108,13 @@
       "utxosHeldBack": "Certains UTXO sont écartés de la sélection et ne comptent pas ici. La page de gestion des UTXO montre lesquels sont retenus et pourquoi.",
       "cannotSendPledgedUtxo": "Cet UTXO est retenu pour un engagement en cours. Annulez l'engagement pour le libérer.",
       "genesisInputUnavailable": "La pièce choisie pour créer ce token n'est plus disponible. Choisissez-en une autre.",
+      "utxoNotAvailable": "Une pièce que dépense cette transaction n'est plus dans le portefeuille, probablement dépensée ailleurs. Attendez la mise à jour du portefeuille et réessayez.",
       "identityLeavesWallet": "Cette requête déplacerait une de vos identités vers une adresse que ce portefeuille ne reconnaît pas comme la sienne, elle a donc été refusée. Le transfert d'une identité se fait depuis la page des identités.",
       "identityMerge": "Cette demande dépenserait deux de vos identités dans une seule transaction, ce qui les fusionne en une. Ce portefeuille ne prend pas encore en charge la fusion d'identités, elle a donc été refusée.",
       "reservedInputs": "Cette demande dépenserait un UTXO que le portefeuille retient, elle a donc été refusée. La page Gestion des UTXO indique quels UTXOs sont retenus et pourquoi.",
       "identityHeld": "Cette requête dépenserait l'UTXO d'identité de {name}, ce que les applications connectées ne sont pas autorisées à faire ; elle a donc été refusée. Pour gérer des identités via une application connectée, activez « Laisser les applications connectées dépenser les UTXO d'identité » dans les options utilisateur.",
-      "dappRefusedTitle": "Requête refusée"
+      "dappRefusedTitle": "Requête refusée",
+      "broadcastAgainWalletSwitched": "Un autre portefeuille est ouvert. Revenez au portefeuille qui a créé la transaction pour la diffuser à nouveau."
     }
   },
   "onboarding": {

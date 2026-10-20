@@ -1,5 +1,5 @@
 import { binToHex, cashAddressToLockingBytecode } from "@bitauth/libauth";
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 import { toPrefixedAddress } from "src/utils/addressValidation";
 
 // The history searches by address on locking bytecode: an address and its token-aware form
@@ -13,7 +13,7 @@ export function addressQueryBytecode(query: string): string | undefined {
   return binToHex(result.bytecode);
 }
 
-// mainnet-js records the locking bytecode of every input and output except a coinbase input
+// The library records the locking bytecode of every input and output except a coinbase input
 export function txInvolvesBytecode(tx: TransactionHistoryItem, lockingBytecodes: Set<string>): boolean {
   return [...tx.inputs, ...tx.outputs].some(inOutput =>
     inOutput.lockingBytecode !== undefined && lockingBytecodes.has(inOutput.lockingBytecode)

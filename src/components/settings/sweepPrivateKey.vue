@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
-  import { TestNetWallet, Wallet, convert } from 'mainnet-js';
+  import { NetworkType, TestNetWallet, Wallet, convert, decodeWif } from '@cashonize/bch-wallet-lib';
   import { decodePrivateKeyWif, encodePrivateKeyWif } from '@bitauth/libauth';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -62,10 +62,11 @@
   const fungibleTokens = computed(() => previewTokenList.value.filter(item => 'amount' in item));
   const nftTokens = computed(() => previewTokenList.value.filter(item => 'nfts' in item));
 
-  const keyToSweep = computed(() => {
-    const input = privateKeyToSweep.value.trim();
+  function withoutWifScheme(input: string) {
     return input.startsWith('bch-wif:') ? input.slice(8) : input;
-  });
+  }
+
+  const keyToSweep = computed(() => withoutWifScheme(privateKeyToSweep.value.trim()));
   const isEncryptedKey = computed(() => isBip38Key(keyToSweep.value));
   // Readable from the encrypted key itself, so there is no reason to let a passphrase be typed
   // and derived first only to turn the key away afterwards
@@ -108,17 +109,24 @@
     if (props.wif) privateKeyToSweep.value = props.wif;
   });
 
-  function createTempWallet(wif: string) {
+  // A wallet subscribes to its address as it is constructed, so the one made for a look at the
+  // key or for its sweep is stopped once that is done
+  async function withTempWallet<T>(wif: string, use: (tempWallet: Wallet | TestNetWallet) => Promise<T>): Promise<T> {
     const walletClass = (store.network == 'mainnet') ? Wallet : TestNetWallet;
-    return walletClass.fromWIF(wif);
+    const tempWallet = await walletClass.fromWIF(wif);
+    try {
+      return await use(tempWallet);
+    } finally {
+      tempWallet.stop().catch(() => {});
+    }
   }
 
-  // mainnet-js turns these away itself, but only with a message about WIFs having to start with
-  // L or K, so catch them here to say what is actually wrong. Sweeping them is not a matter of
-  // getting past the check: mainnet-js derives every address from the compressed public key.
+  // The library turns these away itself, but in English only, so catch them here to say it in the
+  // user's language. Sweeping them is not a matter of getting past the check: the library derives
+  // every address from the compressed public key.
   function throwOnUncompressedKey(wif: string) {
     const decoded = decodePrivateKeyWif(wif);
-    if (typeof decoded === 'string') return; // leave malformed keys to mainnet-js to report
+    if (typeof decoded === 'string') return; // leave malformed keys to the library to report
     if (decoded.type === 'mainnetUncompressed' || decoded.type === 'testnetUncompressed') {
       throw new Error(t('sweepPrivateKey.errors.uncompressedKey'));
     }
@@ -138,14 +146,14 @@
       // shows the button busy: after this the screen is frozen and no later change would show
       await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
       const { privateKey, compressed } = await decryptBip38Key(encryptedKey, bip38Passphrase.value);
-      // A typed in uncompressed WIF is refused by mainnet-js, but this one would not be: the
-      // re-encoding below always writes the compressed form, so mainnet-js would accept the key
+      // A typed in uncompressed WIF is refused by the library, but this one would not be: the
+      // re-encoding below always writes the compressed form, so the library would accept the key
       // and then watch and sign for an address that this key does not control
       if (!compressed) throw new Error(t('sweepPrivateKey.errors.uncompressedKey'));
       // An encrypted key holds no network of its own, it unlocks the same key on either
       const wif = encodePrivateKeyWif(privateKey, store.network == 'mainnet' ? 'mainnet' : 'testnet');
-      const tempWallet = await createTempWallet(wif);
-      unlockedKey.value = { encryptedKey, wif, address: tempWallet.cashaddr };
+      const address = await withTempWallet(wif, (tempWallet) => Promise.resolve(tempWallet.cashaddr));
+      unlockedKey.value = { encryptedKey, wif, address };
       // The passphrase has done its work, the unlocked key is what the sweep needs from here
       bip38Passphrase.value = "";
       showPassphrase.value = false;
@@ -193,8 +201,7 @@
     isEmpty.value = false;
     try {
       const wif = getWifToSweep();
-      const tempWallet = await createTempWallet(wif);
-      const utxos = await tempWallet.getUtxos();
+      const utxos = await withTempWallet(wif, (tempWallet) => tempWallet.getUtxos());
 
       // Include sats from token UTXOs since those will be recovered after sweeping the tokens
       bchBalanceSats.value = utxos.reduce((sum, utxo) => sum + utxo.satoshis, 0n);
@@ -258,11 +265,12 @@
     isSweeping.value = true;
     try {
       const wif = getWifToSweep();
-      const tempWallet = await createTempWallet(wif);
       const tokenAwareAddress = store.wallet.getTokenDepositAddress();
 
       // no reservations: they belong to this wallet, and the coins being swept are another key's
-      await transferAllAssets(tempWallet, tokenAwareAddress, {}, notifySweepPhase);
+      await withTempWallet(wif, (tempWallet) =>
+        transferAllAssets(tempWallet, tokenAwareAddress, {}, notifySweepPhase)
+      );
 
       $q.notify({
         type: 'positive',
@@ -282,22 +290,22 @@
   }
 
   const qrDecode = (content: string) => {
-    const decodedContent = content.startsWith('bch-wif:') ? content.slice(8) : content
-    privateKeyToSweep.value = decodedContent;
+    privateKeyToSweep.value = withoutWifScheme(content);
   }
   const qrFilter = (content: string) => {
+    const key = withoutWifScheme(content);
     // Encrypted keys are the same on both networks, so which one it is only shows after decrypting
-    if (isBip38Key(content)) return true;
-    // see https://documentation.cash/protocol/blockchain/encoding/base58check.html#version-bytes
-    const mainnetWifEncoding = content.startsWith('bch-wif:') || content.startsWith('K') || content.startsWith('L') || content.startsWith('5')
-    const chipnetWifEncoding = content.startsWith('c') || content.startsWith('9')
-    if(!mainnetWifEncoding && !chipnetWifEncoding) {
+    if (isBip38Key(key)) return true;
+    let wifNetwork: NetworkType;
+    try {
+      wifNetwork = decodeWif(key).network;
+    } catch {
       return t('sweepPrivateKey.qrErrors.notWif');
     }
-    if(store.network === 'mainnet' && !mainnetWifEncoding) {
+    if (store.network === 'mainnet' && wifNetwork !== NetworkType.Mainnet) {
       return t('sweepPrivateKey.qrErrors.notMainnetWif');
     }
-    if(store.network === 'chipnet' && !chipnetWifEncoding) {
+    if (store.network === 'chipnet' && wifNetwork !== NetworkType.Testnet) {
       return t('sweepPrivateKey.qrErrors.notChipnetWif');
     }
     return true;

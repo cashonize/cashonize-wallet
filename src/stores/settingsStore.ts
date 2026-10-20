@@ -1,5 +1,5 @@
 import { useWindowSize } from "src/utils/composables";
-import { Config } from "mainnet-js";
+import { Config } from "@cashonize/bch-wallet-lib";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import { BitpayRatesSchema, CoinGeckoRatesSchema, CoinbaseRatesSchema } from "src/utils/zodValidation";
@@ -382,7 +382,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     } else if (provider === "coinbase") {
       Config.GetExchangeRateFn = getExchangeRateCoinbase;
     } else {
-      // "default" - use mainnet-js default behavior
+      // "default" - use the library's default behavior
       Config.GetExchangeRateFn = undefined;
     }
   }

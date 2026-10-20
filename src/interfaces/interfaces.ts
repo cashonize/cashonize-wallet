@@ -1,4 +1,4 @@
-import type { Utxo, ElectrumRawTransaction, Wallet, TestNetWallet, HDWallet, TestNetHDWallet } from "mainnet-js"
+import type { Utxo, ElectrumRawTransaction, Wallet, TestNetWallet, HDWallet, TestNetHDWallet } from "@cashonize/bch-wallet-lib"
 
 export type WalletType = Wallet | TestNetWallet | HDWallet | TestNetHDWallet;
 

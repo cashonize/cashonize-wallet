@@ -5,8 +5,9 @@
  * Note: vi.mock() calls are hoisted, so mock functions must be defined at
  * module level to be available in both mock factories and test assertions.
  */
-import type * as MainnetJs from 'mainnet-js'
+import type * as BchWalletLib from '@cashonize/bch-wallet-lib'
 import type * as ZodValidation from 'src/utils/zodValidation'
+import type * as ErrorHandling from 'src/utils/errorHandling'
 import { vi } from 'vitest'
 
 // Mock wallet instances
@@ -20,6 +21,7 @@ export const mockMainnetWallet = {
   // hashes, and an address that decodes would make every wallet initialization in the tests fetch
   getDepositAddress: () => 'bitcoincash:qtest',
   getTokenDepositAddress: () => 'bitcoincash:ztest',
+  setProvider: vi.fn().mockResolvedValue(undefined),
   stop: vi.fn().mockResolvedValue(undefined),
 }
 
@@ -31,6 +33,7 @@ export const mockChipnetWallet = {
   publicKeyHash: new Uint8Array([1, 2, 3]),
   getDepositAddress: () => 'bchtest:qtest',
   getTokenDepositAddress: () => 'bchtest:ztest',
+  setProvider: vi.fn().mockResolvedValue(undefined),
   stop: vi.fn().mockResolvedValue(undefined),
 }
 
@@ -54,15 +57,10 @@ export const localStorageMock = {
 }
 vi.stubGlobal('localStorage', localStorageMock)
 
-// Mock Connection class
-class MockConnection {
-  networkProvider = {
-    connect: vi.fn().mockResolvedValue(undefined),
-    getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
-  }
-  constructor() {
-    // Constructor does nothing, just provides networkProvider
-  }
+// The provider the store makes for the selected server; the wallets' setProvider takes it
+export const mockProvider = {
+  connect: vi.fn().mockResolvedValue(undefined),
+  getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
 }
 
 // Mock wallet classes (must be real classes so instanceof checks work)
@@ -71,10 +69,17 @@ class MockTestNetWallet { static named = mockTestNetWalletNamed; static fromId =
 class MockHDWallet { static named = mockHDWalletNamed; static fromId = mockHDWalletFromId }
 class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static fromId = mockTestNetHDWalletFromId }
 
-// Mock mainnet-js. The publication output parser is the real one: a publication is bytes on the
-// chain, and the tests that name an identity from one hand the store real bytecode.
-vi.mock('mainnet-js', async (importOriginal) => ({
-  OpReturnData: (await importOriginal<typeof MainnetJs>()).OpReturnData,
+// Mock bch-wallet-lib. The publication output parser is the real one: a publication is bytes on the
+// chain, and the tests that name an identity from one hand the store real bytecode. The error
+// classes are the real ones too, as the store tells them apart with instanceof.
+vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
+  OpReturnData: (await importOriginal<typeof BchWalletLib>()).OpReturnData,
+  MAX_OP_RETURN_BYTES: (await importOriginal<typeof BchWalletLib>()).MAX_OP_RETURN_BYTES,
+  InsufficientFundsError: (await importOriginal<typeof BchWalletLib>()).InsufficientFundsError,
+  UtxoNotAvailableError: (await importOriginal<typeof BchWalletLib>()).UtxoNotAvailableError,
+  BroadcastRejectedError: (await importOriginal<typeof BchWalletLib>()).BroadcastRejectedError,
+  ElectrumTimeoutError: (await importOriginal<typeof BchWalletLib>()).ElectrumTimeoutError,
+  BroadcastTimeoutError: (await importOriginal<typeof BchWalletLib>()).BroadcastTimeoutError,
   Wallet: MockWallet,
   TestNetWallet: MockTestNetWallet,
   HDWallet: MockHDWallet,
@@ -93,25 +98,27 @@ vi.mock('mainnet-js', async (importOriginal) => ({
   convert: vi.fn().mockResolvedValue(0),
   balanceResponseFromSatoshi: vi.fn().mockReturnValue({ sat: 0, bch: 0 }),
   binToHex: vi.fn((arr: Uint8Array) => Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')),
-  Connection: MockConnection,
+  createProvider: vi.fn().mockResolvedValue(mockProvider),
   DefaultProvider: {
     servers: { mainnet: [], testnet: [], regtest: [] },
   },
+  deleteNamedWallet: mockDeleteNamedWallet,
+  getNamedWalletId: mockGetNamedWalletId,
 }))
 
 // Mock IndexedDB provider
-vi.mock('@mainnet-cash/indexeddb-storage', () => ({
+vi.mock('@cashonize/bch-wallet-lib/indexeddb', () => ({
   IndexedDBProvider: vi.fn(),
 }))
 
-// Mock dbUtils
+// Mock the wallet database access
 export const mockGetAllWalletsWithNetworkInfo = vi.fn()
-export const mockDeleteWalletFromDb = vi.fn()
-export const mockPruneHdWalletKeyCache = vi.fn().mockResolvedValue(undefined)
+export const mockDeleteNamedWallet = vi.fn()
+export const mockPruneDeletedWalletCaches = vi.fn().mockResolvedValue(undefined)
 
 // Wallets exist in IndexedDB by default, override per-test to exercise the missing-wallet guard
 export const mockNamedWalletExistsInDb = vi.fn().mockResolvedValue(true)
-function defaultGetNamedWalletIdFromDb(
+function defaultGetNamedWalletId(
   _name: string,
   dbName: 'bitcoincash' | 'bchtest'
 ): Promise<string | undefined> {
@@ -120,14 +127,12 @@ function defaultGetNamedWalletIdFromDb(
     : 'seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0'
   return Promise.resolve(walletId)
 }
-export const mockGetNamedWalletIdFromDb = vi.fn(defaultGetNamedWalletIdFromDb)
+export const mockGetNamedWalletId = vi.fn(defaultGetNamedWalletId)
 
 vi.mock('src/utils/wallet/dbUtils', () => ({
   getAllWalletsWithNetworkInfo: mockGetAllWalletsWithNetworkInfo,
-  deleteWalletFromDb: mockDeleteWalletFromDb,
-  pruneHdWalletKeyCache: mockPruneHdWalletKeyCache,
+  pruneDeletedWalletCaches: mockPruneDeletedWalletCaches,
   namedWalletExistsInDb: mockNamedWalletExistsInDb,
-  getNamedWalletIdFromDb: mockGetNamedWalletIdFromDb,
 }))
 
 // Mock settingsStore
@@ -186,8 +191,9 @@ vi.mock('quasar', () => ({
   },
 }))
 
-// Mock utils that use quasar
-vi.mock('src/utils/errorHandling', () => ({
+// Mock utils that use quasar; the error class is the real one, which the spend errors are made of
+vi.mock('src/utils/errorHandling', async (importOriginal) => ({
+  ActionableError: (await importOriginal<typeof ErrorHandling>()).ActionableError,
   displayAndLogError: vi.fn(),
 }))
 
@@ -221,9 +227,6 @@ vi.mock('src/utils/utils', () => ({
     if (network === 'mainnet') return isHD ? mockHDWalletFromId(walletId) : mockWalletFromId(walletId)
     return isHD ? mockTestNetHDWalletFromId(walletId) : mockTestNetWalletFromId(walletId)
   }),
-  runAsyncVoid: vi.fn((fn) => fn()),
   convertElectrumTokenData: vi.fn(),
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),
-  // the windows are the helper's own concern, tested in utils.test.ts; here a connect is one call
-  connectElectrum: vi.fn((provider: { connect: () => Promise<void> }) => provider.connect()),
 }))

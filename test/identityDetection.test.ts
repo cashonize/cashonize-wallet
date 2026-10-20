@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { InOutput } from 'mainnet-js'
+import type { InOutput } from '@cashonize/bch-wallet-lib'
 import { contractStateIdentities, detectIdentities } from '../src/utils/tools/identityDetection'
 import { authGuardLockingBytecodes } from '../src/utils/tools/authGuard'
 import { historyItem, opReturnOutput, p2pkhOutput, tokenOutput, spendOf } from './mocks/history.mocks'
@@ -188,8 +188,8 @@ describe('detectIdentities', () => {
     ])
   })
 
-  // The outpoints come from a patched mainnet-js. Were the patch ever dropped they would simply be
-  // absent, and the detection degrades to the marker's own transaction rather than throwing.
+  // The outpoints come from the library's history. An item without them, as mainnet-js 3.1.7
+  // built, degrades the detection to the marker's own transaction rather than throwing.
   it('stops the walk at the last link whose outpoints it can read', () => {
     const mintTxid = 'dd'.repeat(32)
     const history = [
@@ -330,7 +330,7 @@ describe('detectIdentities', () => {
       })
 
       // A creator who minted their supply to themselves and parked the identity in a multisig
-      // before taking it back: the genesis credited this wallet, as mainnet-js reports it
+      // before taking it back: the genesis credited this wallet, as the library reports it
       it('keeps an identity whose tokens the genesis gave this wallet', () => {
         const history = [
           fundingItem,

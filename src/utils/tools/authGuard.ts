@@ -5,7 +5,7 @@
 // the way the standard verifies one: derive the locking bytecode and compare. Every mention of
 // the script lives here; the resolve in authchainIdentity.ts reads it.
 
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 import {
   binToHex,
   encodeLockingBytecodeP2sh20,

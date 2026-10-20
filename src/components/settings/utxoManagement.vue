@@ -6,8 +6,8 @@
   import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue';
   import tokenUtxoRow from 'src/components/settings/tokenUtxoRow.vue';
   import TokenIcon from 'src/components/general/TokenIcon.vue';
-  import { HDWallet, TokenSendRequest } from 'mainnet-js';
-  import type { Utxo } from 'mainnet-js';
+  import { HDWallet, TokenSendRequest } from '@cashonize/bch-wallet-lib';
+  import type { Utxo } from '@cashonize/bch-wallet-lib';
   import { isFeatureReservation, outpointOf } from 'src/utils/wallet/reservedUtxos';
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels';
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
@@ -313,10 +313,13 @@
       })
       // splitBchFromTokenUtxos esentially sends all fungible tokens
       for(const uniqueTokenIdToSplit of uniqueTokenIdsToSplit) {
+        // a category whose coins are all held back has nothing a send can reach
+        const amount = fungibleTokensResult[uniqueTokenIdToSplit] ?? 0n;
+        if (amount <= 0n) continue;
         const { txId } = await store.spend.send([
           new TokenSendRequest({
             cashaddr: store.wallet.getTokenDepositAddress(),
-            amount: fungibleTokensResult[uniqueTokenIdToSplit] as bigint,
+            amount,
             category: uniqueTokenIdToSplit,
           }),
         ]);

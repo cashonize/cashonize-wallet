@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import type { Utxo } from 'mainnet-js'
+import type { Utxo } from '@cashonize/bch-wallet-lib'
 
 import {
   localStorageMock,
@@ -37,7 +37,7 @@ describe('spend.sendUtxo', () => {
   it('refuses a pledge-reserved coin without spending anything', async () => {
     const wallet = createMockWallet()
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     await store.reserveOutpoints([outpointOf(coin)], 'pledge')
 
     await expect(store.spend.sendUtxo(coin, 'bitcoincash:qdest')).rejects.toThrow()
@@ -48,7 +48,7 @@ describe('spend.sendUtxo', () => {
   it('spends a frozen coin as a pool of only that coin and drops its reservation', async () => {
     const wallet = createMockWallet()
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     await store.reserveOutpoints([outpointOf(coin)], 'manual')
 
     const response = await store.spend.sendUtxo(coin, 'bitcoincash:qdest')
@@ -61,7 +61,7 @@ describe('spend.sendUtxo', () => {
   it('keeps the reservation when the broadcast fails', async () => {
     const wallet = createMockWallet()
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     await store.reserveOutpoints([outpointOf(coin)], 'manual')
     wallet.sendMax.mockRejectedValue(new Error('broadcast failed'))
 

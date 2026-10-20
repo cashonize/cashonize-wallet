@@ -1,5 +1,5 @@
 import { txDirection, isCombined, isDappInteraction, isSelfSend } from "../src/utils/history/txDirection";
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 
 const category = "aabbccdd".repeat(8);
 
@@ -72,7 +72,7 @@ describe('isDappInteraction', () => {
     expect(isDappInteraction(tx, hasWalletAddress)).toBe(true);
   });
 
-  // a P2S contract has no address; the patched mainnet-js names it by its bytecode instead
+  // a P2S contract has no address; the library names it by its bytecode instead
   it('should detect a cosigned transaction spending a P2S input', () => {
     const tx = makeTx({ inputs: [input("SCRIPT: 51935287"), input(ownAddress)] });
     expect(isDappInteraction(tx, hasWalletAddress)).toBe(true);
@@ -105,7 +105,8 @@ describe('isSelfSend', () => {
   });
 
   it('should allow an OP_RETURN output', () => {
-    const tx = makeTx({ ...consolidation, outputs: [input(own), input("OP_RETURN: 6a0442434d52")] });
+    const opReturn = { ...input("OP_RETURN: 6a0442434d52"), lockingBytecode: "6a0442434d52" };
+    const tx = makeTx({ ...consolidation, outputs: [input(own), opReturn] });
     expect(isSelfSend(tx, isOwn)).toBe(true);
   });
 

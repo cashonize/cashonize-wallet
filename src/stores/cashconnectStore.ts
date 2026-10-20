@@ -214,8 +214,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     outpointTransactionHash: Uint8Array,
     outpointIndex: number
   ): Promise<Output> {
-    // Ensure that we are connected to the blockchain.
-    await waitForBlockchainConnection();
     // Get the transaction containing this outpoint.
     const transaction = await mainStore.wallet.provider.getRawTransactionObject(
       binToHex(outpointTransactionHash)
@@ -244,8 +242,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     return output;
   }
   async function getSpendableUTXOs(): Promise<Array<SpendableUTXO>> {
-    // Wait for electrum to be initialized to avoid race-conditions
-    await waitForBlockchainConnection();
     // Create our Libauth P2PKH Compiler for Locking/Unlocking the P2PKH Wallet.
     const compilerP2PKH = walletTemplateToCompilerBch(walletTemplateP2pkhNonHd);
     // Get the UTXOs from the wallet.
@@ -352,15 +348,6 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   //-----------------------------------------------------------------------------
   // Utils
   //-----------------------------------------------------------------------------
-  async function waitForBlockchainConnection() {
-    if (document.visibilityState === 'visible') {
-      try {
-        await mainStore.wallet.provider.connect();
-      } catch (error) {
-        console.error('Failed to reconnect:', error);
-      }
-    }
-  }
   function getCashConnectPrivateKeyForWallet(wallet: WalletType) {
     // If this is a single address (WIF) wallet, we just use the WIF's Private Key.
     if('privateKey' in wallet) {

@@ -18,7 +18,7 @@ Only the latest release is supported: fixes ship in a new release rather than be
 
 Out of scope are the known trade-offs documented in the [security considerations](./security-considerations.md), in particular the plaintext seed storage and the code delivery model of the webwallet, along with third-party dapps, Electrum servers and metadata indexers that Cashonize connects to.
 
-Vulnerabilities in mainnet-js, libauth, WalletKit, CashConnect or WizardConnect belong with those projects, but we would still like to know so we can assess the impact and pin a fixed version.
+Vulnerabilities in bch-wallet-lib, libauth, WalletKit, CashConnect or WizardConnect belong with those projects, but we would still like to know so we can assess the impact and pin a fixed version.
 
 ## Disclosure
 

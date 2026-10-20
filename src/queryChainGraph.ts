@@ -1,4 +1,4 @@
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 import { print } from "@0no-co/graphql.web";
 import { graphql, type ResultOf, type TadaDocumentNode } from "src/chainGraphSchema";
 import { i18n } from 'src/boot/i18n'

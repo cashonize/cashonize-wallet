@@ -47,7 +47,7 @@
     type RegistrySummary,
   } from 'src/utils/tools/registryFile'
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
-  import { TokenSendRequest } from 'mainnet-js'
+  import { TokenSendRequest } from '@cashonize/bch-wallet-lib'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { maxTokenSupply } from 'src/utils/tools/tokenCreation'
 
@@ -357,7 +357,7 @@
       notifySending();
       const { txId } = await store.spend.spendAuthUtxo(
         authUtxo,
-        reserveAddOutputs(authUtxo, store.walletAddresses(), amount, categoryUtxos),
+        reserveAddOutputs(authUtxo, store.walletAddresses(), amount),
         categoryUtxos,
       );
       return { txId, message: t('identities.reserve.add.done'), title: t('identities.reserve.add.doneTitle') };

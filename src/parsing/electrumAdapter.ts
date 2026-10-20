@@ -1,7 +1,7 @@
 import type { ElectrumClient, ElectrumUtxo } from "./extensions/types";
 
 /**
- * Minimal provider interface — duck-typed to avoid deep imports from mainnet-js.
+ * Minimal provider interface — duck-typed to avoid deep imports from bch-wallet-lib.
  */
 interface ElectrumProvider {
   getUtxos(cashaddr: string): Promise<{
@@ -22,9 +22,9 @@ interface ElectrumProvider {
 }
 
 /**
- * Create an ElectrumClient adapter from a mainnet-js ElectrumNetworkProvider.
+ * Create an ElectrumClient adapter from a bch-wallet-lib ElectrumNetworkProvider.
  *
- * Bridges the mainnet-js Utxo format to the ElectrumUtxo format expected
+ * Bridges the library's Utxo format to the ElectrumUtxo format expected
  * by the extension system.
  */
 export function createElectrumAdapter(provider: ElectrumProvider): ElectrumClient {

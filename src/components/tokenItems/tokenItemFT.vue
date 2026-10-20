@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, convert } from "mainnet-js"
+  import { TokenSendRequest, convert } from "@cashonize/bch-wallet-lib"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';
@@ -128,6 +128,7 @@
       if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
+      if(amountTokensInt <= 0n) throw new Error(t('tokenItem.errors.noValidAmount'));
       const amountSentFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
 
@@ -175,6 +176,7 @@
       if(!burnAmountFTs?.value) throw new Error(t('tokenItem.errors.amountMustBeInteger'));
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(burnAmountFTs.value, decimals);
+      if(amountTokensInt <= 0n) throw new Error(t('tokenItem.errors.noValidAmount'));
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
 

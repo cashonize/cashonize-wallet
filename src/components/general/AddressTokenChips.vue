@@ -3,7 +3,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { getTokenUtxos, getFungibleTokenBalances, getAllNftTokenBalances, formatTokenAmount } from 'src/utils/utils';
-  import type { Utxo } from 'mainnet-js';
+  import type { Utxo } from '@cashonize/bch-wallet-lib';
   import TokenIcon from 'src/components/general/TokenIcon.vue'
 
   const store = useStore()

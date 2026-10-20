@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, ref, watch } from 'vue'
-  import type { Utxo } from 'mainnet-js'
+  import type { Utxo } from '@cashonize/bch-wallet-lib'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
@@ -154,36 +154,42 @@
       // It is a real transaction with its own fee, paid whether or not the campaign ever fills.
       notifySending(t('flipstarter.preparingCoin'));
       const pledgeAddress = store.currentDepositAddress;
-      const { txId } = await store.spend.send([{ cashaddr: pledgeAddress, value: donationAmount }]);
+      // Run once the coin is broadcast, also when a broadcast whose outcome was unknown is
+      // broadcast again from its notification
+      const pledgeCoin = async (txId: string) => {
+        // Not read from the wallet's utxo set, which trails a send. Output 0 relies on the library's
+        // fixed ordering: requested outputs first in request order, change appended after them.
+        // Note: update if/when the library randomizes output order
+        const pledgeUtxo = { txid: txId, vout: 0, satoshis: donationAmount, address: pledgeAddress };
+
+        // Reserved before signing, so nothing can spend the coin from the moment it exists
+        await store.reserveOutpoints([outpointOf(pledgeUtxo)], 'pledge');
+        await store.updateWalletUtxos();
+
+        signedPledge.value = signPledge(pledgeTemplate, pledgeUtxo);
+
+        pledges.value = savePledge(store.network, store.wallet.name, outpointOf(pledgeUtxo), {
+          satoshis: donationAmount.toString(),
+          outputs: pledgeTemplate.outputs.map(output => ({
+            address: output.address,
+            satoshis: output.value.toString(),
+          })),
+          expires: pledgeTemplate.expires,
+          pledgedAt: nowSeconds(),
+          alias: alias.value,
+          comment: comment.value,
+          signedPledge: signedPledge.value,
+        });
+
+        // The template names no campaign, so the label records what there is to know: what the
+        // coin is held for and how long the campaign can still take it
+        store.setUtxoLabel(outpointOf(pledgeUtxo), t('flipstarter.pledgeLabel', { date: expiryDate(pledgeTemplate.expires) }));
+      };
+      // A broadcast whose outcome is unknown may have made the coin: it is frozen until the pledge
+      // is made by broadcasting again, which reserves it for the pledge, or the user releases it
+      const holdBackCoin = (txId: string) => store.reserveOutpoints([`${txId}:0`], 'manual');
+      const { txId } = await store.spend.send([{ cashaddr: pledgeAddress, value: donationAmount }], [], pledgeCoin, holdBackCoin);
       if (!txId) throw new Error(t('flipstarter.errors.noBroadcastTxid'));
-
-      // Not read from the wallet's utxo set, which trails a send. Output 0 relies on mainnet-js's
-      // fixed ordering: requested outputs first in request order, change appended after them.
-      // Note: update if/when mainnet-js randomizes output order
-      const pledgeUtxo = { txid: txId, vout: 0, satoshis: donationAmount, address: pledgeAddress };
-
-      // Reserved before signing, so nothing can spend the coin from the moment it exists
-      await store.reserveOutpoints([outpointOf(pledgeUtxo)], 'pledge');
-      await store.updateWalletUtxos();
-
-      signedPledge.value = signPledge(pledgeTemplate, pledgeUtxo);
-
-      pledges.value = savePledge(store.network, store.wallet.name, outpointOf(pledgeUtxo), {
-        satoshis: donationAmount.toString(),
-        outputs: pledgeTemplate.outputs.map(output => ({
-          address: output.address,
-          satoshis: output.value.toString(),
-        })),
-        expires: pledgeTemplate.expires,
-        pledgedAt: nowSeconds(),
-        alias: alias.value,
-        comment: comment.value,
-        signedPledge: signedPledge.value,
-      });
-
-      // The template names no campaign, so the label records what there is to know: what the
-      // coin is held for and how long the campaign can still take it
-      store.setUtxoLabel(outpointOf(pledgeUtxo), t('flipstarter.pledgeLabel', { date: expiryDate(pledgeTemplate.expires) }));
 
       await handleTransactionBroadcastSuccess(
         t('flipstarter.alerts.pledgePrepared'), txId, t('flipstarter.alerts.pledgePreparedTitle')

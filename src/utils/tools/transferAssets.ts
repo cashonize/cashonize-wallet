@@ -1,4 +1,4 @@
-import { TokenSendRequest } from "mainnet-js";
+import { TokenSendRequest } from "@cashonize/bch-wallet-lib";
 import { tokenListFromUtxos } from "src/stores/storeUtils";
 import { spendableFromUtxos, type ReservedUtxos } from "src/utils/wallet/reservedUtxos";
 import type { WalletType } from "src/interfaces/interfaces";
@@ -26,8 +26,9 @@ export async function transferAllAssets(
   reservedUtxos: ReservedUtxos,
   onProgress?: (progress: TransferProgress) => void
 ) {
-  // Read fresh before each transaction rather than once up front: every transaction here spends
-  // coins the next must no longer name, and a summary shown to the user can be minutes old anyway
+  // The held back coins go in excludeUtxoIds, which the library takes out of the wallet's current
+  // coins on every send, so no transaction names coins an earlier one here has spent
+  const excludeUtxoIds = Object.keys(reservedUtxos);
   const spendablePool = async () => {
     const allUtxos = await sourceWallet.getUtxos();
     return spendableFromUtxos(allUtxos, reservedUtxos);
@@ -38,7 +39,6 @@ export async function transferAllAssets(
   const tokenList = tokenListFromUtxos(utxos);
 
   const fungibleTokens = tokenList.filter(item => "amount" in item);
-  const nftTokens = tokenList.filter(item => "nfts" in item);
 
   onProgress?.({ phase: "fungibleTokens", completed: 0, total: fungibleTokens.length });
   let transferredFungibleTokens = 0;
@@ -50,11 +50,13 @@ export async function transferAllAssets(
         amount: token.amount,
         category: token.category,
       }),
-    ], { utxoIds: await spendablePool() });
+    ], { excludeUtxoIds });
     transferredFungibleTokens += 1;
     onProgress?.({ phase: "fungibleTokens", completed: transferredFungibleTokens, total: fungibleTokens.length });
   }
 
+  // read again: a fungible send can take an NFT coin carrying tokens and return the NFT as change
+  const nftTokens = tokenListFromUtxos(await spendablePool()).filter(item => "nfts" in item);
   onProgress?.({ phase: "nfts", completed: 0, total: nftTokens.length });
   let transferredNfts = 0;
   for (const token of nftTokens) {
@@ -71,15 +73,19 @@ export async function transferAllAssets(
         },
       });
     });
-    if (nftOutputs.length) await sourceWallet.send(nftOutputs, { utxoIds: await spendablePool() });
+    // named in ensureUtxos, so a mutable NFT gone since the read fails the send rather than being
+    // minted anew off the minting NFT sent alongside it
+    if (nftOutputs.length) {
+      await sourceWallet.send(nftOutputs, { excludeUtxoIds, ensureUtxos: nftUtxos });
+    }
     transferredNfts += 1;
     onProgress?.({ phase: "nfts", completed: transferredNfts, total: nftTokens.length });
   }
 
   onProgress?.({ phase: "bch", completed: 0, total: 1 });
-  // mainnet-js already leaves token UTXOs out of a plain-BCH selection, named pool or not; this
+  // the library already leaves token UTXOs out of a plain-BCH selection, named pool or not; this
   // wallet drops them itself as well, since a token UTXO swept as plain BCH would burn its tokens
   const bchPool = (await spendablePool()).filter(utxo => !utxo.token);
-  await sourceWallet.sendMax(destinationAddress, { utxoIds: bchPool });
+  await sourceWallet.sendMax(destinationAddress, { utxoIds: bchPool, excludeUtxoIds });
   onProgress?.({ phase: "bch", completed: 1, total: 1 });
 }

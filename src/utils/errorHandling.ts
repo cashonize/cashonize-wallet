@@ -8,9 +8,36 @@ export function caughtErrorToString(error: unknown): string {
   return t('common.errors.somethingWentWrong');
 }
 
+// An error the user can act on from its notification, e.g. a broadcast whose outcome is unknown,
+// which broadcasting the same transaction again settles
+export class ActionableError extends Error {
+  readonly action: { label: string; run: () => Promise<void> };
+
+  constructor(message: string, { cause, action }: { cause?: unknown; action: ActionableError['action'] }) {
+    super(message, { cause });
+    this.name = 'ActionableError';
+    this.action = action;
+  }
+}
+
 export function displayAndLogError(error: unknown): void {
   const errorMessage = caughtErrorToString(error);
   console.error(errorMessage)
+  if (error instanceof ActionableError) {
+    const { label, run } = error.action;
+    Notify.create({
+      message: errorMessage,
+      icon: 'warning',
+      color: "red",
+      // stays until acted on or dismissed, so the action does not time out with it
+      timeout: 0,
+      actions: [
+        { label, color: 'white', handler: () => { run().catch(displayAndLogError) } },
+        { label: t('common.actions.dismiss'), color: 'white' },
+      ],
+    })
+    return;
+  }
   Notify.create({
     message: errorMessage,
     icon: 'warning',
@@ -19,7 +46,7 @@ export function displayAndLogError(error: unknown): void {
 }
 
 // Detect IndexedDB quota exceeded errors (browser storage full).
-// mainnet-js's IndexedDBProvider rejects promises with the raw DOMException,
+// The library's IndexedDBProvider rejects promises with the raw DOMException,
 // so we receive the actual error object in our catch blocks.
 export function isQuotaExceededError(error: unknown): boolean {
   if (error instanceof DOMException) {

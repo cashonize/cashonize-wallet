@@ -4,7 +4,7 @@
   // about the token. The actions belong to the page, so the menu only emits them, and the page
   // decides whose label editor is open, since one is open at a time across all its lists.
   import { computed, ref } from 'vue'
-  import type { Utxo } from 'mainnet-js'
+  import type { Utxo } from '@cashonize/bch-wallet-lib'
   import EmojiItem from 'src/components/general/emojiItem.vue'
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'

@@ -1,4 +1,4 @@
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 import type { BcmrTokenMetadata } from "src/interfaces/interfaces";
 import { i18n } from "src/boot/i18n";
 import { formatTokenAmountFromBigInt } from "src/utils/utils";

@@ -1,7 +1,7 @@
 import { hexToBin, bigIntToVmNumber, type Output } from "@bitauth/libauth";
 import { utxoToLibauthOutput } from "src/parsing/utxoConverter";
 import { parseNft, type NftParseInfo, type FieldEncoding } from "src/parsing/nftParsing";
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 
 // Parse info for the ParyonUSD Staking Receipt
 const stakingReceiptCategoryId =

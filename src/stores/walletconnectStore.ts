@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
-import { NetworkType, HDWallet } from "mainnet-js";
+import { BroadcastTimeoutError, NetworkType, HDWallet, SignedMessage } from "@cashonize/bch-wallet-lib";
 import { useStore } from "./store"
 import { useIdentitiesStore } from "./identitiesStore"
 import {
@@ -556,11 +556,16 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         await mainStore.wallet.submitTransaction(hexToBin(signedTxObject.signedTransaction));
       } catch(error){
         // the dapp still gets the node's own words below, only the user sees them classified
-        displayBroadcastError(error);
+        const started = mainStore.currentInitializationToken();
+        displayBroadcastError(error, (transaction) => mainStore.broadcastAgain(transaction, started, () => {
+          notifyDappActivity({ ...activity, outcome: 'sent' });
+        }));
         notifyDappActivity({ ...activity, outcome: 'broadcastFailed' });
         const errorMessage = typeof error == 'string' ? error :((error instanceof Error)? error.message : t('walletConnect.errors.errorSendingTransaction'))
-        // respond with error to dapp
-        const wcErrorMessage = 'Transaction failed to send with error: ' + errorMessage;
+        // respond with error to dapp; one whose outcome is unknown may have gone out, and its
+        // message names the txid to look up
+        let wcErrorMessage = 'Transaction failed to send with error: ' + errorMessage;
+        if (error instanceof BroadcastTimeoutError) wcErrorMessage = 'Transaction outcome unknown, it may have been sent: ' + errorMessage;
         // There is no suitable code for failed broadcast, so we'll use 7 which is UNKNOWN_TYPE
         const response = { id, jsonrpc: '2.0', error: { message : wcErrorMessage, code: 7 } };
         await web3wallet.value?.respondSessionRequest({ topic, response });
@@ -595,7 +600,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const { id, topic } = signMessageRequestWC;
     // Get the address connected to this session and resolve the correct private key
     const { privateKey } = getSessionSigningInfo(topic);
-    const signedMessage = mainStore.wallet.sign(message, privateKey);
+    const signedMessage = SignedMessage.sign(message, privateKey);
     const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
     await web3wallet.value?.respondSessionRequest({ topic, response });
     notifyDappActivity({ protocol: 'walletconnect', ...dappForTopic(topic), outcome: 'messageSigned' });

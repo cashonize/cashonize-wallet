@@ -28,8 +28,8 @@ export interface WizInputSigningKey {
 const wizHashType = SigningSerializationFlag.allOutputs | SigningSerializationFlag.utxos | SigningSerializationFlag.forkId;
 
 // The P2PKH locking bytecode of one of a chain's addresses, in hex. The sign dialog marks the
-// wallet's own inputs and outputs by these, since mainnet-js's address cache knows the receive
-// and change chains only and a WizardConnect dapp also spends the defi chain it was given.
+// wallet's own inputs and outputs by these, since the wallet tracks the receive and change chains
+// only (the library's default branches) and a WizardConnect dapp also spends the defi chain it was given.
 export function childLockingBytecode(chain: HdPrivateNodeValid, index: number): string {
   const pubkey = secp256k1.derivePublicKeyCompressed(deriveHdPrivateNodeChild(chain, index).privateKey);
   if (typeof pubkey === "string") throw new Error("Failed to derive public key: " + pubkey);

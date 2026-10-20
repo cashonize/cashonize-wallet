@@ -1,5 +1,5 @@
 import { ref, computed, watch, onMounted } from 'vue'
-import type { Utxo } from "mainnet-js"
+import type { Utxo } from "@cashonize/bch-wallet-lib"
 import type { ParseResult } from 'src/parsing/nftParsing'
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'

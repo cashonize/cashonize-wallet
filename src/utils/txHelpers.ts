@@ -58,8 +58,7 @@ export function notifySending(message?: string){
 }
 
 // Handles a successful transaction broadcast: shows feedback, logs the tx and refreshes wallet state.
-// txId can be undefined because mainnet-js send() types its txId as optional
-export async function handleTransactionBroadcastSuccess(alertMessage: string, txId: string | undefined, successMessage: string){
+export async function handleTransactionBroadcastSuccess(alertMessage: string, txId: string, successMessage: string){
   const store = useStore()
   Dialog.create({
     component: alertDialog,

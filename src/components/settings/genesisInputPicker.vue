@@ -6,7 +6,7 @@
   // one line once a UTXO is set and reopens on "change". The parent gets the resolved UTXO and
   // whether the step is open, and resets the pick by clearing the UTXO.
   import { computed, ref, watch } from 'vue';
-  import type { Utxo } from 'mainnet-js';
+  import type { Utxo } from '@cashonize/bch-wallet-lib';
   import { copyToClipboard, formatBch, truncateHash } from 'src/utils/utils';
   import { outpointOf } from 'src/utils/wallet/reservedUtxos';
   import { genesisCandidates, preparedUtxoValue } from 'src/utils/tools/tokenCreation';

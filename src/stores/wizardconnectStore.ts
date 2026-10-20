@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
-import { NetworkType, HDWallet } from "mainnet-js";
+import { BroadcastTimeoutError, NetworkType, HDWallet } from "@cashonize/bch-wallet-lib";
 import { currentExchangeRate } from "src/utils/utils";
 import {
   WalletConnectionManager,
@@ -392,10 +392,16 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
         await mainStore.wallet.submitTransaction(hexToBin(signedTransactionHex));
       } catch (error) {
         // the dapp still gets the node's own words below, only the user sees them classified
-        displayBroadcastError(error);
+        const started = mainStore.currentInitializationToken();
+        displayBroadcastError(error, (transaction) => mainStore.broadcastAgain(transaction, started, () => {
+          notifyDappActivity({ ...activity, outcome: 'sent' });
+        }));
         notifyDappActivity({ ...activity, outcome: 'broadcastFailed' });
         const errorMessage = typeof error == 'string' ? error : ((error instanceof Error) ? error.message : t('wizardConnect.errors.errorSendingTransaction'));
-        await manager.sendSignError(connectionId, request.sequence, 'Transaction failed to send: ' + errorMessage);
+        // one whose outcome is unknown may have gone out, and its message names the txid to look up
+        let signError = 'Transaction failed to send: ' + errorMessage;
+        if (error instanceof BroadcastTimeoutError) signError = 'Transaction outcome unknown, it may have been sent: ' + errorMessage;
+        await manager.sendSignError(connectionId, request.sequence, signError);
         return;
       }
     }

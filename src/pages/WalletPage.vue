@@ -25,7 +25,8 @@
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
   import { preloadIcons } from 'src/utils/icons/preloadIcons'
-  import { namedWalletExistsInDb, getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
+  import { namedWalletExists } from '@cashonize/bch-wallet-lib'
+  import { getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
   import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
@@ -103,8 +104,8 @@
   // check if named wallet already exists in indexedDB
   // we use a dbUtil and avoid 'WalletClass.namedExists' which instantiates a wallet + provider
   let walletToLoad = store.activeWalletName;
-  let walletHasMainnet = await namedWalletExistsInDb(walletToLoad, "bitcoincash");
-  let walletHasChipnet = await namedWalletExistsInDb(walletToLoad, "bchtest");
+  let walletHasMainnet = await namedWalletExists(walletToLoad, "bitcoincash");
+  let walletHasChipnet = await namedWalletExists(walletToLoad, "bchtest");
   let walletExists = walletHasMainnet || walletHasChipnet;
 
   // If active wallet doesn't exist somehow, try to fall back to any existing wallet
@@ -133,7 +134,7 @@
       localStorage.setItem('network', readNetwork);
     }
     const initWallet = await store.loadExistingWallet(walletToLoad, readNetwork);
-    store.setWallet(initWallet);
+    await store.setWallet(initWallet);
     store.changeView(1);
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
@@ -245,7 +246,7 @@
     <HeaderLogo />
     <nav v-if="store.displayView" style="display: flex; justify-content: center; user-select: none;" class="tabs" :class="{ compact: compactNavTabs }">
       <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ t('nav.wallet') }} </div>
-      <div v-if="width > addressesNavTabMinWidth && store.wallet.walletType === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
+      <div v-if="width > addressesNavTabMinWidth && settingsStore.getWalletType(store.activeWalletName) === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ t('nav.tokens') }} </div>
       <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ t('nav.history') }} </div>
       <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ t('nav.connect') }} </div>

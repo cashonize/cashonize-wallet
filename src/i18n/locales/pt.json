@@ -3,7 +3,9 @@
     "actions": {
       "back": "Voltar",
       "send": "Enviar",
-      "confirm": "Confirmar"
+      "confirm": "Confirmar",
+      "broadcastAgain": "Transmitir novamente",
+      "dismiss": "Fechar"
     },
     "status": {
       "sending": "Enviando..."
@@ -19,7 +21,8 @@
         "missingInputs": "A transação foi rejeitada porque um dos seus UTXOs está faltando ou já foi gasto. Nada foi enviado, então você pode tentar novamente.",
         "missingInputsDapp": "A transação foi rejeitada porque um dos seus UTXOs está faltando ou já foi gasto. Nada foi enviado. A dApp precisa criar a transação novamente: recarregue a dApp e repita a ação.",
         "notYetFinal": "A transação foi rejeitada porque tem um bloqueio de tempo que ainda não foi atingido. Tentar novamente agora não ajuda, aguarde até o bloqueio passar.",
-        "timeout": "O servidor não respondeu a tempo. A transação pode ter sido enviada mesmo assim, por isso verifique o seu histórico de transações antes de tentar novamente."
+        "unknownOutcome": "O servidor não conseguiu confirmar se a transação saiu, então ela pode ter sido enviada ou não. Verifique seu histórico de transações, ou transmita novamente a mesma transação, o que nunca pode pagar duas vezes. Não a envie de novo como um novo pagamento.",
+        "unknownOutcomeDapp": "O servidor não conseguiu confirmar se a transação do dApp saiu, então ela pode ter sido enviada ou não. Verifique seu histórico de transações, ou transmita novamente a mesma transação, o que nunca pode pagar duas vezes."
       }
     },
     "attention": "Atenção:",
@@ -84,7 +87,8 @@
   "store": {
     "notifications": {
       "receivedBch": "Recebido {amount} {unit} ({fiatValue})",
-      "receivedTokens": "Recebido novo {tokenType}"
+      "receivedTokens": "Recebido novo {tokenType}",
+      "broadcastAgainSent": "A transação {txId} foi transmitida"
     },
     "errors": {
       "cannotDeleteActiveWallet": "Não é possível excluir a carteira ativa",
@@ -104,11 +108,13 @@
       "utxosHeldBack": "Alguns UTXOs estão retidos fora da seleção de moedas e não contam aqui. A página de gestão de UTXOs mostra quais estão retidos e por quê.",
       "cannotSendPledgedUtxo": "Este UTXO está retido por uma promessa em aberto. Cancele a promessa para liberá-lo.",
       "genesisInputUnavailable": "A moeda escolhida para criar este token não está mais disponível. Escolha outra.",
+      "utxoNotAvailable": "Uma moeda que esta transação gasta não está mais na carteira, provavelmente foi gasta em outro lugar. Aguarde a carteira atualizar e tente novamente.",
       "identityLeavesWallet": "Este pedido moveria uma das suas identidades para um endereço que esta carteira não reconhece como seu, por isso foi recusado. A transferência de uma identidade é feita na página de identidades.",
       "identityMerge": "Este pedido gastaria duas das suas identidades numa só transação, o que as funde numa. Esta carteira ainda não suporta fundir identidades, por isso foi recusado.",
       "reservedInputs": "Este pedido gastaria um UTXO que a carteira está a reter, por isso foi recusado. A página Gerenciamento de UTXOs mostra que UTXOs estão retidos e porquê.",
       "identityHeld": "Este pedido gastaria o UTXO de identidade de {name}, o que as apps ligadas não podem fazer, por isso foi recusado. Para gerir identidades através de uma app ligada, ative \"Permitir que apps ligadas gastem UTXOs de identidade\" nas opções de utilizador.",
-      "dappRefusedTitle": "Pedido recusado"
+      "dappRefusedTitle": "Pedido recusado",
+      "broadcastAgainWalletSwitched": "Outra carteira está aberta agora. Volte para a carteira que criou a transação para transmiti-la novamente."
     }
   },
   "onboarding": {

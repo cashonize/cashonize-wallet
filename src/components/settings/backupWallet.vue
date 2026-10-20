@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, ref, onMounted } from 'vue'
-  import { Wallet } from 'mainnet-js'
+  import { Wallet } from '@cashonize/bch-wallet-lib'
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'

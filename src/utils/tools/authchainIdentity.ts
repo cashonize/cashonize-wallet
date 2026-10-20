@@ -3,8 +3,8 @@
 // link of a chain did. The hosted file itself is registryFile's; the persisted lists are
 // identityLists'.
 
-import type { ElectrumNetworkProvider, Utxo } from "mainnet-js";
-import { OpReturnData, TokenSendRequest, type NFTCapability } from "mainnet-js";
+import type { ElectrumNetworkProvider, Utxo } from "@cashonize/bch-wallet-lib";
+import { MAX_OP_RETURN_BYTES, OpReturnData, TokenSendRequest, type NFTCapability } from "@cashonize/bch-wallet-lib";
 import { binToHex, binToUtf8, hexToBin, type CashAddressNetworkPrefix } from "@bitauth/libauth";
 import {
   queryAuthHeadsWithOutputs,
@@ -101,7 +101,13 @@ export function findPublication(outputs: string[]): MetadataPublication | undefi
 // that a malformed output is simply not a publication this wallet reads.
 export function parsePublicationOutput(lockingBytecode: string): MetadataPublication | undefined {
   if (!lockingBytecode.startsWith(BCMR_OUTPUT_PREFIX)) return undefined;
-  const chunks = OpReturnData.parseBinary(hexToBin(lockingBytecode));
+  let chunks: Uint8Array[];
+  try {
+    chunks = OpReturnData.parseBinary(hexToBin(lockingBytecode));
+  } catch {
+    // a non-push opcode or a push running past the end
+    return undefined;
+  }
   const [, hashChunk, ...uriChunks] = chunks;
   if (!hashChunk?.length) return undefined;
   return {
@@ -139,28 +145,22 @@ export function identityOutput(
 export const tokenOutputValue = 1000n;
 
 // Adding to the reserve spends the wallet's fungible coins of the category into the identity
-// output. mainnet-js would build the token change itself, but its change output copies the first
-// token output's NFT onto the change coin, here the minting NFT, so the change is built here.
+// output. The library takes from the coins it is handed what the amount needs and returns the rest
+// as fungible-only change, the minting NFT staying on the identity output alone.
 export function reserveAddOutputs(
   authUtxo: Utxo,
   addresses: { bch: string, token: string },
   amount: bigint,
-  categoryUtxos: Utxo[],
 ) {
   const token = authUtxo.token;
   if (!token) throw new Error("The identity output carries no token to add a reserve to");
-  const outputs = [identityOutput(authUtxo, addresses, token.amount + amount)];
-  const available = categoryUtxos.reduce((total, utxo) => total + (utxo.token?.amount ?? 0n), 0n);
-  const change = available - amount;
-  if (change > 0n) {
-    outputs.push(new TokenSendRequest({ cashaddr: addresses.token, category: token.category, amount: change, value: tokenOutputValue }));
-  }
-  return outputs;
+  return [identityOutput(authUtxo, addresses, token.amount + amount)];
 }
 
 // A mint from an identity UTXO is an authchain operation like the rest: the identity output
-// first, keeping the minting NFT and any reserve here, then the minted NFTs. mainnet-js's
-// tokenMint happens to order a mint this way; building it here makes that the rule rather than luck.
+// first, keeping the minting NFT and any reserve here, then the minted NFTs. The library's
+// tokenMint would return the minting NFT to its token change address in whatever place it builds;
+// building it here makes output 0 the rule.
 export function mintOutputs(
   authUtxo: Utxo,
   addresses: { bch: string, token: string },
@@ -202,11 +202,10 @@ export function publicationOutput(hash: string, uris: string[]) {
   return OpReturnData.fromArray(["BCMR", hexToBin(hash), ...uris]);
 }
 
-// What one publication output may take up. The hash and the locations share it, so the number of
-// locations is capped by their length rather than by the form. Standardness allows 223 bytes of
-// data carrier; the ceiling that actually applies is mainnet-js's own builder, which refuses more
-// than 220, so that is the number the form is held to.
-export const maxPublicationOutputSize = 220;
+// What one publication output may take up: the 223 bytes of data carrier standardness allows a
+// transaction, which the library's builder enforces on the whole script. The hash and the
+// locations share it, so the number of locations is capped by their length rather than by the form.
+export const maxPublicationOutputSize = MAX_OP_RETURN_BYTES;
 
 // Only its length matters: the size of a publication does not depend on which hash it carries
 const placeholderHash = "00".repeat(32);
