@@ -60,8 +60,8 @@ export function startProxy(): Proxy {
       else pending.push(frame)
       if (isBroadcast && dropNextBroadcast) {
         dropNextBroadcast = false
-        // the server has the broadcast; the app never hears back
-        setTimeout(() => client.terminate(), 50)
+        // the broadcast is on its way to the server, the app never hears its answer
+        client.terminate()
       }
     })
     upstream.on('message', data => {
