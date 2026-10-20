@@ -21,8 +21,10 @@ export function runAsyncVoid(fn: () => Promise<void>) {
   void fn();
 }
 
-// Electrum servers are stored as "host" or "host:port", the conventional wss port 50004 applies when none is given
+// Electrum servers are stored as "host" or "host:port", the conventional wss port 50004 applies when none is given.
+// A server on this machine may be given as "ws://host:port" instead, as a local regtest Fulcrum serves no TLS.
 export function electrumWssUrl(server: string): string {
+  if (/^ws:\/\/(localhost|127\.0\.0\.1):\d+$/.test(server)) return server;
   return server.includes(":") ? `wss://${server}` : `wss://${server}:50004`;
 }
 
