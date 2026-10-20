@@ -1,4 +1,4 @@
-import { TokenSendRequest } from "mainnet-js";
+import { TokenSendRequest } from "@cashonize/bch-wallet-lib";
 import { tokenListFromUtxos } from "src/stores/storeUtils";
 import { spendableFromUtxos, type ReservedUtxos } from "src/utils/wallet/reservedUtxos";
 import type { WalletType } from "src/interfaces/interfaces";

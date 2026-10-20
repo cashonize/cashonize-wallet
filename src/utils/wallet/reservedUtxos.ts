@@ -2,7 +2,7 @@
 // network as an outpoint-keyed map. A reservation is local and advisory: it keeps a coin out of
 // the pool this app spends from, it does not protect the coin on chain.
 
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 import { binToHex } from "@bitauth/libauth";
 
 type Network = 'mainnet' | 'chipnet';

@@ -5,10 +5,11 @@ import {
   TestNetHDWallet,
   BaseWallet,
   GAP_SIZE,
+  DEPOSIT_BRANCH,
+  CHANGE_BRANCH,
   Config,
-  Connection,
+  createProvider,
   DefaultProvider,
-  disconnectProviders,
   convert,
   ExchangeRate,
   type Utxo,
@@ -21,8 +22,8 @@ import {
   type TokenBurnRequest,
   type TransactionHistoryItem,
   NetworkType
-} from "mainnet-js"
-import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
+} from "@cashonize/bch-wallet-lib"
+import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
 import {
   CurrencySymbols,
   type BcmrTokenMetadata,
@@ -279,8 +280,8 @@ export const useStore = defineStore('store', () => {
     const activeWallet = _wallet.value;
     if (!(activeWallet instanceof HDWallet)) return undefined;
     return deriveFreshAddressIndex(
-      (index) => (activeWallet.depositRawHistory[index]?.length ?? 0) > 0,
-      (index) => activeWallet.walletCache.getByIndex(index, false).address,
+      (index) => (activeWallet.rawHistory.get(DEPOSIT_BRANCH)?.[index]?.length ?? 0) > 0,
+      (index) => activeWallet.walletCache.getByIndex(index, DEPOSIT_BRANCH).address,
       addressMarks.value,
       GAP_SIZE,
     );
@@ -398,21 +399,21 @@ export const useStore = defineStore('store', () => {
 
   const canGoBack = computed(() => viewStack.length > 1);
 
+  // The provider of the selected electrum server. A wallet is constructed on the library's
+  // global provider, so initializeWallet moves it onto this one.
+  let walletProvider: ElectrumNetworkProvider | undefined;
+  async function selectElectrumProvider(walletNetwork: NetworkType) {
+    const isMainnet = walletNetwork == NetworkType.Mainnet;
+    const server = isMainnet ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet;
+    walletProvider = await createProvider(isMainnet ? "mainnet" : "testnet", electrumWssUrl(server));
+  }
+
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
-  // It adds the configured electrum network provider on the wallet depending on the network.
-  // Call initializeWallet() afterwards to actually connect to the electrum client and to fetch initial data.
-  function setWallet(newWallet: WalletType){
+  // It makes the provider for the configured electrum server of the wallet's network, which
+  // initializeWallet() moves the wallet onto when it connects and fetches the initial data.
+  async function setWallet(newWallet: WalletType){
     const identitiesStore = useIdentitiesStore();
-    if(newWallet.network == NetworkType.Mainnet){
-      const connectionMainnet = new Connection("mainnet", electrumWssUrl(settingsStore.electrumServerMainnet))
-      // @ts-ignore currently no other way to set a specific provider
-      newWallet.provider = connectionMainnet.networkProvider as ElectrumNetworkProvider
-    }
-    if(newWallet.network == NetworkType.Testnet){
-      const connectionChipnet = new Connection("testnet", electrumWssUrl(settingsStore.electrumServerChipnet))
-      // @ts-ignore currently no other way to set a specific provider
-      newWallet.provider = connectionChipnet.networkProvider as ElectrumNetworkProvider
-    }
+    await selectElectrumProvider(newWallet.network);
     _wallet.value?.stop().catch(() => {});
     _wallet.value = newWallet;
     const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
@@ -460,8 +461,8 @@ export const useStore = defineStore('store', () => {
     if (!(activeWallet instanceof HDWallet)) return;
     const simulatedMarks = [...addressMarks.value, address];
     const freshIndexAfterMark = deriveFreshAddressIndex(
-      (index) => (activeWallet.depositRawHistory[index]?.length ?? 0) > 0,
-      (index) => activeWallet.walletCache.getByIndex(index, false).address,
+      (index) => (activeWallet.rawHistory.get(DEPOSIT_BRANCH)?.[index]?.length ?? 0) > 0,
+      (index) => activeWallet.walletCache.getByIndex(index, DEPOSIT_BRANCH).address,
       simulatedMarks,
       GAP_SIZE,
     );
@@ -545,7 +546,12 @@ export const useStore = defineStore('store', () => {
       // Started here and awaited further down, so the dapp inits run alongside the connect. The
       // catch is attached in the same expression, so a failed connect never surfaces as an
       // unhandled rejection; it lands in walletInitFailed and the offline path instead.
-      const electrumConnectionPromise = connectElectrum(wallet.value.provider).then(() => true)
+      const provider = walletProvider;
+      if (!provider) throw new Error("No electrum provider selected for the wallet");
+      const activeWallet = wallet.value;
+      const electrumConnectionPromise = connectElectrum(provider)
+        .then(() => activeWallet.setProvider(provider))
+        .then(() => true)
         .catch(error => {
           displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server: electrumServer })))
           // still log the original error for debugging
@@ -577,7 +583,7 @@ export const useStore = defineStore('store', () => {
       // Filtered off the local array rather than the spendableUtxos computed, since walletUtxos
       // is only assigned further down to keep the UI values appearing together
       const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend({
-        options: { utxoIds: spendableFromUtxos(walletAddressUtxos, reservedUtxos.value) }
+        utxoIds: spendableFromUtxos(walletAddressUtxos, reservedUtxos.value)
       });
       const balancePromises = [promiseMaxAmountToSend];
       const [resultMaxAmountToSend] = await Promise.all(balancePromises);
@@ -618,12 +624,11 @@ export const useStore = defineStore('store', () => {
   }
 
   // A wallet constructed while offline cannot be reused: its HD address discovery never
-  // settles (getUtxos would hang forever), so reset the stuck providers and rebuild it
+  // settles (getUtxos would hang forever), so rebuild it on a new provider
   async function retryInitializationAfterOffline() {
     try {
-      await disconnectProviders();
       const reloadedWallet = await loadExistingWallet(activeWalletName.value, network.value);
-      setWallet(reloadedWallet);
+      await setWallet(reloadedWallet);
       await initializeWallet();
     } catch (error) {
       displayAndLogError(error);
@@ -874,7 +879,7 @@ export const useStore = defineStore('store', () => {
     awaitWalletInitialization: boolean = false
   ){
     await resetWalletState();
-    setWallet(newWallet);
+    await setWallet(newWallet);
     if (awaitWalletInitialization) {
       await initializeWallet();
     } else {
@@ -1199,11 +1204,11 @@ export const useStore = defineStore('store', () => {
     try {
       const initialization = currentInitialization;
       const currency = settingsStore.currency;
-      const rate = await ExchangeRate.get(currency, true);
+      const quote = await ExchangeRate.getQuote(currency);
       // discard a rate that no longer belongs: the state may have been reset, or the user may
       // have switched currency, which starts a second fetch that can resolve before this one
       if (initialization !== currentInitialization || currency !== settingsStore.currency) return;
-      exchangeRate.value = rate;
+      exchangeRate.value = quote.rate;
     } catch (error) {
       console.error("Failed to fetch exchange rate:", error);
     }
@@ -1245,12 +1250,12 @@ export const useStore = defineStore('store', () => {
       return publicKeyHash ? [publicKeyHash] : [];
     }
     const publicKeyHashes: string[] = [];
-    for (const change of [false, true]) {
-      const rawHistory = change ? activeWallet.changeRawHistory : activeWallet.depositRawHistory;
-      const lastIndex = (change ? activeWallet.changeIndex : activeWallet.depositIndex) + GAP_SIZE;
+    for (const branch of [DEPOSIT_BRANCH, CHANGE_BRANCH]) {
+      const rawHistory = activeWallet.rawHistory.get(branch) ?? [];
+      const lastIndex = (activeWallet.indices.get(branch) ?? 0) + GAP_SIZE;
       for (let i = 0; i <= lastIndex; i++) {
         if (!rawHistory[i]?.length) continue;
-        const publicKeyHash = binToHex(activeWallet.walletCache.getByIndex(i, change).publicKeyHash);
+        const publicKeyHash = binToHex(activeWallet.walletCache.getByIndex(i, branch).publicKeyHash);
         publicKeyHashes.push(publicKeyHash);
       }
     }
@@ -1629,16 +1634,16 @@ export const useStore = defineStore('store', () => {
     },
     // tokenMint and tokenBurn locate their token input themselves; utxoIds applies to everything
     // else they select
-    async tokenMint(category: string, mintRequests: TokenMintRequest | TokenMintRequest[]) {
+    async tokenMint(mintRequests: TokenMintRequest | TokenMintRequest[]) {
       const config = await spendConfig();
-      return spendExplained(() => wallet.value.tokenMint(category, mintRequests, undefined, config));
+      return spendExplained(() => wallet.value.tokenMint(mintRequests, config));
     },
     async tokenBurn(burnRequest: TokenBurnRequest, message?: string) {
       const config = await spendConfig();
       return spendExplained(() => wallet.value.tokenBurn(burnRequest, message, config));
     },
     async getMaxAmountToSend() {
-      return wallet.value.getMaxAmountToSend({ options: await spendConfig() ?? {} });
+      return wallet.value.getMaxAmountToSend(await spendConfig() ?? {});
     },
 
     // The one path that spends past a reservation: every identity operation is this spend, the old
@@ -1758,6 +1763,7 @@ export const useStore = defineStore('store', () => {
     canGoBack,
     changeView,
     setWallet,
+    selectElectrumProvider,
     initializeWallet,
     resetWalletState,
     updateWalletUtxos,

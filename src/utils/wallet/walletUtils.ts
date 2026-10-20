@@ -1,4 +1,4 @@
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, Config } from "mainnet-js"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, Config } from "@cashonize/bch-wallet-lib"
 import { Notify } from "quasar"
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
@@ -57,7 +57,7 @@ export async function scanDerivationPaths(seedPhrase: string): Promise<Derivatio
   const normalizedSeedPhrase = normalizeSeedPhrase(seedPhrase);
 
   async function addressHasActivity(fullDerivationPath: string): Promise<boolean> {
-    const addressWallet = await Wallet.fromSeed(normalizedSeedPhrase, fullDerivationPath);
+    const addressWallet = await Wallet.fromId(`seed:mainnet:${normalizedSeedPhrase}:${fullDerivationPath}`);
     const history = await addressWallet.getRawHistory();
     return history.length > 0;
   }
@@ -179,7 +179,7 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     localStorage.setItem('activeWalletName', trimmedName);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    store.setWallet(mainnetWallet);
+    await store.setWallet(mainnetWallet);
 
     // Refresh available wallets list
     await store.refreshAvailableWallets();
@@ -262,7 +262,7 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     localStorage.setItem('activeWalletName', trimmedName);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    store.setWallet(mainnetWallet);
+    await store.setWallet(mainnetWallet);
 
     // Refresh available wallets list
     await store.refreshAvailableWallets();
@@ -319,7 +319,7 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
     localStorage.setItem('activeWalletName', trimmedName);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    store.setWallet(mainnetWallet);
+    await store.setWallet(mainnetWallet);
 
     settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)
@@ -389,7 +389,7 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
     localStorage.setItem('activeWalletName', trimmedName);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    store.setWallet(mainnetWallet);
+    await store.setWallet(mainnetWallet);
 
     settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)

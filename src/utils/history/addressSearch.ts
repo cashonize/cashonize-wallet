@@ -1,5 +1,5 @@
 import { binToHex, cashAddressToLockingBytecode } from "@bitauth/libauth";
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 import { toPrefixedAddress } from "src/utils/addressValidation";
 
 // The history searches by address on locking bytecode: an address and its token-aware form

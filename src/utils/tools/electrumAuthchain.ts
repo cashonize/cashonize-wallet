@@ -22,7 +22,7 @@ import {
   type CashAddressNetworkPrefix,
   type TransactionCommon,
 } from "@bitauth/libauth";
-import type { ElectrumNetworkProvider, TxI } from "mainnet-js";
+import type { ElectrumNetworkProvider, TxI } from "@cashonize/bch-wallet-lib";
 import { BCMR_OUTPUT_PREFIX, type AuthHeadResult, type AuthchainLink, type IdentityOutput } from "src/queryChainGraph";
 import { i18n } from "src/boot/i18n";
 

@@ -3,7 +3,7 @@
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
   import nftMintForm from './nftMintForm.vue'
-  import { TokenSendRequest, type TokenI } from "mainnet-js"
+  import { TokenSendRequest, type TokenI } from "@cashonize/bch-wallet-lib"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"

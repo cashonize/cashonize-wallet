@@ -1,4 +1,4 @@
-import type { InOutput, TransactionHistoryItem } from 'mainnet-js'
+import type { InOutput, TransactionHistoryItem } from '@cashonize/bch-wallet-lib'
 
 // History items the way mainnet-js builds them: every output decoded, an OP_RETURN output's
 // address standing in as "OP_RETURN: <hex>", token fields as on a utxo. Coins are P2PKH unless a

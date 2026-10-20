@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Utxo } from 'mainnet-js'
+import type { Utxo } from '@cashonize/bch-wallet-lib'
 
 import { genesisAmounts, genesisCandidates, metadataReadiness, type CheckedRegistry } from '../src/utils/tools/tokenCreation'
 

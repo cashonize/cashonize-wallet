@@ -1,4 +1,4 @@
-import { Wallet, SignedMessage } from "mainnet-js";
+import { Wallet, SignedMessage } from "@cashonize/bch-wallet-lib";
 import { resolvePrivateKeyForAddress, verifyMessage } from "../src/utils/tools/messageSigning";
 
 // same throwaway key as wcSigning.test.ts

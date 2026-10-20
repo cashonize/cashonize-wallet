@@ -19,7 +19,7 @@ import {
   mockSetBackupStatus,
   mockSetWalletType,
   mockClearWalletSettings,
-  mockWalletFromSeed,
+  mockWalletFromId,
   localStorageMock,
 } from './mocks/walletUtils.mocks'
 
@@ -1021,16 +1021,16 @@ describe('importHDWallet', () => {
 describe('scanDerivationPaths', () => {
   const seedPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
-  // Every address of the seed phrase is derived through Wallet.fromSeed, only the
-  // listed derivation paths report an on-chain transaction history
+  // Every address of the seed phrase is a wallet made from a seed id, `seed:<network>:<mnemonic>:
+  // <path>`; only the listed derivation paths report an on-chain transaction history
   function givenHistoryOnPaths(pathsWithHistory: string[]) {
-    mockWalletFromSeed.mockImplementation((_seedPhrase: string, derivationPath: string) => Promise.resolve({
-      getRawHistory: () => Promise.resolve(pathsWithHistory.includes(derivationPath) ? [{ tx_hash: 'abc' }] : [])
+    mockWalletFromId.mockImplementation((walletId: string) => Promise.resolve({
+      getRawHistory: () => Promise.resolve(pathsWithHistory.includes(walletId.split(':')[3]!) ? [{ tx_hash: 'abc' }] : [])
     }))
   }
 
   function scannedPaths() {
-    return mockWalletFromSeed.mock.calls.map(call => call[1] as string)
+    return mockWalletFromId.mock.calls.map(call => (call[0] as string).split(':')[3]!)
   }
 
   beforeEach(() => {

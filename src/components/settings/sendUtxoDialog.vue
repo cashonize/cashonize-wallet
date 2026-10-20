@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue'
   import { useDialogPluginComponent } from 'quasar'
-  import type { Utxo } from 'mainnet-js'
+  import type { Utxo } from '@cashonize/bch-wallet-lib'
   import { useStore } from 'src/stores/store'
   import { useI18n } from 'vue-i18n'
   import { formatBchAmount } from 'src/utils/utils'

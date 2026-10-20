@@ -6,8 +6,8 @@
   import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue';
   import tokenUtxoRow from 'src/components/settings/tokenUtxoRow.vue';
   import TokenIcon from 'src/components/general/TokenIcon.vue';
-  import { HDWallet, TokenSendRequest } from 'mainnet-js';
-  import type { Utxo } from 'mainnet-js';
+  import { HDWallet, TokenSendRequest } from '@cashonize/bch-wallet-lib';
+  import type { Utxo } from '@cashonize/bch-wallet-lib';
   import { isFeatureReservation, outpointOf } from 'src/utils/wallet/reservedUtxos';
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels';
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';

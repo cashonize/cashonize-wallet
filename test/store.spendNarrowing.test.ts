@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import type { Utxo } from 'mainnet-js'
+import type { Utxo } from '@cashonize/bch-wallet-lib'
 
 import {
   localStorageMock,
@@ -44,7 +44,7 @@ function poolOf(call: unknown[]) {
 async function storeHoldingTokenCoin() {
   const wallet = createMockWallet()
   const store = useStore()
-  store.setWallet(wallet as never)
+  await store.setWallet(wallet as never)
   store.walletUtxos = walletCoins
   await store.reserveOutpoints([outpointOf(tokenCoin)], 'manual')
   return { wallet, store }
@@ -79,7 +79,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
   it('keeps a held back token coin out of a mint', async () => {
     const { wallet, store } = await storeHoldingTokenCoin()
 
-    await store.spend.tokenMint(category, [])
+    await store.spend.tokenMint([])
 
     expect(poolOf(wallet.tokenMint.mock.calls[0] as unknown[])).toEqual([bchCoin, otherTokenCoin])
   })
@@ -95,7 +95,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
   it('passes no pool while the wallet holds nothing back', async () => {
     const wallet = createMockWallet()
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     store.walletUtxos = walletCoins
 
     await store.spend.send([{ cashaddr: 'bitcoincash:qdest', value: 1000n }])
@@ -123,7 +123,7 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
   it('spends an identity output from a pool of BCH coins, the output, and the coins asked for', async () => {
     const wallet = createMockWallet()
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     store.walletUtxos = walletCoins
     await store.reserveOutpoints([outpointOf(tokenCoin)], 'auth')
     const request = [{ cashaddr: 'bitcoincash:qdest', value: 1000n }]

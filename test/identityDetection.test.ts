@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { InOutput } from 'mainnet-js'
+import type { InOutput } from '@cashonize/bch-wallet-lib'
 import { contractStateIdentities, detectIdentities } from '../src/utils/tools/identityDetection'
 import { authGuardLockingBytecodes } from '../src/utils/tools/authGuard'
 import { historyItem, opReturnOutput, p2pkhOutput, tokenOutput, spendOf } from './mocks/history.mocks'

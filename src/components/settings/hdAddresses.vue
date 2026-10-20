@@ -4,7 +4,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
-  import { HDWallet } from 'mainnet-js';
+  import { CHANGE_BRANCH, DEPOSIT_BRANCH, HDWallet } from '@cashonize/bch-wallet-lib';
   import { useWindowSize } from 'src/utils/composables'
   import { maxAddressLabelLength } from 'src/utils/wallet/addressManagement'
   import { buildAddressRows, tokenCategoryCount, type AddressRow } from 'src/utils/wallet/addressRows'
@@ -128,7 +128,7 @@
 
   // The address the wallet page QR currently hands out. Compared by address rather than
   // index so the tag follows the wallet page even when it falls back to the wallet's own
-  // deposit address, which is not always the address at hdWallet.depositIndex.
+  // deposit address, which is not always the address at the deposit branch's index.
   function isCurrentAddress(row: AddressRow): boolean {
     return selectedChain.value === "receiving" && row.address === store.currentDepositAddress;
   }
@@ -150,8 +150,8 @@
     // KeepAlive preserves this HD-only view, so its watchEffect can rerun after setWallet()
     // swaps in a single-address wallet but before changeView(1) navigates away.
     if (!(hdWallet instanceof HDWallet)) return;
-    receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false, store.reservedUtxos);
-    changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true, store.reservedUtxos);
+    receivingAddresses.value = buildAddressRows(hdWallet, DEPOSIT_BRANCH, store.reservedUtxos);
+    changeAddresses.value = buildAddressRows(hdWallet, CHANGE_BRANCH, store.reservedUtxos);
   });
 </script>
 

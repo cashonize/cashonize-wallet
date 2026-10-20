@@ -7,6 +7,9 @@
 # ships the wallet less safe than stock. Only enforced when a version is resolved, so it
 # does not re-check what is already in the committed lockfile.
 minimumReleaseAge: 2880
+# Our own library, published by us, is taken the day it is released
+minimumReleaseAgeExclude:
+  - '@cashonize/bch-wallet-lib'
 
 # Enforce the "engines" field (node / pnpm) instead of just warning.
 engineStrict: true
@@ -26,14 +29,13 @@ fund: false
 overrides:
   '@reown/walletkit>@walletconnect/pay': '-'
   # Security-critical deps that also appear as transitive dependencies (walletkit via
-  # @cashconnect-js/*, mainnet-js via @mainnet-cash/indexeddb-storage, libauth and
-  # @walletconnect/core via several) — overrides pin every copy in the graph, which
-  # exact versions in package.json alone can't do. Keep in sync with package.json.
+  # @cashconnect-js/*, libauth and @walletconnect/core via several) — overrides pin every
+  # copy in the graph, which exact versions in package.json alone can't do. Keep in sync
+  # with package.json.
   '@bitauth/libauth': 3.1.0-next.8
   '@reown/walletkit': 1.6.0
   '@walletconnect/core': 2.25.0
   '@wizardconnect/core': 0.2.5
-  mainnet-js: 3.1.7
 
 # Packages explicitly allowed to run install/build lifecycle scripts. Everything else is
 # blocked by pnpm; a future dep that adds an install script fails the install until
@@ -43,33 +45,3 @@ overrides:
 # (src-electron has its own allowBuilds for electron's binary download.)
 allowBuilds:
   '@parcel/watcher': true
-
-# Four fixes, all to be removed once they land upstream.
-#
-# Make tokenMint and tokenBurn honor the utxoIds option. The wallet keeps coins out of its own
-# coin selection by narrowing the pool with utxoIds, which send(), sendMax() and tokenGenesis()
-# already honor, but those two pick their token inputs from the unfiltered wallet, so a frozen or
-# reserved token coin could still be minted from or burned. The patch adds the narrowing the same
-# way the other methods do it, right after their getUtxos().
-#
-# Report each history input's outpoint. getHistory decodes every transaction and every prevout to
-# build its items, then drops the outpoint it already computed for the prevout lookup, so a reader
-# that needs to know which transaction spent which output has to fetch and decode the whole history
-# a second time. Identity detection follows an authchain that way, and with the fields present it
-# does so as a pure function over the history. Removing this patch is a type error, not a silent
-# change: the fields are declared in the same patch that populates them.
-#
-# Don't throw the whole history on an output without a CashAddress, and report every input's and
-# output's locking bytecode. getHistory asserts an address for each output and spent input, which
-# libauth has for P2PKH and P2SH only, so one P2S (standard since the 2026 upgrade), P2PK or bare
-# multisig output anywhere in the history threw the History tab, identity detection and contract
-# asset discovery all at once. Such outputs now get a "SCRIPT: <hex>" placeholder, the way
-# OP_RETURN already gets one, and identity detection reads the bytecode to tell a key-held output
-# from a contract. Upstream: mainnet-cash/mainnet-js#252.
-#
-# Allow NFT commitments up to 128 bytes. The May 2026 upgrade raised the consensus limit from 40,
-# but every send still validates its token outputs against 40, so spending any coin with a longer
-# commitment throws. Fixed upstream in mainnet-cash/mainnet-js#244 (3.1.8), which was tagged on
-# GitHub but never published to npm.
-patchedDependencies:
-  'mainnet-js@3.1.7': patches/mainnet-js@3.1.7.patch

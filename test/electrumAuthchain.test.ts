@@ -8,7 +8,7 @@ import {
   CashAddressNetworkPrefix,
   type TransactionCommon,
 } from '@bitauth/libauth'
-import type { TxI } from 'mainnet-js'
+import type { TxI } from '@cashonize/bch-wallet-lib'
 import { resolveAuthHeadsElectrum, queryAuthchainLinksElectrum, ELECTRUM_WALK_LIMIT } from '../src/utils/tools/electrumAuthchain'
 
 // A chain of three real transactions: the authbase paying a first address, the genesis spending

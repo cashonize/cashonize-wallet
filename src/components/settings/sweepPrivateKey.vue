@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
-  import { TestNetWallet, Wallet, convert } from 'mainnet-js';
+  import { TestNetWallet, Wallet, convert } from '@cashonize/bch-wallet-lib';
   import { decodePrivateKeyWif, encodePrivateKeyWif } from '@bitauth/libauth';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'

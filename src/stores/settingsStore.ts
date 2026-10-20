@@ -1,5 +1,5 @@
 import { useWindowSize } from "src/utils/composables";
-import { Config } from "mainnet-js";
+import { Config } from "@cashonize/bch-wallet-lib";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import { BitpayRatesSchema, CoinGeckoRatesSchema, CoinbaseRatesSchema } from "src/utils/zodValidation";

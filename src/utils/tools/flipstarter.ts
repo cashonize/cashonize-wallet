@@ -17,7 +17,7 @@ import {
   type Output,
   type TransactionCommon,
 } from "@bitauth/libauth";
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 import { FlipstarterTemplateSchema, type FlipstarterTemplate } from "src/utils/zodValidation";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global

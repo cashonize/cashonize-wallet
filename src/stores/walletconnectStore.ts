@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
-import { NetworkType, HDWallet } from "mainnet-js";
+import { NetworkType, HDWallet, SignedMessage } from "@cashonize/bch-wallet-lib";
 import { useStore } from "./store"
 import { useIdentitiesStore } from "./identitiesStore"
 import {
@@ -595,7 +595,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const { id, topic } = signMessageRequestWC;
     // Get the address connected to this session and resolve the correct private key
     const { privateKey } = getSessionSigningInfo(topic);
-    const signedMessage = mainStore.wallet.sign(message, privateKey);
+    const signedMessage = SignedMessage.sign(message, privateKey);
     const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
     await web3wallet.value?.respondSessionRequest({ topic, response });
     notifyDappActivity({ protocol: 'walletconnect', ...dappForTopic(topic), outcome: 'messageSigned' });

@@ -1,5 +1,5 @@
 import { csvEscape, historyToCsv } from "../src/utils/history/csvUtils";
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 import type { BcmrTokenMetadata } from "../src/interfaces/interfaces";
 
 const categoryA = "aabbccdd".repeat(8);

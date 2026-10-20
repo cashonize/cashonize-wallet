@@ -9,7 +9,7 @@
 // without this. Contract: https://github.com/SayoshiNakamario/BadgersStake
 
 import { binToHex, hexToBin, binToNumberUint16LE } from "@bitauth/libauth";
-import type { ElectrumNetworkProvider, Utxo } from "mainnet-js";
+import type { ElectrumNetworkProvider, Utxo } from "@cashonize/bch-wallet-lib";
 
 // The single contract holding every lock, on mainnet only. Its token-aware form, since a lock
 // carries an NFT next to the BCH.

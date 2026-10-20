@@ -4,7 +4,7 @@
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { computed, ref, watch, nextTick } from 'vue';
   import { useSearchShortcut } from 'src/utils/composables';
-  import type { TransactionHistoryItem } from 'mainnet-js';
+  import type { TransactionHistoryItem } from '@cashonize/bch-wallet-lib';
   import TransactionDialog from './transactionDialog.vue';
   import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips, dayLabel, localDayStart } from 'src/utils/utils';
   import { historyToCsv } from 'src/utils/history/csvUtils';

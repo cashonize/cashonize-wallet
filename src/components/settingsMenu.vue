@@ -6,7 +6,6 @@
   import LanguageSelector from './general/LanguageSelector.vue'
   import { computed, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { Connection, type ElectrumNetworkProvider } from "mainnet-js"
   import { useStore } from '../stores/store'
   import { useIdentitiesStore } from '../stores/identitiesStore'
   import { useSettingsStore, removeSettingsMenuKeys } from '../stores/settingsStore'
@@ -210,19 +209,14 @@
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
     if(targetNetwork == "mainnet"){
-      const newConnection = new Connection("mainnet", electrumWssUrl(selectedElectrumServer.value))
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerMainnet = selectedElectrumServer.value
       localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
     }
     if(targetNetwork == "chipnet"){
-      const newConnection = new Connection("testnet", electrumWssUrl(selectedElectrumServerChipnet.value))
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
       localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
     }
+    await store.selectElectrumProvider(store._wallet.network)
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }
@@ -238,21 +232,16 @@
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
     if(targetNetwork == "mainnet"){
-      const newConnection = new Connection("mainnet", electrumWssUrl(trimmedServer))
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerMainnet = trimmedServer;
       localStorage.setItem("electrum-mainnet", trimmedServer);
       customElectrumServer.value = trimmedServer;
     }
     if(targetNetwork == "chipnet"){
-      const newConnection = new Connection("testnet", electrumWssUrl(trimmedServer))
-      // @ts-ignore currently no other way to set a specific provider
-      store._wallet.provider = newConnection.networkProvider as ElectrumNetworkProvider;
       settingsStore.electrumServerChipnet = trimmedServer;
       localStorage.setItem("electrum-chipnet", trimmedServer);
       customElectrumServerChipnet.value = trimmedServer;
     }
+    await store.selectElectrumProvider(store._wallet.network)
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }

@@ -37,7 +37,7 @@ describe('switchWallet', () => {
 
       const store = useStore()
       // Set initial wallet to avoid "No wallet set" error
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
 
       await store.switchWallet('newWallet')
 
@@ -51,7 +51,7 @@ describe('switchWallet', () => {
       localStorageMock.setItem('network', 'chipnet')
 
       const store = useStore()
-      store.setWallet(mockChipnetWallet as never)
+      await store.setWallet(mockChipnetWallet as never)
 
       await store.switchWallet('newWallet')
 
@@ -65,7 +65,7 @@ describe('switchWallet', () => {
       // No network set in localStorage
 
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
 
       await store.switchWallet('newWallet')
 
@@ -81,7 +81,7 @@ describe('switchWallet', () => {
 
     it('updates activeWalletName in store', async () => {
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
 
       await store.switchWallet('differentWallet')
 
@@ -90,7 +90,7 @@ describe('switchWallet', () => {
 
     it('persists activeWalletName to localStorage', async () => {
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
 
       await store.switchWallet('persistedWallet')
 
@@ -99,7 +99,7 @@ describe('switchWallet', () => {
 
     it('sets _wallet to mainnet wallet instance', async () => {
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
 
       await store.switchWallet('newWallet')
 
@@ -111,7 +111,7 @@ describe('switchWallet', () => {
     it('sets _wallet to chipnet wallet instance', async () => {
       localStorageMock.setItem('network', 'chipnet')
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
 
       await store.switchWallet('newWallet')
 
@@ -125,7 +125,7 @@ describe('switchWallet', () => {
     it('switches to mainnet when wallet only exists on mainnet and current network is chipnet', async () => {
       localStorageMock.setItem('network', 'chipnet')
       const store = useStore()
-      store.setWallet(mockChipnetWallet as never)
+      await store.setWallet(mockChipnetWallet as never)
       // Set up availableWallets with a mainnet-only wallet
       store.availableWallets = [
         { name: 'mainnetOnlyWallet', hasMainnet: true, hasChipnet: false }
@@ -148,7 +148,7 @@ describe('switchWallet', () => {
     it('switches to chipnet when wallet only exists on chipnet and current network is mainnet', async () => {
       localStorageMock.setItem('network', 'mainnet')
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
       // Set up availableWallets with a chipnet-only wallet
       store.availableWallets = [
         { name: 'chipnetOnlyWallet', hasMainnet: false, hasChipnet: true }
@@ -171,7 +171,7 @@ describe('switchWallet', () => {
     it('does not change network when wallet exists on current network', async () => {
       localStorageMock.setItem('network', 'mainnet')
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
       // Wallet exists on both networks
       store.availableWallets = [
         { name: 'bothNetworks', hasMainnet: true, hasChipnet: true }
@@ -188,7 +188,7 @@ describe('switchWallet', () => {
     it('loads wallet normally when not in availableWallets but present in IndexedDB', async () => {
       localStorageMock.setItem('network', 'mainnet')
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
       store.availableWallets = [] // Empty list
 
       const result = await store.switchWallet('unknownWallet')
@@ -207,7 +207,7 @@ describe('switchWallet', () => {
       mockGetNamedWalletIdFromDb.mockResolvedValueOnce(undefined)
 
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
 
       await expect(store.switchWallet('ghostWallet')).rejects.toThrowError()
       // .named() would silently create a new wallet with a fresh seed
@@ -221,7 +221,7 @@ describe('switchWallet', () => {
       mockGetNamedWalletIdFromDb.mockResolvedValueOnce(undefined)
 
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
       store.activeWalletName = 'originalWallet'
       // Stale list claims the wallet exists on chipnet, but IndexedDB disagrees
       store.availableWallets = [
@@ -241,7 +241,7 @@ describe('switchWallet', () => {
       mockWalletFromId.mockRejectedValueOnce(new Error('Wallet not found'))
 
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
 
       await expect(store.switchWallet('nonexistentWallet')).rejects.toThrowError()
     })
@@ -253,7 +253,7 @@ describe('switchWallet', () => {
       mockWalletFromId.mockRejectedValueOnce(new Error('Wallet not found'))
 
       const store = useStore()
-      store.setWallet(mockMainnetWallet as never)
+      await store.setWallet(mockMainnetWallet as never)
       store.activeWalletName = 'originalWallet'
       store.displayView = 5
       const originalWalletRef = store._wallet
@@ -284,7 +284,7 @@ describe('changeNetwork', () => {
     localStorageMock.setItem('network', 'mainnet')
 
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
     store.activeWalletName = 'myWallet'
 
     await store.changeNetwork('chipnet')
@@ -299,7 +299,7 @@ describe('changeNetwork', () => {
     mockGetNamedWalletIdFromDb.mockResolvedValueOnce(undefined)
 
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
     const originalWalletRef = store._wallet
 
     await store.changeNetwork('chipnet')
@@ -323,7 +323,7 @@ describe('deleteWallet', () => {
 
   it('throws when trying to delete the active wallet', async () => {
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
     // activeWalletName defaults to 'mywallet'
 
     await expect(store.deleteWallet('mywallet')).rejects.toThrowError()
@@ -331,7 +331,7 @@ describe('deleteWallet', () => {
 
   it('does not call deleteWalletFromDb when trying to delete active wallet', async () => {
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
 
     try {
       await store.deleteWallet('mywallet')
@@ -344,7 +344,7 @@ describe('deleteWallet', () => {
 
   it('deletes wallet from both mainnet and testnet databases', async () => {
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
 
     await store.deleteWallet('otherWallet')
 
@@ -357,7 +357,7 @@ describe('deleteWallet', () => {
   // in a database of its own, which would still be able to spend from the deleted wallet
   it('prunes the HD wallet key cache so no spendable keys outlive the wallet', async () => {
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
 
     await store.deleteWallet('otherWallet')
 
@@ -366,7 +366,7 @@ describe('deleteWallet', () => {
 
   it('clears the settings of the deleted wallet', async () => {
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
 
     await store.deleteWallet('otherWallet')
 
@@ -377,7 +377,7 @@ describe('deleteWallet', () => {
   // than making the deletion look like it failed and stranding the per-wallet cleanup with it
   it('still succeeds and cleans up when the key cache prune fails', async () => {
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
     mockPruneHdWalletKeyCache.mockRejectedValueOnce(new Error('prune failed'))
 
     await expect(store.deleteWallet('otherWallet')).resolves.toBeUndefined()
@@ -388,7 +388,7 @@ describe('deleteWallet', () => {
 
   it('does not prune the key cache when the delete is refused', async () => {
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
 
     try {
       await store.deleteWallet('mywallet')
@@ -401,7 +401,7 @@ describe('deleteWallet', () => {
 
   it('refreshes available wallets after deletion', async () => {
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
 
     await store.deleteWallet('otherWallet')
 
@@ -411,7 +411,7 @@ describe('deleteWallet', () => {
   it('propagates error if mainnet deletion fails (testnet not attempted)', async () => {
     mockDeleteWalletFromDb.mockRejectedValueOnce(new Error('DB error'))
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
 
     await expect(store.deleteWallet('otherWallet')).rejects.toThrowError()
 
@@ -427,7 +427,7 @@ describe('deleteWallet', () => {
       .mockResolvedValueOnce(undefined) // mainnet succeeds
       .mockRejectedValueOnce(new Error('DB error')) // testnet fails
     const store = useStore()
-    store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockMainnetWallet as never)
 
     await expect(store.deleteWallet('otherWallet')).rejects.toThrowError()
 

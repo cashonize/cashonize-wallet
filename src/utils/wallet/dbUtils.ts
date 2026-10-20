@@ -1,4 +1,4 @@
-import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage"
+import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
 import { binToHex, sha256, utf8ToBin } from "@bitauth/libauth"
 
 export interface WalletInfo {

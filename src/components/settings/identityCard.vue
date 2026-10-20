@@ -47,7 +47,7 @@
     type RegistrySummary,
   } from 'src/utils/tools/registryFile'
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
-  import { TokenSendRequest } from 'mainnet-js'
+  import { TokenSendRequest } from '@cashonize/bch-wallet-lib'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { maxTokenSupply } from 'src/utils/tools/tokenCreation'
 

@@ -17,7 +17,7 @@ import {
   binToHex,
   vmNumberToBigInt,
 } from "@bitauth/libauth";
-import type { ElectrumNetworkProvider, TransactionHistoryItem } from "mainnet-js";
+import type { ElectrumNetworkProvider, TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 import { opReturnChunks, opReturnHex } from "src/utils/history/txDirection";
 
 // OP_RETURN, "MPSW", version 4, then the first 4 bytes of the sha256 of the contract's constant

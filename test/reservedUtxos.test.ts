@@ -1,5 +1,5 @@
 import { hexToBin } from "@bitauth/libauth";
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 import {
   loadReservedUtxos,
   saveReservedOutpoint,

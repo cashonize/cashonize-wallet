@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Utxo } from 'mainnet-js'
+import type { Utxo } from '@cashonize/bch-wallet-lib'
 
 import { tokenListFromUtxos } from '../src/stores/storeUtils'
 import type { ReservedUtxos } from '../src/utils/wallet/reservedUtxos'

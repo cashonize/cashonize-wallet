@@ -1,5 +1,5 @@
 import { hexToBin, type Output } from "@bitauth/libauth";
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 
 /**
  * Convert a mainnet-js Utxo to a libauth Output for use with parseNft().

@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
-import { NetworkType, HDWallet } from "mainnet-js";
+import { NetworkType, HDWallet } from "@cashonize/bch-wallet-lib";
 import { currentExchangeRate } from "src/utils/utils";
 import {
   WalletConnectionManager,

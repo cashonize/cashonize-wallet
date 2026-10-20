@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch, shallowRef, nextTick } from 'vue'
-  import { convert } from 'mainnet-js'
+  import { convert } from '@cashonize/bch-wallet-lib'
   import { decodeCashAddress } from "@bitauth/libauth"
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount, convertToCurrency, sendAmountToSatoshis } from 'src/utils/utils';

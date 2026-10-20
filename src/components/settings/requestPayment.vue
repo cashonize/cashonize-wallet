@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
-  import { HDWallet, convert } from 'mainnet-js'
+  import { HDWallet, convert } from '@cashonize/bch-wallet-lib'
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'

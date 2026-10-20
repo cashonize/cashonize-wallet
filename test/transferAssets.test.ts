@@ -3,6 +3,9 @@ import type { ReservedUtxos } from "../src/utils/wallet/reservedUtxos";
 import type { WalletType } from "../src/interfaces/interfaces";
 
 const destinationAddress = "bitcoincash:zzd7ucdmlvkarqr3ytft3trl94007r6dr53jj2x88s";
+// real 32-byte categories, as the library refuses a token request with any other
+const cat1 = "c1".repeat(32);
+const cat2 = "c2".repeat(32);
 
 // A vout apiece, so every coin here has an outpoint of its own to be held back by
 let nextVout = 0;
@@ -59,8 +62,8 @@ describe('test transferAllAssets', () => {
   it('should move fungible tokens first, then nfts, then the remaining bch', async () => {
     const { wallet, callOrder } = createFakeWallet([
       bchUtxo(100_000n),
-      fungibleTokenUtxo("cat1", 500n),
-      nftUtxo("cat2", "aa"),
+      fungibleTokenUtxo(cat1, 500n),
+      nftUtxo(cat2, "aa"),
     ]);
 
     await transferAllAssets(wallet, destinationAddress, {});
@@ -72,39 +75,39 @@ describe('test transferAllAssets', () => {
   it('should send one transaction per fungible token category', async () => {
     const { wallet, sendCalls } = createFakeWallet([
       bchUtxo(100_000n),
-      fungibleTokenUtxo("cat1", 500n),
-      fungibleTokenUtxo("cat2", 700n),
+      fungibleTokenUtxo(cat1, 500n),
+      fungibleTokenUtxo(cat2, 700n),
     ]);
 
     await transferAllAssets(wallet, destinationAddress, {});
 
     expect(sendCalls).toEqual([
-      [{ category: "cat1" }],
-      [{ category: "cat2" }],
+      [{ category: cat1 }],
+      [{ category: cat2 }],
     ]);
   })
 
   it('should batch all nfts of one category into a single transaction', async () => {
     const { wallet, sendCalls } = createFakeWallet([
       bchUtxo(100_000n),
-      nftUtxo("cat1", "aa"),
-      nftUtxo("cat1", "bb"),
-      nftUtxo("cat2", "cc"),
+      nftUtxo(cat1, "aa"),
+      nftUtxo(cat1, "bb"),
+      nftUtxo(cat2, "cc"),
     ]);
 
     await transferAllAssets(wallet, destinationAddress, {});
 
     expect(sendCalls).toEqual([
-      [{ category: "cat1", commitment: "aa" }, { category: "cat1", commitment: "bb" }],
-      [{ category: "cat2", commitment: "cc" }],
+      [{ category: cat1, commitment: "aa" }, { category: cat1, commitment: "bb" }],
+      [{ category: cat2, commitment: "cc" }],
     ]);
   })
 
   it('should report progress for each phase', async () => {
     const { wallet } = createFakeWallet([
       bchUtxo(100_000n),
-      fungibleTokenUtxo("cat1", 500n),
-      fungibleTokenUtxo("cat2", 700n),
+      fungibleTokenUtxo(cat1, 500n),
+      fungibleTokenUtxo(cat2, 700n),
     ]);
 
     const progressUpdates: TransferProgress[] = [];
@@ -129,16 +132,16 @@ describe('test transferAllAssets', () => {
 
   // this tool empties the wallet of everything a spend can reach, which is not everything it holds
   it('should leave a held back coin behind', async () => {
-    const frozenNft = nftUtxo("cat1", "aa");
+    const frozenNft = nftUtxo(cat1, "aa");
     const { wallet, sendCalls, pools } = createFakeWallet([
       bchUtxo(100_000n),
-      nftUtxo("cat1", "bb"),
+      nftUtxo(cat1, "bb"),
       frozenNft,
     ]);
 
     await transferAllAssets(wallet, destinationAddress, held(frozenNft));
 
-    expect(sendCalls).toEqual([[{ category: "cat1", commitment: "bb" }]]);
+    expect(sendCalls).toEqual([[{ category: cat1, commitment: "bb" }]]);
     for (const pool of pools) {
       expect(pool?.some(utxo => utxo.vout === frozenNft.vout)).toBe(false);
     }
@@ -147,7 +150,7 @@ describe('test transferAllAssets', () => {
   // a token coin swept as plain bch would burn its tokens; mainnet-js leaves them out on its own,
   // and the pool handed to it leaves them out as well
   it('should keep token coins out of the final bch sweep', async () => {
-    const frozenToken = fungibleTokenUtxo("cat1", 500n);
+    const frozenToken = fungibleTokenUtxo(cat1, 500n);
     const { wallet, pools } = createFakeWallet([bchUtxo(100_000n), frozenToken]);
 
     await transferAllAssets(wallet, destinationAddress, held(frozenToken));

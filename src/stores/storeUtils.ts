@@ -1,5 +1,5 @@
 import { cachedFetch } from "src/utils/cacheUtils";
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 import type { BcmrTokenMetadata, TokenList } from "src/interfaces/interfaces";
 import { getAllNftTokenBalances, getFungibleTokenBalances, getTokenUtxos } from "src/utils/utils";
 import { outpointOf, spendableFromUtxos, type ReservedUtxos } from "src/utils/wallet/reservedUtxos";

@@ -10,7 +10,7 @@ import { vi } from 'vitest'
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
 export const mockWalletReplaceNamed = vi.fn()
-export const mockWalletFromSeed = vi.fn()
+export const mockWalletFromId = vi.fn()
 export const mockTestNetWalletReplaceNamed = vi.fn()
 
 // Mock functions for HD wallet classes
@@ -63,11 +63,11 @@ vi.mock('src/utils/wallet/dbUtils', () => ({
   namedWalletExistsInDb: mockNamedWalletExistsInDb
 }))
 
-vi.mock('mainnet-js', () => ({
+vi.mock('@cashonize/bch-wallet-lib', () => ({
   Wallet: {
     named: mockWalletNamed,
     replaceNamed: mockWalletReplaceNamed,
-    fromSeed: mockWalletFromSeed,
+    fromId: mockWalletFromId,
   },
   TestNetWallet: {
     replaceNamed: mockTestNetWalletReplaceNamed,

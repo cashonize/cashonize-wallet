@@ -3,8 +3,8 @@
 // link of a chain did. The hosted file itself is registryFile's; the persisted lists are
 // identityLists'.
 
-import type { ElectrumNetworkProvider, Utxo } from "mainnet-js";
-import { OpReturnData, TokenSendRequest, type NFTCapability } from "mainnet-js";
+import type { ElectrumNetworkProvider, Utxo } from "@cashonize/bch-wallet-lib";
+import { OpReturnData, TokenSendRequest, type NFTCapability } from "@cashonize/bch-wallet-lib";
 import { binToHex, binToUtf8, hexToBin, type CashAddressNetworkPrefix } from "@bitauth/libauth";
 import {
   queryAuthHeadsWithOutputs,

@@ -2,7 +2,7 @@
 // tested: amounts typed in tokens become base units by the chosen decimals, and a metadata
 // location counts only once the wallet has fetched and verified what it serves.
 
-import type { Utxo } from 'mainnet-js';
+import type { Utxo } from '@cashonize/bch-wallet-lib';
 import type { RegistrySummary } from './registryFile';
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;

@@ -4,7 +4,7 @@
   // The actions menu itself stays with the row, which is what opens it, and the actions belong to
   // the page, so this only says which ones it offers.
   import { computed } from 'vue'
-  import type { Utxo } from 'mainnet-js'
+  import type { Utxo } from '@cashonize/bch-wallet-lib'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import { isFeatureReservation, outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { useStore } from 'src/stores/store'

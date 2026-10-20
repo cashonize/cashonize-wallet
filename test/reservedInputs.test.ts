@@ -1,5 +1,5 @@
 import { hexToBin } from "@bitauth/libauth";
-import type { Utxo } from "mainnet-js";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
 import { checkReservedInputs, refusalMessage, type SignedOutput } from "../src/utils/dapp/reservedInputs";
 import type { ReservedUtxos } from "../src/utils/wallet/reservedUtxos";
 

@@ -1,5 +1,5 @@
 import { txDirection, isCombined, isDappInteraction, isSelfSend } from "../src/utils/history/txDirection";
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 
 const category = "aabbccdd".repeat(8);
 

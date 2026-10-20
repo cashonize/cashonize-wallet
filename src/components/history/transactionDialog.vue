@@ -4,7 +4,7 @@
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWindowSize } from 'src/utils/composables'
-  import { convert, type TransactionHistoryItem } from 'mainnet-js';
+  import { convert, type TransactionHistoryItem } from '@cashonize/bch-wallet-lib';
   import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';

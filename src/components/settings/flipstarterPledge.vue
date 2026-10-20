@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, ref, watch } from 'vue'
-  import type { Utxo } from 'mainnet-js'
+  import type { Utxo } from '@cashonize/bch-wallet-lib'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'

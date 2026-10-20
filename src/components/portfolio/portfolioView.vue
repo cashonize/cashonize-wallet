@@ -1,10 +1,10 @@
 <script setup lang="ts">
   import { ref, computed, watch, onActivated, onDeactivated } from 'vue'
-  import type { Utxo } from 'mainnet-js'
+  import type { Utxo } from '@cashonize/bch-wallet-lib'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
-  import { convert } from 'mainnet-js'
+  import { convert } from '@cashonize/bch-wallet-lib'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { formatFiatAmount, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'

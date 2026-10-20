@@ -10,7 +10,7 @@
 // followed forward to the link the chain has got to, through key-held outputs and AuthGuards only
 // (why: docs/bcmr-identities.md, Spec versus convention).
 
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 import { BCMR_OUTPUT_PREFIX } from "src/queryChainGraph";
 import { opReturnHex } from "src/utils/history/txDirection";
 import { isAuthGuardOf } from "src/utils/tools/authGuard";

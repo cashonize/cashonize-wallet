@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue';
-  import type { Utxo } from 'mainnet-js';
+  import type { Utxo } from '@cashonize/bch-wallet-lib';
   import { filledLocations, locationBudgetLeft, publicationOutput, tokenOutputValue } from 'src/utils/tools/authchainIdentity';
   import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, fetchCandidateRegistry, summarizeRegistry } from 'src/utils/tools/registryFile';
   import {
@@ -14,7 +14,7 @@
     type CreatedToken,
   } from 'src/utils/tools/tokenCreation';
   import { copyToClipboard, formatBch, formatTokenAmount, gatewayUrl, truncateHash } from 'src/utils/utils';
-  import { NFTCapability, TokenSendRequest } from 'mainnet-js';
+  import { NFTCapability, TokenSendRequest } from '@cashonize/bch-wallet-lib';
   import TokenIcon from '../general/TokenIcon.vue';
   import genesisInputPicker from './genesisInputPicker.vue';
   import publicationLocations from './publicationLocations.vue';

@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
-import { IndexedDBProvider } from "@mainnet-cash/indexeddb-storage";
-import { HDWallet, Config, DefaultProvider } from "mainnet-js";
+import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb";
+import { HDWallet, Config, DefaultProvider } from "@cashonize/bch-wallet-lib";
 import { pruneHdWalletKeyCache, hdWalletCacheKey, deleteWalletFromDb, getAllWalletsWithNetworkInfo } from "../src/utils/wallet/dbUtils";
 import { openIndexedDB } from "../src/utils/cacheUtils";
 
@@ -285,7 +285,8 @@ describe('hdWalletCacheKey against mainnet-js', () => {
 
     const wallet = await HDWallet.fromId(storedWalletId);
 
-    expect(hdWalletCacheKey(storedWalletId)).toBe(`walletCache-${wallet.walletId}`);
+    // walletId is private in the library, the contract this pins is the key it caches under
+    expect(hdWalletCacheKey(storedWalletId)).toBe(`walletCache-${(wallet as unknown as { walletId: string }).walletId}`);
   });
 });
 
@@ -320,9 +321,8 @@ describe('pruneHdWalletKeyCache against mainnet-js', () => {
     DefaultProvider.servers.mainnet = ["wss://127.0.0.1:1"];
     const wallet = await HDWallet.fromId(hdWalletId(mnemonic, "mainnet"));
     // let mainnet-js write the entry through its own database name, store name and key prefix,
-    // so none of those are assumed here. persist does not await its own write.
-    await wallet.walletCache.persist();
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    // so none of those are assumed here. Without immediate the library debounces the write.
+    await wallet.walletCache.persist(true);
     const written = (await everyStoredKey()).filter((key) => key.startsWith("walletCache-"));
     expect(written).toHaveLength(1);
 

@@ -1,4 +1,4 @@
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 
 // Nodes relay transactions at 1 sat/byte by default, below that a transaction is
 // non-standard and may sit unmined indefinitely. This is node policy, not consensus.

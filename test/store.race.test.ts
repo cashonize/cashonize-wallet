@@ -55,7 +55,7 @@ describe('network switch race conditions', () => {
     wallet.getUtxos.mockImplementation(() => staleUtxosDeferred.promise)
 
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
 
     // First init blocks at getUtxos
     const oldInit = store.initializeWallet()
@@ -82,7 +82,7 @@ describe('network switch race conditions', () => {
     wallet.getUtxos.mockImplementation(() => staleUtxosDeferred.promise)
 
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
 
     // First init blocks at getUtxos
     const oldInit = store.initializeWallet()
@@ -108,7 +108,7 @@ describe('network switch race conditions', () => {
     wallet.getHistory.mockImplementation(() => staleHistoryDeferred.promise)
 
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
 
     // First init blocks at getHistory
     const oldInit = store.initializeWallet()
@@ -138,7 +138,7 @@ describe('network switch race conditions', () => {
       .mockResolvedValueOnce(freshMetadata as never)
 
     const store = useStore()
-    store.setWallet(createMockWallet() as never)
+    await store.setWallet(createMockWallet() as never)
 
     // First init blocks at fetchTokenMetadata
     const oldInit = store.initializeWallet()
@@ -173,7 +173,7 @@ describe('partial history loading', () => {
   it('calls getHistory with count: 100 during init', async () => {
     const wallet = createMockWallet()
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     await store.initializeWallet()
 
     expect(wallet.getHistory).toHaveBeenCalledWith({ count: 100 })
@@ -185,7 +185,7 @@ describe('partial history loading', () => {
     wallet.getHistory.mockResolvedValueOnce(items100)
 
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     await store.initializeWallet()
 
     expect(store.isHistoryPartial).toBe(true)
@@ -198,7 +198,7 @@ describe('partial history loading', () => {
     wallet.getHistory.mockResolvedValueOnce(items50)
 
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     await store.initializeWallet()
 
     expect(store.isHistoryPartial).toBe(false)
@@ -217,7 +217,7 @@ describe('partial history loading', () => {
       .mockResolvedValueOnce(fullHistory)
 
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     await store.initializeWallet()
 
     expect(store.isHistoryPartial).toBe(true)
@@ -232,7 +232,7 @@ describe('partial history loading', () => {
   it('discards stale history when newer updateWalletHistory completes first', async () => {
     const wallet = createMockWallet()
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     await store.initializeWallet()
 
     // Start a slow history fetch
@@ -277,7 +277,7 @@ describe('subscriptions live before metadata and history', () => {
     const metadata = createDeferred<Record<string, unknown>>()
     vi.mocked(mockFetchTokenMetadataFromIndexer).mockImplementationOnce(() => metadata.promise as never)
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
 
     const init = store.initializeWallet()
     await flushAsyncWork()
@@ -295,7 +295,7 @@ describe('subscriptions live before metadata and history', () => {
   it('merges a second first-time metadata fetch into the first', async () => {
     const wallet = createMockWallet()
     const store = useStore()
-    store.setWallet(wallet as never)
+    await store.setWallet(wallet as never)
     const first = createDeferred<Record<string, unknown>>()
     const second = createDeferred<Record<string, unknown>>()
     vi.mocked(mockFetchTokenMetadataFromIndexer)

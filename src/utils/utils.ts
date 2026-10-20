@@ -1,6 +1,6 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, decodeHeader, type ElectrumNetworkProvider, type HexHeaderI, type Utxo, type TransactionHistoryItem } from "mainnet-js"
+import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, decodeHeader, type ElectrumNetworkProvider, type HexHeaderI, type Utxo, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib"
 import type { BcmrTokenMetadata, ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'

@@ -1,4 +1,4 @@
-import type { InOutput, TransactionHistoryItem } from "mainnet-js";
+import type { InOutput, TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 import { hexToBin, decodeAuthenticationInstructions, authenticationInstructionsAreMalformed } from "@bitauth/libauth";
 
 export type TxDirection = 'received' | 'sent' | 'combined';

@@ -19,7 +19,7 @@ import {
   decodeCashAddress,
   encodeCashAddress,
 } from "@bitauth/libauth";
-import type { ElectrumNetworkProvider, TransactionHistoryItem } from "mainnet-js";
+import type { ElectrumNetworkProvider, TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 import { opReturnChunks, opReturnHex } from "src/utils/history/txDirection";
 
 // OP_RETURN + the "hodl" Lokad id

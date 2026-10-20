@@ -1,5 +1,5 @@
 import { isBelowRelayFee, feeRate } from "../src/utils/history/txFeeRate";
-import type { TransactionHistoryItem } from "mainnet-js";
+import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
 
 // the base transaction is pending: no timestamp, and height 0 for the mempool
 const makeTx = (overrides: Partial<TransactionHistoryItem>): TransactionHistoryItem => ({

@@ -5,7 +5,7 @@
  * Note: vi.mock() calls are hoisted, so mock functions must be defined at
  * module level to be available in both mock factories and test assertions.
  */
-import type * as MainnetJs from 'mainnet-js'
+import type * as MainnetJs from '@cashonize/bch-wallet-lib'
 import type * as ZodValidation from 'src/utils/zodValidation'
 import { vi } from 'vitest'
 
@@ -20,6 +20,7 @@ export const mockMainnetWallet = {
   // hashes, and an address that decodes would make every wallet initialization in the tests fetch
   getDepositAddress: () => 'bitcoincash:qtest',
   getTokenDepositAddress: () => 'bitcoincash:ztest',
+  setProvider: vi.fn().mockResolvedValue(undefined),
   stop: vi.fn().mockResolvedValue(undefined),
 }
 
@@ -31,6 +32,7 @@ export const mockChipnetWallet = {
   publicKeyHash: new Uint8Array([1, 2, 3]),
   getDepositAddress: () => 'bchtest:qtest',
   getTokenDepositAddress: () => 'bchtest:ztest',
+  setProvider: vi.fn().mockResolvedValue(undefined),
   stop: vi.fn().mockResolvedValue(undefined),
 }
 
@@ -54,15 +56,10 @@ export const localStorageMock = {
 }
 vi.stubGlobal('localStorage', localStorageMock)
 
-// Mock Connection class
-class MockConnection {
-  networkProvider = {
-    connect: vi.fn().mockResolvedValue(undefined),
-    getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
-  }
-  constructor() {
-    // Constructor does nothing, just provides networkProvider
-  }
+// The provider the store makes for the selected server; the wallets' setProvider takes it
+export const mockProvider = {
+  connect: vi.fn().mockResolvedValue(undefined),
+  getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
 }
 
 // Mock wallet classes (must be real classes so instanceof checks work)
@@ -73,7 +70,7 @@ class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static from
 
 // Mock mainnet-js. The publication output parser is the real one: a publication is bytes on the
 // chain, and the tests that name an identity from one hand the store real bytecode.
-vi.mock('mainnet-js', async (importOriginal) => ({
+vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   OpReturnData: (await importOriginal<typeof MainnetJs>()).OpReturnData,
   Wallet: MockWallet,
   TestNetWallet: MockTestNetWallet,
@@ -93,14 +90,14 @@ vi.mock('mainnet-js', async (importOriginal) => ({
   convert: vi.fn().mockResolvedValue(0),
   balanceResponseFromSatoshi: vi.fn().mockReturnValue({ sat: 0, bch: 0 }),
   binToHex: vi.fn((arr: Uint8Array) => Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')),
-  Connection: MockConnection,
+  createProvider: vi.fn().mockResolvedValue(mockProvider),
   DefaultProvider: {
     servers: { mainnet: [], testnet: [], regtest: [] },
   },
 }))
 
 // Mock IndexedDB provider
-vi.mock('@mainnet-cash/indexeddb-storage', () => ({
+vi.mock('@cashonize/bch-wallet-lib/indexeddb', () => ({
   IndexedDBProvider: vi.fn(),
 }))
 

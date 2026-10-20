@@ -4,7 +4,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
-  import { HDWallet } from 'mainnet-js';
+  import { CHANGE_BRANCH, DEPOSIT_BRANCH, HDWallet } from '@cashonize/bch-wallet-lib';
   import { useWindowSize } from 'src/utils/composables'
   import { buildAddressRows, tokenCategoryCount, type AddressRow } from 'src/utils/wallet/addressRows'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
@@ -118,8 +118,8 @@
     // KeepAlive preserves this HD-only view, so its watchEffect can rerun after setWallet()
     // swaps in a single-address wallet but before changeView(1) navigates away.
     if (!(hdWallet instanceof HDWallet)) return;
-    receivingAddresses.value = buildAddressRows(hdWallet, hdWallet.depositIndex, false, store.reservedUtxos);
-    changeAddresses.value = buildAddressRows(hdWallet, hdWallet.changeIndex, true, store.reservedUtxos);
+    receivingAddresses.value = buildAddressRows(hdWallet, DEPOSIT_BRANCH, store.reservedUtxos);
+    changeAddresses.value = buildAddressRows(hdWallet, CHANGE_BRANCH, store.reservedUtxos);
   });
 </script>
 

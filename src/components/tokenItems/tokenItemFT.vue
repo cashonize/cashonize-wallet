@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, convert } from "mainnet-js"
+  import { TokenSendRequest, convert } from "@cashonize/bch-wallet-lib"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';

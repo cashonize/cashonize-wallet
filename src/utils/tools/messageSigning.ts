@@ -1,4 +1,4 @@
-import { HDWallet, SignedMessage } from "mainnet-js";
+import { HDWallet, SignedMessage } from "@cashonize/bch-wallet-lib";
 import { toPlainAddress } from "src/utils/addressValidation";
 import type { WalletType } from "src/interfaces/interfaces";
 

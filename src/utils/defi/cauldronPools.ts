@@ -20,7 +20,7 @@ import {
   deriveHdPublicNode,
   deriveHdPublicNodeChild,
 } from "@bitauth/libauth";
-import type { ElectrumNetworkProvider } from "mainnet-js";
+import type { ElectrumNetworkProvider } from "@cashonize/bch-wallet-lib";
 
 // Pool lookups are pipelined over the same electrum connection in batches
 const LOOKUP_BATCH_SIZE = 10;

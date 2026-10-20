@@ -3,7 +3,7 @@ import { cashNinjaJsonString0, cashNinjaJsonString1 } from "./fixtures/wcFixture
 import { createSignedWcTransaction } from "../src/utils/dapp/wcSigning";
 import { encodeLockingBytecodeP2pkh, binToHex } from "@bitauth/libauth"
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
-import { Wallet } from "mainnet-js";
+import { Wallet } from "@cashonize/bch-wallet-lib";
 
 // const throwAwayTestKey = generatePrivateKey()
 // const throwAwayTestKeyWif = encodePrivateKeyWif(throwAwayTestKey, "mainnet")

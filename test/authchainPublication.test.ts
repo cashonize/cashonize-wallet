@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { OpReturnData } from 'mainnet-js'
+import { OpReturnData } from '@cashonize/bch-wallet-lib'
 import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth'
 
 import { parsePublicationOutput, filledLocations } from '../src/utils/tools/authchainIdentity'
