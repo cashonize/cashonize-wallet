@@ -90,17 +90,18 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
 - **Made here.** The create page lists a genesis and reserves its output 0 before any
   indexer has seen it; the identities page's Add new, behind a user option, does the same
   for a picked UTXO.
-- **Found in the wallet's own history.** The history the wallet loads in full at open is
-  read for two markers: a genesis these keys made, and a publication these keys made. Each
-  marker fires on the link that carries it, which is rarely the chain's last: a mint, a
-  transfer or a move into the reserve continues the chain at output 0 and publishes
-  nothing. So each is followed forward along the output-0 spends the history holds, which
+- **Found in the wallet's own history.** The wallet's transactions are read for two markers,
+  through the index that keeps them between opens (`utils/history/transactionIndex.ts`, see
+  `transaction-history.md` and `contract-asset-discovery.md`): a genesis these keys made, and
+  a publication these keys made. Each marker fires on the link that carries it, which is
+  rarely the chain's last: a mint, a transfer or a move into the reserve continues the chain
+  at output 0 and publishes nothing. So each is followed forward along the output-0 spends the history holds, which
   is the authchain itself, and it is the link that walk ends at that is matched against the
-  wallet's coins. A marker is what triggers any of this, but the walk then reads the whole
-  history, since a link is told from an ordinary transaction only by its inputs: splitting
+  wallet's coins. A marker is what triggers any of this, but the walk then follows every
+  output-0 spend, since a link is told from an ordinary transaction only by its inputs: splitting
   the tokens off an identity, or emptying its reserve, leaves the chain continuing on a
   plain BCH output that nothing marks. A chain that leaves this history is followed as far
-  as it reaches, and a wallet with no marker decodes nothing. The walk also ends at the first
+  as it reaches, and a wallet with no marker keeps nothing. The walk also ends at the first
   link whose output 0 is neither key-held (P2PKH) nor an AuthGuard, which is narrower than the
   spec; why is under Spec versus convention. A
   publication names its chain by the token on the identity output; when that output carries
@@ -278,7 +279,7 @@ the place to use it once a configurable server offers it.
 - `src/utils/tools/identityLists.ts`: the persisted lists.
 - `src/queryChainGraph.ts`: the authhead and history queries.
 - `src/utils/tools/electrumAuthchain.ts`: the same answers walked over electrum, the fallback.
-- `src/utils/tools/identityDetection.ts`: the two markers read off the wallet's history.
+- `src/utils/tools/identityDetection.ts`: the two markers read off the wallet's transactions.
 - `src/utils/tools/authGuard.ts`: the covenant's script, and what a key is.
 - `src/utils/tools/tokenCreation.ts`: the genesis amounts and the coins a genesis can spend.
 - `src/utils/wallet/reservedUtxos.ts`, `src/utils/dapp/reservedInputs.ts`: what a

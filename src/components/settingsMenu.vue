@@ -13,6 +13,7 @@
   import { useCashconnectStore } from '../stores/cashconnectStore'
   import { useWizardconnectStore } from '../stores/wizardconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
+  import { removeAllTransactionIndexes } from "src/utils/history/transactionIndex";
   import { displayAndLogError } from "src/utils/errorHandling";
   import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
   import { queryBlockHeight } from 'src/queryChainGraph'
@@ -433,6 +434,7 @@
   }
   async function clearHistoryCache(){
     await clearElectrumCache();
+    removeAllTransactionIndexes();
     indexedDbCacheSizeMB.value = await calculateIndexedDBSizeMB();
   }
   function clearMetadataCache(){

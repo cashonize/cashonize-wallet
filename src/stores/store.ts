@@ -70,6 +70,7 @@ import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { listingsFromHistory, fetchActiveListings, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { hodlContractsFromHistory, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
+import { updateTransactionIndex, removeTransactionIndex } from "src/utils/history/transactionIndex"
 import { type DappActivityEntry, loadDappActivity, appendDappActivity, clearDappActivity, removeDappActivity, loadDappActivitySeen, saveDappActivitySeen } from "src/utils/dapp/dappActivity"
 import {
   loadAddressMarks,
@@ -990,6 +991,7 @@ export const useStore = defineStore('store', () => {
     await deleteNamedWallet(walletName, 'bitcoincash');
     await deleteNamedWallet(walletName, 'bchtest');
     removeTxNotes(walletName);
+    removeTransactionIndex(walletName);
     removeDappActivity(walletName);
     removeAddressManagementData(walletName);
     removeReservedUtxos(walletName);
@@ -1197,6 +1199,16 @@ export const useStore = defineStore('store', () => {
     return loaded;
   }
 
+  // The transactions the wallet's features look for in its history, the identity markers and the
+  // TapSwap and hodl announcements, brought up to the history first; one update at a time per wallet
+  const transactionIndex = sharedRun(
+    () => updateTransactionIndex(wallet.value, network.value, wallet.value.name),
+    () => currentInitialization,
+  );
+  function indexedTransactions() {
+    return transactionIndex.run();
+  }
+
   function updateTokenList() {
     // Uses the walletUtxos to create a tokenList
     if(!walletUtxos.value) return // should never happen
@@ -1374,7 +1386,7 @@ export const useStore = defineStore('store', () => {
 
   // Find the wallet's TapSwap listings and hodl contracts. Both are held by contracts, so the
   // wallet holds nothing that represents them, and both are announced by an OP_RETURN on a
-  // transaction the wallet funded, so both are read off the wallet's own history. Only the
+  // transaction the wallet funded, so both are read off the wallet's own transactions. Only the
   // portfolio view shows them, so it drives the fetch. Both protocols are mainnet only.
   async function fetchWalletAnnouncedAssets() {
     if (!_wallet.value) return;
@@ -1387,13 +1399,13 @@ export const useStore = defineStore('store', () => {
     try {
       const initialization = currentInitialization;
       const ownerPkhs = walletPublicKeyHashes();
-      const history = await fullWalletHistory();
+      const { announcements } = await indexedTransactions();
       if (initialization !== currentInitialization) return;
-      const listings = await fetchActiveListings(wallet.value.provider, listingsFromHistory(history, ownerPkhs));
+      const listings = await fetchActiveListings(wallet.value.provider, listingsFromHistory(announcements, ownerPkhs, wallet.value.networkPrefix));
       if (initialization !== currentInitialization) return;
       tapswapListings.value = listings;
 
-      const hodlCandidates = hodlContractsFromHistory(history, ownerPkhs);
+      const hodlCandidates = hodlContractsFromHistory(announcements, ownerPkhs);
       const contracts = await fetchHodlContractStates(wallet.value.provider, hodlCandidates);
       if (initialization !== currentInitialization) return;
       hodlContracts.value = contracts;
@@ -1889,6 +1901,7 @@ export const useStore = defineStore('store', () => {
     fetchWalletBadgerLocks,
     fetchWalletAnnouncedAssets,
     fullWalletHistory,
+    indexedTransactions,
     toggleFavorite,
     toggleHidden,
     tokenIconUrl,

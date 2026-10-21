@@ -100,7 +100,7 @@
   // for 5 minutes). A load asked for while one runs is run again after it, never alongside.
   const portfolioLoad = sharedRun(loadPortfolioData)
   async function loadPortfolioData() {
-    // unawaited: waiting on the full history should not hold up the view's loading gate.
+    // unawaited: waiting on the transaction index should not hold up the view's loading gate.
     // The spinner only accompanies the first lookup and retries after a failure;
     // re-entries with data on screen refresh silently behind the rows already shown.
     if (store.tapswapListings === null || store.hodlContracts === null || store.announcedAssetsError) {
@@ -854,6 +854,10 @@
           <div class="donut-center-amount">{{ formatBchValue(totalBchValue ?? 0) }}</div>
         </div>
       </div>
+      <!-- hodl locks count towards the total, and on a first scan of the history they arrive last -->
+      <div v-if="checkingAdditionalContractAssets" class="include-staking">
+        {{ t('portfolio.checkingAdditionalContractAssets') }} <q-spinner-dots size="1.2em" />
+      </div>
 
       <div v-if="hasReserves" class="include-staking">
         {{ t('portfolio.includeReserves') }} <q-toggle v-model="includeReserves" dense />
@@ -984,10 +988,7 @@
         </div>
       </template>
 
-      <div v-if="checkingAdditionalContractAssets" class="section-label">
-        {{ t('portfolio.checkingAdditionalContractAssets') }} <q-spinner-dots size="1.2em" />
-      </div>
-      <div v-else-if="store.announcedAssetsError" class="section-label">
+      <div v-if="!checkingAdditionalContractAssets && store.announcedAssetsError" class="section-label">
         {{ store.announcedAssetsError }}
       </div>
 

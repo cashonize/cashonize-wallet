@@ -19,8 +19,9 @@ import {
   decodeCashAddress,
   encodeCashAddress,
 } from "@bitauth/libauth";
-import type { ElectrumNetworkProvider, TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
+import type { ElectrumNetworkProvider } from "@cashonize/bch-wallet-lib";
 import { opReturnChunks, opReturnHex } from "src/utils/history/txDirection";
+import type { ScannedTransaction } from "src/utils/history/transactionIndex";
 
 // OP_RETURN + the "hodl" Lokad id
 const HODL_ANNOUNCEMENT_PREFIX = "6a04686f646c";
@@ -91,13 +92,18 @@ export function parseHodlAnnouncement(announcementHex: string) {
   return { scriptHash, locktime };
 }
 
-// Pick the wallet's hodl contracts out of its transaction history
-export function hodlContractsFromHistory(history: TransactionHistoryItem[], ownerPkhs: string[]) {
+// The contract a transaction announces at output 0
+export function hodlAnnouncement(transaction: ScannedTransaction) {
+  const announcementHex = opReturnHex(transaction.outputs[0]);
+  if (!announcementHex) return undefined;
+  return parseHodlAnnouncement(announcementHex);
+}
+
+// Pick the wallet's hodl contracts out of its transactions
+export function hodlContractsFromHistory(history: ScannedTransaction[], ownerPkhs: string[]) {
   const candidates: { scriptHash: string, locktime: number }[] = [];
   for (const transaction of history) {
-    const announcementHex = opReturnHex(transaction.outputs[0]);
-    if (!announcementHex) continue;
-    const announcement = parseHodlAnnouncement(announcementHex);
+    const announcement = hodlAnnouncement(transaction);
     if (!announcement) continue;
     // the same contract can be announced by more than one transaction
     if (candidates.some((candidate) => candidate.scriptHash === announcement.scriptHash)) continue;

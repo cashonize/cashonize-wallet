@@ -29,7 +29,7 @@ import {
 import { checkPublicationUri, fetchVerifiedRegistry, registryAuthbases, type PublicationUriStatus } from "src/utils/tools/registryFile"
 import { contractStateIdentities, detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
-import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib"
+import type { ScannedTransaction } from "src/utils/history/transactionIndex"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
 import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
 import { truncateHash } from "src/utils/utils"
@@ -227,7 +227,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // What v0.14.1's detection held back that the walk now stops short of, a prediction market's
   // payouts in the main, released the way Remove releases them. Once per wallet per network, after
   // a resolve that answered for every identity, so an identity the user adds back by hand stays.
-  async function releaseContractStateIdentities(history: TransactionHistoryItem[]) {
+  // It reads the full history, as it needs what the wallet received, so only while it is owed.
+  async function releaseContractStateIdentities() {
     const cleanup = 'contractState';
     if (loadIdentityList('cleanups', ...walletKey()).includes(cleanup)) return;
     // undefined until a resolve has run, which says nothing about what is listed
@@ -237,6 +238,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const held = listed.flatMap(identity =>
       identity.authUtxo && identity.authheadTxid ? [{ category: identity.category, authheadTxid: identity.authheadTxid }] : []
     );
+    const history = held.length ? await mainStore.fullWalletHistory() : [];
+    if (mainStore.walletSwitchedSince(started)) return;
     for (const category of contractStateIdentities(history, held)) {
       if (mainStore.walletSwitchedSince(started)) return;
       unseenIdentities.value = removeFromIdentityList('unseen', ...walletKey(), category);
@@ -247,9 +250,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // Protection first, so it never waits on naming; the announcement last, so it has names to say
-  async function detectWalletIdentities(history: TransactionHistoryItem[]) {
+  async function detectWalletIdentities(transactions: ScannedTransaction[], historyTxids?: ReadonlySet<string>) {
     const started = mainStore.currentInitializationToken();
-    const detected = detectIdentities(history);
+    const detected = detectIdentities(transactions, historyTxids);
     if (mainStore.walletSwitchedSince(started)) return;
     identityPublicationTxids.value = detected.publicationTxids;
     const unseenBefore = unseenIdentities.value;
@@ -551,10 +554,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     openCheckError.value = undefined;
     try {
       await refreshIdentities();
-      const history = await mainStore.fullWalletHistory();
+      const indexed = await mainStore.indexedTransactions();
       if (mainStore.walletSwitchedSince(started)) return;
-      await releaseContractStateIdentities(history);
-      await detectWalletIdentities(history);
+      // the one-time cleanup loads the full history, and its failing must not keep detection, which
+      // does not need it, from holding back what it finds
+      await releaseContractStateIdentities().catch(error => console.error("Failed to release contract-held identities:", error));
+      await detectWalletIdentities(indexed.identityChain, indexed.historyTxids);
       await followTokenIdentities(settingsStore.followTokenIdentities ? 'open' : 'keys');
     } catch (error) {
       console.error("Failed to look up the wallet's identities:", error);

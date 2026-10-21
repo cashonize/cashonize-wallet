@@ -30,22 +30,18 @@ They cannot be searched by key:
 
 Every one of these announcements shares one property: the user paid for the transaction from
 their own coins. The announcing transaction therefore spends an output of the wallet's, which
-puts it in the electrum history of that output's address, and the wallet loads its full
-history at open. bch-wallet-lib fetches the raw transaction of every history item and of every
-prevout, through its IndexedDB cache, and decodes them into history items carrying each
-output's address, locking bytecode and token fields, an OP_RETURN output's included.
-The announcements are read off those items: `fullWalletHistory` in `src/stores/store.ts`
-hands the readers the history on hand when it is complete, and starts the full load itself
-when only the capped one is, so the identity check at open does not wait for the browser to
-go idle. Nothing is searched, and no server learns the wallet's address list beyond the
+puts it in the electrum history of that output's address, which the wallet holds as txids and
+heights. Nothing is searched, and no server learns the wallet's address list beyond the
 electrum server that has it anyway.
 
-Measured on a wallet of about 1,500 transactions against the default servers, the full
-history load takes about two seconds served from the cache, a cost the history tab pays at
-every open regardless, and reading the announcements off it takes milliseconds. A first open
-fetches every transaction, about seven seconds for that wallet, after which the cache serves
-them; the identity check waits for that on a fresh restore, which is when a creator's
-identity coin is most exposed to an ordinary send.
+The readers need only outputs and input outpoints, never the prevouts a history item is built
+from, so they do not read the history items. `src/utils/history/transactionIndex.ts` decodes the
+raw transactions, served from bch-wallet-lib's IndexedDB cache, and keeps per wallet per network
+the few that matter: the identity markers with the authchain links after them, and the
+announcements. An open decodes only what arrived since the last one, plus the last few blocks
+again for a reorg; the first open after an install or a restore decodes the history once, which
+is when a creator's identity coin is most exposed to an ordinary send. How the index scans and
+what it keeps: `transaction-history.md`.
 
 ## What each protocol announces, and what the wallet does with it
 
@@ -61,12 +57,12 @@ identity coin is most exposed to an ordinary send.
   P2PKH of each of its own pkhs, and owns the lock whose script hash matches the announced
   address. What the contract holds is then read from electrum by address, since anyone can add
   funds to it and a drained one holds nothing.
-- **Identities** (`utils/tools/identityDetection.ts`). Two markers on the same items: a genesis,
-  a transaction carrying tokens of a category that is a transaction of this history, confirmed
-  to have spent that transaction's output 0 from its raw form, since a history item carries no
-  input outpoints; and a `BCMR` publication output, which also labels the transaction in the
-  history. What follows from a find is in `bcmr-identities.md`. The check runs only on a
-  network with a Chaingraph instance configured, since listing what it finds needs the resolve.
+- **Identities** (`utils/tools/identityDetection.ts`). Two markers: a genesis, a transaction
+  carrying tokens of a category that is a transaction of this history and spending that
+  transaction's output 0; and a `BCMR` publication output, which also labels the transaction in
+  the history. The index keeps each marker and the links its chain took through the wallet's
+  transactions, which is what the walk to the authhead reads. What follows from a find is in
+  `bcmr-identities.md`.
 
 ## The hodl plugin's own rule: a change output back to the owner
 
@@ -85,10 +81,9 @@ lock.
 Chaingraph was the first source for these lookups, and the question of using it comes down to
 two facts.
 
-**The electrum data is already paid for.** The history load fetches every transaction of the
-wallet's at the first open and serves it from the IndexedDB cache at every open after; the
-history tab needs that load regardless, so reading announcements off it costs nothing extra
-and needs no cache of its own. A Chaingraph lookup is a request on top of that, at every open
+**The electrum data is already paid for.** The wallet's transactions are fetched once and served
+from the IndexedDB cache after, and the index decodes each of them once, so reading
+announcements off them costs nothing at an ordinary open. A Chaingraph lookup is a request on top of that, at every open
 and every portfolio visit, to a second server that then holds the wallet's full address list.
 
 **Chaingraph cannot ask for just the wallet's announcements.** Its one fast lookup is outputs
@@ -124,9 +119,10 @@ keeps the one job history cannot do: following an authchain to its head.
 
 ## Where the code is
 
-- `src/stores/store.ts`: `fullWalletHistory`, the loaded history for its readers, and the
-  portfolio's use of it.
+- `src/utils/history/transactionIndex.ts`: the kept transactions and how they are brought up to
+  the history.
+- `src/stores/store.ts`: `indexedTransactions`, and the portfolio's use of it.
 - `src/utils/defi/tapswapListings.ts`, `src/utils/defi/hodlContracts.ts`: the two announcement
   parsers and the ownership rule of each.
-- `src/utils/tools/identityDetection.ts`: the identity markers read off the same items.
+- `src/utils/tools/identityDetection.ts`: the identity markers, and which links continue a chain.
 - `src/components/portfolio/`: where listings and locks are shown, valuation only.

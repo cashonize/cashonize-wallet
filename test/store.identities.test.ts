@@ -26,6 +26,7 @@ function createMockWallet() {
     networkPrefix: 'bitcoincash',
     getUtxos: vi.fn().mockResolvedValue([]),
     getMaxAmountToSend: vi.fn().mockResolvedValue(0n),
+    getRawHistory: vi.fn().mockResolvedValue([]),
   }
 }
 
@@ -564,11 +565,23 @@ describe('auth reservations follow the authchain', () => {
     expect(localStorageMock.getItem('identityCleanups-mainnet-testWallet')).toBeNull()
   })
 
-  // the wallet's history is read at open; it failing to load must land on the identities
+  // the open pass reads the kept transactions, not the full history with every prevout decoded
+  it('does not load the full history at open', async () => {
+    const { store, identitiesStore } = await startStore([utxo('cd'.repeat(32), 0)])
+    const getHistory = vi.fn().mockResolvedValue([])
+    Object.assign(store.wallet, { getHistory })
+
+    await identitiesStore.runChecksOnOpen()
+
+    expect(getHistory).not.toHaveBeenCalled()
+    expect(identitiesStore.openCheckError).toBeUndefined()
+  })
+
+  // the wallet's transactions are read at open; that failing must land on the identities
   // page, not flag a wallet that did load
   it('reports a failed lookup at open on the page rather than as a failed wallet', async () => {
     const { store, identitiesStore } = await startStore([utxo('cd'.repeat(32), 0)])
-    vi.spyOn(store, 'fullWalletHistory').mockRejectedValue(new Error('history refused'))
+    vi.spyOn(store, 'indexedTransactions').mockRejectedValue(new Error('history refused'))
 
     await identitiesStore.runChecksOnOpen()
 
