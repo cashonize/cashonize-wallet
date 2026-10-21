@@ -21,6 +21,8 @@
 
 body {
   min-height: 100vh;
+  /* the visible height: on mobile browsers 100vh is the height without their bars, so a page that fits still scrolls */
+  min-height: 100dvh;
   color: var(--color-text);
   background: var(--color-background);
   line-height: 1.6;
