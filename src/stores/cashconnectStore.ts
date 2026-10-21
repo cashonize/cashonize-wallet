@@ -42,7 +42,7 @@ import {
   walletTemplateP2pkhNonHd,
   walletTemplateToCompilerBch,
 } from "@bitauth/libauth";
-import { type ElectrumRawTransactionVout } from "src/interfaces/interfaces";
+import { outputOfRawTransaction } from "src/utils/dapp/sourceOutput";
 
 export const useCashconnectStore = defineStore("cashconnectStore", () => {
   // Accesses the wallet reactively via cross-store ref (mainStore.wallet) inside defineStore setup,
@@ -214,32 +214,8 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     outpointTransactionHash: Uint8Array,
     outpointIndex: number
   ): Promise<Output> {
-    // Get the transaction containing this outpoint.
-    const transaction = await mainStore.wallet.provider.getRawTransactionObject(
-      binToHex(outpointTransactionHash)
-    );
-    // Get the outpoint.
-    const outpoint = transaction.vout[outpointIndex] as ElectrumRawTransactionVout ;
-    // Build the output, converting from Mainnet to LibAuth.
-    const output: Output = {
-      valueSatoshis: BigInt(Math.round(outpoint.value * 100_000_000)),
-      lockingBytecode: hexToBin(outpoint.scriptPubKey.hex),
-    };
-    // If a token is available, add it to the output.
-    if ('tokenData' in outpoint) {
-      output.token = {
-        category: hexToBin(outpoint.tokenData.category),
-        amount: BigInt(outpoint.tokenData.amount),
-        ...(outpoint.tokenData.nft) ? {
-          nft: {
-            capability: outpoint.tokenData?.nft.capability || 'none',
-            commitment: hexToBin(outpoint.tokenData.nft.commitment || '')
-          }
-        } : {},
-      };
-    }
-    // Return the output.
-    return output;
+    const rawTransactionHex = await mainStore.wallet.provider.getRawTransaction(binToHex(outpointTransactionHash));
+    return outputOfRawTransaction(rawTransactionHex, outpointIndex);
   }
   async function getSpendableUTXOs(): Promise<Array<SpendableUTXO>> {
     // Create our Libauth P2PKH Compiler for Locking/Unlocking the P2PKH Wallet.

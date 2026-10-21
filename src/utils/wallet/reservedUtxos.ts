@@ -30,7 +30,7 @@ function reservedUtxosKey(network: Network, walletName: string): string {
   return `reservedUtxos-${network}-${walletName}`;
 }
 
-export function outpointOf(utxo: Utxo): Outpoint {
+export function outpointOf(utxo: Pick<Utxo, 'txid' | 'vout'>): Outpoint {
   return `${utxo.txid}:${utxo.vout}`;
 }
 

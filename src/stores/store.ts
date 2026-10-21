@@ -350,6 +350,14 @@ export const useStore = defineStore('store', () => {
   // initializeWallet() and in resetWalletState(); checked after long awaits.
   let currentInitialization = 0;
 
+  // Every coin the wallet held since its initialization, so a transaction spending one is its own
+  // without fetching its inputs' parents. It only grows: a refresh can drop a spent coin before the
+  // transaction that spent it arrives.
+  const heldOutpoints = new Set<Outpoint>();
+  watch(walletUtxos, utxos => {
+    for (const utxo of utxos ?? []) heldOutpoints.add(outpointOf(utxo));
+  }, { flush: 'sync' });
+
   // Lets the 'online' event listener retry an initialization aborted while offline
   let abortedInitOffline = false;
   // The notice stays up while offline, since the retry on reconnect needs no action from the user
@@ -778,13 +786,8 @@ export const useStore = defineStore('store', () => {
         );
         const previousTokenList = tokenList.value;
         const listNewTokens:TokenList = []
-        // Fetch extended tx with loaded input values to check if any input belongs to this wallet
-        const extendedTx = await wallet.value.provider.getRawTransactionObject(tx.txid, true);
         // User-sent txs produce token change outputs that trigger this subscription, skip notification for those
-        const isUserInitiatedTx = extendedTx.vin.some(vinElem =>
-          vinElem.scriptPubKey?.addresses?.[0] &&
-          wallet.value.hasAddress(vinElem.scriptPubKey.addresses[0])
-        );
+        const isUserInitiatedTx = tx.vin.some(input => heldOutpoints.has(outpointOf(input)));
         for(const tokenOutput of receivedTokenOutputs){
           const outputTokenData = tokenOutput.tokenData!;
           // Only notify for externally received tokens, not user-sent change outputs
@@ -863,6 +866,7 @@ export const useStore = defineStore('store', () => {
     balance.value = undefined;
     maxAmountToSend.value = undefined;
     walletUtxos.value = undefined;
+    heldOutpoints.clear();
     reservedUtxos.value = {}; // setWallet loads the incoming wallet's own set
     pendingTokenSearch.value = undefined;
     pendingHistorySearch.value = undefined;
