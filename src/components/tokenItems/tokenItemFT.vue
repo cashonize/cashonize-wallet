@@ -1,6 +1,6 @@
 <script setup lang="ts">
-  import { ref, toRefs, computed, watch } from 'vue';
-  import { TokenSendRequest, convert } from "@cashonize/bch-wallet-lib"
+  import { ref, toRefs, computed } from 'vue';
+  import { TokenSendRequest } from "@cashonize/bch-wallet-lib"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';
@@ -67,34 +67,13 @@
     return tokenMetaData.value?.name;
   })
 
-  // Fiat value of fungible token holdings using Cauldron DEX price data
-  const holdingsFiatValue = ref<number | null>(null);
-
-  // Watch for changes in the relevant data and recalculate fiat value
-  // Note: could be a computed if BCH exchange rate was available synchronously
-  watch(
-    [() => settingsStore.showCauldronFTValue, () => store.cauldronPrices, holding, () => settingsStore.currency],
-    async () => {
-      if (!settingsStore.showCauldronFTValue || store.network !== 'mainnet') {
-        holdingsFiatValue.value = null;
-        return;
-      }
-
-      const poolPriceData = store.cauldronPrices?.[tokenData.value.category];
-      if (!poolPriceData?.hasSufficientLiquidity) {
-        holdingsFiatValue.value = null;
-        return;
-      }
-
-      try {
-        const bchRate = await convert(1, 'bch', settingsStore.currency);
-        holdingsFiatValue.value = calculateTokenFiatValue(holding.value, poolPriceData, bchRate);
-      } catch {
-        holdingsFiatValue.value = null;
-      }
-    },
-    { immediate: true }
-  );
+  // Fiat value of fungible token holdings using Cauldron DEX price data, at the store's BCH rate
+  const holdingsFiatValue = computed(() => {
+    if (!settingsStore.showCauldronFTValue || store.network !== 'mainnet') return null;
+    const poolPriceData = store.cauldronPrices?.[tokenData.value.category];
+    if (!poolPriceData?.hasSufficientLiquidity || store.exchangeRate === undefined) return null;
+    return calculateTokenFiatValue(holding.value, poolPriceData, store.exchangeRate);
+  });
 
   // Fungible token specific functionality
   function maxTokenAmount(tokenSend:boolean){

@@ -4,7 +4,7 @@ import { binToHex, sha256, utf8ToBin } from "@bitauth/libauth";
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb";
 import { BaseWallet, HDWallet, Config, DefaultProvider, deleteNamedWallet, saveNamedWallet } from "@cashonize/bch-wallet-lib";
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo } from "../src/utils/wallet/dbUtils";
-import { openIndexedDB } from "../src/utils/cacheUtils";
+import { openIndexedDB, getElectrumCacheSize, clearElectrumCache } from "../src/utils/cacheUtils";
 
 // These run against a real IndexedDB implementation rather than a mock on purpose: both bugs
 // this file guards against were in IndexedDB's own versioning rules, which a stub would model
@@ -209,6 +209,34 @@ describe('openIndexedDB', () => {
     db.close();
 
     expect(value).toBe("cached");
+  });
+});
+
+// Settings' delete-all deletes this database, which waits for every connection to it to close
+describe('the electrum cache size and clear', () => {
+  const deleteBlocked = () => new Promise<boolean>((resolve) => {
+    const request = indexedDB.deleteDatabase(ELECTRUM_CACHE_DB);
+    request.onblocked = () => resolve(true);
+    request.onsuccess = () => resolve(false);
+  });
+
+  it('measures the cache and leaves no connection open', async () => {
+    const existing = await openLikeTheLibrary(ELECTRUM_CACHE_DB);
+    await new Promise<void>((resolve) => {
+      const transaction = existing.transaction(ELECTRUM_CACHE_DB, "readwrite");
+      transaction.objectStore(ELECTRUM_CACHE_DB).put({ hex: "00ff" }, "tx-mainnet-aa");
+      transaction.oncomplete = () => resolve();
+    });
+    existing.close();
+
+    expect(await getElectrumCacheSize()).toBe(JSON.stringify({ hex: "00ff" }).length);
+    expect(await deleteBlocked()).toBe(false);
+  });
+
+  it('clears the cache and leaves no connection open', async () => {
+    (await openLikeTheLibrary(ELECTRUM_CACHE_DB)).close();
+    await clearElectrumCache();
+    expect(await deleteBlocked()).toBe(false);
   });
 });
 
