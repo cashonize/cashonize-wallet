@@ -1031,11 +1031,12 @@ export const useStore = defineStore('store', () => {
         const sessions = walletconnectStore.web3wallet?.getActiveSessions();
         if(!sessions) return
 
-        for (const session of Object.values(sessions)) {
-          // deleteSession instead of raw disconnectSession so a single zombie session
-          // can't throw and abort disconnecting the remaining sessions
-          await walletconnectStore.deleteSession(session.topic);
-        }
+        // deleteSession instead of raw disconnectSession so a single zombie session can't throw
+        // and abort disconnecting the remaining sessions; all at once, so a stale relay costs
+        // the switch one deleteSession timeout rather than one per session
+        await Promise.allSettled(
+          Object.values(sessions).map(session => walletconnectStore.deleteSession(session.topic))
+        );
       });
     } catch (error) {
       console.error("Error initializing WalletConnect:", error);
