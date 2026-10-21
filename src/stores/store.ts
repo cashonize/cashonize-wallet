@@ -26,7 +26,6 @@ import {
   type TokenGenesisRequest,
   type TokenMintRequest,
   type TokenBurnRequest,
-  type TransactionHistoryItem,
   NetworkType
 } from "@cashonize/bch-wallet-lib"
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
@@ -71,6 +70,7 @@ import { listingsFromHistory, fetchActiveListings, type TapswapListing } from "s
 import { hodlContractsFromHistory, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import { updateTransactionIndex, removeTransactionIndex } from "src/utils/history/transactionIndex"
+import { mergeNewestPage } from "src/utils/history/historyMerge"
 import { type DappActivityEntry, loadDappActivity, appendDappActivity, clearDappActivity, removeDappActivity, loadDappActivitySeen, saveDappActivitySeen } from "src/utils/dapp/dappActivity"
 import {
   loadAddressMarks,
@@ -112,6 +112,8 @@ const CAULDRON_REFETCH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 // Long enough for a slow but healthy handshake, a TLS setup on a poor cellular link. It also caps
 // how long a silent connection is kept before the library replaces it, which is 10 s by default.
 const ELECTRUM_CONNECT_TIMEOUT_MS = 15_000;
+// Transactions of the history loaded at open and on each refresh, until the user asks for all
+const HISTORY_PAGE = 100;
 
 //-----------------------------------------------------------------------------
 // bch-wallet-lib configuration
@@ -163,6 +165,9 @@ export const useStore = defineStore('store', () => {
   // inputs and outputs a large history holds
   const walletHistory = shallowRef(undefined as (WalletHistoryReturnType | undefined));
   const isHistoryPartial = ref(false);
+  // Every txid of the wallet's history, loaded or not, for what only asks whether a transaction is
+  // the wallet's
+  const walletTxids = shallowRef(new Set() as ReadonlySet<string>);
   // Private notes on the active wallet's transactions, keyed by txid (see utils/txNotes.ts)
   const txNotes = ref({} as Record<string, string>);
   // What the active wallet signed for dapps, newest first (see utils/dapp/dappActivity.ts)
@@ -670,7 +675,7 @@ export const useStore = defineStore('store', () => {
       console.time('fetch token metadata and initial history');
       await Promise.all([
         fetchTokenMetadata(allTokenList.value ?? [], false),
-        updateWalletHistory({ count: 100 }),
+        updateWalletHistory({ count: HISTORY_PAGE }),
       ]);
       console.timeEnd('fetch token metadata and initial history');
       if (initialization !== currentInitialization) return;
@@ -874,6 +879,7 @@ export const useStore = defineStore('store', () => {
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
     isHistoryPartial.value = false;
+    walletTxids.value = new Set();
     currentBlockHeight.value = undefined;
     dismissStaleServerWarning?.();
     dismissStaleServerWarning = undefined;
@@ -1128,34 +1134,33 @@ export const useStore = defineStore('store', () => {
   // Categories already queried for history metadata this session, so categories without
   // a BCMR record aren't re-queried on every history refresh (cachedFetch only caches successful lookups)
   let queriedHistoryCategories: string[] = [];
-  // Without a count, a refresh of the full history: those share one load, see fullHistory
-  function updateWalletHistory({ count = -1 }: { count?: number } = {}) {
-    if (count < 0) return fullHistory.run({ again: true });
+  // Without a count, a refresh of what is loaded: the newest page, merged into the full history once
+  // that is loaded; the refreshes of a send or receive, two or three per event, share one load
+  function updateWalletHistory({ count }: { count?: number } = {}) {
+    if (count === undefined) return historyLoad.run({ again: true });
     return fetchWalletHistory(count);
   }
 
-  // Fetches wallet history via the library's getHistory(); a capped count schedules the full load
-  // for when the browser is idle. Returns the history it fetched, applied or not: a load a newer
-  // request overtook is still a complete history of a moment ago, which is what a reader waiting
-  // on it needs
-  async function fetchWalletHistory(count: number) {
+  // Fetches wallet history via the library's getHistory(), which decodes every transaction and its
+  // prevouts, so the full history is loaded only when asked for and then kept up to date page-wise
+  async function fetchWalletHistory(count: number, { merge = false } = {}) {
     const requestId = ++historyRequestId;
-    let history: TransactionHistoryItem[] | undefined;
     try {
       const initialization = currentInitialization;
-      history = await wallet.value.getHistory({ count });
+      // read first, so a transaction arriving during the load lengthens the history, not the txids
+      const rawHistory = await wallet.value.getRawHistory();
+      const history = await wallet.value.getHistory({ count });
       if (initialization !== currentInitialization) return;
-      if (requestId !== historyRequestId) return history; // newer request in-flight, discard stale result
-      walletHistory.value = history;
-      // Track whether this is a partial load (capped fetch that may have more)
-      isHistoryPartial.value = count > 0 && history.length >= count;
-      // Automatically schedule background full load when partial
-      if (isHistoryPartial.value) {
-        // Schedule full history load when idle, fall back to setTimeout for unsupported environments;
-        // a reader of the full history may have loaded it by then
-        const loadFullHistoryCallback = () => { if (isHistoryPartial.value) void fullHistory.run(); };
-        'requestIdleCallback' in globalThis ? requestIdleCallback(loadFullHistoryCallback) : setTimeout(loadFullHistoryCallback, 1000);
-      }
+      if (requestId !== historyRequestId) return; // newer request in-flight, discard stale result
+      const historyTxids = new Set(rawHistory.map(tx => tx.tx_hash));
+      let applied = history;
+      if (merge) applied = mergeNewestPage(walletHistory.value ?? [], history, historyTxids);
+      walletHistory.value = applied;
+      walletTxids.value = historyTxids;
+      historyShownIn = initialization;
+      if (count < 0) allHistoryLoaded = initialization;
+      // a full load is complete by definition, and a merged one is kept so until the next open
+      isHistoryPartial.value = !merge && count > 0 && history.length < rawHistory.length;
       // Fetch metadata for history tokens no longer in the wallet, so their names, icons
       // and decimals still display. Fire-and-forget: history renders right away and the
       // metadata fills in reactively.
@@ -1181,24 +1186,40 @@ export const useStore = defineStore('store', () => {
         color: "red"
       })
     }
-    return history;
   }
 
-  // One full load at a time per wallet, shared between the idle callback above, a reader that wants
-  // it sooner and the refreshes after a send or receive, which come two or three per event
-  const fullHistory = sharedRun(() => fetchWalletHistory(-1), () => currentInitialization);
-
-  // The wallet's full history for the readers of what it announced (TapSwap listings, hodl
-  // contracts, identities these keys made): the one on hand when complete, else the full load,
-  // started now rather than when the browser is idle
-  async function fullWalletHistory() {
-    if (walletHistory.value && !isHistoryPartial.value) return walletHistory.value;
-    const loaded = await fullHistory.run();
-    if (walletHistory.value && !isHistoryPartial.value) return walletHistory.value;
-    if (!loaded) throw new Error(t('store.errors.errorFetchingHistory'));
-    return loaded;
+  // The initializations a history was shown in, and the full one asked for and loaded in: asked, a
+  // load is of all of it; loaded, a refresh fetches the newest page and merges it in
+  let historyShownIn = -1;
+  let allHistoryAsked = -1;
+  let allHistoryLoaded = -1;
+  const loadingFullHistory = ref(false);
+  // One load at a time per wallet, so a refresh of the page never overtakes the full load
+  const historyLoad = sharedRun(() => {
+    if (allHistoryLoaded === currentInitialization) return fetchWalletHistory(HISTORY_PAGE, { merge: true });
+    if (allHistoryAsked === currentInitialization) return fetchWalletHistory(-1);
+    return fetchWalletHistory(HISTORY_PAGE);
+  }, () => currentInitialization);
+  async function loadAllHistory() {
+    allHistoryAsked = currentInitialization;
+    loadingFullHistory.value = true;
+    try {
+      await historyLoad.run({ again: true });
+    } finally {
+      loadingFullHistory.value = false;
+    }
   }
-
+  // The full history loads once per wallet session, when the user first needs it (the history view,
+  // the token picker), after the newest page is shown
+  function ensureFullHistory() {
+    if (historyShownIn !== currentInitialization || allHistoryAsked === currentInitialization) return;
+    void loadAllHistory();
+  }
+  // a watch rather than the view mounting, as the views stay alive across a wallet switch; on each
+  // history shown, so a new wallet's or initialization's history view loads its own in full
+  watch([() => displayView.value === 3, walletHistory], ([historyView]) => {
+    if (historyView) ensureFullHistory();
+  });
   // The transactions the wallet's features look for in its history, the identity markers and the
   // TapSwap and hodl announcements, brought up to the history first; one update at a time per wallet
   const transactionIndex = sharedRun(
@@ -1844,6 +1865,7 @@ export const useStore = defineStore('store', () => {
     filteredTokenList,
     walletHistory,
     isHistoryPartial,
+    walletTxids,
     txNotes,
     dappActivity,
     dappActivityByTxid,
@@ -1900,7 +1922,9 @@ export const useStore = defineStore('store', () => {
     fetchWalletCauldronPools,
     fetchWalletBadgerLocks,
     fetchWalletAnnouncedAssets,
-    fullWalletHistory,
+    loadAllHistory,
+    ensureFullHistory,
+    loadingFullHistory,
     indexedTransactions,
     toggleFavorite,
     toggleHidden,

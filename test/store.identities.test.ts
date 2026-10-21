@@ -133,65 +133,6 @@ const guardGenesis = (category: string, keyCommitment: string) => [
     nonfungible_token_capability: 'none', nonfungible_token_commitment: `\\x${keyCommitment}` },
 ]
 
-// Three readers want the wallet's full history, and a first open is the one time that costs a
-// fetch per transaction, so the store loads it once and hands every reader the same result
-describe('the full history for its readers', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    localStorageMock.clear()
-    setActivePinia(createPinia())
-    localStorageMock.setItem('network', 'mainnet')
-  })
-
-  const item = historyItem(authheadA, [p2pkhOutput()])
-  async function startHistoryStore(getHistory: ReturnType<typeof vi.fn>) {
-    const store = useStore()
-    await store.setWallet({ ...createMockWallet(), getHistory } as never)
-    return store
-  }
-
-  it('hands out the history on hand when it is complete', async () => {
-    const getHistory = vi.fn().mockResolvedValue([])
-    const store = await startHistoryStore(getHistory)
-    store.walletHistory = [item]
-    store.isHistoryPartial = false
-
-    expect(await store.fullWalletHistory()).toEqual([item])
-    expect(getHistory).not.toHaveBeenCalled()
-  })
-
-  it('loads the full history once for readers asking together', async () => {
-    const getHistory = vi.fn().mockResolvedValue([item])
-    const store = await startHistoryStore(getHistory)
-
-    const [first, second] = await Promise.all([store.fullWalletHistory(), store.fullWalletHistory()])
-
-    expect(first).toEqual([item])
-    expect(second).toEqual([item])
-    expect(getHistory).toHaveBeenCalledTimes(1)
-    expect(getHistory).toHaveBeenCalledWith({ count: -1 })
-  })
-
-  it('loads the rest when only the capped history is on hand', async () => {
-    const getHistory = vi.fn().mockResolvedValue([item])
-    const store = await startHistoryStore(getHistory)
-    store.walletHistory = [item]
-    store.isHistoryPartial = true
-
-    await store.fullWalletHistory()
-
-    expect(getHistory).toHaveBeenCalledTimes(1)
-    expect(store.isHistoryPartial).toBe(false)
-  })
-
-  it('fails a reader when the history cannot be loaded', async () => {
-    const getHistory = vi.fn().mockRejectedValue(new Error('electrum down'))
-    const store = await startHistoryStore(getHistory)
-
-    await expect(store.fullWalletHistory()).rejects.toThrow()
-  })
-})
-
 // The notification trail leads to this page for two reasons, and both have to stop asking once
 // the page has been opened: the shape of an identity key is a shape ordinary NFTs can have, so a
 // standing lamp on a guess would train people to ignore the one the backup warning shares.
@@ -524,11 +465,11 @@ describe('auth reservations follow the authchain', () => {
     const { store, identitiesStore } = await startStore([payout])
     await identitiesStore.refreshIdentities()
     expect(store.reservedUtxos[outpointOf(payout)]).toBe('auth')
-    vi.spyOn(store, 'fullWalletHistory').mockResolvedValue([
+    Object.assign(store.wallet, { getHistory: vi.fn().mockResolvedValue([
       historyItem(categoryA, [p2pkhOutput()]),
       historyItem(genesisTxid, [{ ...tokenOutput(categoryA, { commitment: '', capability: 'minting' }), lockingBytecode: contract }], [spendOf(categoryA, 0)]),
       historyItem(payoutTxid, [p2pkhOutput()], [{ ...spendOf(genesisTxid, 0), lockingBytecode: contract }]),
-    ])
+    ]) })
 
     await identitiesStore.runChecksOnOpen()
 
@@ -553,11 +494,11 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA, categoryB])
     const payout = utxo(payoutTxid, 0)
     const { store, identitiesStore } = await startStore([payout])
-    vi.spyOn(store, 'fullWalletHistory').mockResolvedValue([
+    Object.assign(store.wallet, { getHistory: vi.fn().mockResolvedValue([
       historyItem(categoryA, [p2pkhOutput()]),
       historyItem(genesisTxid, [{ ...tokenOutput(categoryA, { commitment: '', capability: 'minting' }), lockingBytecode: contract }], [spendOf(categoryA, 0)]),
       historyItem(payoutTxid, [p2pkhOutput()], [{ ...spendOf(genesisTxid, 0), lockingBytecode: contract }]),
-    ])
+    ]) })
 
     await identitiesStore.runChecksOnOpen()
 

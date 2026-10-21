@@ -42,7 +42,7 @@
   // Told by the wallet's own history: the links made here, and the ones made elsewhere with the
   // same keys, which is the half an explorer cannot show
   function madeByThisWallet(hash: string) {
-    return (store.walletHistory ?? []).some(transaction => transaction.hash === hash)
+    return store.walletTxids.has(hash)
   }
   // What the pill says. A plain operation is named by what the reserve did, which is the only
   // thing such a link changes that the chain can show.

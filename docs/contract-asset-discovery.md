@@ -40,8 +40,9 @@ raw transactions, served from bch-wallet-lib's IndexedDB cache, and keeps per wa
 the few that matter: the identity markers with the authchain links after them, and the
 announcements. An open decodes only what arrived since the last one, plus the last few blocks
 again for a reorg; the first open after an install or a restore decodes the history once, which
-is when a creator's identity coin is most exposed to an ordinary send. How the index scans and
-what it keeps: `transaction-history.md`.
+is when a creator's identity coin is most exposed to an ordinary send. The full decoded history,
+with its prevouts, is loaded only when the history view needs it. How the index
+scans, what it keeps and how the history view loads: `transaction-history.md`.
 
 ## What each protocol announces, and what the wallet does with it
 

@@ -42,7 +42,9 @@
   );
 
   // Fungible categories the wallet moved before but no longer holds. Having spent a token
-  // down to zero is no reason to stop being able to ask for more of it.
+  // down to zero is no reason to stop being able to ask for more of it. Read off the loaded
+  // history, so opening the picker loads the full one, which fills the list in once loaded.
+  store.ensureFullHistory();
   const historyCategories = computed(() => {
     const categories: string[] = [];
     const heldCategories = fungibleTokens.value.map(tokenData => tokenData.category);

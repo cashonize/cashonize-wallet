@@ -214,7 +214,13 @@
     settingsStore.showBalanceInHistory = showBalance.value;
   }
 
-  function exportCsv() {
+  // An export is of the whole history, so a partial one is completed first, and never written partial
+  async function exportCsv() {
+    if (store.isHistoryPartial) await store.loadAllHistory()
+    if (store.isHistoryPartial) {
+      $q.notify({ message: t('history.exportFailed'), icon: 'warning', color: "red" })
+      return
+    }
     const csvContent = historyToCsv(searchedHistory.value ?? [], store.bcmrRegistries, bchDisplayUnit.value, store.txNotes, tx => ({
       direction: directionLabel(tx),
       dapp: isDappTransaction(tx),
@@ -390,7 +396,7 @@
         boundary-numbers
         color="primary"
       />
-      <div v-if="store.isHistoryPartial" class="loading-full-history">{{ t('history.loadingFullHistory') }} <q-spinner-dots size="1.2em" /></div>
+      <div v-if="store.loadingFullHistory" class="loading-full-history">{{ t('history.loadingFullHistory') }} <q-spinner-dots size="1.2em" /></div>
     </fieldset>
   </div>
 

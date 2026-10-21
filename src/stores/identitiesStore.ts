@@ -227,7 +227,8 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // What v0.14.1's detection held back that the walk now stops short of, a prediction market's
   // payouts in the main, released the way Remove releases them. Once per wallet per network, after
   // a resolve that answered for every identity, so an identity the user adds back by hand stays.
-  // It reads the full history, as it needs what the wallet received, so only while it is owed.
+  // It reads the full history straight from the library, as it needs what the wallet received,
+  // so only while it is owed and without touching the history view.
   async function releaseContractStateIdentities() {
     const cleanup = 'contractState';
     if (loadIdentityList('cleanups', ...walletKey()).includes(cleanup)) return;
@@ -238,7 +239,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     const held = listed.flatMap(identity =>
       identity.authUtxo && identity.authheadTxid ? [{ category: identity.category, authheadTxid: identity.authheadTxid }] : []
     );
-    const history = held.length ? await mainStore.fullWalletHistory() : [];
+    const history = held.length ? await mainStore.wallet.getHistory({ count: -1 }) : [];
     if (mainStore.walletSwitchedSince(started)) return;
     for (const category of contractStateIdentities(history, held)) {
       if (mainStore.walletSwitchedSince(started)) return;

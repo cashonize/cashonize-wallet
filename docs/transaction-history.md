@@ -14,12 +14,18 @@ what the view shows: the value to the wallet, the fee and the token changes. A f
 fetches all of them once and reads them back from the library's IndexedDB cache after, but
 decodes every one again on every load, on the main thread.
 
-**So nothing loads it on its own.** An open and every refresh load the newest 100; a send or a
-receive refreshes that page, its two or three refreshes sharing one load. The full history
-loads when the user asks for it, with the history view's "Load full history", and refreshes
-then keep it full until the wallet or the server changes. A CSV export loads it first and
-refuses to write a partial one. Until then the count reads "100+", and a line next to the button
-says only the newest transactions are shown and searched.
+**So it loads only when the user needs it.** An open loads the newest 100. The full history
+loads once per wallet session, when the history view shows (it stays alive, so a watch on the
+view and on the history shown asks, not mounting) or the token picker opens, behind the page
+already shown; the count reads "100+" and "Loading full history" shows until it is in. A CSV
+export loads it first and refuses to write a partial one.
+
+**A send or receive refreshes only the newest page**, its two or three refreshes sharing one
+load. Once the full history is loaded the page is merged into it: the page replaces the items
+it holds, so their confirmations update, puts new ones in front, and an item the wallet's
+history no longer has, a replaced unconfirmed transaction, is dropped. The older items stay
+as loaded, each one's balance being the balance after it. What a page cannot bring, an HD
+wallet finding an old address mid-session, shows at the next open.
 
 **What it cost, measured on a mainnet address of 1,541 transactions** (Node, without the
 cache, October 2026):
