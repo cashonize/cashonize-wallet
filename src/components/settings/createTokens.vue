@@ -29,6 +29,7 @@
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
+  import { iconCheckCircle, iconCopy } from 'src/utils/icons/svgIcons'
   const $q = useQuasar()
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
@@ -303,7 +304,7 @@
           <TokenIcon :key="plannedCategory" :token-id="plannedCategory" :size="40" />
           <div class="copy-target" @click="copyToClipboard(plannedCategory)">
             <span class="description">{{ t('createTokens.plannedTokenId') }}</span>
-            <span class="mono">{{ truncateHash(plannedCategory) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+            <span class="mono">{{ truncateHash(plannedCategory) }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
           </div>
         </div>
       </genesisInputPicker>
@@ -372,7 +373,7 @@
         >
       </div>
       <div v-else-if="!utxoStepOpen" class="section closed-line description">
-        <img src="images/check-circle.svg" class="step-check pop">
+        <q-icon class="step-check pop app-icon app-icon--green" :name="iconCheckCircle" size="18px" />
         <span>{{ shapeSummary }}</span>
         <span>·</span>
         <span class="action-link" @click="shapeStepOpen = true">{{ t('createTokens.change') }}</span>

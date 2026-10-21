@@ -1,11 +1,9 @@
 <script setup lang="ts">
-  import { useSettingsStore } from 'src/stores/settingsStore';
   import { useCashconnectStore } from 'src/stores/cashconnectStore'
   import { sanitizeUrl } from 'src/utils/utils'
   import { useI18n } from 'vue-i18n'
+  import { iconTrash } from 'src/utils/icons/svgIcons'
   const { t } = useI18n()
-
-  const settingsStore = useSettingsStore();
 
   const cashconnectStore = useCashconnectStore();
 </script>
@@ -29,7 +27,7 @@
             </div>
             <div class="cc-session-item-action-container">
               <div class="cc-session-item-action-icon" @click="cashconnectStore.disconnectSession(topic)">
-                <img :src="settingsStore.darkMode? 'images/trashLightGrey.svg': 'images/trash.svg'" style="max-width: none" />
+                <q-icon class="app-icon app-icon--trash" :name="iconTrash" size="16px" style="max-width: none" />
               </div>
             </div>
           </div>

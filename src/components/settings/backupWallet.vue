@@ -8,6 +8,7 @@
   import { confirmDialog } from 'src/utils/txHelpers'
   import { DERIVATION_PATHS } from 'src/utils/wallet/walletUtils'
   import { useI18n } from 'vue-i18n'
+  import { iconCopy } from 'src/utils/icons/svgIcons'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
@@ -226,7 +227,7 @@
         >
         <div v-if="displayWif" class="wif-container" @click="copyWif">
           <span class="wif-value">{{ privateKeyWif }}</span>
-          <img class="copyIcon" src="images/copyGrey.svg">
+          <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
         </div>
         <button v-if="displayWif" @click="copyWif" class="seedphrase-copy-btn">
           {{ t('backupWallet.privateKey.copyButton') }}
@@ -281,7 +282,7 @@
       </div>
       <div class="derivation-container" @click="copyToClipboard(walletDerivationPath)">
         <span class="derivation-path">{{ walletDerivationPath }}</span>
-        <img class="copyIcon" src="images/copyGrey.svg">
+        <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
       </div>
     </div>
 

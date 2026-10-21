@@ -146,7 +146,7 @@ Docs: https://quasar.dev/docs
 - **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking; the runtime copies live in `src-capacitor/`
 
 ### Styling
-Base CSS from a vendored subset of chota (`src/css/chota-subset.css`), custom styles in `src/css/`. Material icon names are mapped to SVG constants in `src/boot/icons.ts`; Quasar components use the `svg-material-icons` icon set, with no icon webfont.
+Base CSS from a vendored subset of chota (`src/css/chota-subset.css`), custom styles in `src/css/`. Icons are inline SVG in the bundle, never fetched: Material icon names are mapped to SVG constants in `src/boot/icons.ts`, and the app's own icons are q-icon paths in `src/utils/icons/svgIcons.ts`; Quasar components use the `svg-material-icons` icon set, with no icon webfont.
 
 Component styles are plain CSS by default; a few use `<style scoped lang="scss">` where variables or a mixin avoid repeating a block (sass is available through Quasar).
 

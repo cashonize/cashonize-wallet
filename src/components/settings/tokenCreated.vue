@@ -7,6 +7,7 @@
   import { useStore } from 'src/stores/store';
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n';
+  import { iconCheckCircle, iconCopy, iconExternalLink, iconExternalLinkOcticon } from 'src/utils/icons/svgIcons';
 
   const props = defineProps<{ created: CreatedToken }>();
   const emit = defineEmits<{ startOver: [] }>();
@@ -28,22 +29,22 @@
 
 <template>
   <div class="closed-line description">
-    <img src="images/check-circle.svg" class="step-check">
+    <q-icon class="step-check app-icon app-icon--green" :name="iconCheckCircle" size="18px" />
     <span>{{ t('createTokens.home.chosen') }}</span>
   </div>
   <div class="closed-line description">
-    <img src="images/check-circle.svg" class="step-check">
+    <q-icon class="step-check app-icon app-icon--green" :name="iconCheckCircle" size="18px" />
     <span>{{ t('createTokens.plannedTokenId') }}</span>
     <span class="copy-target" @click="copyToClipboard(created.category)">
-      <span class="mono">{{ truncateHash(created.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+      <span class="mono">{{ truncateHash(created.category) }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
     </span>
   </div>
   <div class="closed-line description">
-    <img src="images/check-circle.svg" class="step-check">
+    <q-icon class="step-check app-icon app-icon--green" :name="iconCheckCircle" size="18px" />
     <span>{{ stepLabel(2, 3, t(`createTokens.stepTitles.${created.hasSupply ? 'shape' : 'type'}`)) }}</span>
   </div>
   <div class="closed-line description">
-    <img src="images/check-circle.svg" class="step-check">
+    <q-icon class="step-check app-icon app-icon--green" :name="iconCheckCircle" size="18px" />
     <span>{{ stepLabel(3, 3, t('createTokens.stepTitles.metadata')) }}</span>
   </div>
 
@@ -54,7 +55,7 @@
     <div>
       <div v-if="created.name"><b>{{ created.symbol ? `${created.name} (${created.symbol})` : created.name }}</b></div>
       <div v-else class="copy-target" @click="copyToClipboard(created.category)">
-        <span class="mono">{{ truncateHash(created.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+        <span class="mono">{{ truncateHash(created.category) }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
       </div>
       <div v-if="created.hasSupply">{{ t('createTokens.created.supply', { amount: createdAmount(created.supply) }) }}</div>
       <div v-else>{{ t('createTokens.created.mintingNft') }}</div>
@@ -79,7 +80,7 @@
   <div class="created-links">
     <a v-if="created.txId" :href="`${store.explorerUrl}/${created.txId}`" target="_blank" class="action-link">
       {{ t('createTokens.created.viewTransaction') }}
-      <img :src="settingsStore.darkMode ? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;">
+      <q-icon class="app-icon" :name="settingsStore.darkMode ? iconExternalLinkOcticon : iconExternalLink" size="16px" style="vertical-align: sub;" />
     </a>
     <span class="action-link" @click="emit('startOver')">{{ t('createTokens.created.createAnother') }}</span>
   </div>

@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
+  import { iconCauldron } from 'src/utils/icons/svgIcons'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -31,7 +32,7 @@
         :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(category) : undefined"
         :size="32"
       />
-      <img class="pool-badge" src="images/cauldronGreen.svg">
+      <q-icon class="pool-badge app-icon app-icon--cauldron" :name="iconCauldron" size="20px" />
     </div>
     <div class="asset-name">
       <div>{{ name }}</div>

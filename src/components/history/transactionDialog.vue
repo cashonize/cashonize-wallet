@@ -14,6 +14,7 @@
   import { maxTxNoteLength } from 'src/utils/history/txNotes';
   import { feeRate, isBelowRelayFee, minRelayFeeRate } from 'src/utils/history/txFeeRate';
   import { useI18n } from 'vue-i18n'
+  import { iconCopy } from 'src/utils/icons/svgIcons'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -148,7 +149,7 @@
               {{ historyItem.hash.slice(0, 12) + "..." + historyItem.hash.slice(52) }}
             </span>
             <span @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer;">
-              <img class="copyIcon" src="images/copyGrey.svg">
+              <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
             </span>
           </div>
           <div>
@@ -156,7 +157,7 @@
               {{ t('transactionDialog.linkToExplorer') }}
             </a>
             <span @click="() => copyToClipboard(store.explorerUrl + `/${historyItem.hash}`)" style="cursor:pointer;">
-              <img class="copyIcon" src="images/copyGrey.svg" style="vertical-align: text-bottom;">
+              <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" style="vertical-align: text-bottom;" />
             </span>
           </div>
           <div>

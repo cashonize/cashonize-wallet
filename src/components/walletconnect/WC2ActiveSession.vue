@@ -8,6 +8,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useStore } from 'src/stores/store'
   import { useI18n } from 'vue-i18n'
+  import { iconSettings, iconTrash } from 'src/utils/icons/svgIcons'
   const settingsStore = useSettingsStore()
   const store = useStore()
   const { t } = useI18n()
@@ -73,14 +74,8 @@
       </div>
     </div>
     <div class="wc-session-actions">
-      <img style="cursor: pointer; max-width: none;"
-        @click="() => sessionSettingsWC = sessionId"
-        :src="settingsStore.darkMode? 'images/settingsLightGrey.svg': 'images/settings.svg'"
-      />
-      <img style="cursor: pointer; max-width: none;"
-        @click="emit('deleteSession', sessionId)"
-        :src="settingsStore.darkMode? 'images/trashLightGrey.svg': 'images/trash.svg'"
-      />
+      <q-icon class="app-icon" :name="iconSettings" size="16px" style="cursor: pointer; max-width: none;" @click="() => sessionSettingsWC = sessionId" />
+      <q-icon class="app-icon app-icon--trash" :name="iconTrash" size="16px" style="cursor: pointer; max-width: none;" @click="emit('deleteSession', sessionId)" />
     </div>
   </div>
 

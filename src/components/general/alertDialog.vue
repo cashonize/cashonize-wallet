@@ -5,6 +5,7 @@
   import type { DialogInfo } from 'src/interfaces/interfaces'
   import { copyToClipboard } from 'src/utils/utils';
   import { useI18n } from 'vue-i18n'
+  import { iconCopy } from 'src/utils/icons/svgIcons'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -36,13 +37,13 @@
         <span @click="copyToClipboard(alertInfo.txid)" style="cursor: pointer;">
           {{ t('alertDialog.txId') }}
           <span style="color: var(--color-grey)">{{ alertInfo.txid.slice(0, 20) + "..." + alertInfo.txid.slice(-10) }}</span>
-          <img class="copyIcon icon" src="images/copyGrey.svg">
+          <q-icon class="copyIcon icon app-icon app-icon--grey" :name="iconCopy" size="16px" />
         </span>
         <template v-if="!alertInfo.hideExplorerLink">
           <br><br>
           <a :href="store.explorerUrl + `/${alertInfo.txid}`" target="_blank">{{ t('alertDialog.linkExplorer') }}</a>
           <span @click="copyToClipboard(store.explorerUrl + `/${alertInfo.txid}`)" style="cursor: pointer;">
-            <img class="copyIcon icon" :src="settingsStore.darkMode? 'images/copyGrey.svg':'images/copy.svg'">
+            <q-icon class="copyIcon icon app-icon" :class="{ 'app-icon--grey': settingsStore.darkMode }" :name="iconCopy" size="16px" />
           </span>
         </template>
       </q-card-section>

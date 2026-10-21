@@ -1,13 +1,11 @@
 <script setup lang="ts">
   import { computed } from 'vue';
   import { decodeKeyExchangeURI } from '@wizardconnect/core';
-  import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore'
   import { useWindowSize } from 'src/utils/composables'
   import { useI18n } from 'vue-i18n'
+  import { iconTrash } from 'src/utils/icons/svgIcons'
   const { t } = useI18n()
-
-  const settingsStore = useSettingsStore();
 
   const wizardconnectStore = useWizardconnectStore();
 
@@ -70,7 +68,7 @@
             </div>
             <div class="wiz-session-item-action-container">
               <div class="wiz-session-item-action-icon" @click="wizardconnectStore.disconnectSession(String(connectionId))">
-                <img :src="settingsStore.darkMode? 'images/trashLightGrey.svg': 'images/trash.svg'" style="max-width: none" />
+                <q-icon class="app-icon app-icon--trash" :name="iconTrash" size="16px" style="max-width: none" />
               </div>
             </div>
           </div>

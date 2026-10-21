@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { emojiCheckbox, emojiRedCross, emojiWarning, emojiGreenHeart } from 'src/utils/icons/svgIcons';
+
 const props = defineProps<{
   emoji: '✅' | '❌' | '⚠️' | '💚',
   sizePx?: number 
@@ -6,13 +8,13 @@ const props = defineProps<{
 
 const emojiSrc = (() => {switch (props.emoji) {
     case '✅':
-      return `./emoji-icons/checkbox.svg`;
+      return emojiCheckbox;
     case '❌':
-      return `./emoji-icons/redcross.svg`;
+      return emojiRedCross;
     case '⚠️':
-      return `./emoji-icons/warning.svg`;
+      return emojiWarning;
     case '💚':
-      return `./emoji-icons/greenhearth.svg`;
+      return emojiGreenHeart;
   }}
 )()
 </script>

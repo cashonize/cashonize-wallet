@@ -16,6 +16,7 @@
   import { useStore } from 'src/stores/store';
   import { useQuasar } from 'quasar';
   import { useI18n } from 'vue-i18n';
+  import { iconCheckCircle, iconCopy } from 'src/utils/icons/svgIcons';
 
   const props = defineProps<{
     stepLabel: string;
@@ -124,10 +125,10 @@
       <slot />
     </template>
     <div v-else-if="pickedUtxo" class="closed-line description">
-      <img src="images/check-circle.svg" class="step-check pop">
+      <q-icon class="step-check pop app-icon app-icon--green" :name="iconCheckCircle" size="18px" />
       <span>{{ pickedLabel }}</span>
       <span class="copy-target" @click="copyToClipboard(pickedUtxo.txid)">
-        <span class="mono">{{ truncateHash(pickedUtxo.txid) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+        <span class="mono">{{ truncateHash(pickedUtxo.txid) }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
       </span>
       <span>·</span>
       <span class="action-link" @click="editing = true">{{ t('createTokens.change') }}</span>

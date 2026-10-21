@@ -6,12 +6,11 @@
   import { CASHTOKENS_STUDIO_URL } from 'src/utils/tools/authchainIdentity';
   import InfoPopup from '../general/InfoPopup.vue';
   import { useStore } from 'src/stores/store';
-  import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n';
+  import { iconExternalLink, iconInfo } from 'src/utils/icons/svgIcons';
 
   const emit = defineEmits<{ continue: [] }>();
   const store = useStore();
-  const settingsStore = useSettingsStore();
   const { t } = useI18n();
 
   const selectedHome = ref<'wallet' | 'studio' | undefined>(undefined);
@@ -61,13 +60,13 @@
     >
     <template v-else>
       <div class="info-box" style="margin: 10px 0 16px;">
-        <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
+        <q-icon class="warning-box-icon app-icon" :name="iconInfo" size="20px" />
         <div>{{ t('createTokens.home.studioBox') }}</div>
       </div>
       <div class="studio-actions">
         <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" class="button primaryButton studio-button">
           {{ t('createTokens.home.openStudio') }}
-          <img src="images/external-link-white.svg">
+          <q-icon class="app-icon app-icon--white" :name="iconExternalLink" size="16px" />
         </a>
         <input type="button" :value="t('createTokens.home.connectButton')" @click="store.changeView(4)">
       </div>

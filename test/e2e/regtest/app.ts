@@ -46,7 +46,7 @@ export async function openRegtestWallet(page: Page, options: WalletOptions = {})
 // Onboarding, and adding a wallet, open the new wallet on mainnet whatever the stored network
 // says; the developer settings switch it to chipnet
 async function switchToChipnet(page: Page) {
-  await page.locator('nav img[src*="settings"]').click()
+  await page.locator('nav [aria-label="Settings"]').click()
   await page.getByText('Developer settings').click()
   await page.locator('select').first().selectOption('chipnet')
   await expect(page.locator('.depositAddr').first()).toHaveText(/^bchtest:/, { timeout: 30_000 })
@@ -54,7 +54,7 @@ async function switchToChipnet(page: Page) {
 
 // Switches the chipnet electrum server the way a user does: a custom server in the advanced settings
 export async function switchChipnetServer(page: Page, server: string) {
-  await page.locator('nav img[src*="settings"]').click()
+  await page.locator('nav [aria-label="Settings"]').click()
   await page.getByText('Advanced settings').click()
   await page.locator('div:has(> label:text-is("Electrum server chipnet:")) > select').selectOption('custom')
   const input = page.getByPlaceholder('e.g. 127.0.0.1 or fulcrum.example.com:443')
