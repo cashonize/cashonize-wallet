@@ -689,38 +689,24 @@
   "createTokens": {
     "title": "Créer un token",
     "home": {
-      "intro": "Créez un nouveau token ici ou sur le site de CashTokens Studio. Qui détient l'identité du token, un UTXO, contrôle son nom, son icône et toute offre non émise ; choisissez où la garder.",
+      "intro": "Créez un nouveau token dans ce portefeuille ou sur le site de CashTokens Studio. Qui détient l'identité du token, un UTXO, contrôle son nom, son icône et toute offre non émise.",
       "wallet": "Dans ce portefeuille",
       "studio": "Avec CashTokens Studio",
       "chosen": "Identité du token conservée : dans ce portefeuille",
       "chosenGuard": "Identité du jeton conservée : dans un AuthGuard, avec l'AuthKey dans ce portefeuille",
-      "keep": {
-        "label": "Conserver l'identité :",
-        "utxo": "dans un UTXO que ce portefeuille met de côté",
-        "guard": "dans un AuthGuard, avec l'AuthKey dans ce portefeuille"
-      },
-      "cardLeads": {
-        "for": "Pour :",
-        "managed": "Géré :"
-      },
-      "walletLines": {
-        "for": "les utilisateurs techniques qui veulent tout contrôler.",
-        "managed": "sur la page des identités, dans Outils."
-      },
-      "studioLines": {
-        "for": "la voie la plus simple, et les collections de NFT.",
-        "managed": "sur le site de CashTokens Studio, connecté à ce portefeuille."
-      },
+      "forLead": "Pour :",
+      "walletFor": "les utilisateurs techniques qui veulent un contrôle total : vous le créez depuis ce portefeuille, hébergez vous-même le fichier de métadonnées et choisissez comment l'identité est gardée.",
+      "studioFor": "la voie la plus simple, et les collections de NFT : CashTokens Studio rédige les métadonnées et les épingle sur IPFS.",
       "leads": {
         "protection": "Protection :",
         "metadata": "Métadonnées :",
         "operations": "Opérations :"
       },
       "walletRows": {
-        "protection": "retenu des envois par ce portefeuille seulement ; une autre application sur cette graine pourrait le dépenser.",
-        "metadata": "un fichier que vous hébergez, lié à l'étape 3 ou plus tard depuis la page des identités.",
-        "operations": "sur la page des identités, dans Outils.",
-        "moveLater": "Vous pourrez déplacer l'identité du token de ce portefeuille vers CashTokens Studio plus tard, et inversement."
+        "protection": "retenue des envois par ce portefeuille, ou dans un AuthGuard avec l'AuthKey dans ce portefeuille ; vous choisissez.",
+        "metadata": "un fichier que vous hébergez, lié à l'étape 4 ou plus tard.",
+        "operations": "sur la page des identités, ou sur le site de CashTokens Studio si elle est gardée dans un AuthGuard.",
+        "moveLater": "Vous pouvez déplacer l'identité du token de ce portefeuille vers CashTokens Studio plus tard, et inversement."
       },
       "studioRows": {
         "protection": "dépensable seulement avec l'AuthKey ; dans d'autres portefeuilles un NFT sans nom, gardez-la.",
@@ -729,13 +715,6 @@
         "metadataHelp": "Le pin IPFS est celui de CashTokens Studio. S'il expire un jour, le fichier peut être hébergé n'importe où et le hash publié correspond toujours, mais seulement au fichier exact : gardez-en une copie.",
         "operations": "métadonnées, émission et libération, sur le site de CashTokens Studio, connecté à ce portefeuille.",
         "moveLater": "Vous pourrez déplacer l'identité du token de CashTokens Studio vers ce portefeuille plus tard, et inversement."
-      },
-      "guardRows": {
-        "protection": "dépensable uniquement avec l'AuthKey, que ce portefeuille détient ; dans d'autres portefeuilles un NFT sans nom, gardez-la donc.",
-        "protectionHelp": "L'AuthKey est un NFT qui ouvre l'AuthGuard, le contrat dans lequel l'identité est conservée, de sorte que l'identité ne se dépense qu'avec l'AuthKey, quelle que soit l'app qui détient la seed. D'autres portefeuilles montrent l'AuthKey comme un NFT sans nom, et c'est ainsi qu'elle se retrouve envoyée ou brûlée ; ce portefeuille la nomme d'après ce qu'elle protège.",
-        "metadata": "un fichier que vous hébergez, lié à l'étape 3 ou plus tard sur le site de CashTokens Studio.",
-        "operations": "métadonnées, émission et frappe sur le site de CashTokens Studio connecté à ce portefeuille, avec l'AuthKey.",
-        "moveLater": "CashTokens Studio l'affiche avec l'AuthKey et peut libérer l'identité vers ce portefeuille plus tard."
       },
       "studioBox": "Après la création d'un token dans l'application CashTokens Studio, l'AuthKey apparaît dans l'onglet Tokens et l'identité sur la page des identités, dans Outils.",
       "openStudio": "Ouvrir CashTokens Studio",
@@ -747,8 +726,25 @@
     "stepTitles": {
       "utxo": "choisir l'id du token",
       "shape": "choisir le type, les décimales et l'offre",
+      "protection": "choisir comment l'identité est conservée",
       "metadata": "lier le fichier de métadonnées hébergé (facultatif)",
       "type": "choisir le type"
+    },
+    "protection": {
+      "held": {
+        "title": "Retenue dans ce portefeuille",
+        "line": "Seul ce portefeuille retient l'identité : une autre application sur cette graine pourrait la dépenser. Vous émettez, frappez et mettez à jour les métadonnées ici."
+      },
+      "guard": {
+        "title": "Dans un AuthGuard",
+        "help": "L'AuthKey est un NFT qui ouvre l'AuthGuard, le contrat dans lequel l'identité est conservée, de sorte que l'identité ne se dépense qu'avec l'AuthKey, quelle que soit l'app qui détient la seed. D'autres portefeuilles montrent l'AuthKey comme un NFT sans nom, et c'est ainsi qu'elle se retrouve envoyée ou brûlée ; ce portefeuille la nomme d'après ce qu'elle protège.",
+        "holds": {
+          "identity": "Un contrat détient l'identité, dépensables uniquement avec l'AuthKey, quelle que soit l'application qui détient la graine. L'AuthKey reste dans ce portefeuille ; vous l'utilisez sur le site de CashTokens Studio.",
+          "reserve": "Un contrat détient l'identité et la réserve, dépensables uniquement avec l'AuthKey, quelle que soit l'application qui détient la graine. L'AuthKey reste dans ce portefeuille ; vous l'utilisez sur le site de CashTokens Studio.",
+          "minting": "Un contrat détient l'identité et le NFT de frappe, dépensables uniquement avec l'AuthKey, quelle que soit l'application qui détient la graine. L'AuthKey reste dans ce portefeuille ; vous l'utilisez sur le site de CashTokens Studio.",
+          "both": "Un contrat détient l'identité, la réserve et le NFT de frappe, dépensables uniquement avec l'AuthKey, quelle que soit l'application qui détient la graine. L'AuthKey reste dans ce portefeuille ; vous l'utilisez sur le site de CashTokens Studio."
+        }
+      }
     },
     "genesisInput": {
       "explainer": "Le txid de l'UTXO que la genèse dépense devient l'id du token ; l'UTXO doit être à la sortie 0.",

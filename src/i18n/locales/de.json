@@ -689,38 +689,24 @@
   "createTokens": {
     "title": "Token erstellen",
     "home": {
-      "intro": "Erstelle hier einen neuen Token oder auf der Seite von CashTokens Studio. Wer die Identität des Tokens hält, einen UTXO, bestimmt über Name, Icon und noch nicht ausgegebenes Angebot; wähle, wo du sie aufbewahrst.",
+      "intro": "Erstelle einen neuen Token in diesem Wallet oder auf der Seite von CashTokens Studio. Wer die Identität des Tokens hält, ein UTXO, kontrolliert Name, Icon und jede noch nicht ausgegebene Menge.",
       "wallet": "In diesem Wallet",
       "studio": "Mit CashTokens Studio",
       "chosen": "Token-Identität bleibt: in diesem Wallet",
       "chosenGuard": "Token-Identität aufbewahrt: in einem AuthGuard, mit dem AuthKey in diesem Wallet",
-      "keep": {
-        "label": "Identität aufbewahren:",
-        "utxo": "in einem UTXO, das dieses Wallet zurückhält",
-        "guard": "in einem AuthGuard, mit dem AuthKey in diesem Wallet"
-      },
-      "cardLeads": {
-        "for": "Für:",
-        "managed": "Verwaltet:"
-      },
-      "walletLines": {
-        "for": "technische Nutzer, die volle Kontrolle wollen.",
-        "managed": "auf der Identitäten-Seite unter Werkzeuge."
-      },
-      "studioLines": {
-        "for": "den einfachsten Weg und NFT-Sammlungen.",
-        "managed": "auf der Seite von CashTokens Studio, mit diesem Wallet verbunden."
-      },
+      "forLead": "Für:",
+      "walletFor": "technische Nutzer, die volle Kontrolle wollen: Du erstellst ihn aus diesem Wallet, hostest die Metadatendatei selbst und wählst, wie die Identität aufbewahrt wird.",
+      "studioFor": "den einfachsten Weg und NFT-Kollektionen: CashTokens Studio schreibt die Metadaten und pinnt sie auf IPFS.",
       "leads": {
         "protection": "Schutz:",
         "metadata": "Metadaten:",
         "operations": "Operationen:"
       },
       "walletRows": {
-        "protection": "nur von diesem Wallet vor Versand zurückgehalten; eine andere App auf diesem Seed könnte ihn ausgeben.",
-        "metadata": "eine Datei, die du hostest, in Schritt 3 verknüpft oder später von der Identitäten-Seite.",
-        "operations": "auf der Identitäten-Seite unter Werkzeuge.",
-        "moveLater": "Du kannst die Token-Identität später von diesem Wallet zu CashTokens Studio verschieben, und zurück."
+        "protection": "von diesem Wallet vor Versand zurückgehalten oder in einem AuthGuard mit dem AuthKey in diesem Wallet; du wählst.",
+        "metadata": "eine Datei, die du hostest, verlinkt in Schritt 4 oder später.",
+        "operations": "auf der Identitätenseite, oder auf der Seite von CashTokens Studio bei Aufbewahrung in einem AuthGuard.",
+        "moveLater": "Du kannst die Token-Identität später von diesem Wallet zu CashTokens Studio verschieben und zurück."
       },
       "studioRows": {
         "protection": "nur mit dem AuthKey ausgebbar; in anderen Wallets ein namenloses NFT, also behalte ihn.",
@@ -729,13 +715,6 @@
         "metadataHelp": "Der IPFS-Pin gehört CashTokens Studio. Sollte er einmal auslaufen, kann die Datei überall gehostet werden und der veröffentlichte Hash passt weiterhin, aber nur zur exakten Datei: bewahre eine Kopie auf.",
         "operations": "Metadaten, Ausgabe und Freigabe, auf der Seite von CashTokens Studio, mit diesem Wallet verbunden.",
         "moveLater": "Du kannst die Token-Identität später von CashTokens Studio in dieses Wallet verschieben, und zurück."
-      },
-      "guardRows": {
-        "protection": "nur mit dem AuthKey ausgebbar, den dieses Wallet hält; in anderen Wallets ein namenloses NFT, also behalte ihn.",
-        "protectionHelp": "Der AuthKey ist ein NFT, das den AuthGuard öffnet, den Vertrag, in dem die Identität aufbewahrt wird, sodass die Identität nur mit dem AuthKey ausgegeben wird, egal welche App den Seed hält. Andere Wallets zeigen den AuthKey als namenloses NFT, und so wird einer versehentlich verschickt oder verbrannt; dieses Wallet benennt ihn nach dem, was er schützt.",
-        "metadata": "eine Datei, die du hostest, verknüpft in Schritt 3 oder später auf der Seite von CashTokens Studio.",
-        "operations": "Metadaten, Ausgabe und Prägen auf der Seite von CashTokens Studio, mit diesem Wallet verbunden, mit dem AuthKey.",
-        "moveLater": "CashTokens Studio zeigt sie mit dem AuthKey an und kann die Identität später in dieses Wallet freigeben."
       },
       "studioBox": "Nach dem Erstellen eines Tokens in der CashTokens-Studio-App erscheint der AuthKey im Tokens-Tab und die Identität auf der Identitäten-Seite unter Werkzeuge.",
       "openStudio": "CashTokens Studio öffnen",
@@ -747,8 +726,25 @@
     "stepTitles": {
       "utxo": "die Token-ID wählen",
       "shape": "Typ, Dezimalstellen und Vorrat wählen",
+      "protection": "wähle, wie die Identität aufbewahrt wird",
       "metadata": "die gehostete Metadaten-Datei verknüpfen (optional)",
       "type": "den Typ wählen"
+    },
+    "protection": {
+      "held": {
+        "title": "In diesem Wallet zurückgehalten",
+        "line": "Nur dieses Wallet hält die Identität zurück: eine andere App auf diesem Seed könnte sie ausgeben. Ausgeben, Minten und Metadaten erledigst du hier."
+      },
+      "guard": {
+        "title": "In einem AuthGuard",
+        "help": "Der AuthKey ist ein NFT, das den AuthGuard öffnet, den Vertrag, in dem die Identität aufbewahrt wird, sodass die Identität nur mit dem AuthKey ausgegeben wird, egal welche App den Seed hält. Andere Wallets zeigen den AuthKey als namenloses NFT, und so wird einer versehentlich verschickt oder verbrannt; dieses Wallet benennt ihn nach dem, was er schützt.",
+        "holds": {
+          "identity": "Ein Vertrag hält die Identität, ausgebbar nur mit dem AuthKey, egal welche App den Seed hat. Der AuthKey bleibt in diesem Wallet; du verwendest ihn auf der Seite von CashTokens Studio.",
+          "reserve": "Ein Vertrag hält die Identität und die Reserve, ausgebbar nur mit dem AuthKey, egal welche App den Seed hat. Der AuthKey bleibt in diesem Wallet; du verwendest ihn auf der Seite von CashTokens Studio.",
+          "minting": "Ein Vertrag hält die Identität und das Minting-NFT, ausgebbar nur mit dem AuthKey, egal welche App den Seed hat. Der AuthKey bleibt in diesem Wallet; du verwendest ihn auf der Seite von CashTokens Studio.",
+          "both": "Ein Vertrag hält die Identität, die Reserve und das Minting-NFT, ausgebbar nur mit dem AuthKey, egal welche App den Seed hat. Der AuthKey bleibt in diesem Wallet; du verwendest ihn auf der Seite von CashTokens Studio."
+        }
+      }
     },
     "genesisInput": {
       "explainer": "Die txid des UTXO, den die Genesis ausgibt, wird zur Token-ID; der UTXO muss an Output 0 liegen.",

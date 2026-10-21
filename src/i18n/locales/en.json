@@ -689,37 +689,23 @@
   "createTokens": {
     "title": "Create a token",
     "home": {
-      "intro": "Create a new token here or on CashTokens Studio's site. Whoever holds the token's identity, one UTXO, controls its name, icon and any unissued supply; choose where to keep it.",
+      "intro": "Create a new token in this wallet or on CashTokens Studio's site. Whoever holds the token's identity, one UTXO, controls its name, icon and any unissued supply.",
       "wallet": "In this wallet",
       "studio": "With CashTokens Studio",
       "chosen": "Token identity kept: in this wallet",
       "chosenGuard": "Token identity kept: in an AuthGuard, with the AuthKey in this wallet",
-      "keep": {
-        "label": "Keep the identity:",
-        "utxo": "in a UTXO this wallet holds back",
-        "guard": "in an AuthGuard, with the AuthKey in this wallet"
-      },
-      "cardLeads": {
-        "for": "For:",
-        "managed": "Managed:"
-      },
-      "walletLines": {
-        "for": "technical users who want full control.",
-        "managed": "on the identities page, in Tools."
-      },
-      "studioLines": {
-        "for": "the easiest way, and NFT collections.",
-        "managed": "on CashTokens Studio's site, connected to this wallet."
-      },
+      "forLead": "For:",
+      "walletFor": "technical users who want full control: you create it from this wallet, host the metadata file yourself, and choose how the identity is kept.",
+      "studioFor": "the easiest way, and NFT collections: CashTokens Studio writes the metadata and pins it on IPFS.",
       "leads": {
         "protection": "Protection:",
         "metadata": "Metadata:",
         "operations": "Operations:"
       },
       "walletRows": {
-        "protection": "held back from sends by this wallet only; another app on this seed could spend it.",
-        "metadata": "a file you host, linked in step 3 or later from the identities page.",
-        "operations": "on the identities page, in Tools.",
+        "protection": "held back from sends by this wallet, or in an AuthGuard with the AuthKey in this wallet; you choose.",
+        "metadata": "a file you host, linked in step 4 or later.",
+        "operations": "on the identities page, or on CashTokens Studio's site when kept in an AuthGuard.",
         "moveLater": "You can move the token identity from this wallet to CashTokens Studio later, and back."
       },
       "studioRows": {
@@ -729,13 +715,6 @@
         "metadataHelp": "The IPFS pin is CashTokens Studio's. If it ever lapses, the file can be hosted anywhere and the published hash still matches it, but only the exact file: keep a copy.",
         "operations": "metadata, issuing and releasing, on CashTokens Studio's site, connected to this wallet.",
         "moveLater": "You can move the token identity from CashTokens Studio to this wallet later, and back."
-      },
-      "guardRows": {
-        "protection": "spendable only with the AuthKey, which this wallet holds; in other wallets a nameless NFT, so keep it.",
-        "protectionHelp": "The AuthKey is an NFT that opens the AuthGuard, the contract the identity is kept in, so the identity spends only with the AuthKey, whichever app holds the seed. Other wallets show the AuthKey as a nameless NFT, which is how one gets sent away or burned; this wallet names it by what it guards.",
-        "metadata": "a file you host, linked in step 3 or later on CashTokens Studio's site.",
-        "operations": "metadata, issuing and minting on CashTokens Studio's site connected to this wallet, with the AuthKey.",
-        "moveLater": "CashTokens Studio shows it with the AuthKey, and can release the identity into this wallet later."
       },
       "studioBox": "After creating a token on the CashTokens Studio app, the AuthKey shows in the Tokens tab and the identity on the identities page under Tools.",
       "openStudio": "Open CashTokens Studio",
@@ -747,8 +726,25 @@
     "stepTitles": {
       "utxo": "pick the token id",
       "shape": "choose the type, decimals and supply",
+      "protection": "choose how the identity is kept",
       "metadata": "link the hosted metadata file (optional)",
       "type": "choose the type"
+    },
+    "protection": {
+      "held": {
+        "title": "Held back in this wallet",
+        "line": "Only this wallet holds the identity back: another app on this seed could spend it. You issue, mint and update metadata here."
+      },
+      "guard": {
+        "title": "In an AuthGuard",
+        "help": "The AuthKey is an NFT that opens the AuthGuard, the contract the identity is kept in, so the identity spends only with the AuthKey, whichever app holds the seed. Other wallets show the AuthKey as a nameless NFT, which is how one gets sent away or burned; this wallet names it by what it guards.",
+        "holds": {
+          "identity": "A contract holds the identity, spendable only with the AuthKey, whichever app holds the seed. The AuthKey stays in this wallet; you use it on CashTokens Studio's site.",
+          "reserve": "A contract holds the identity and the reserve, spendable only with the AuthKey, whichever app holds the seed. The AuthKey stays in this wallet; you use it on CashTokens Studio's site.",
+          "minting": "A contract holds the identity and the minting NFT, spendable only with the AuthKey, whichever app holds the seed. The AuthKey stays in this wallet; you use it on CashTokens Studio's site.",
+          "both": "A contract holds the identity, the reserve and the minting NFT, spendable only with the AuthKey, whichever app holds the seed. The AuthKey stays in this wallet; you use it on CashTokens Studio's site."
+        }
+      }
     },
     "genesisInput": {
       "explainer": "The txid of the UTXO the genesis spends becomes the token id; the UTXO must be at output 0.",

@@ -689,38 +689,24 @@
   "createTokens": {
     "title": "Criar um token",
     "home": {
-      "intro": "Crie um token novo aqui ou no site do CashTokens Studio. Quem tem a identidade do token, um UTXO, controla o seu nome, ícone e qualquer oferta não emitida; escolha onde a guardar.",
+      "intro": "Crie um novo token nesta carteira ou no site do CashTokens Studio. Quem detém a identidade do token, um UTXO, controla o seu nome, ícone e qualquer oferta não emitida.",
       "wallet": "Nesta carteira",
       "studio": "Com o CashTokens Studio",
       "chosen": "Identidade do token guardada: nesta carteira",
       "chosenGuard": "Identidade do token guardada: num AuthGuard, com a AuthKey nesta carteira",
-      "keep": {
-        "label": "Guardar a identidade:",
-        "utxo": "num UTXO que esta carteira reserva",
-        "guard": "num AuthGuard, com a AuthKey nesta carteira"
-      },
-      "cardLeads": {
-        "for": "Para:",
-        "managed": "Gerido:"
-      },
-      "walletLines": {
-        "for": "utilizadores técnicos que querem controlo total.",
-        "managed": "na página de identidades, em Ferramentas."
-      },
-      "studioLines": {
-        "for": "a via mais fácil, e coleções de NFTs.",
-        "managed": "no site do CashTokens Studio, ligado a esta carteira."
-      },
+      "forLead": "Para:",
+      "walletFor": "utilizadores técnicos que querem controlo total: cria-o a partir desta carteira, aloja o ficheiro de metadados e escolhe como a identidade é guardada.",
+      "studioFor": "o caminho mais fácil, e coleções de NFT: o CashTokens Studio escreve os metadados e fixa-os no IPFS.",
       "leads": {
         "protection": "Proteção:",
         "metadata": "Metadados:",
         "operations": "Operações:"
       },
       "walletRows": {
-        "protection": "retido dos envios só por esta carteira; outra app com esta seed poderia gastá-lo.",
-        "metadata": "um ficheiro que você hospeda, ligado no passo 3 ou depois a partir da página de identidades.",
-        "operations": "na página de identidades, em Ferramentas.",
-        "moveLater": "Você pode mover a identidade do token desta carteira para o CashTokens Studio mais tarde, e de volta."
+        "protection": "retida dos envios por esta carteira, ou num AuthGuard com a AuthKey nesta carteira; escolhe.",
+        "metadata": "um ficheiro que aloja, ligado no passo 4 ou mais tarde.",
+        "operations": "na página de identidades, ou no site do CashTokens Studio quando guardada num AuthGuard.",
+        "moveLater": "Pode mover a identidade do token desta carteira para o CashTokens Studio mais tarde, e de volta."
       },
       "studioRows": {
         "protection": "só se gasta com a AuthKey; noutras carteiras um NFT sem nome, por isso guarde-a.",
@@ -729,13 +715,6 @@
         "metadataHelp": "O pin no IPFS é do CashTokens Studio. Se um dia caducar, o ficheiro pode ser alojado em qualquer lado e o hash publicado continua a corresponder, mas só ao ficheiro exato: guarde uma cópia.",
         "operations": "metadados, emissão e libertação, no site do CashTokens Studio, ligado a esta carteira.",
         "moveLater": "Você pode mover a identidade do token do CashTokens Studio para esta carteira mais tarde, e de volta."
-      },
-      "guardRows": {
-        "protection": "só pode ser gasta com a AuthKey, que esta carteira guarda; noutras carteiras é um NFT sem nome, por isso guarde-a.",
-        "protectionHelp": "A AuthKey é um NFT que abre o AuthGuard, o contrato em que a identidade é guardada, pelo que a identidade só se gasta com a AuthKey, seja qual for a app que tem a seed. Outras carteiras mostram a AuthKey como um NFT sem nome, e é assim que uma é enviada por engano ou queimada; esta carteira nomeia-a pelo que protege.",
-        "metadata": "um ficheiro que você aloja, ligado no passo 3 ou mais tarde no site do CashTokens Studio.",
-        "operations": "metadados, emissão e cunhagem no site do CashTokens Studio ligado a esta carteira, com a AuthKey.",
-        "moveLater": "O CashTokens Studio mostra-a com a AuthKey e pode libertar a identidade para esta carteira mais tarde."
       },
       "studioBox": "Depois de criar um token na app CashTokens Studio, a AuthKey aparece no separador Tokens e a identidade na página de identidades, em Ferramentas.",
       "openStudio": "Abrir o CashTokens Studio",
@@ -747,8 +726,25 @@
     "stepTitles": {
       "utxo": "escolher o id do token",
       "shape": "escolher o tipo, as decimais e a oferta",
+      "protection": "escolha como a identidade é guardada",
       "metadata": "ligar o ficheiro de metadados hospedado (opcional)",
       "type": "escolher o tipo"
+    },
+    "protection": {
+      "held": {
+        "title": "Retida nesta carteira",
+        "line": "Só esta carteira retém a identidade: outra app com esta seed poderia gastá-la. Emite, cunha e atualiza os metadados aqui."
+      },
+      "guard": {
+        "title": "Num AuthGuard",
+        "help": "A AuthKey é um NFT que abre o AuthGuard, o contrato em que a identidade é guardada, pelo que a identidade só se gasta com a AuthKey, seja qual for a app que tem a seed. Outras carteiras mostram a AuthKey como um NFT sem nome, e é assim que uma é enviada por engano ou queimada; esta carteira nomeia-a pelo que protege.",
+        "holds": {
+          "identity": "Um contrato guarda a identidade, gastáveis só com a AuthKey, seja qual for a app que tem a seed. A AuthKey fica nesta carteira; usa-a no site do CashTokens Studio.",
+          "reserve": "Um contrato guarda a identidade e a reserva, gastáveis só com a AuthKey, seja qual for a app que tem a seed. A AuthKey fica nesta carteira; usa-a no site do CashTokens Studio.",
+          "minting": "Um contrato guarda a identidade e o NFT de cunhagem, gastáveis só com a AuthKey, seja qual for a app que tem a seed. A AuthKey fica nesta carteira; usa-a no site do CashTokens Studio.",
+          "both": "Um contrato guarda a identidade, a reserva e o NFT de cunhagem, gastáveis só com a AuthKey, seja qual for a app que tem a seed. A AuthKey fica nesta carteira; usa-a no site do CashTokens Studio."
+        }
+      }
     },
     "genesisInput": {
       "explainer": "O txid do UTXO que a génese gasta torna-se o id do token; o UTXO tem de estar na saída 0.",

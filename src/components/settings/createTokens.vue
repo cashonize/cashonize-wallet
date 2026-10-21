@@ -40,7 +40,7 @@
   const inputCirculating = ref("");
   const inputDecimals = ref("0");
   const bchOf = (satoshis: bigint) => formatBch(satoshis, store.network);
-  const stepTitle = (title: 'utxo' | 'shape' | 'type' | 'metadata') => t(`createTokens.stepTitles.${title}`);
+  const stepTitle = (title: 'utxo' | 'shape' | 'type' | 'protection' | 'metadata') => t(`createTokens.stepTitles.${title}`);
   watch(() => store._wallet, startOver);
 
   // What the token is, rather than a supply field and a toggle the user has to combine into one
@@ -58,9 +58,19 @@
   const utxoStepOpen = ref(true);
   const plannedCategory = computed(() => genesisInput.value?.txid);
   const homeConfirmed = ref(false);
+  // Step 3: the identity held back in this wallet, or in an AuthGuard with the AuthKey here.
   // An AuthGuard genesis spends a second UTXO at output 0, whose txid becomes the AuthKey's
   // category; the user has no reason to choose it, so the wallet picks the UTXO
-  const guarded = ref(false);
+  const keepIn = ref<'held' | 'guard'>('held');
+  const guarded = computed(() => keepIn.value === 'guard');
+  const protectionStepOpen = ref(true);
+  // what the guard holds besides the identity, as step 2 settled it
+  const guardHolds = computed(() => {
+    const holdsReserve = hasSupply.value && (reserve.value ?? 0n) > 0n;
+    if (holdsReserve && createMintingNft.value) return 'both';
+    if (holdsReserve) return 'reserve';
+    return createMintingNft.value ? 'minting' : 'identity';
+  });
   const keyGenesisInput = computed(() => {
     if (!guarded.value) return undefined;
     return authKeyGenesisInput(store.spendableUtxos ?? [], genesisInput.value);
@@ -90,6 +100,8 @@
     homeConfirmed.value = false;
     genesisInput.value = undefined;
     shapeStepOpen.value = true;
+    keepIn.value = 'held';
+    protectionStepOpen.value = true;
   }
 
   // Amounts are typed in tokens and the decimals field does the zeroes: the number on chain is
@@ -304,19 +316,19 @@
       <tokenCreated v-if="created" :created="created" @start-over="startOver()" />
 
       <template v-else>
-      <tokenCreationChoice v-if="!homeConfirmed" @continue="guard => { guarded = guard; homeConfirmed = true; }" />
+      <tokenCreationChoice v-if="!homeConfirmed" @continue="homeConfirmed = true" />
       <template v-else>
         <div style="margin-bottom: 15px; cursor: pointer;" @click="changeHome()">
           ← {{ t('common.actions.back') }}
         </div>
-        <div>{{ t(guarded ? 'createTokens.home.chosenGuard' : 'createTokens.home.chosen') }}</div>
+        <div>{{ t('createTokens.home.chosen') }}</div>
       </template>
 
       <template v-if="homeConfirmed">
       <genesisInputPicker
         v-model="genesisInput"
         v-model:open="utxoStepOpen"
-        :step-label="stepLabel(1, 3, stepTitle('utxo'))"
+        :step-label="stepLabel(1, 4, stepTitle('utxo'))"
         :picked-label="t('createTokens.plannedTokenId')"
         :explainer="t('createTokens.genesisInput.explainer')"
         :prepare-message="t('createTokens.prepare.message', { amount: bchOf(preparedUtxoValue) })"
@@ -329,32 +341,14 @@
           </div>
         </div>
       </genesisInputPicker>
-      <div v-if="guarded && !utxoStepOpen" class="section">
-        <div v-if="keyGenesisInput" class="closed-line description">
-          <img src="images/check-circle.svg" class="step-check pop">
-          <span>{{ t('createTokens.authKeyInput.id') }}</span>
-          <span class="copy-target" @click="copyToClipboard(keyGenesisInput.txid)">
-            <span class="mono">{{ truncateHash(keyGenesisInput.txid) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
-          </span>
-        </div>
-        <template v-else>
-          <div>{{ t('createTokens.authKeyInput.missing') }}</div>
-          <input
-            @click="prepareKeyInput"
-            type="button"
-            :value="preparingKeyInput ? t('createTokens.preparingButton') : t('createTokens.authKeyInput.prepareButton')"
-            :disabled="preparingKeyInput || store.spendableBalance === 0n"
-            style="margin-top: 8px;"
-          >
-        </template>
-      </div>
       <template v-if="utxoStepOpen">
-        <div class="section step-label">{{ stepLabel(2, 3, stepTitle(shapeTitle)) }}</div>
-        <div class="step-label" style="margin-top: 8px;">{{ stepLabel(3, 3, stepTitle('metadata')) }}</div>
+        <div class="section step-label">{{ stepLabel(2, 4, stepTitle(shapeTitle)) }}</div>
+        <div class="step-label" style="margin-top: 8px;">{{ stepLabel(3, 4, stepTitle('protection')) }}</div>
+        <div class="step-label" style="margin-top: 8px;">{{ stepLabel(4, 4, stepTitle('metadata')) }}</div>
       </template>
 
       <div v-if="!utxoStepOpen && shapeStepOpen" class="section">
-        <div class="step-label open">{{ stepLabel(2, 3, stepTitle(shapeTitle)) }}</div>
+        <div class="step-label open">{{ stepLabel(2, 4, stepTitle(shapeTitle)) }}</div>
         <label for="tokenShape">{{ t('createTokens.shapeLabel') }}</label>
         <select id="tokenShape" v-model="tokenShape">
           <option value="fungible">{{ t('createTokens.shapes.fungible') }}</option>
@@ -421,8 +415,73 @@
         <span class="action-link" @click="shapeStepOpen = true">{{ t('createTokens.change') }}</span>
       </div>
 
-      <div v-if="!utxoStepOpen && !shapeStepOpen" class="section">
-        <div class="step-label open">{{ stepLabel(3, 3, stepTitle('metadata')) }}</div>
+      <div v-if="!utxoStepOpen && !shapeStepOpen && protectionStepOpen" class="section">
+        <div class="step-label open">{{ stepLabel(3, 4, stepTitle('protection')) }}</div>
+        <div class="home-cards">
+          <div class="home-card" :class="{ selected: keepIn === 'held' }" @click="keepIn = 'held'">
+            <div class="home-card-title">
+              <span class="home-radio"></span>
+              <b>{{ t('createTokens.protection.held.title') }}</b>
+            </div>
+            <div>{{ t('createTokens.protection.held.line') }}</div>
+          </div>
+          <div class="home-card" :class="{ selected: keepIn === 'guard' }" @click="keepIn = 'guard'">
+            <div class="home-card-title">
+              <span class="home-radio"></span>
+              <b>{{ t('createTokens.protection.guard.title') }}</b>
+              <InfoPopup @click.stop>
+                <div style="max-width: 300px;">{{ t('createTokens.protection.guard.help') }}</div>
+              </InfoPopup>
+            </div>
+            <div>{{ t(`createTokens.protection.guard.holds.${guardHolds}`) }}</div>
+          </div>
+        </div>
+        <template v-if="guarded">
+          <div v-if="keyGenesisInput" class="closed-line description" style="margin-top: 10px;">
+            <span>{{ t('createTokens.authKeyInput.id') }}</span>
+            <span class="copy-target" @click="copyToClipboard(keyGenesisInput.txid)">
+              <span class="mono">{{ truncateHash(keyGenesisInput.txid) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+            </span>
+          </div>
+          <template v-else>
+            <div style="margin-top: 10px;">{{ t('createTokens.authKeyInput.missing') }}</div>
+            <input
+              @click="prepareKeyInput"
+              type="button"
+              :value="preparingKeyInput ? t('createTokens.preparingButton') : t('createTokens.authKeyInput.prepareButton')"
+              :disabled="preparingKeyInput || store.spendableBalance === 0n"
+              style="margin-top: 8px;"
+            >
+          </template>
+        </template>
+        <input
+          type="button"
+          class="primaryButton"
+          :value="t('createTokens.nextButton')"
+          style="margin-top: 12px;"
+          :disabled="guarded && !keyGenesisInput"
+          @click="protectionStepOpen = false"
+        >
+      </div>
+      <div v-else-if="!utxoStepOpen && !shapeStepOpen" class="section closed-line description">
+        <img src="images/check-circle.svg" class="step-check pop">
+        <span>{{ t(`createTokens.protection.${keepIn}.title`) }}</span>
+        <template v-if="keyGenesisInput">
+          <span>·</span>
+          <span>{{ t('createTokens.authKeyInput.id') }}</span>
+          <span class="copy-target" @click="copyToClipboard(keyGenesisInput.txid)">
+            <span class="mono">{{ truncateHash(keyGenesisInput.txid) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+          </span>
+        </template>
+        <span>·</span>
+        <span class="action-link" @click="protectionStepOpen = true">{{ t('createTokens.change') }}</span>
+      </div>
+      <div v-else-if="!utxoStepOpen" class="section step-label">
+        {{ stepLabel(3, 4, stepTitle('protection')) }}
+      </div>
+
+      <div v-if="!utxoStepOpen && !shapeStepOpen && !protectionStepOpen" class="section">
+        <div class="step-label open">{{ stepLabel(4, 4, stepTitle('metadata')) }}</div>
         <div style="margin-top: 6px;">
           <i18n-t keypath="createTokens.metadataNote" tag="span">
             <template #generator>
@@ -496,8 +555,8 @@
           :disabled="activeAction !== null || genesisProblem !== undefined || (readiness !== 'none' && readiness !== 'ready') || (guarded && !keyGenesisInput)"
         >
       </div>
-      <div v-else-if="!utxoStepOpen" class="section step-label">
-        {{ stepLabel(3, 3, stepTitle('metadata')) }}
+      <div v-else-if="!utxoStepOpen" :class="['step-label', { section: !shapeStepOpen && protectionStepOpen }]" :style="shapeStepOpen ? 'margin-top: 8px;' : undefined">
+        {{ stepLabel(4, 4, stepTitle('metadata')) }}
       </div>
       </template>
       </template>
