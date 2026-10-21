@@ -14,7 +14,11 @@ export function isFreshLookup(lookup: { key: string, at: number } | undefined, k
 export async function getElectrumCacheSize(): Promise<number> {
   const dbName = "ElectrumNetworkProviderCache";
   const db = await openIndexedDB(dbName);
-  return await getIndexedDBObjectStoreSize(db, dbName);
+  try {
+    return await getIndexedDBObjectStoreSize(db, dbName);
+  } finally {
+    db.close();
+  }
 }
 
 export async function clearElectrumCache(): Promise<void> {
@@ -50,7 +54,8 @@ export async function getIndexedDBObjectStoreSize(
     cursorRequest.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest).result;
       if (cursor) {
-        totalSize += new Blob([JSON.stringify(cursor.value)]).size;
+        // characters rather than bytes: the cached transactions and headers are hex and ASCII JSON
+        totalSize += JSON.stringify(cursor.value).length;
         cursor.continue();
       } else {
         resolve(totalSize);
@@ -63,15 +68,18 @@ export async function getIndexedDBObjectStoreSize(
 
 export async function clearIndexedDBObjectStore(dbName: string, storeName: string): Promise<void> {
   const db = await openIndexedDB(dbName);
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const dbTx = db.transaction(storeName, "readwrite");
+      const objectStore = dbTx.objectStore(storeName);
+      const clearRequest = objectStore.clear();
 
-  return new Promise((resolve, reject) => {
-    const dbTx = db.transaction(storeName, "readwrite");
-    const objectStore = dbTx.objectStore(storeName);
-    const clearRequest = objectStore.clear();
-
-    clearRequest.onsuccess = () => resolve();
-    clearRequest.onerror = () => reject(new Error("Error clearing object store"));
-  });
+      clearRequest.onsuccess = () => resolve();
+      clearRequest.onerror = () => reject(new Error("Error clearing object store"));
+    });
+  } finally {
+    db.close();
+  }
 }
 
 /* cachedFetch implementation using localStorage */

@@ -4,7 +4,7 @@
   import backupWallet from './settings/backupWallet.vue'
   import walletsOverview from './settings/walletsOverview.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
-  import { computed, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from '../stores/store'
   import { useIdentitiesStore } from '../stores/identitiesStore'
@@ -167,9 +167,9 @@
     localStorageSizeMB.value = calculateLocalStorageSizeMB()
   };
 
-  // Loading cache sizes during setup to have the sizes available immediately in the 'data and storage' submenu.
-  // Use as fire-and-forget to avoid blocking the setup process.
-  void loadCacheSizes()
+  // Measured when the 'data and storage' submenu opens rather than on every visit to Settings, as
+  // it reads the whole electrum cache
+  watch(settingsSection, (section) => { if (section === 8) void loadCacheSizes(); });
 
   // store watches settingsStore.currency and refetches the exchange rate automatically
   function changeCurrency(){
