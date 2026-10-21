@@ -15,10 +15,14 @@
 
 import {
   binToHex,
+  hexToBin,
+  lockingBytecodeToCashAddress,
   vmNumberToBigInt,
+  type CashAddressNetworkPrefix,
 } from "@bitauth/libauth";
-import type { ElectrumNetworkProvider, TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
+import type { ElectrumNetworkProvider } from "@cashonize/bch-wallet-lib";
 import { opReturnChunks, opReturnHex } from "src/utils/history/txDirection";
+import type { ScannedTransaction } from "src/utils/history/transactionIndex";
 
 // OP_RETURN, "MPSW", version 4, then the first 4 bytes of the sha256 of the contract's constant
 // bytecode, pinning the exact contract version the rest of the announcement describes
@@ -65,23 +69,35 @@ export function parseListingAnnouncement(announcementHex: string) {
   };
 }
 
-// Pick the wallet's listings out of its transaction history, whether still active or not
-export function listingsFromHistory(history: TransactionHistoryItem[], ownerPkhs: string[]) {
+// The offer a transaction announces at output 1, for the asset it locks at output 0
+export function listingOffer(transaction: ScannedTransaction) {
+  const announcementHex = opReturnHex(transaction.outputs[1]);
+  if (!announcementHex || !transaction.outputs[0]?.token) return undefined;
+  return parseListingAnnouncement(announcementHex);
+}
+
+// Pick the wallet's listings out of its transactions, whether still active or not
+export function listingsFromHistory(history: ScannedTransaction[], ownerPkhs: string[], prefix: string) {
   const candidates: TapswapListing[] = [];
   for (const transaction of history) {
-    const announcementHex = opReturnHex(transaction.outputs[1]);
-    const contractOutput = transaction.outputs[0];
-    if (!announcementHex || !contractOutput?.token) continue;
-    const offer = parseListingAnnouncement(announcementHex);
+    const offer = listingOffer(transaction);
     if (!offer) continue;
     if (!ownerPkhs.includes(offer.makerPkh)) continue;
+    const contractOutput = transaction.outputs[0]!;
+    const token = contractOutput.token!;
+    if (!contractOutput.lockingBytecode) continue;
+    const contractAddress = lockingBytecodeToCashAddress({
+      bytecode: hexToBin(contractOutput.lockingBytecode),
+      prefix: prefix as CashAddressNetworkPrefix,
+    });
+    if (typeof contractAddress === "string") continue;
 
     candidates.push({
       txid: transaction.hash,
-      contractAddress: contractOutput.address,
-      category: contractOutput.token.category,
-      commitment: contractOutput.token.nft?.commitment,
-      tokenAmount: BigInt(contractOutput.token.amount),
+      contractAddress: contractAddress.address,
+      category: token.category,
+      commitment: token.nft?.commitment,
+      tokenAmount: BigInt(token.amount),
       priceSats: offer.priceSats,
     });
   }

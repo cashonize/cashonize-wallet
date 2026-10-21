@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
+import { isReactive } from 'vue'
 
 import {
   localStorageMock,
@@ -179,10 +180,11 @@ describe('partial history loading', () => {
     expect(wallet.getHistory).toHaveBeenCalledWith({ count: 100 })
   })
 
-  it('sets isHistoryPartial when capped fetch returns full count', async () => {
+  it('sets isHistoryPartial when the history holds more than was loaded', async () => {
     const wallet = createMockWallet()
     const items100 = Array.from({ length: 100 }, (_, i) => ({ txid: `tx-${i}` }))
     wallet.getHistory.mockResolvedValueOnce(items100)
+    wallet.getRawHistory.mockResolvedValue(Array.from({ length: 101 }, (_, i) => ({ tx_hash: `tx-${i}`, height: i + 1 })))
 
     const store = useStore()
     await store.setWallet(wallet as never)
@@ -190,6 +192,18 @@ describe('partial history loading', () => {
 
     expect(store.isHistoryPartial).toBe(true)
     expect(store.walletHistory).toEqual(items100)
+  })
+
+  // a deep ref would proxy every input and output of every item the views read
+  it('keeps the history items out of Vue\'s reactivity', async () => {
+    const wallet = createMockWallet()
+    wallet.getHistory.mockResolvedValueOnce([{ txid: 'tx', inputs: [], outputs: [] }])
+
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    expect(isReactive(store.walletHistory![0])).toBe(false)
   })
 
   it('does not set isHistoryPartial when fewer items returned', async () => {
@@ -205,28 +219,66 @@ describe('partial history loading', () => {
     expect(store.walletHistory).toEqual(items50)
   })
 
-  it('schedules background full refresh that clears isHistoryPartial', async () => {
+  it('does not load the full history on its own', async () => {
     vi.useFakeTimers()
-
     const wallet = createMockWallet()
-    const items100 = Array.from({ length: 100 }, (_, i) => ({ txid: `tx-${i}` }))
-    const fullHistory = Array.from({ length: 500 }, (_, i) => ({ txid: `tx-${i}` }))
-    // First call (capped): returns 100, second call (full): returns 500
-    wallet.getHistory
-      .mockResolvedValueOnce(items100)
-      .mockResolvedValueOnce(fullHistory)
+    wallet.getHistory.mockResolvedValue(Array.from({ length: 100 }, (_, i) => ({ txid: `tx-${i}` })))
+    wallet.getRawHistory.mockResolvedValue(Array.from({ length: 500 }, (_, i) => ({ tx_hash: `tx-${i}`, height: i + 1 })))
+
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+    await vi.advanceTimersByTimeAsync(5000)
+    await store.updateWalletHistory()
+
+    expect(store.isHistoryPartial).toBe(true)
+    expect(wallet.getHistory).not.toHaveBeenCalledWith({ count: -1 })
+  })
+
+  // what only asks whether a transaction is the wallet's must not depend on how much is loaded
+  it('knows every txid of the history while only a page is loaded', async () => {
+    const wallet = createMockWallet()
+    wallet.getHistory.mockResolvedValue([{ hash: 'new' }])
+    wallet.getRawHistory.mockResolvedValue([{ tx_hash: 'new', height: 3 }, { tx_hash: 'old', height: 1 }])
 
     const store = useStore()
     await store.setWallet(wallet as never)
     await store.initializeWallet()
 
-    expect(store.isHistoryPartial).toBe(true)
+    expect([...store.walletTxids]).toEqual(['new', 'old'])
+  })
 
-    // Advance past the setTimeout fallback (1000ms) to trigger background full load
-    await vi.advanceTimersByTimeAsync(1000)
+  it('loads the full history when asked, and a send or receive merges the newest page into it', async () => {
+    const wallet = createMockWallet()
+    const full = Array.from({ length: 500 }, (_, i) => ({ hash: `tx-${i}` }))
+    wallet.getRawHistory.mockResolvedValue(full.map((item, i) => ({ tx_hash: item.hash, height: 500 - i })))
+    wallet.getHistory.mockResolvedValueOnce(full.slice(0, 100)).mockResolvedValueOnce(full)
+
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+    await store.loadAllHistory()
 
     expect(store.isHistoryPartial).toBe(false)
-    expect(store.walletHistory).toEqual(fullHistory)
+    expect(store.walletHistory).toEqual(full)
+    const received = { hash: 'received' }
+    wallet.getRawHistory.mockResolvedValue([{ tx_hash: 'received', height: 0 }, ...full.map((item, i) => ({ tx_hash: item.hash, height: 500 - i }))])
+    wallet.getHistory.mockClear().mockResolvedValueOnce([received, ...full.slice(0, 99)])
+    await store.updateWalletHistory()
+    expect(wallet.getHistory).not.toHaveBeenCalledWith({ count: -1 })
+    expect(store.walletHistory).toEqual([received, ...full])
+  })
+
+  // the views stay alive, so the history view becoming active is what asks, for each wallet
+  it('loads the full history when the history view shows, and again for the next wallet', async () => {
+    const store = useStore()
+    for (const wallet of [createMockWallet(), createMockWallet()]) {
+      await store.setWallet(wallet as never)
+      await store.initializeWallet()
+      store.changeView(3)
+      await flushAsyncWork()
+      expect(wallet.getHistory).toHaveBeenCalledWith({ count: -1 })
+    }
   })
 
   it('discards stale history when newer updateWalletHistory completes first', async () => {
@@ -235,12 +287,12 @@ describe('partial history loading', () => {
     await store.setWallet(wallet as never)
     await store.initializeWallet()
 
-    // Start a slow full history fetch
+    // Start a slow refresh of the loaded page
     const staleDeferred = createDeferred<unknown[]>()
     wallet.getHistory.mockImplementationOnce(() => staleDeferred.promise)
     const slowCall = store.updateWalletHistory()
 
-    // Start and complete a fast capped fetch (bumps historyRequestId); full refreshes share one load
+    // Start and complete a fast capped fetch (bumps historyRequestId), which goes around the shared refresh
     const freshHistory = [{ txid: 'fresh' }]
     wallet.getHistory.mockResolvedValueOnce(freshHistory)
     await store.updateWalletHistory({ count: 100 })
@@ -256,9 +308,9 @@ describe('partial history loading', () => {
   })
 })
 
-// A send or receive asks for the full history two or three times; each full load decodes every
-// transaction of the history again, so they share one load, rerun for refreshes asked meanwhile.
-describe('full history refreshes', () => {
+// A send or receive refreshes the history two or three times; each load decodes the loaded
+// transactions again, so they share one load, rerun for refreshes asked meanwhile.
+describe('history refreshes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorageMock.clear()
@@ -284,6 +336,29 @@ describe('full history refreshes', () => {
     expect(store.walletHistory).toEqual(latest)
   })
 
+  // the export reads what is loaded once asking for all returns, so that must be all of it
+  it('ends with the full history when asked for it during a page refresh', async () => {
+    const wallet = createMockWallet()
+    wallet.getRawHistory.mockResolvedValue(Array.from({ length: 500 }, (_, i) => ({ tx_hash: `tx-${i}`, height: i + 1 })))
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    const page = createDeferred<unknown[]>()
+    const full = Array.from({ length: 500 }, (_, i) => ({ txid: `tx-${i}` }))
+    wallet.getHistory.mockImplementationOnce(() => page.promise)
+      .mockImplementation(({ count }: { count: number }) => Promise.resolve(count === -1 ? full : full.slice(0, 100)))
+    // the refreshes of a send or receive, the second asking the page to load again
+    void store.updateWalletHistory()
+    void store.updateWalletHistory()
+    const asked = store.loadAllHistory()
+    page.resolve(full.slice(0, 100))
+    await asked
+
+    expect(store.isHistoryPartial).toBe(false)
+    expect(store.walletHistory).toEqual(full)
+  })
+
   it('does not apply a load of the previous wallet, nor share it with the next', async () => {
     const wallet = createMockWallet()
     const store = useStore()
@@ -296,7 +371,8 @@ describe('full history refreshes', () => {
     const fresh = [{ txid: 'fresh' }]
     wallet.getHistory.mockResolvedValue(fresh)
     await store.initializeWallet()
-    expect(await store.updateWalletHistory()).toEqual(fresh)
+    await store.updateWalletHistory()
+    expect(store.walletHistory).toEqual(fresh)
   })
 })
 

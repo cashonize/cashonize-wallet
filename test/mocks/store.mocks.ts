@@ -83,6 +83,7 @@ vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   BroadcastRejectedError: (await importOriginal<typeof BchWalletLib>()).BroadcastRejectedError,
   ElectrumTimeoutError: (await importOriginal<typeof BchWalletLib>()).ElectrumTimeoutError,
   BroadcastTimeoutError: (await importOriginal<typeof BchWalletLib>()).BroadcastTimeoutError,
+  toHex: (await importOriginal<typeof BchWalletLib>()).toHex,
   Wallet: MockWallet,
   TestNetWallet: MockTestNetWallet,
   HDWallet: MockHDWallet,

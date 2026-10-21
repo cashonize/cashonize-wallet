@@ -23,13 +23,10 @@
   const shownCount = ref(pageSize);
   const shownEntries = computed(() => store.dappActivity.slice(0, shownCount.value));
 
-  const historyTxids = computed(() => new Set(store.walletHistory?.map(tx => tx.hash)));
-
-  // A signed-only transaction is the dapp's to broadcast; the wallet history is what shows it did.
-  // The history can be partial, so an old entry missing from it is not proof it never arrived.
+  // A signed-only transaction is the dapp's to broadcast; the wallet history is what shows it did
   function isOnChain(entry: DappActivityEntry) {
     if (entry.outcome === 'sent') return true;
-    return entry.outcome === 'signed' && entry.txid !== undefined && historyTxids.value.has(entry.txid);
+    return entry.outcome === 'signed' && entry.txid !== undefined && store.walletTxids.has(entry.txid);
   }
 
   function shortTxid(txid: string) {

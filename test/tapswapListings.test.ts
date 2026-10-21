@@ -35,10 +35,12 @@ describe('parseListingAnnouncement', () => {
 // The Cash-Ninjas listing above as the wallet's history carries it: the sale contract at
 // output 0 holding the NFT, the announcement at output 1
 const listingTxid = "c02261eb029a2b960cd611df6544766668a9b01df0da7aaec9d81b4049f103bc";
-const contractAddress = "bitcoincash:pz3xrev8942yg2gf0szgys79e7lqs9um7qlqq4xda2";
+// a sale contract is P2SH; the listing reads its address off this bytecode
+const contractBytecode = "a914" + "5a".repeat(20) + "87";
+const contractAddress = "bitcoincash:ppd95kj6tfd95kj6tfd95kj6tfd95kj6tg0kyu24vh";
 const listedCategory = "77a95410a07c2392c340384aef323aea902ebfa698a35815c4ef100062c6d8ac";
 const listingItem = historyItem(listingTxid, [
-  tokenOutput(listedCategory, { commitment: "d300" }, contractAddress),
+  { ...tokenOutput(listedCategory, { commitment: "d300" }, contractAddress), lockingBytecode: contractBytecode },
   opReturnOutput(nftAnnouncement),
 ]);
 const listing = {
@@ -52,16 +54,16 @@ const listing = {
 
 describe('listingsFromHistory', () => {
   it("should read a listing off the wallet's history", () => {
-    expect(listingsFromHistory([listingItem], [nftMakerPkh])).toEqual([listing]);
+    expect(listingsFromHistory([listingItem], [nftMakerPkh], "bitcoincash")).toEqual([listing]);
   })
   it('should skip a listing made by someone else', () => {
-    expect(listingsFromHistory([listingItem], [ftMakerPkh])).toEqual([]);
-    expect(listingsFromHistory([listingItem], [])).toEqual([]);
+    expect(listingsFromHistory([listingItem], [ftMakerPkh], "bitcoincash")).toEqual([]);
+    expect(listingsFromHistory([listingItem], [], "bitcoincash")).toEqual([]);
   })
   it('should skip transactions that are no listing at all', () => {
     const ordinarySpend = historyItem("ab".repeat(32), [p2pkhOutput(), p2pkhOutput()]);
     const tokenSend = historyItem("cd".repeat(32), [tokenOutput(listedCategory, { commitment: "d300" }), p2pkhOutput()]);
-    expect(listingsFromHistory([ordinarySpend, tokenSend], [nftMakerPkh])).toEqual([]);
+    expect(listingsFromHistory([ordinarySpend, tokenSend], [nftMakerPkh], "bitcoincash")).toEqual([]);
   })
 })
 

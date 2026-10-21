@@ -69,7 +69,7 @@ The wallet functionality is powered by `bch-wallet-lib`, continued from mainnet-
 
 ### Persistent Storage
 - **IndexedDB** belongs to the libraries: bch-wallet-lib keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
-- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, the dApp activity log, address marks and labels, reserved outpoints, flipstarter pledges, the identity lists (listed, dismissed, unseen, watched at the last complete resolve), WizardConnect session URIs), and a TTL cache of fetched metadata (`cachedFetch`).
+- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, the dApp activity log, address marks and labels, reserved outpoints, flipstarter pledges, the identity lists (listed, dismissed, unseen, watched at the last complete resolve), WizardConnect session URIs, the few transactions identity detection and the portfolio read, so an open decodes only what is new), and a TTL cache of fetched metadata (`cachedFetch`).
 
 ### Direct IndexedDB Access
 Wallet ids, deletes and pruning the cached keys of deleted wallets go through the library (`utils/wallet/dbUtils.ts`). The settings menu's cache-size and delete-all flows are still raw IndexedDB, and there we have to keep matching the library's versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and the library finding it already there never runs its own setup.

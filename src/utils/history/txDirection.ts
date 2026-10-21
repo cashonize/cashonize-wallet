@@ -70,7 +70,7 @@ export const SCRIPT_ADDRESS_PREFIX = "SCRIPT: ";
 
 // The locking bytecode of an OP_RETURN output, in hex, which is where the protocol announcements
 // are read; undefined for any other output
-export function opReturnHex(output: InOutput | undefined) {
+export function opReturnHex(output: Pick<InOutput, 'lockingBytecode'> | undefined) {
   const lockingBytecode = output?.lockingBytecode;
   if (!lockingBytecode?.startsWith("6a")) return undefined;
   return lockingBytecode;

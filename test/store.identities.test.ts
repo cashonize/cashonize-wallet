@@ -26,6 +26,7 @@ function createMockWallet() {
     networkPrefix: 'bitcoincash',
     getUtxos: vi.fn().mockResolvedValue([]),
     getMaxAmountToSend: vi.fn().mockResolvedValue(0n),
+    getRawHistory: vi.fn().mockResolvedValue([]),
   }
 }
 
@@ -131,65 +132,6 @@ const guardGenesis = (category: string, keyCommitment: string) => [
   { output_index: '1', token_category: `\\x${category}`, fungible_token_amount: '0',
     nonfungible_token_capability: 'none', nonfungible_token_commitment: `\\x${keyCommitment}` },
 ]
-
-// Three readers want the wallet's full history, and a first open is the one time that costs a
-// fetch per transaction, so the store loads it once and hands every reader the same result
-describe('the full history for its readers', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    localStorageMock.clear()
-    setActivePinia(createPinia())
-    localStorageMock.setItem('network', 'mainnet')
-  })
-
-  const item = historyItem(authheadA, [p2pkhOutput()])
-  async function startHistoryStore(getHistory: ReturnType<typeof vi.fn>) {
-    const store = useStore()
-    await store.setWallet({ ...createMockWallet(), getHistory } as never)
-    return store
-  }
-
-  it('hands out the history on hand when it is complete', async () => {
-    const getHistory = vi.fn().mockResolvedValue([])
-    const store = await startHistoryStore(getHistory)
-    store.walletHistory = [item]
-    store.isHistoryPartial = false
-
-    expect(await store.fullWalletHistory()).toEqual([item])
-    expect(getHistory).not.toHaveBeenCalled()
-  })
-
-  it('loads the full history once for readers asking together', async () => {
-    const getHistory = vi.fn().mockResolvedValue([item])
-    const store = await startHistoryStore(getHistory)
-
-    const [first, second] = await Promise.all([store.fullWalletHistory(), store.fullWalletHistory()])
-
-    expect(first).toEqual([item])
-    expect(second).toEqual([item])
-    expect(getHistory).toHaveBeenCalledTimes(1)
-    expect(getHistory).toHaveBeenCalledWith({ count: -1 })
-  })
-
-  it('loads the rest when only the capped history is on hand', async () => {
-    const getHistory = vi.fn().mockResolvedValue([item])
-    const store = await startHistoryStore(getHistory)
-    store.walletHistory = [item]
-    store.isHistoryPartial = true
-
-    await store.fullWalletHistory()
-
-    expect(getHistory).toHaveBeenCalledTimes(1)
-    expect(store.isHistoryPartial).toBe(false)
-  })
-
-  it('fails a reader when the history cannot be loaded', async () => {
-    const getHistory = vi.fn().mockRejectedValue(new Error('electrum down'))
-    const store = await startHistoryStore(getHistory)
-
-    await expect(store.fullWalletHistory()).rejects.toThrow()
-  })
-})
 
 // The notification trail leads to this page for two reasons, and both have to stop asking once
 // the page has been opened: the shape of an identity key is a shape ordinary NFTs can have, so a
@@ -523,11 +465,11 @@ describe('auth reservations follow the authchain', () => {
     const { store, identitiesStore } = await startStore([payout])
     await identitiesStore.refreshIdentities()
     expect(store.reservedUtxos[outpointOf(payout)]).toBe('auth')
-    vi.spyOn(store, 'fullWalletHistory').mockResolvedValue([
+    Object.assign(store.wallet, { getHistory: vi.fn().mockResolvedValue([
       historyItem(categoryA, [p2pkhOutput()]),
       historyItem(genesisTxid, [{ ...tokenOutput(categoryA, { commitment: '', capability: 'minting' }), lockingBytecode: contract }], [spendOf(categoryA, 0)]),
       historyItem(payoutTxid, [p2pkhOutput()], [{ ...spendOf(genesisTxid, 0), lockingBytecode: contract }]),
-    ])
+    ]) })
 
     await identitiesStore.runChecksOnOpen()
 
@@ -552,11 +494,11 @@ describe('auth reservations follow the authchain', () => {
     listIdentities([categoryA, categoryB])
     const payout = utxo(payoutTxid, 0)
     const { store, identitiesStore } = await startStore([payout])
-    vi.spyOn(store, 'fullWalletHistory').mockResolvedValue([
+    Object.assign(store.wallet, { getHistory: vi.fn().mockResolvedValue([
       historyItem(categoryA, [p2pkhOutput()]),
       historyItem(genesisTxid, [{ ...tokenOutput(categoryA, { commitment: '', capability: 'minting' }), lockingBytecode: contract }], [spendOf(categoryA, 0)]),
       historyItem(payoutTxid, [p2pkhOutput()], [{ ...spendOf(genesisTxid, 0), lockingBytecode: contract }]),
-    ])
+    ]) })
 
     await identitiesStore.runChecksOnOpen()
 
@@ -564,11 +506,23 @@ describe('auth reservations follow the authchain', () => {
     expect(localStorageMock.getItem('identityCleanups-mainnet-testWallet')).toBeNull()
   })
 
-  // the wallet's history is read at open; it failing to load must land on the identities
+  // the open pass reads the kept transactions, not the full history with every prevout decoded
+  it('does not load the full history at open', async () => {
+    const { store, identitiesStore } = await startStore([utxo('cd'.repeat(32), 0)])
+    const getHistory = vi.fn().mockResolvedValue([])
+    Object.assign(store.wallet, { getHistory })
+
+    await identitiesStore.runChecksOnOpen()
+
+    expect(getHistory).not.toHaveBeenCalled()
+    expect(identitiesStore.openCheckError).toBeUndefined()
+  })
+
+  // the wallet's transactions are read at open; that failing must land on the identities
   // page, not flag a wallet that did load
   it('reports a failed lookup at open on the page rather than as a failed wallet', async () => {
     const { store, identitiesStore } = await startStore([utxo('cd'.repeat(32), 0)])
-    vi.spyOn(store, 'fullWalletHistory').mockRejectedValue(new Error('history refused'))
+    vi.spyOn(store, 'indexedTransactions').mockRejectedValue(new Error('history refused'))
 
     await identitiesStore.runChecksOnOpen()
 
