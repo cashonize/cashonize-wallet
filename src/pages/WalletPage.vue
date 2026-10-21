@@ -21,10 +21,9 @@
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
-  import { defineComponent, ref, computed, watch, onMounted } from 'vue'
+  import { defineComponent, ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
-  import { preloadIcons } from 'src/utils/icons/preloadIcons'
   import { namedWalletExists } from '@cashonize/bch-wallet-lib'
   import { getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
   import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
@@ -33,6 +32,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { Dialog } from 'quasar'
   import IdentitiesFoundDialog from 'src/components/general/identitiesFoundDialog.vue'
+  import { iconSettings } from 'src/utils/icons/svgIcons'
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
@@ -49,10 +49,6 @@
   const props = defineProps<{
     uri: string | undefined
   }>()
-
-  // deliberately also runs during onboarding: creating a wallet switches to the wallet
-  // view in the same session, so the preloaded icons are needed moments later
-  onMounted(() => preloadIcons());
 
   const dappUriUrlParam = ref(undefined as undefined|string);
   const bchSendRequest = ref(undefined as undefined|string);
@@ -251,9 +247,8 @@
       <div v-if="settingsStore.dappActivityInNav" class="nav-dapp-activity">
         <DappActivityButton icon-only />
       </div>
-      <div @click="store.changeView(5)" style="width: max-content; position: relative;">
-        <img style="vertical-align: text-bottom;" :src="store.displayView == 5 ? 'images/settingsGreen.svg' : (
-          settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg')">
+      <div @click="store.changeView(5)" :aria-label="t('settings.title')" style="width: max-content; position: relative;">
+        <q-icon class="app-icon" :class="{ 'app-icon--green': store.displayView == 5 }" :name="iconSettings" size="16px" style="vertical-align: text-bottom;" />
         <span v-if="showNotificationIcon" class="notification-dot"></span>
       </div>
     </nav>

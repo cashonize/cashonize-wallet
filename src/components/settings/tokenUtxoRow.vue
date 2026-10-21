@@ -15,6 +15,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
+  import { iconCopy } from 'src/utils/icons/svgIcons'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -102,7 +103,7 @@
     <div class="utxo-line utxo-line-meta">
       <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
       <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
-        <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+        <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
       </span>
       <utxoRowStatus :utxo="utxo" compact />
       <q-icon v-if="!heldByFeature" name="more_vert" size="18px" class="row-menu-trigger">

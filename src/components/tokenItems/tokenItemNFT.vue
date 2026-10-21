@@ -21,6 +21,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
   import { useI18n } from 'vue-i18n'
+  import { iconChevronSquareDown, iconChevronSquareUp, iconCopy, iconExternalLink, iconExternalLinkOcticon, iconEye, iconEyeOff, iconFire, iconHammer, iconInfo, iconKey, iconPublish, iconSend, iconStarEmpty, iconStarFull } from 'src/utils/icons/svgIcons'
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
@@ -431,7 +432,7 @@
             @error="() => imageLoadFailed = true"
           >
           <div v-else id="genericTokenIcon" loading="lazy" class="tokenIcon"></div>
-          <img v-if="isIdentityKey" class="authKeyBadge" src="images/keyWhite.svg">
+          <q-icon class="authKeyBadge app-icon app-icon--white" :name="iconKey" size="22px" v-if="isIdentityKey" />
         </div>
 
         <div class="tokenBaseInfo">
@@ -450,7 +451,7 @@
                 <span class="category">
                   {{ tokenIdDisplay }}
                 </span>
-                <img class="copyIcon" src="images/copyGrey.svg">
+                <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
               </span>
             </div>
             <div v-if="isSingleNft && parsingNft && hasParyonUsdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
@@ -470,8 +471,7 @@
             <div @click="showChildNfts()" class="showChildNftsToggle">
               <span class="nrChildNfts">{{ t('tokenItem.info.numberNfts') }} {{ tokenData.nfts?.length }}</span>
               <span class="hide" style="margin-left: 10px;">
-                <img class="icon" :src="settingsStore.darkMode? (displayChildNfts? 'images/chevron-square-up-lightGrey.svg':'images/chevron-square-down-lightGrey.svg') :
-                  (displayChildNfts? 'images/chevron-square-up.svg':'images/chevron-square-down.svg')">
+                <q-icon class="icon app-icon" :name="displayChildNfts ? iconChevronSquareUp : iconChevronSquareDown" size="18px" />
               </span>
             </div>
             <div v-if="loadingChildNftMetadata" class="loadingChildNftMetadata">
@@ -481,34 +481,32 @@
           </div>
         </div>
         <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.category)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.category) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
-          <img :src="settingsStore.hiddenTokens.includes(tokenData.category)
-            ? (settingsStore.darkMode ? 'images/eye-off-outline-lightGrey.svg' : 'images/eye-off-outline.svg')
-            : (settingsStore.darkMode ? 'images/eye-outline-lightGrey.svg' : 'images/eye-outline.svg')">
+          <q-icon class="app-icon" :name="settingsStore.hiddenTokens.includes(tokenData.category) ? iconEyeOff : iconEye" size="18px" />
         </span>
         <span @click="toggleFavorite" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.category) ? t('tokenItem.visibility.unfavoriteToken') : t('tokenItem.visibility.favoriteToken')">
-          <img :class="{ 'star-pop': starAnimating }" @animationend="starAnimating = false" :src="settingsStore.featuredTokens.includes(tokenData.category) ? 'images/star-full.svg' :
-            settingsStore.darkMode? 'images/star-empty-grey.svg' : 'images/star-empty.svg'">
+          <q-icon v-if="settingsStore.featuredTokens.includes(tokenData.category)" class="app-icon app-icon--yellow" :class="{ 'star-pop': starAnimating }" @animationend="starAnimating = false" :name="iconStarFull" size="18px" />
+          <q-icon v-else class="app-icon app-icon--star" :class="{ 'star-pop': starAnimating }" @animationend="starAnimating = false" :name="iconStarEmpty" size="15px" />
         </span>
       </div>
 
       <div class="tokenActions">
         <div class="actionBar">
           <span v-if="tokenData?.nfts?.length == 1 && !isIdentityKey" @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.send') }} </span>
+            <q-icon class="icon app-icon" :name="iconSend" size="18px" /> {{ t('tokenItem.actions.send') }} </span>
           <span v-if="isIdentityKey" @click="openIdentityCard(guardedRows[0]!.category, 'transferKey')" style="margin-left: 10px; white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.authKey.transfer') }}
+            <q-icon class="icon app-icon" :name="iconSend" size="18px" /> {{ t('tokenItem.authKey.transfer') }}
           </span>
           <span v-if="!isIdentityKey" @click="displayTokenInfo = !displayTokenInfo">
-            <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
+            <q-icon class="icon app-icon" :name="iconInfo" size="18px" /> {{ t('tokenItem.actions.info') }}
           </span>
           <span v-else @click="displayAuthKeyInfo = !displayAuthKeyInfo" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.authKey.infoAction') }}
+            <q-icon class="icon app-icon" :name="iconInfo" size="18px" /> {{ t('tokenItem.authKey.infoAction') }}
           </span>
           <span v-if="heldIdentityLine || isIdentityKey" @click="store.changeView(19)" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'"> {{ t('tokenItem.identity.manage', manageIdentityCount) }}
+            <q-icon class="icon app-icon" :name="iconPublish" size="18px" /> {{ t('tokenItem.identity.manage', manageIdentityCount) }}
           </span>
           <span v-if="(tokenData.nfts?.length ?? 0) > 1" @click="displayBatchTransfer = !displayBatchTransfer" style="margin-left: 10px;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.batchTransfer') }}{{ selectedNftCount > 0 ? ` (${selectedNftCount === tokenData.nfts?.length ? t('tokenItem.actions.all') : selectedNftCount})` : '' }}
+            <q-icon class="icon app-icon" :name="iconSend" size="18px" /> {{ t('tokenItem.actions.batchTransfer') }}{{ selectedNftCount > 0 ? ` (${selectedNftCount === tokenData.nfts?.length ? t('tokenItem.actions.all') : selectedNftCount})` : '' }}
           </span>
           <span v-if="selectedNftCount > 0 || displayBatchTransfer" @click="selectAllNfts()" class="batch-action-btn">
             {{ t('tokenItem.actions.all') }}
@@ -517,10 +515,10 @@
             {{ t('tokenItem.actions.clear') }}
           </span>
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting' && settingsStore.mintNfts" @click="displayMintNfts = !displayMintNfts">
-            <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> {{ t('tokenItem.actions.mintNfts') }}
+            <q-icon class="icon app-icon" :name="iconHammer" size="18px" /> {{ t('tokenItem.actions.mintNfts') }}
           </span>
           <span v-if="isSingleNft && settingsStore.tokenBurn" @click="displayBurnNft = !displayBurnNft" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
+            <q-icon class="icon app-icon" :name="iconFire" size="18px" />
             <span>{{ t('tokenItem.actions.burnNft') }}</span>
           </span>
         </div>
@@ -535,7 +533,7 @@
           <div v-if="guardAddress" style="word-break: break-all;">
             {{ t('tokenItem.authKey.guardAddress') }}
             <span @click="copyToClipboard(guardAddress)" style="cursor: pointer;">
-              {{ guardAddress }}<img class="copyIcon" src="images/copyGrey.svg">
+              {{ guardAddress }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
             </span>
           </div>
           <div class="indentText">{{ t('tokenItem.authKey.heldBack') }}</div>
@@ -562,7 +560,7 @@
           </div>
           <div>
             <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">
-              {{ t('tokenItem.info.seeDetailsOnExplorer') }} <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
+              {{ t('tokenItem.info.seeDetailsOnExplorer') }} <q-icon class="app-icon" :name="settingsStore.darkMode ? iconExternalLinkOcticon : iconExternalLink" size="16px" style="vertical-align: sub;" />
             </a>
           </div>
           <details v-if="isSingleNft && nftMetadata?.extensions?.attributes" style="cursor:pointer;">

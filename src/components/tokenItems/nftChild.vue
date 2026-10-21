@@ -19,6 +19,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
   import { useI18n } from 'vue-i18n'
+  import { iconFire, iconHammer, iconInfo, iconSend } from 'src/utils/icons/svgIcons'
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
@@ -248,15 +249,15 @@
       <div class="actionActions">
         <div class="actionBar">
           <span @click="displaySendNft = !displaySendNft" style="margin-left: 10px;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.send') }} </span>
+            <q-icon class="icon app-icon" :name="iconSend" size="18px" /> {{ t('tokenItem.actions.send') }} </span>
           <span v-if="nftMetadata || isParsable || parseResult?.success" @click="displayNftInfo = !displayNftInfo">
-            <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
+            <q-icon class="icon app-icon" :name="iconInfo" size="18px" /> {{ t('tokenItem.actions.info') }}
           </span>
           <span @click="displayMintNfts = !displayMintNfts" v-if="nftData?.token?.nft?.capability == 'minting' && settingsStore.mintNfts">
-            <img class="icon" :src="settingsStore.darkMode? 'images/hammerLightGrey.svg' : 'images/hammer.svg'"> {{ t('tokenItem.actions.mintNfts') }}
+            <q-icon class="icon app-icon" :name="iconHammer" size="18px" /> {{ t('tokenItem.actions.mintNfts') }}
           </span>
           <span @click="displayBurnNft = !displayBurnNft" v-if="settingsStore.tokenBurn" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
+            <q-icon class="icon app-icon" :name="iconFire" size="18px" />
             <span class="hidemobile">{{ t('tokenItem.actions.burnNft') }}</span>
           </span>
           <span @click="emit('toggle-select')" :class="{ 'nft-selected': isSelected }">

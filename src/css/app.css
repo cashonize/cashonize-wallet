@@ -101,6 +101,44 @@ img {
   -webkit-user-drag: none;
   user-select: none;
 }
+/* The app's own icons (utils/icons/svgIcons.ts), in the colors of the svg files they replaced,
+   and laid out as those images were: on the baseline before .icon and the like move them, and
+   shrinking with a tight container as the img rule lets an image */
+.app-icon {
+  color: #000;
+  vertical-align: baseline;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+body.dark .app-icon {
+  color: #f5f5f5;
+}
+body.dark .app-icon--trash {
+  color: #d6d6d8;
+}
+body.dark .app-icon--star {
+  color: #efefef;
+}
+.app-icon--grey,
+body.dark .app-icon--grey {
+  color: #777;
+}
+.app-icon--green,
+body.dark .app-icon--green {
+  color: #0ac18f;
+}
+.app-icon--yellow,
+body.dark .app-icon--yellow {
+  color: #ffcc00;
+}
+.app-icon--white,
+body.dark .app-icon--white {
+  color: #fff;
+}
+.app-icon--cauldron,
+body.dark .app-icon--cauldron {
+  color: #75cc20;
+}
 .notification-dot {
   position: absolute;
   width: 8px;
@@ -153,8 +191,6 @@ img {
 .q-dialog__message {
   white-space: pre-line;
 }
-/* the svg's own size, set here so the space is held before it loads and the text beside it
-   does not jump */
 .copyIcon {
   width: 16px;
   height: 16px;
@@ -493,11 +529,11 @@ body.dark .identity-card {
   justify-content: center;
   align-items: center;
 }
-.boxStarIcon img {
+.boxStarIcon .q-icon {
   transition: transform 0.15s;
 }
 @media (hover: hover) {
-  .boxStarIcon:hover img {
+  .boxStarIcon:hover .q-icon {
     transform: scale(1.15);
   }
 }
@@ -552,7 +588,7 @@ body.dark .identity-card {
   margin: 0 20px;
   cursor: pointer;
 }
-/* the action svgs are all 18px, held before they load so the labels do not jump */
+/* the action icons are all 18px */
 .actionBar .icon {
   width: 18px;
   height: 18px;

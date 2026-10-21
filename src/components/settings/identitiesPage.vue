@@ -16,6 +16,7 @@
   import { CASHTOKENS_STUDIO_URL, type IdentityStatus } from 'src/utils/tools/authchainIdentity'
   import { BCMR_GENERATOR_URL, BCMR_SCHEMA_URL, BCMR_EXAMPLES_URL, BCMR_DOCS_URL } from 'src/utils/tools/registryFile'
   import { Notify } from 'quasar'
+  import { iconInfo } from 'src/utils/icons/svgIcons'
 
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
@@ -339,7 +340,7 @@
         <b>{{ t('identities.create.cautionLead') }}</b> {{ t('identities.create.caution') }}
       </div>
       <div v-if="pickStepOpen" class="info-box" style="margin-top: 12px;">
-        <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
+        <q-icon class="warning-box-icon app-icon" :name="iconInfo" size="20px" />
         <div>
           <b>{{ t('identities.create.tokenLead') }}</b> <i18n-t keypath="identities.create.tokenPointer" tag="span">
             <template #link>

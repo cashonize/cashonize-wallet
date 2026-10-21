@@ -15,6 +15,7 @@
   import TokenSelectDialog from 'src/components/general/tokenSelectDialog.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import QrCode from 'src/components/general/qrCode.vue'
+  import { bchLogo, cashTokensLogo } from 'src/utils/icons/svgIcons'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -316,7 +317,7 @@
 
     <div class="qr-frame">
       <QrCode :contents="requestUri" :label="t('qrCode.paymentRequest')" @click="copyToClipboard(requestUri)" class="qr-code">
-        <img :src="mode === 'bch' ? 'images/bch-icon.svg' : 'images/tokenicon.svg'" alt="" />
+        <img :src="mode === 'bch' ? bchLogo : cashTokensLogo" alt="" />
       </QrCode>
     </div>
 

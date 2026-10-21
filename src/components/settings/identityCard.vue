@@ -50,6 +50,7 @@
   import { TokenSendRequest } from '@cashonize/bch-wallet-lib'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { maxTokenSupply } from 'src/utils/tools/tokenCreation'
+  import { iconCopy, iconInfo, iconMinusSquare, iconPublish, iconSend } from 'src/utils/icons/svgIcons'
 
   const props = defineProps<{
     identity: IdentityState,
@@ -489,7 +490,7 @@
         <div class="identity-authbase">
           <span class="description">{{ t('identities.authbaseLabel') }}</span>
           <span class="copy-target" :title="identity.category" @click="copyToClipboard(identity.category)">
-            <span class="mono">{{ shortHash(identity.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+            <span class="mono">{{ shortHash(identity.category) }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
           </span>
         </div>
       </div>
@@ -535,7 +536,7 @@
       @click="copyToClipboard(`${identity.authheadTxid}:0`)"
     >
       <span class="description">{{ t('identities.authheadLabel') }}</span>
-      <span class="mono">{{ shortHash(identity.authheadTxid) }}:0<img class="copyIcon" src="images/copyGrey.svg"></span>
+      <span class="mono">{{ shortHash(identity.authheadTxid) }}:0<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
     </div>
     <div v-if="identityValue !== undefined">
       {{ t('identities.authheadAmount', { amount: bchOf(identityValue) }) }}
@@ -547,7 +548,7 @@
           <div style="max-width: 300px;">{{ t('identities.key.guardHelp') }}</div>
         </InfoPopup>
       </span>
-      <span class="mono">{{ shortHash(location.text) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+      <span class="mono">{{ shortHash(location.text) }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
     </div>
     <!-- shown whether or not the AuthKey is here: a watched identity's says which NFT would give control -->
     <div
@@ -557,7 +558,7 @@
       @click="copyToClipboard(identity.guardedBy)"
     >
       <span class="description">{{ t('identities.key.categoryLabel') }}</span>
-      <span class="mono">{{ shortHash(identity.guardedBy) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+      <span class="mono">{{ shortHash(identity.guardedBy) }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
     </div>
 
     <div class="section">
@@ -566,7 +567,7 @@
         <span v-if="identity.publication" class="description" :title="publicationTimeAgo">· {{ publicationDate }}</span>
       </div>
       <div v-if="!identity.publication" class="info-box" style="margin-top: 6px;">
-        <img class="warning-box-icon" :src="settingsStore.darkMode ? 'images/infoLightGrey.svg' : 'images/info.svg'" width="20" height="20">
+        <q-icon class="warning-box-icon app-icon" :name="iconInfo" size="20px" />
         <div>{{ t('identities.publication.none') }}</div>
       </div>
       <template v-else>
@@ -587,7 +588,7 @@
         </div>
         <div class="copy-target" :title="identity.publication.hash" @click="copyToClipboard(identity.publication.hash)">
           <span class="description">{{ t('identities.publication.hash') }}</span>
-          <span class="mono">{{ shortHash(identity.publication.hash) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+          <span class="mono">{{ shortHash(identity.publication.hash) }}<q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" /></span>
         </div>
         <div v-if="hasDrifted" class="description" style="margin-top: 6px;">
           <i18n-t keypath="identities.publication.driftedPrompt" tag="span">
@@ -602,16 +603,16 @@
     <div class="actionBar identity-action-row">
       <template v-if="identity.authUtxo">
         <span @click="toggleAction('publish')" style="white-space: nowrap;">
-          <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'">
+          <q-icon class="icon app-icon" :name="iconPublish" size="18px" />
           {{ t('identities.publish.action') }}
         </span>
         <!-- a reserve needs fungible supply, which the genesis decides, not what the wallet holds today -->
         <span v-if="identity.fungibleSupply && reserve > 0n" @click="toggleAction('issue')" style="white-space: nowrap;">
-          <img class="icon" :src="settingsStore.darkMode? 'images/minus-square-lightGrey.svg' : 'images/minus-square.svg'">
+          <q-icon class="icon app-icon" :name="iconMinusSquare" size="18px" />
           {{ t('identities.reserve.issue.action') }}
         </span>
         <span @click="toggleAction('transfer')" style="white-space: nowrap;">
-          <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'">
+          <q-icon class="icon app-icon" :name="iconSend" size="18px" />
           {{ t('identities.transfer.action') }}
         </span>
       </template>
@@ -623,7 +624,7 @@
           {{ t('identities.key.manageOnStudio') }}
         </a>
         <span @click="toggleAction('transferKey')" style="white-space: nowrap;">
-          <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'">
+          <q-icon class="icon app-icon" :name="iconSend" size="18px" />
           {{ t('identities.key.action') }}
         </span>
       </template>

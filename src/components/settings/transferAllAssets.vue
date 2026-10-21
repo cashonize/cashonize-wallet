@@ -17,6 +17,7 @@
   import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
+  import { bchLogo } from 'src/utils/icons/svgIcons'
 
   const $q = useQuasar()
   const store = useStore()
@@ -202,7 +203,7 @@
       <div style="margin-top: 15px;">
         <b>{{ t('transferAllAssets.toTransfer') }}</b>
         <div class="transfer-asset-row">
-          <img src="images/bch-icon.svg" class="bch-icon">
+          <img :src="bchLogo" class="bch-icon">
           <span>{{ t('transferAllAssets.bchBalance') }}</span>
           <span class="transfer-asset-amount">
             {{ balanceInBchUnit.toLocaleString('en-US', { maximumFractionDigits: settingsStore.bchUnit === 'sat' ? 0 : 8 }) }}

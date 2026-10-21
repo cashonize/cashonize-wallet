@@ -18,6 +18,7 @@
   import QrScanButton from './qr/qrScanButton.vue';
   import QrCode from './general/qrCode.vue';
   import portfolioIcon from './portfolio/portfolioIcon.vue';
+  import { bchLogo, cashTokensLogo, iconCopy } from 'src/utils/icons/svgIcons';
 
   const $q = useQuasar()
   const store = useStore()
@@ -349,14 +350,14 @@
       {{ t('wallet.address', { network: bchDisplayNetwork }) }}
       <span @click="() => copyToClipboard(store.currentDepositAddress)" style="cursor:pointer;">
         <span class="depositAddr">{{ store.currentDepositAddress }} </span>
-        <img class="copyIcon" src="images/copyGrey.svg">
+        <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
       </span>
     </div>
     <div style="word-break: break-all;">
       {{ t('wallet.tokenAddress') }}
       <span @click="() => copyToClipboard(store.currentTokenDepositAddress)" style="cursor:pointer;">
         <span class="depositAddr">{{ store.currentTokenDepositAddress }}</span>
-        <img class="copyIcon" src="images/copyGrey.svg">
+        <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
       </span>
     </div>
     <div v-if="showMarkUsedAction" class="markUsedRow">
@@ -366,7 +367,7 @@
     </div>
     <div class="qr-frame">
       <QrCode ref="qrCodeRef" :contents="addressQrcode" :animation="settingsStore.qrAnimation" :label="displayBchQr ? t('qrCode.bchAddress') : t('qrCode.tokenAddress')" @click="copyToClipboard(addressQrcode)" class="qr-code" @rendered="animateQrCode">
-        <img :src="displayBchQr? 'images/bch-icon.svg':'images/tokenicon.svg'" alt="" />
+        <img :src="displayBchQr ? bchLogo : cashTokensLogo" alt="" />
       </QrCode>
     </div>
     <div style="text-align: center;">

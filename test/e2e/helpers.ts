@@ -71,7 +71,7 @@ export async function setupWalletOnChipnet(walletPage: Page) {
   await walletPage.locator('nav').waitFor({ timeout: 15_000 })
 
   // Switch to chipnet: Settings → Developer settings → change network
-  await walletPage.locator('nav img[src*="settings"]').click()
+  await walletPage.locator('nav [aria-label="Settings"]').click()
   await walletPage.getByText('Developer settings').click()
   await walletPage.locator('select').first().selectOption('chipnet')
   // Wait for network switch to complete. It resets the active view back to the wallet tab.

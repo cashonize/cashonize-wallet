@@ -1,7 +1,6 @@
 // Configuration for your app
 // https://quasar.dev/quasar-cli-vite/quasar-config-file
 
-import { readdirSync } from 'node:fs';
 import { defineConfig } from '#q-app';
 import packageJson from './package.json';
 
@@ -10,10 +9,6 @@ export default defineConfig((ctx) => {
   const bootFiles = ['icons', 'i18n'];
   if (ctx.mode.capacitor) bootFiles.push('deepLinking');
   if (ctx.mode.spa) bootFiles.push('plausible');
-  // every icon in public/, which the web build preloads after startup (src/utils/icons/preloadIcons.ts)
-  const iconPaths = ['images', 'emoji-icons'].flatMap(dir =>
-    readdirSync(ctx.appPaths.resolve.app(`public/${dir}`)).filter(file => file.endsWith('.svg')).map(file => `${dir}/${file}`)
-  );
 
   return {
     // https://quasar.dev/quasar-cli-vite/prefetch-feature
@@ -69,8 +64,7 @@ export default defineConfig((ctx) => {
         stores: ctx.appPaths.resolve.src('stores'),
       },
       defineEnv: {
-        version: packageJson.version,
-        iconPaths: iconPaths.join(','),
+        version: packageJson.version
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

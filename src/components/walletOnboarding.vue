@@ -11,6 +11,7 @@
   import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet } from 'src/utils/wallet/walletUtils'
   import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
   import type { Currency } from 'src/interfaces/interfaces'
+  import { iconImport, iconPlusSquare } from 'src/utils/icons/svgIcons'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
@@ -157,13 +158,13 @@
       </div>
       <hr style="margin: 25px 0;">
       <div style="margin: 20px 0;">
-        <h4><img class="icon plusIcon" :src="settingsStore.darkMode ? 'images/plus-square-lightGrey.svg' : 'images/plus-square.svg'"> {{ t('onboarding.create.title') }}</h4>
+        <h4><q-icon class="icon plusIcon app-icon" :name="iconPlusSquare" size="24px" /> {{ t('onboarding.create.title') }}</h4>
         <p style="color: grey; font-size: 14px; margin: 5px 0 10px 0;">{{ t('onboarding.create.description') }}</p>
         <input @click="selectCreate()" class="button primary" type="button" :value="t('onboarding.create.button')">
       </div>
       <hr style="margin: 25px 0;">
       <div style="margin: 20px 0;">
-        <h4><img class="icon importIcon" :src="settingsStore.darkMode ? 'images/import-lightGrey.svg' : 'images/import.svg'"> {{ t('onboarding.import.title') }}</h4>
+        <h4><q-icon class="icon importIcon app-icon" :name="iconImport" size="24px" /> {{ t('onboarding.import.title') }}</h4>
         <p style="color: grey; font-size: 14px; margin: 5px 0 10px 0;">{{ t('onboarding.import.description') }}</p>
         <input @click="selectImport()" class="button primary" type="button" :value="t('onboarding.import.button')">
       </div>

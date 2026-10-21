@@ -7,6 +7,7 @@
   import { useIdentitiesStore, type FoundSource } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { formatBch, formatTimestamp, truncateHash } from 'src/utils/utils'
+  import { iconKey } from 'src/utils/icons/svgIcons'
 
   // Shown whenever the wallet held back identities the user never listed. It interrupts the
   // wallet at open with good news, so it says the least that is true: which token, why it is
@@ -93,7 +94,7 @@
             <div class="iconWithBadge">
               <TokenIcon :token-id="entry.id" :icon-url="entry.iconUrl" :size="32" />
               <!-- the row depicts the AuthKey, which the token list shows with the same stamp -->
-              <img v-if="entry.viaAuthKey" class="authKeyBadge small" src="images/keyWhite.svg">
+              <q-icon class="authKeyBadge small app-icon app-icon--white" :name="iconKey" size="18px" v-if="entry.viaAuthKey" />
             </div>
             <div>
               <div>{{ entry.name }}</div>

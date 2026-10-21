@@ -15,6 +15,7 @@
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { useI18n } from 'vue-i18n'
+  import { iconCauldron, iconCopy, iconExternalLink, iconExternalLinkOcticon, iconEye, iconEyeOff, iconFire, iconInfo, iconPublish, iconSend, iconStarEmpty, iconStarFull } from 'src/utils/icons/svgIcons'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const identitiesStore = useIdentitiesStore()
@@ -211,7 +212,7 @@
                 <span class="category" style="cursor: pointer;">
                   {{ tokenIdDisplay }}
                 </span>
-                <img class="copyIcon" src="images/copyGrey.svg">
+                <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
               </span>
             </div>
             <div v-if="heldIdentityLine">{{ heldIdentityLine }}</div>
@@ -228,33 +229,31 @@
           </div>
         </div>
         <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.category)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.category) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
-          <img :src="settingsStore.hiddenTokens.includes(tokenData.category)
-            ? (settingsStore.darkMode ? 'images/eye-off-outline-lightGrey.svg' : 'images/eye-off-outline.svg')
-            : (settingsStore.darkMode ? 'images/eye-outline-lightGrey.svg' : 'images/eye-outline.svg')">
+          <q-icon class="app-icon" :name="settingsStore.hiddenTokens.includes(tokenData.category) ? iconEyeOff : iconEye" size="18px" />
         </span>
         <span @click="toggleFavorite" class="boxStarIcon" :title="settingsStore.featuredTokens.includes(tokenData.category) ? t('tokenItem.visibility.unfavoriteToken') : t('tokenItem.visibility.favoriteToken')">
-          <img :class="{ 'star-pop': starAnimating }" @animationend="starAnimating = false" :src="settingsStore.featuredTokens.includes(tokenData.category) ? 'images/star-full.svg' :
-            settingsStore.darkMode? 'images/star-empty-grey.svg' : 'images/star-empty.svg'">
+          <q-icon v-if="settingsStore.featuredTokens.includes(tokenData.category)" class="app-icon app-icon--yellow" :class="{ 'star-pop': starAnimating }" @animationend="starAnimating = false" :name="iconStarFull" size="18px" />
+          <q-icon v-else class="app-icon app-icon--star" :class="{ 'star-pop': starAnimating }" @animationend="starAnimating = false" :name="iconStarEmpty" size="15px" />
         </span>
       </div>
 
       <div class="tokenActions">
         <div class="actionBar">
           <span @click="displaySendTokens = !displaySendTokens" style="margin-left: 10px;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/sendLightGrey.svg' : 'images/send.svg'"> {{ t('tokenItem.actions.send') }} </span>
+            <q-icon class="icon app-icon" :name="iconSend" size="18px" /> {{ t('tokenItem.actions.send') }} </span>
           <span @click="displayTokenInfo = !displayTokenInfo">
-            <img class="icon" :src="settingsStore.darkMode? 'images/infoLightGrey.svg' : 'images/info.svg'"> {{ t('tokenItem.actions.info') }}
+            <q-icon class="icon app-icon" :name="iconInfo" size="18px" /> {{ t('tokenItem.actions.info') }}
           </span>
           <span v-if="heldIdentityLine" @click="store.changeView(19)" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/publishLightGrey.svg' : 'images/publish.svg'"> {{ t('tokenItem.identity.manage') }}
+            <q-icon class="icon app-icon" :name="iconPublish" size="18px" /> {{ t('tokenItem.identity.manage') }}
           </span>
           <span v-if="settingsStore.showCauldronSwap && store.wallet.network == 'mainnet'" style="white-space: nowrap;">
             <a :href="`https://app.cauldron.quest/swap/${tokenData.category}`" target="_blank" style="color: var(--font-color);">
-              <img class="icon" :src="settingsStore.darkMode? 'images/cauldronLightGrey.svg' : 'images/cauldron.svg'"> {{ t('tokenItem.actions.swap') }}
+              <q-icon class="icon app-icon" :name="iconCauldron" size="18px" /> {{ t('tokenItem.actions.swap') }}
             </a>
           </span>
           <span v-if="settingsStore.tokenBurn && tokenData?.amount" @click="displayBurnFungibles = !displayBurnFungibles" style="white-space: nowrap;">
-            <img class="icon" :src="settingsStore.darkMode? 'images/fireLightGrey.svg' : 'images/fire.svg'">
+            <q-icon class="icon app-icon" :name="iconFire" size="18px" />
             {{ t('tokenItem.actions.burnTokens') }}
           </span>
         </div>
@@ -274,7 +273,7 @@
           </div>
           <div>
             <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">
-              {{ t('tokenItem.info.seeDetailsOnExplorer') }} <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
+              {{ t('tokenItem.info.seeDetailsOnExplorer') }} <q-icon class="app-icon" :name="settingsStore.darkMode ? iconExternalLinkOcticon : iconExternalLink" size="16px" style="vertical-align: sub;" />
             </a>
           </div>
         </div>

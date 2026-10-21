@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n'
   import InfoPopup from '../general/InfoPopup.vue'
+  import { bchLogo } from 'src/utils/icons/svgIcons'
   const { t } = useI18n()
 
   defineProps<{
@@ -21,7 +22,7 @@
   <div class="asset-row">
     <span class="dot" :style="{ color: dotColor }"></span>
     <div class="hodl-icon">
-      <img src="images/bch-icon.svg" class="bch-icon">
+      <img :src="bchLogo" class="bch-icon">
       <span class="hodl-badge">💎</span>
     </div>
     <div class="asset-name">

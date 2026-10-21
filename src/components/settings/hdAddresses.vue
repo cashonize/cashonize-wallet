@@ -13,6 +13,7 @@
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
   import CharCounter from 'src/components/general/CharCounter.vue'
   import QrCode from 'src/components/general/qrCode.vue'
+  import { bchLogo, cashTokensLogo, iconCopy } from 'src/utils/icons/svgIcons'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -223,7 +224,7 @@
             <div class="address-info">
               <div class="address-text mono">
                 {{ truncateAddress(displayAddress(row)) }}
-                <img class="copyIcon" src="images/copyGrey.svg">
+                <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
                 <span v-if="isCurrentAddress(row)" class="current-tag">{{ t('hdAddresses.currentTag') }}</span>
                 <!-- both tags can show at once: with no fresh address left the wallet falls
                      back to handing out an address that was already marked as used -->
@@ -305,14 +306,14 @@
     <q-card class="qr-card">
       <div class="qr-frame">
         <QrCode :contents="qrDialogAddress" :label="qrDialogTokenAddress ? t('qrCode.tokenAddress') : t('qrCode.bchAddress')" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
-          <img :src="qrDialogTokenAddress ? 'images/tokenicon.svg' : 'images/bch-icon.svg'" alt="" />
+          <img :src="qrDialogTokenAddress ? cashTokensLogo : bchLogo" alt="" />
         </QrCode>
       </div>
       <!-- no address label here: this dialog is held out to whoever scans the code,
            and labels are written for yourself, not for the payer to read -->
       <div class="full-address mono" @click="copyToClipboard(qrDialogAddress)">
         {{ qrDialogAddress }}
-        <img class="copyIcon" src="images/copyGrey.svg">
+        <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
       </div>
       <div class="switch-address" @click="qrDialogTokenAddress = !qrDialogTokenAddress">
         <span class="switchAddressButton" :class="{ flipped: qrDialogTokenAddress }"><q-icon name="swap_horiz" /></span>

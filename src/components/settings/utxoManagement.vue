@@ -18,6 +18,7 @@
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
+  import { iconChevronSquareDown, iconCopy } from 'src/utils/icons/svgIcons'
 
   const $q = useQuasar()
   const store = useStore()
@@ -432,7 +433,7 @@
                 <!-- .stop so copying the txid does not also open the row's actions -->
                 <span class="copy-target" :title="utxo.txid" @click.stop="copyToClipboard(utxo.txid)">
                   <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}</span>
-                  <img class="copyIcon" src="images/copyGrey.svg">
+                  <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
                 </span>
               </div>
               <div class="cell">
@@ -549,10 +550,7 @@
           <details class="utxo-details">
             <summary>
               {{ t('utxoManagement.combined.viewAffected') }}
-              <img
-                class="icon"
-                :src="settingsStore.darkMode ? 'images/chevron-square-down-lightGrey.svg' : 'images/chevron-square-down.svg'"
-              >
+              <q-icon class="icon app-icon" :name="iconChevronSquareDown" size="18px" />
             </summary>
             <div class="utxo-grid grid-affected">
               <div class="utxo-row heading">
@@ -586,7 +584,7 @@
                   <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
                   <span class="copy-target" :title="utxo.txid" @click="copyToClipboard(utxo.txid)">
                     <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}</span>
-                    <img class="copyIcon" src="images/copyGrey.svg">
+                    <q-icon class="copyIcon app-icon app-icon--grey" :name="iconCopy" size="16px" />
                   </span>
                 </div>
                 <div class="cell">

@@ -21,6 +21,7 @@
   import emeraldKeycardItem from './emeraldKeycardItem.vue'
   import badgerLocksItem from './badgerLocksItem.vue'
   import hodlLockItem from './hodlLockItem.vue'
+  import { bchLogo } from 'src/utils/icons/svgIcons'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t, locale } = useI18n()
@@ -870,7 +871,7 @@
         <template v-for="row in mainRows" :key="rowKey(row)">
           <div v-if="row.kind === 'asset'" class="asset-row">
             <span class="dot" :style="{ color: segmentColorAt(row.index) }"></span>
-            <img v-if="!row.asset.category" src="images/bch-icon.svg" class="bch-icon">
+            <img v-if="!row.asset.category" :src="bchLogo" class="bch-icon">
             <TokenIcon
               v-else
               :token-id="row.asset.category"
