@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
+import { isReactive } from 'vue'
 
 import {
   localStorageMock,
@@ -190,6 +191,18 @@ describe('partial history loading', () => {
 
     expect(store.isHistoryPartial).toBe(true)
     expect(store.walletHistory).toEqual(items100)
+  })
+
+  // a deep ref would proxy every input and output of every item the views read
+  it('keeps the history items out of Vue\'s reactivity', async () => {
+    const wallet = createMockWallet()
+    wallet.getHistory.mockResolvedValueOnce([{ txid: 'tx', inputs: [], outputs: [] }])
+
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    expect(isReactive(store.walletHistory![0])).toBe(false)
   })
 
   it('does not set isHistoryPartial when fewer items returned', async () => {

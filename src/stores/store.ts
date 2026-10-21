@@ -158,7 +158,9 @@ export const useStore = defineStore('store', () => {
   const balance = ref(undefined as (bigint | undefined));
   const maxAmountToSend = ref(undefined as (bigint | undefined));
   const walletUtxos = ref(undefined as (Utxo[] | undefined));
-  const walletHistory = ref(undefined as (WalletHistoryReturnType | undefined));
+  // Replaced whole by each load, never changed in place, so Vue need not proxy the thousands of
+  // inputs and outputs a large history holds
+  const walletHistory = shallowRef(undefined as (WalletHistoryReturnType | undefined));
   const isHistoryPartial = ref(false);
   // Private notes on the active wallet's transactions, keyed by txid (see utils/txNotes.ts)
   const txNotes = ref({} as Record<string, string>);
