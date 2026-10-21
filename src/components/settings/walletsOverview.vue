@@ -93,14 +93,14 @@
         v-for="wallet in store.availableWallets"
         :key="wallet.name"
         class="wallet-item"
-        :class="{ active: wallet.name === store.activeWalletName }"
+        :class="{ active: wallet.name === store.activeWalletName, clickable: wallet.name !== store.activeWalletName }"
+        :role="wallet.name !== store.activeWalletName ? 'button' : undefined"
+        :tabindex="wallet.name !== store.activeWalletName ? 0 : undefined"
+        @click="switchWalletWithNotice(wallet.name)"
+        @keydown.enter.self="switchWalletWithNotice(wallet.name)"
       >
         <div class="wallet-row">
-          <span
-            class="wallet-section-left"
-            :class="{ clickable: wallet.name !== store.activeWalletName }"
-            @click="switchWalletWithNotice(wallet.name)"
-          >
+          <span class="wallet-section-left">
             <span class="wallet-name-styled">{{ wallet.name }}</span>
             <span v-if="wallet.name === store.activeWalletName" class="active-badge">{{ t('walletsOverview.current') }}</span>
             <span v-if="!wallet.hasChipnet" class="network-badge">{{ t('walletsOverview.mainnetOnly') }}</span>
@@ -165,14 +165,22 @@ body.dark .wallet-item {
   color: #888;
   margin-top: 6px;
 }
-.wallet-section-left {
-  min-width: 180px;
-}
-.wallet-section-left.clickable {
+.wallet-item.clickable {
   cursor: pointer;
 }
-.wallet-section-left.clickable:hover {
-  color: var(--color-primary);
+@media (hover: hover) {
+  .wallet-item.clickable:hover {
+    background-color: #ebebeb;
+  }
+  body.dark .wallet-item.clickable:hover {
+    background-color: #23233d;
+  }
+  .wallet-item.clickable:hover .wallet-name-styled {
+    color: var(--color-primary);
+  }
+}
+.wallet-section-left {
+  min-width: 180px;
 }
 .wallet-section-center {
   font-size: 12px;
