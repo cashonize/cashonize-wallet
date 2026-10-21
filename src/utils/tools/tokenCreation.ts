@@ -2,8 +2,11 @@
 // tested: amounts typed in tokens become base units by the chosen decimals, and a metadata
 // location counts only once the wallet has fetched and verified what it serves.
 
-import { TokenSendRequest, type Utxo } from '@cashonize/bch-wallet-lib';
+import { NFTCapability, TokenSendRequest, type OpReturnData, type TokenGenesisRequest, type Utxo } from '@cashonize/bch-wallet-lib';
+import { binToHex, decodeCashAddress, type CashAddressNetworkPrefix, type TransactionCommon } from '@bitauth/libauth';
 import type { RegistrySummary } from './registryFile';
+import { tokenOutputValue } from './authchainIdentity';
+import { authGuardAddress, isAuthGuardOf, STUDIO_KEY_COMMITMENT } from './authGuard';
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
@@ -86,6 +89,13 @@ export function circulationOutputs(tokenAddress: string, category: string, amoun
   return [new TokenSendRequest({ cashaddr: tokenAddress, category, amount, value })];
 }
 
+// The UTXO whose txid becomes an AuthKey's category. The user has no reason to choose it, so the
+// wallet picks it: the smallest candidate left once the token's own genesis input is taken, since
+// only its change comes back.
+export function authKeyGenesisInput(utxos: Utxo[], tokenInput: Utxo | undefined): Utxo | undefined {
+  return genesisCandidates(utxos, 'smallest').find(utxo => utxo.txid !== tokenInput?.txid);
+}
+
 // What a prepared UTXO carries, which stays the user's: the genesis or the identity spends it to self
 export const preparedUtxoValue = 10_000n;
 
@@ -101,9 +111,64 @@ export interface CreatedToken {
   name?: string;
   symbol?: string;
   iconUrl?: string;
+  guarded: boolean;
   hasSupply: boolean;
   supply: bigint;
   reserve: bigint;
   circulating: bigint;
   decimals: number;
+}
+
+export interface GenesisPlan {
+  tokenCategory: string;
+  walletTokenAddress: string;
+  reserve: bigint;
+  mintingNft: boolean;
+  circulating: bigint;
+  publication?: OpReturnData;
+  // the AuthKey's category, for a genesis that keeps the identity in an AuthGuard
+  keyCategory?: string;
+}
+
+// The genesis requests and the outputs beside them. Output 0 is the authhead, carrying the reserve
+// and the minting NFT if there is one: in this wallet, or in an AuthGuard with the AuthKey at
+// output 1, the order CashTokens Studio builds it in. Then what enters circulation and the
+// publication. The requests take the picked genesis inputs in order, so the key's category is its
+// own input's, never the token's: any NFT of the key's category opens the guard, and a token's own
+// category gains NFTs whenever it has a minting NFT.
+export function genesisOutputs(plan: GenesisPlan) {
+  const authhead: TokenGenesisRequest = {
+    cashaddr: plan.walletTokenAddress,
+    amount: plan.reserve,
+    value: tokenOutputValue,
+    ...(plan.mintingNft ? { nft: { commitment: "", capability: NFTCapability.minting } } : {}),
+  };
+  const genesisRequests: TokenGenesisRequest[] = [authhead];
+  if (plan.keyCategory) {
+    const decoded = decodeCashAddress(plan.walletTokenAddress);
+    if (typeof decoded === 'string') throw new Error(decoded);
+    authhead.cashaddr = authGuardAddress(plan.keyCategory, decoded.prefix as CashAddressNetworkPrefix);
+    genesisRequests.push({
+      cashaddr: plan.walletTokenAddress,
+      value: tokenOutputValue,
+      nft: { commitment: STUDIO_KEY_COMMITMENT, capability: NFTCapability.none },
+    });
+  }
+  const extraOutputs: (TokenSendRequest | OpReturnData)[] = [
+    ...circulationOutputs(plan.walletTokenAddress, plan.tokenCategory, plan.circulating, tokenOutputValue),
+    ...(plan.publication ? [plan.publication] : []),
+  ];
+  return { genesisRequests, extraOutputs };
+}
+
+// Whether a built AuthGuard genesis is what was planned before it is sent: the guard at output 0
+// opened by the key category, the key at output 1. A guard of any other category would lock the
+// reserve and the minting NFT for good, since no key for it exists.
+export function guardsAsPlanned(transaction: TransactionCommon, keyCategory: string): boolean {
+  const [guard, key] = transaction.outputs;
+  if (!guard || !key?.token?.nft) return false;
+  return isAuthGuardOf(keyCategory, binToHex(guard.lockingBytecode))
+    && binToHex(key.token.category) === keyCategory
+    && key.token.nft.capability === 'none'
+    && binToHex(key.token.nft.commitment) === STUDIO_KEY_COMMITMENT;
 }

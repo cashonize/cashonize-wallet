@@ -108,6 +108,7 @@
       "utxosHeldBack": "Alguns UTXOs estão retidos fora da seleção de moedas e não contam aqui. A página de gestão de UTXOs mostra quais estão retidos e por quê.",
       "cannotSendPledgedUtxo": "Este UTXO está retido por uma promessa em aberto. Cancele a promessa para liberá-lo.",
       "genesisInputUnavailable": "A moeda escolhida para criar este token não está mais disponível. Escolha outra.",
+      "genesisNotAsPlanned": "A transação que a carteira construiu não corresponde ao token a criar, por isso não foi enviada.",
       "utxoNotAvailable": "Uma moeda que esta transação gasta não está mais na carteira, provavelmente foi gasta em outro lugar. Aguarde a carteira atualizar e tente novamente.",
       "identityLeavesWallet": "Este pedido moveria uma das suas identidades para um endereço que esta carteira não reconhece como seu, por isso foi recusado. A transferência de uma identidade é feita na página de identidades.",
       "identityMerge": "Este pedido gastaria duas das suas identidades numa só transação, o que as funde numa. Esta carteira ainda não suporta fundir identidades, por isso foi recusado.",
@@ -688,32 +689,24 @@
   "createTokens": {
     "title": "Criar um token",
     "home": {
-      "intro": "Crie um token novo aqui ou no site do CashTokens Studio. Quem tem a identidade do token, um UTXO, controla o seu nome, ícone e qualquer oferta não emitida; escolha onde a guardar.",
+      "intro": "Crie um novo token nesta carteira ou no site do CashTokens Studio. Quem detém a identidade do token, um UTXO, controla o seu nome, ícone e qualquer oferta não emitida.",
       "wallet": "Nesta carteira",
       "studio": "Com o CashTokens Studio",
       "chosen": "Identidade do token guardada: nesta carteira",
-      "cardLeads": {
-        "for": "Para:",
-        "managed": "Gerido:"
-      },
-      "walletLines": {
-        "for": "utilizadores técnicos que querem controlo total.",
-        "managed": "na página de identidades, em Ferramentas."
-      },
-      "studioLines": {
-        "for": "a via mais fácil, e coleções de NFTs.",
-        "managed": "no site do CashTokens Studio, ligado a esta carteira."
-      },
+      "chosenGuard": "Identidade do token guardada: num AuthGuard, com a AuthKey nesta carteira",
+      "forLead": "Para:",
+      "walletFor": "utilizadores técnicos que querem controlo total: cria-o a partir desta carteira, aloja o ficheiro de metadados e escolhe como a identidade é guardada.",
+      "studioFor": "o caminho mais fácil, e coleções de NFT: o CashTokens Studio escreve os metadados e fixa-os no IPFS.",
       "leads": {
         "protection": "Proteção:",
         "metadata": "Metadados:",
         "operations": "Operações:"
       },
       "walletRows": {
-        "protection": "retido dos envios só por esta carteira; outra app com esta seed poderia gastá-lo.",
-        "metadata": "um ficheiro que você hospeda, ligado no passo 3 ou depois a partir da página de identidades.",
-        "operations": "na página de identidades, em Ferramentas.",
-        "moveLater": "Você pode mover a identidade do token desta carteira para o CashTokens Studio mais tarde, e de volta."
+        "protection": "retida dos envios por esta carteira, ou num AuthGuard com a AuthKey nesta carteira; escolhe.",
+        "metadata": "um ficheiro que aloja, ligado no passo 4 ou mais tarde.",
+        "operations": "na página de identidades, ou no site do CashTokens Studio quando guardada num AuthGuard.",
+        "moveLater": "Pode mover a identidade do token desta carteira para o CashTokens Studio mais tarde, e de volta."
       },
       "studioRows": {
         "protection": "só se gasta com a AuthKey; noutras carteiras um NFT sem nome, por isso guarde-a.",
@@ -733,8 +726,25 @@
     "stepTitles": {
       "utxo": "escolher o id do token",
       "shape": "escolher o tipo, as decimais e a oferta",
+      "protection": "escolha como a identidade é guardada",
       "metadata": "ligar o ficheiro de metadados hospedado (opcional)",
       "type": "escolher o tipo"
+    },
+    "protection": {
+      "held": {
+        "title": "Retida nesta carteira",
+        "line": "Só esta carteira retém a identidade: outra app com esta seed poderia gastá-la. Emite, cunha e atualiza os metadados aqui."
+      },
+      "guard": {
+        "title": "Num AuthGuard",
+        "help": "A AuthKey é um NFT que abre o AuthGuard, o contrato em que a identidade é guardada, pelo que a identidade só se gasta com a AuthKey, seja qual for a app que tem a seed. Outras carteiras mostram a AuthKey como um NFT sem nome, e é assim que uma é enviada por engano ou queimada; esta carteira nomeia-a pelo que protege.",
+        "holds": {
+          "identity": "Um contrato guarda a identidade, gastáveis só com a AuthKey, seja qual for a app que tem a seed. A AuthKey fica nesta carteira; usa-a no site do CashTokens Studio.",
+          "reserve": "Um contrato guarda a identidade e a reserva, gastáveis só com a AuthKey, seja qual for a app que tem a seed. A AuthKey fica nesta carteira; usa-a no site do CashTokens Studio.",
+          "minting": "Um contrato guarda a identidade e o NFT de cunhagem, gastáveis só com a AuthKey, seja qual for a app que tem a seed. A AuthKey fica nesta carteira; usa-a no site do CashTokens Studio.",
+          "both": "Um contrato guarda a identidade, a reserva e o NFT de cunhagem, gastáveis só com a AuthKey, seja qual for a app que tem a seed. A AuthKey fica nesta carteira; usa-a no site do CashTokens Studio."
+        }
+      }
     },
     "genesisInput": {
       "explainer": "O txid do UTXO que a génese gasta torna-se o id do token; o UTXO tem de estar na saída 0.",
@@ -745,6 +755,11 @@
       "none": "Esta carteira ainda não tem nenhum UTXO que possa criar um token.",
       "unconfirmed": "não confirmado",
       "loading": "a carregar..."
+    },
+    "authKeyInput": {
+      "id": "ID da AuthKey:",
+      "missing": "Um AuthGuard precisa também de um segundo UTXO na saída 0, cujo txid se torna o ID da AuthKey; esta carteira não tem mais nenhum.",
+      "prepareButton": "Preparar um UTXO para a AuthKey"
     },
     "prepare": {
       "title": "Preparar um UTXO?",
@@ -762,6 +777,7 @@
     },
     "mintingDescription": "Um NFT de cunhagem cria os NFTs da coleção, e só a transação de criação pode conceder isso.",
     "mintingNote": "Os NFTs são cunhados a partir da lista de tokens, com \"Ativar cunhar NFTs\" ligado nas definições de programador.",
+    "guardedMintingNote": "Os NFTs são cunhados no site do CashTokens Studio, com a AuthKey.",
     "decimalsLabel": "Decimais",
     "supplyLabel": "Oferta total de tokens fungíveis",
     "supplyNote": "A oferta é criada uma vez e nunca pode ser aumentada; deixe uma parte em reserva para a libertar depois.",
@@ -771,7 +787,8 @@
       "label": "Emitir para circulação agora",
       "placeholder": "Montante a emitir",
       "split": "{reserve} fica com a identidade como reserva, {circulating} entra em circulação.",
-      "note": "A reserva fica no UTXO da identidade; emita-a depois a partir da página de identidades."
+      "note": "A reserva fica no UTXO da identidade; emita-a depois a partir da página de identidades.",
+      "guardedNote": "A reserva fica no AuthGuard; emita-a mais tarde no site do CashTokens Studio."
     },
     "errors": {
       "invalidAmount": "Escreva montantes em tokens, sem mais casas decimais do que o token tem.",
@@ -808,6 +825,7 @@
       "button": "Criar",
       "supply": "Oferta total: {supply}",
       "decimals": "Decimais: {decimals}",
+      "guarded": "Identidade guardada num AuthGuard; o NFT AuthKey vem para esta carteira.",
       "metadataLinked": "Metadados: {name}, de {location}",
       "metadataNone": "Metadados: nenhuns ligados ainda. Até serem publicados, as carteiras mostram o token pelo seu id, com montantes em bruto."
     },
@@ -821,8 +839,10 @@
       "title": "Sucesso!",
       "supply": "{amount} criados",
       "mintingNft": "Um NFT de cunhagem criado, no UTXO da identidade: cunhe a partir dele os NFTs da coleção na lista de tokens.",
+      "guardedMintingNft": "Foi criado um NFT de cunhagem, no AuthGuard: cunhe com ele os NFTs da coleção no site do CashTokens Studio.",
       "split": "{reserve} com a identidade como reserva, {circulating} nesta carteira",
       "listed": "Listado na página de identidades, que mantém o seu UTXO fora dos envios só desta carteira.",
+      "guardedListed": "Listada na página de identidades. A AuthKey que abre o seu AuthGuard está nesta carteira, reservada dos seus envios; use-a no site do CashTokens Studio.",
       "untilPublished": "As carteiras mostram-no assim até você {link}.",
       "untilPublishedLink": "publicar metadados",
       "seeToken": "Ver o token na carteira",

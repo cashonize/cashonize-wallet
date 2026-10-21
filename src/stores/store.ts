@@ -44,7 +44,7 @@ import {
   parseIndexerResponse,
   parseNftCommitment as parseNftCommitmentUtil,
 } from "./storeUtils"
-import { binToHex, hexToBin, lockingBytecodeToCashAddress, cashAddressToLockingBytecode } from "@bitauth/libauth"
+import { binToHex, hexToBin, lockingBytecodeToCashAddress, cashAddressToLockingBytecode, decodeTransaction, type TransactionCommon } from "@bitauth/libauth"
 import type { Bytes } from "src/utils/dapp/reservedInputs"
 import { convertElectrumTokenData } from "src/utils/utils"
 import { Notify } from "quasar";
@@ -1747,23 +1747,49 @@ export const useStore = defineStore('store', () => {
     async sendMax(cashaddr: string) {
       return spendExplained(() => wallet.value.sendMax(cashaddr, spendConfig()));
     },
-    // the library takes the first vout-0 BCH coin of the pool it is handed as the genesis input,
-    // and that coin's txid becomes the category, so the picked coin goes at the front of the pool.
-    // Naming the order takes a read of the wallet's coins, which no other spend needs.
+    // A send that also leaves the given coins alone, as preparing a second genesis coin must not
+    // spend the first one picked
+    async sendKeeping(requests: SendRequestType, kept: Utxo[]) {
+      const excludeUtxoIds = [...spendConfig().excludeUtxoIds, ...kept.map(outpointOf)];
+      return spendExplained(() => wallet.value.send(requests, { excludeUtxoIds }));
+    },
+    // the library takes the first vout-0 BCH coins of the pool it is handed as the genesis inputs,
+    // one per request in order, and each coin's txid becomes that request's category, so the
+    // picked coins go at the front of the pool. Naming the order takes a read of the wallet's
+    // coins, which no other spend needs. The transaction is built first and checked to carry the
+    // picked categories, and whatever the caller checks, before it is sent: a category is final.
     async tokenGenesis(
-      genesisInput: Utxo,
-      genesisRequest: TokenGenesisRequest,
-      sendRequests?: SendRequestType | SendRequestType[]
+      genesisInputs: Utxo[],
+      genesisRequests: TokenGenesisRequest[],
+      sendRequests: SendRequestType[] = [],
+      checks: { verify?: (transaction: TransactionCommon) => boolean, holdBack?: HoldBack } = {},
     ) {
-      const outpoint = outpointOf(genesisInput);
+      const outpoints = genesisInputs.map(outpointOf);
+      // one picked coin per request, or the library would take another coin as a category nobody chose
+      if (genesisRequests.length !== outpoints.length) throw new Error('tokenGenesis needs one genesis input per request');
       const allUtxos = await wallet.value.getUtxos();
       const spendable = spendableFromUtxos(allUtxos, reservedUtxos.value);
-      const picked = spendable.find(utxo => outpointOf(utxo) === outpoint);
+      const picked = outpoints.map(outpoint => spendable.find(utxo => outpointOf(utxo) === outpoint));
       // a coin spent elsewhere since it was picked would otherwise create a category nobody chose
-      if (!picked || picked.vout !== 0 || picked.token) throw new Error(t('store.errors.genesisInputUnavailable'));
-      const otherCoins = spendable.filter(utxo => outpointOf(utxo) !== outpoint);
-      const pool = [picked, ...otherCoins];
-      return spendExplained(() => wallet.value.tokenGenesis(genesisRequest, sendRequests, { ...spendConfig(), utxoIds: pool }));
+      const unavailable = picked.some(utxo => !utxo || utxo.vout !== 0 || utxo.token);
+      const sameTxid = new Set(picked.map(utxo => utxo?.txid)).size < picked.length;
+      if (unavailable || sameTxid) throw new Error(t('store.errors.genesisInputUnavailable'));
+      const pickedCoins = picked as Utxo[];
+      const otherCoins = spendable.filter(utxo => !outpoints.includes(outpointOf(utxo)));
+      const pool = [...pickedCoins, ...otherCoins];
+      return spendExplained(async () => {
+        const built = await wallet.value.tokenGenesis(genesisRequests, sendRequests, { ...spendConfig(), utxoIds: pool, broadcast: false });
+        const transaction = hexToBin(built.transaction ?? '');
+        const decoded = decodeTransaction(transaction);
+        if (typeof decoded === 'string') throw new Error(decoded);
+        const asPicked = pickedCoins.every((utxo, index) => {
+          const category = decoded.outputs[index]?.token?.category;
+          return category !== undefined && binToHex(category) === utxo.txid;
+        });
+        if (!asPicked || (checks.verify && !checks.verify(decoded))) throw new Error(t('store.errors.genesisNotAsPlanned'));
+        const txId = await wallet.value.submitTransaction(transaction);
+        return { ...built, txId };
+      }, undefined, checks.holdBack);
     },
     // tokenMint and tokenBurn locate their token input themselves, the minting NFT and the burned
     // coins included, and leave the excluded coins out of that too

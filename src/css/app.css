@@ -931,3 +931,52 @@ input[type="radio"]:checked::before {
   background-color: #0ac18f;
   border-radius: 50%;
 }
+
+/* Option cards with a radio, for the create page's choices: where the token is made, and how its
+   identity is kept */
+/* the negative margin lets the pair borrow most of the fieldset's 2rem inset */
+.home-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin: 20px -1.25rem 0;
+}
+.home-card {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dark .home-card {
+  border-color: #333;
+}
+.home-card:hover {
+  border-color: rgba(128, 128, 128, 0.4);
+}
+.home-card.selected {
+  border-color: var(--color-primary);
+  cursor: default;
+}
+.home-card > div {
+  margin-top: 3px;
+}
+.home-card > .home-card-title + div {
+  margin-top: 6px;
+}
+.home-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+}
+.home-radio {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid grey;
+  border-radius: 50%;
+}
+.home-card.selected .home-radio {
+  border-color: var(--color-primary);
+  background: radial-gradient(circle, var(--color-primary) 45%, transparent 50%);
+}

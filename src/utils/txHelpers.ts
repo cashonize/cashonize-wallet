@@ -2,12 +2,14 @@
 // user confirmation, progress notification and success reporting.
 // For error display, use displayAndLogError from errorHandling.ts.
 import { Dialog, Notify } from "quasar";
+import type { Utxo } from '@cashonize/bch-wallet-lib'
 import alertDialog from 'src/components/general/alertDialog.vue'
 import { useStore } from 'src/stores/store'
 import { useIdentitiesStore } from 'src/stores/identitiesStore'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { displayAndLogError } from 'src/utils/errorHandling'
 import { identityRefusal, refusalMessage, type ReservedInputsCheck } from 'src/utils/dapp/reservedInputs'
+import { preparedUtxoValue } from 'src/utils/tools/tokenCreation'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -76,4 +78,24 @@ export async function handleTransactionBroadcastSuccess(alertMessage: string, tx
   await store.updateWalletUtxos();
   // update wallet history as fire-and-forget promise
   void store.updateWalletHistory();
+}
+
+// A self-send makes a fresh UTXO at output 0 for a genesis to spend; the amount stays the user's,
+// only the fee is spent. The kept coins, a genesis coin already picked, are not spent for it.
+// Resolves to the new UTXO's outpoint, or undefined when declined or failed.
+export async function prepareGenesisUtxo(message: string, kept: Utxo[] = []): Promise<string | undefined> {
+  const store = useStore()
+  const confirmed = await confirmDialog(t('createTokens.prepare.title'), message, t('createTokens.genesisInput.prepareButton'))
+  if (!confirmed) return undefined
+  try {
+    notifySending(t('createTokens.notifications.preparingPreGenesis'))
+    const { txId } = await store.spend.sendKeeping([{ cashaddr: store.wallet.getDepositAddress(), value: preparedUtxoValue }], kept)
+    Notify.create({ type: 'positive', message: t('createTokens.notifications.transactionSent') })
+    await store.updateWalletUtxos()
+    void store.updateWalletHistory()
+    return txId ? `${txId}:0` : undefined
+  } catch (error) {
+    displayAndLogError(error)
+    return undefined
+  }
 }

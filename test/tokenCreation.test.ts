@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest'
 
-import { InvalidRequestError, TokenSendRequest, type Utxo } from '@cashonize/bch-wallet-lib'
+import { InvalidRequestError, OpReturnData, TokenSendRequest, type Utxo } from '@cashonize/bch-wallet-lib'
+import { binToHex, cashAddressToLockingBytecode, encodeCashAddress } from '@bitauth/libauth'
 
-import { circulationOutputs, genesisAmounts, genesisCandidates, metadataReadiness, type CheckedRegistry } from '../src/utils/tools/tokenCreation'
+import {
+  authKeyGenesisInput,
+  circulationOutputs,
+  genesisAmounts,
+  genesisCandidates,
+  genesisOutputs,
+  metadataReadiness,
+  type CheckedRegistry,
+} from '../src/utils/tools/tokenCreation'
+import { isAuthGuardOf } from '../src/utils/tools/authGuard'
 
 describe('genesisAmounts', () => {
   // the supply is typed in tokens and the decimals do the zeroes, since the on-chain number is
@@ -107,5 +117,52 @@ describe('circulationOutputs', () => {
     const outputs = circulationOutputs(tokenAddress, category, 500n, 1000n)
     expect(outputs).toHaveLength(1)
     expect(outputs[0]).toMatchObject({ cashaddr: tokenAddress, category, amount: 500n, value: 1000n })
+  })
+})
+
+describe('authKeyGenesisInput', () => {
+  const coin = (txid: string, satoshis: bigint): Utxo => ({ txid, vout: 0, satoshis }) as Utxo
+
+  // two categories from one coin is impossible, so the token's own input is never the key's
+  it('picks the smallest candidate other than the token input', () => {
+    const small = coin('a'.repeat(64), 1000n)
+    const large = coin('b'.repeat(64), 5000n)
+    expect(authKeyGenesisInput([large, small], small)).toBe(large)
+    expect(authKeyGenesisInput([large, small], large)).toBe(small)
+    expect(authKeyGenesisInput([small], small)).toBeUndefined()
+  })
+})
+
+describe('genesisOutputs', () => {
+  const tokenCategory = 'aa'.repeat(32)
+  const keyCategory = 'bcc5157eb69f0fcf80593c69ac08a3f28a1e726d55d0be6330ccaba4ed94c307'
+  const walletTokenAddress = encodeCashAddress({ prefix: 'bitcoincash', type: 'p2pkhWithTokens', payload: new Uint8Array(20) }).address
+  const plan = { tokenCategory, walletTokenAddress, reserve: 700n, mintingNft: false, circulating: 300n }
+  const lockingOf = (cashaddr: string | undefined) => {
+    const decoded = cashAddressToLockingBytecode(cashaddr ?? '')
+    if (typeof decoded === 'string') throw new Error(decoded)
+    return binToHex(decoded.bytecode)
+  }
+
+  it('keeps the authhead in this wallet, then circulation and the publication', () => {
+    const publication = OpReturnData.fromArray(['BCMR'])
+    const { genesisRequests, extraOutputs } = genesisOutputs({ ...plan, mintingNft: true, publication })
+    expect(genesisRequests).toHaveLength(1)
+    expect(genesisRequests[0]).toMatchObject({ cashaddr: walletTokenAddress, amount: 700n, nft: { capability: 'minting' } })
+    expect(extraOutputs).toHaveLength(2)
+    expect(extraOutputs[0]).toMatchObject({ category: tokenCategory, amount: 300n })
+    expect(extraOutputs[1]).toBe(publication)
+    expect(genesisOutputs({ ...plan, circulating: 0n }).extraOutputs).toEqual([])
+  })
+
+  // a wrong guard address locks the identity for good, so the first request is checked against the
+  // covenant the key category opens, at the P2SH20 form CashTokens Studio watches
+  it('asks for the guard first, opened by the key asked for second', () => {
+    const [guard, key] = genesisOutputs({ ...plan, keyCategory }).genesisRequests
+    expect(guard!.amount).toBe(700n)
+    expect(guard!.nft).toBeUndefined()
+    expect(isAuthGuardOf(keyCategory, lockingOf(guard!.cashaddr))).toBe(true)
+    expect(lockingOf(guard!.cashaddr)).toBe('a9146a59d6c4546b759fe4e67258bae954f03335f7a187')
+    expect(key).toMatchObject({ cashaddr: walletTokenAddress, nft: { capability: 'none', commitment: '00' } })
   })
 })

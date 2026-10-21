@@ -31,7 +31,7 @@ import { contractStateIdentities, detectIdentities, type DetectedIdentity } from
 import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
 import type { ScannedTransaction } from "src/utils/history/transactionIndex"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
-import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
+import { isAuthGuardOf, isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
 import { truncateHash } from "src/utils/utils"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -118,9 +118,16 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // anonymous coin is exactly the one who never opens the page, and an ordinary send spends it.
   // Deliberately amends the rule that only listed identities are reserved: the walk is evidence,
   // not a guess, and the coin is an authhead.
-  function listDetectedIdentities(detected: DetectedIdentity[]) {
-    const heldOutputZeroUtxos = (mainStore.walletUtxos ?? []).filter(utxo => utxo.vout === 0);
-    const found = detected.filter(identity => heldOutputZeroUtxos.some(utxo => utxo.txid === identity.authheadTxid));
+  function listDetectedIdentities(detected: DetectedIdentity[], transactions: ScannedTransaction[]) {
+    // the authhead itself, or for a guarded one the AuthKey a guarded genesis or update returns at
+    // output 1, an NFT of the category whose covenant holds the identity output
+    const holds = (identity: DetectedIdentity) => (mainStore.walletUtxos ?? []).some(utxo => {
+      if (utxo.txid !== identity.authheadTxid) return false;
+      if (utxo.vout === 0) return true;
+      const guard = transactions.find(transaction => transaction.hash === identity.authheadTxid)?.outputs[0]?.lockingBytecode;
+      return utxo.vout === 1 && utxo.token?.nft !== undefined && guard !== undefined && isAuthGuardOf(utxo.token.category, guard);
+    });
+    const found = detected.filter(holds);
     const listed: string[] = [];
     for (const identity of found) {
       // a chain the markers cannot name is not listed: a non-token identity is listed by the
@@ -257,11 +264,11 @@ export const useIdentitiesStore = defineStore('identities', () => {
     if (mainStore.walletSwitchedSince(started)) return;
     identityPublicationTxids.value = detected.publicationTxids;
     const unseenBefore = unseenIdentities.value;
-    if (listDetectedIdentities(detected.identities).length) await refreshIdentities();
+    if (listDetectedIdentities(detected.identities, transactions).length) await refreshIdentities();
     // the chains the markers could not name, named from their files after the rest is held back
     const named = await nameFromPublications(detected.identities);
     if (mainStore.walletSwitchedSince(started)) return;
-    if (listDetectedIdentities(named).length) await refreshIdentities();
+    if (listDetectedIdentities(named, transactions).length) await refreshIdentities();
     // what this pass added to the unseen list
     const categoriesToAnnounce = unseenIdentities.value.filter(id => !unseenBefore.includes(id));
     if (!categoriesToAnnounce.length) return;
@@ -421,11 +428,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     if (resolved.some(identity => identity.status === 'unresolved')) return;
     // Never dropped: the coins above, the coins the wallet holds, and every resolved identity's
     // output, whether the wallet's coins show it yet or not: its own view can trail the
-    // transaction it just made
+    // transaction it just made. Output 1 of the authhead too, where a guarded genesis puts the
+    // AuthKey, which a resolve run before the wallet sees it cannot name.
     const kept = [
       ...authOutpoints,
       ...(mainStore.walletUtxos ?? []).map(outpointOf),
-      ...resolved.flatMap(identity => identity.authheadTxid ? [`${identity.authheadTxid}:0`] : []),
+      ...resolved.flatMap(identity => identity.authheadTxid ? [`${identity.authheadTxid}:0`, `${identity.authheadTxid}:1`] : []),
     ];
     for (const [outpoint, reason] of Object.entries(mainStore.reservedUtxos)) {
       if (reason !== 'auth') continue;
@@ -673,13 +681,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
   }
 
   // An identity this wallet just created, token or not: its authhead is output 0 of the
-  // transaction, so the coin is held back straight away rather than when Chaingraph or this
-  // wallet's own view catches up. The resolve after it is a lookup that can fail, and the
-  // identity is listed and held back whether or not it does: a failure is not the caller's.
-  async function listCreatedIdentity(category: string, authheadTxId: string) {
+  // transaction, or for a guarded one the AuthKey is output 1, so that coin is held back straight
+  // away rather than when Chaingraph or this wallet's own view catches up. The resolve after it is
+  // a lookup that can fail, and the identity is listed and held back whether or not it does: a
+  // failure is not the caller's.
+  async function listCreatedIdentity(category: string, authheadTxId: string, heldVout: 0 | 1 = 0) {
     dismissedIdentities.value = removeFromIdentityList('dismissed', ...walletKey(), category);
     listCategory(category);
-    const outpoint = `${authheadTxId}:0`;
+    const outpoint = `${authheadTxId}:${heldVout}`;
     if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoints([outpoint], 'auth');
     try {
       // the resolve reads the wallet's coins, which must include the one just made

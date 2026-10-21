@@ -108,6 +108,7 @@
       "utxosHeldBack": "Some UTXOs are held back from coin selection and do not count here. The UTXO Management page shows which are held and why.",
       "cannotSendPledgedUtxo": "This UTXO is held for an open pledge. Cancel the pledge to release it.",
       "genesisInputUnavailable": "The coin picked to create this token is no longer available. Pick another one.",
+      "genesisNotAsPlanned": "The transaction the wallet built does not match the token to create, so it was not sent.",
       "utxoNotAvailable": "A coin this transaction spends is no longer in the wallet, probably spent elsewhere. Wait for the wallet to update and try again.",
       "identityLeavesWallet": "This request would move one of your identities to an address this wallet does not recognize as its own, so it was refused. Transferring an identity is done from the identities page.",
       "identityMerge": "This request would spend two of your identities in one transaction, which merges them into one. Merging identities is not supported by this wallet yet, so it was refused.",
@@ -688,31 +689,23 @@
   "createTokens": {
     "title": "Create a token",
     "home": {
-      "intro": "Create a new token here or on CashTokens Studio's site. Whoever holds the token's identity, one UTXO, controls its name, icon and any unissued supply; choose where to keep it.",
+      "intro": "Create a new token in this wallet or on CashTokens Studio's site. Whoever holds the token's identity, one UTXO, controls its name, icon and any unissued supply.",
       "wallet": "In this wallet",
       "studio": "With CashTokens Studio",
       "chosen": "Token identity kept: in this wallet",
-      "cardLeads": {
-        "for": "For:",
-        "managed": "Managed:"
-      },
-      "walletLines": {
-        "for": "technical users who want full control.",
-        "managed": "on the identities page, in Tools."
-      },
-      "studioLines": {
-        "for": "the easiest way, and NFT collections.",
-        "managed": "on CashTokens Studio's site, connected to this wallet."
-      },
+      "chosenGuard": "Token identity kept: in an AuthGuard, with the AuthKey in this wallet",
+      "forLead": "For:",
+      "walletFor": "technical users who want full control: you create it from this wallet, host the metadata file yourself, and choose how the identity is kept.",
+      "studioFor": "the easiest way, and NFT collections: CashTokens Studio writes the metadata and pins it on IPFS.",
       "leads": {
         "protection": "Protection:",
         "metadata": "Metadata:",
         "operations": "Operations:"
       },
       "walletRows": {
-        "protection": "held back from sends by this wallet only; another app on this seed could spend it.",
-        "metadata": "a file you host, linked in step 3 or later from the identities page.",
-        "operations": "on the identities page, in Tools.",
+        "protection": "held back from sends by this wallet, or in an AuthGuard with the AuthKey in this wallet; you choose.",
+        "metadata": "a file you host, linked in step 4 or later.",
+        "operations": "on the identities page, or on CashTokens Studio's site when kept in an AuthGuard.",
         "moveLater": "You can move the token identity from this wallet to CashTokens Studio later, and back."
       },
       "studioRows": {
@@ -733,8 +726,25 @@
     "stepTitles": {
       "utxo": "pick the token id",
       "shape": "choose the type, decimals and supply",
+      "protection": "choose how the identity is kept",
       "metadata": "link the hosted metadata file (optional)",
       "type": "choose the type"
+    },
+    "protection": {
+      "held": {
+        "title": "Held back in this wallet",
+        "line": "Only this wallet holds the identity back: another app on this seed could spend it. You issue, mint and update metadata here."
+      },
+      "guard": {
+        "title": "In an AuthGuard",
+        "help": "The AuthKey is an NFT that opens the AuthGuard, the contract the identity is kept in, so the identity spends only with the AuthKey, whichever app holds the seed. Other wallets show the AuthKey as a nameless NFT, which is how one gets sent away or burned; this wallet names it by what it guards.",
+        "holds": {
+          "identity": "A contract holds the identity, spendable only with the AuthKey, whichever app holds the seed. The AuthKey stays in this wallet; you use it on CashTokens Studio's site.",
+          "reserve": "A contract holds the identity and the reserve, spendable only with the AuthKey, whichever app holds the seed. The AuthKey stays in this wallet; you use it on CashTokens Studio's site.",
+          "minting": "A contract holds the identity and the minting NFT, spendable only with the AuthKey, whichever app holds the seed. The AuthKey stays in this wallet; you use it on CashTokens Studio's site.",
+          "both": "A contract holds the identity, the reserve and the minting NFT, spendable only with the AuthKey, whichever app holds the seed. The AuthKey stays in this wallet; you use it on CashTokens Studio's site."
+        }
+      }
     },
     "genesisInput": {
       "explainer": "The txid of the UTXO the genesis spends becomes the token id; the UTXO must be at output 0.",
@@ -745,6 +755,11 @@
       "none": "This wallet has no UTXO that can create a token yet.",
       "unconfirmed": "unconfirmed",
       "loading": "loading..."
+    },
+    "authKeyInput": {
+      "id": "AuthKey id:",
+      "missing": "An AuthGuard also needs a second UTXO at output 0, whose txid becomes the AuthKey's id; this wallet has none left.",
+      "prepareButton": "Prepare a UTXO for the AuthKey"
     },
     "prepare": {
       "title": "Prepare a UTXO?",
@@ -762,6 +777,7 @@
     },
     "mintingDescription": "A minting NFT creates the collection's NFTs, and only the creating transaction can grant that.",
     "mintingNote": "NFTs are minted from the token list, with \"Enable mint NFTs\" on in the developer settings.",
+    "guardedMintingNote": "NFTs are minted on CashTokens Studio's site, with the AuthKey.",
     "decimalsLabel": "Decimals",
     "supplyLabel": "Total supply of fungible tokens",
     "supplyNote": "The supply is created once and can never be increased; keep some in reserve to release it later.",
@@ -771,7 +787,8 @@
       "label": "Issue to circulation now",
       "placeholder": "Amount to issue",
       "split": "{reserve} stays with the identity as reserve, {circulating} enters circulation.",
-      "note": "The reserve stays on the identity's UTXO; issue it later from the identities page."
+      "note": "The reserve stays on the identity's UTXO; issue it later from the identities page.",
+      "guardedNote": "The reserve stays in the AuthGuard; issue it later on CashTokens Studio's site."
     },
     "errors": {
       "invalidAmount": "Enter amounts in tokens, with no more decimal places than the token has.",
@@ -808,6 +825,7 @@
       "button": "Create",
       "supply": "Total supply: {supply}",
       "decimals": "Decimals: {decimals}",
+      "guarded": "Identity kept in an AuthGuard; the AuthKey NFT comes to this wallet.",
       "metadataLinked": "Metadata: {name}, from {location}",
       "metadataNone": "Metadata: none linked yet. Until it is published, wallets show the token by its id, with raw amounts."
     },
@@ -821,8 +839,10 @@
       "title": "Success!",
       "supply": "{amount} created",
       "mintingNft": "A minting NFT created, on the identity's UTXO: mint the collection's NFTs from it in the token list.",
+      "guardedMintingNft": "A minting NFT created, in the AuthGuard: mint the collection's NFTs from it on CashTokens Studio's site.",
       "split": "{reserve} with the identity as reserve, {circulating} in this wallet",
       "listed": "Listed on the identities page, which keeps its UTXO out of sends from this wallet only.",
+      "guardedListed": "Listed on the identities page. The AuthKey that opens its AuthGuard is in this wallet, held back from its sends; use it on CashTokens Studio's site.",
       "untilPublished": "Wallets show it like this until you {link}.",
       "untilPublishedLink": "publish metadata",
       "seeToken": "See token in wallet",

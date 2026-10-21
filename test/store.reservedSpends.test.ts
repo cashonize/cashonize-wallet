@@ -6,6 +6,7 @@ import {
   TokenBurnRequest,
   TokenMintRequest,
   TokenSendRequest,
+  BroadcastTimeoutError,
   UtxoNotAvailableError,
   Wallet,
   removeGlobalProvider,
@@ -14,7 +15,7 @@ import {
   type Utxo,
 } from '@cashonize/bch-wallet-lib'
 import type * as BchWalletLib from '@cashonize/bch-wallet-lib'
-import { binToHex, decodeTransaction, hexToBin } from '@bitauth/libauth'
+import { binToHex, cashAddressToLockingBytecode, createVirtualMachineBch, decodeTransaction, hexToBin } from '@bitauth/libauth'
 
 // The store's spend paths on a real bch-wallet-lib wallet, every library call built with
 // broadcast: false, so what is checked is the inputs of the transaction the store would have sent:
@@ -70,6 +71,9 @@ vi.mock('src/utils/cacheUtils', () => ({ cachedFetch: vi.fn() }))
 
 import { useStore } from '../src/stores/store'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
+import { genesisOutputs, guardsAsPlanned } from '../src/utils/tools/tokenCreation'
+import { publicationOutput } from '../src/utils/tools/authchainIdentity'
+import { isAuthGuardOf } from '../src/utils/tools/authGuard'
 
 // same throwaway key as wcSigning.test.ts
 const throwAwayTestKeyWif = 'L15RRkJJdgWARpbwHaZV4a99ciHhKEmWz8bR8aQ5T94FqhfAw3Ac'
@@ -119,7 +123,11 @@ async function storeHolding(coins: Utxo[], reserved: Utxo[]) {
   wallet.sendMax = buildOnly(wallet.sendMax.bind(wallet), 1) as typeof wallet.sendMax
   wallet.tokenMint = buildOnly(wallet.tokenMint.bind(wallet), 1) as typeof wallet.tokenMint
   wallet.tokenBurn = buildOnly(wallet.tokenBurn.bind(wallet), 2) as typeof wallet.tokenBurn
-  wallet.tokenGenesis = buildOnly(wallet.tokenGenesis.bind(wallet), 2) as typeof wallet.tokenGenesis
+  // the store builds a genesis with broadcast off itself, checks it, then submits it
+  wallet.submitTransaction = (transaction: Uint8Array) => {
+    built.push(binToHex(transaction))
+    return Promise.resolve('ab'.repeat(32))
+  }
   const store = useStore()
   await store.setWallet(wallet)
   store.walletUtxos = await wallet.getUtxos()
@@ -215,7 +223,7 @@ describe('a reserved coin is never an input of a store spend', () => {
     const picked = coin('22', 10_000n)
     const store = await storeHolding([reserved, picked], [reserved])
 
-    await store.spend.tokenGenesis(picked, { amount: 1000n, value: 1000n, cashaddr: tokenAddress })
+    await store.spend.tokenGenesis([picked], [{ amount: 1000n, value: 1000n, cashaddr: tokenAddress }])
 
     expect(spentOutpoints(built[0])).toEqual([outpointOf(picked)])
   })
@@ -272,5 +280,122 @@ describe('an NFT send spends the coin it names', () => {
     await expect(store.spend.send([new TokenSendRequest({ cashaddr: tokenAddress, category, nft: mutable })], [vanished]))
       .rejects.toMatchObject({ cause: expect.any(UtxoNotAvailableError) })
     expect(built).toEqual([])
+  })
+})
+
+// Preparing the AuthKey's genesis coin must not spend the token's, the one coin already picked
+describe('a send that keeps a picked coin', () => {
+  beforeEach(() => {
+    built.length = 0
+    storage.clear()
+    storage.setItem('network', 'mainnet')
+    setActivePinia(createPinia())
+  })
+  afterEach(async () => {
+    await Promise.all(openWallets.splice(0).map(wallet => wallet.stop()))
+  })
+
+  it('pays from the other coins', async () => {
+    const tokenCoin = coin('44', 50_000n)
+    const other = coin('55', 30_000n)
+    const store = await storeHolding([tokenCoin, other], [])
+
+    await store.spend.sendKeeping([{ cashaddr: address, value: 10_000n }], [tokenCoin])
+
+    expect(spentOutpoints(built[0])).toEqual([outpointOf(other)])
+  })
+
+  it('fails rather than spend the kept coin when it is the only one', async () => {
+    const tokenCoin = coin('44', 50_000n)
+    const store = await storeHolding([tokenCoin], [])
+
+    await expect(store.spend.sendKeeping([{ cashaddr: address, value: 10_000n }], [tokenCoin])).rejects.toThrow()
+    expect(built).toEqual([])
+  })
+})
+
+// An AuthGuard genesis makes two categories, the token's and its AuthKey's, from the two coins the
+// create page picked, in CashTokens Studio's order. Built by the library's own selection and
+// signing, then checked by the VM's consensus rules: a genesis output's category must be the txid
+// of an output-0 input this very transaction spends.
+describe('an AuthGuard genesis', () => {
+  beforeEach(() => {
+    built.length = 0
+    storage.clear()
+    storage.setItem('network', 'mainnet')
+    setActivePinia(createPinia())
+  })
+  afterEach(async () => {
+    await Promise.all(openWallets.splice(0).map(wallet => wallet.stop()))
+  })
+
+  it('spends the token coin, then the key coin, into the guard and the key the VM accepts', async () => {
+    // a vout-0 coin listed before the picked ones must not become either category
+    const decoy = coin('11', 100_000n)
+    const tokenCoin = coin('44', 10_000n)
+    const keyCoin = coin('55', 10_000n)
+    const store = await storeHolding([decoy, tokenCoin, keyCoin], [])
+    const { genesisRequests, extraOutputs } = genesisOutputs({
+      tokenCategory: tokenCoin.txid,
+      keyCategory: keyCoin.txid,
+      walletTokenAddress: tokenAddress,
+      reserve: 700n,
+      mintingNft: true,
+      circulating: 300n,
+      publication: publicationOutput('66'.repeat(32), ['example.com']),
+    })
+
+    await store.spend.tokenGenesis([tokenCoin, keyCoin], genesisRequests, extraOutputs, {
+      verify: transaction => guardsAsPlanned(transaction, keyCoin.txid),
+    })
+
+    const transaction = decodeTransaction(hexToBin(built[0]!))
+    if (typeof transaction === 'string') throw new Error(transaction)
+    expect(spentOutpoints(built[0]).slice(0, 2)).toEqual([outpointOf(tokenCoin), outpointOf(keyCoin)])
+    const [guard, key, circulation, publication] = transaction.outputs
+    expect(binToHex(guard!.token!.category)).toBe(tokenCoin.txid)
+    expect(isAuthGuardOf(keyCoin.txid, binToHex(guard!.lockingBytecode))).toBe(true)
+    expect(binToHex(key!.token!.category)).toBe(keyCoin.txid)
+    expect(binToHex(key!.token!.nft!.commitment)).toBe('00')
+    expect(binToHex(circulation!.token!.category)).toBe(tokenCoin.txid)
+    expect(publication!.lockingBytecode[0]).toBe(0x6a)
+
+    const p2pkh = cashAddressToLockingBytecode(address)
+    if (typeof p2pkh === 'string') throw new Error(p2pkh)
+    const coinOf = new Map([decoy, tokenCoin, keyCoin].map(utxo => [outpointOf(utxo), utxo]))
+    const sourceOutputs = spentOutpoints(built[0]).map(outpoint =>
+      ({ lockingBytecode: p2pkh.bytecode, valueSatoshis: coinOf.get(outpoint)!.satoshis }))
+    expect(createVirtualMachineBch(true).verify({ transaction, sourceOutputs })).toBe(true)
+  })
+
+  // the pool would take a coin listed twice once, and pin a coin nobody picked as the second category
+  it('refuses the same coin picked twice', async () => {
+    const tokenCoin = coin('44', 10_000n)
+    const store = await storeHolding([tokenCoin, coin('55', 10_000n)], [])
+    const request = { amount: 1n, cashaddr: tokenAddress }
+
+    await expect(store.spend.tokenGenesis([tokenCoin, tokenCoin], [request, request])).rejects.toThrow(/no longer available/)
+    expect(built).toEqual([])
+  })
+
+  it('sends nothing when the built genesis fails the caller\'s check', async () => {
+    const tokenCoin = coin('44', 10_000n)
+    const store = await storeHolding([tokenCoin, coin('55', 50_000n)], [])
+
+    await expect(store.spend.tokenGenesis([tokenCoin], [{ amount: 1n, cashaddr: tokenAddress }], [], { verify: () => false }))
+      .rejects.toThrow()
+    expect(built).toEqual([])
+  })
+
+  // the transaction may have gone through, so the identity's coin is held back all the same
+  it('holds back the new identity when the broadcast\'s outcome is unknown', async () => {
+    const tokenCoin = coin('44', 10_000n)
+    const store = await storeHolding([tokenCoin, coin('55', 50_000n)], [])
+    const txid = 'cd'.repeat(32)
+    store.wallet.submitTransaction = () => Promise.reject(new BroadcastTimeoutError('timed out', { txid, transaction: '0200' }))
+    const holdBack = vi.fn(() => Promise.resolve())
+
+    await expect(store.spend.tokenGenesis([tokenCoin], [{ amount: 1n, cashaddr: tokenAddress }], [], { holdBack })).rejects.toThrow()
+    expect(holdBack).toHaveBeenCalledWith(txid)
   })
 })
