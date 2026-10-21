@@ -52,9 +52,7 @@
 
   // deliberately also runs during onboarding: creating a wallet switches to the wallet
   // view in the same session, so the preloaded icons are needed moments later
-  onMounted(() => preloadIcons(settingsStore.darkMode));
-  // fetch the other icon variants when the user changes the dark mode setting
-  watch(() => settingsStore.darkMode, (darkMode) => preloadIcons(darkMode));
+  onMounted(() => preloadIcons());
 
   const dappUriUrlParam = ref(undefined as undefined|string);
   const bchSendRequest = ref(undefined as undefined|string);
