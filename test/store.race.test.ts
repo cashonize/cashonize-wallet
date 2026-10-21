@@ -235,15 +235,15 @@ describe('partial history loading', () => {
     await store.setWallet(wallet as never)
     await store.initializeWallet()
 
-    // Start a slow history fetch
+    // Start a slow full history fetch
     const staleDeferred = createDeferred<unknown[]>()
     wallet.getHistory.mockImplementationOnce(() => staleDeferred.promise)
     const slowCall = store.updateWalletHistory()
 
-    // Start and complete a fast history fetch (bumps historyRequestId)
+    // Start and complete a fast capped fetch (bumps historyRequestId); full refreshes share one load
     const freshHistory = [{ txid: 'fresh' }]
     wallet.getHistory.mockResolvedValueOnce(freshHistory)
-    await store.updateWalletHistory()
+    await store.updateWalletHistory({ count: 100 })
 
     expect(store.walletHistory).toEqual(freshHistory)
 
@@ -253,6 +253,50 @@ describe('partial history loading', () => {
     await flushAsyncWork()
 
     expect(store.walletHistory).toEqual(freshHistory)
+  })
+})
+
+// A send or receive asks for the full history two or three times; each full load decodes every
+// transaction of the history again, so they share one load, rerun for refreshes asked meanwhile.
+describe('full history refreshes', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorageMock.clear()
+    setActivePinia(createPinia())
+    localStorageMock.setItem('network', 'mainnet')
+  })
+
+  it('shares one load and reruns it once for refreshes asked for meanwhile', async () => {
+    const wallet = createMockWallet()
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+    wallet.getHistory.mockClear()
+
+    const first = createDeferred<unknown[]>()
+    const latest = [{ txid: 'latest' }]
+    wallet.getHistory.mockImplementationOnce(() => first.promise).mockResolvedValueOnce(latest)
+    const refreshes = [store.updateWalletHistory(), store.updateWalletHistory(), store.updateWalletHistory()]
+    first.resolve([{ txid: 'older' }])
+    await Promise.all(refreshes)
+
+    expect(wallet.getHistory).toHaveBeenCalledTimes(2)
+    expect(store.walletHistory).toEqual(latest)
+  })
+
+  it('does not apply a load of the previous wallet, nor share it with the next', async () => {
+    const wallet = createMockWallet()
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    const stale = createDeferred<unknown[]>()
+    wallet.getHistory.mockImplementationOnce(() => stale.promise)
+    void store.updateWalletHistory()
+    const fresh = [{ txid: 'fresh' }]
+    wallet.getHistory.mockResolvedValue(fresh)
+    await store.initializeWallet()
+    expect(await store.updateWalletHistory()).toEqual(fresh)
   })
 })
 

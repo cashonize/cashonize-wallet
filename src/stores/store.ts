@@ -58,6 +58,7 @@ import { ActionableError, displayAndLogError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
+import { sharedRun } from "src/utils/concurrency"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
   fetchCauldronPools,
@@ -1119,15 +1120,21 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Fetches wallet history via the library's getHistory().
-  // When called with a capped count, auto-schedules a full background refresh via requestIdleCallback.
   let historyRequestId = 0;
   // Categories already queried for history metadata this session, so categories without
   // a BCMR record aren't re-queried on every history refresh (cachedFetch only caches successful lookups)
   let queriedHistoryCategories: string[] = [];
-  // Returns the history it fetched, applied or not: a load a newer request overtook is still a
-  // complete history of a moment ago, which is what a reader waiting on it needs
-  async function updateWalletHistory({ count = -1 }: { count?: number } = {}) {
+  // Without a count, a refresh of the full history: those share one load, see fullHistory
+  function updateWalletHistory({ count = -1 }: { count?: number } = {}) {
+    if (count < 0) return fullHistory.run({ again: true });
+    return fetchWalletHistory(count);
+  }
+
+  // Fetches wallet history via the library's getHistory(); a capped count schedules the full load
+  // for when the browser is idle. Returns the history it fetched, applied or not: a load a newer
+  // request overtook is still a complete history of a moment ago, which is what a reader waiting
+  // on it needs
+  async function fetchWalletHistory(count: number) {
     const requestId = ++historyRequestId;
     let history: TransactionHistoryItem[] | undefined;
     try {
@@ -1142,7 +1149,7 @@ export const useStore = defineStore('store', () => {
       if (isHistoryPartial.value) {
         // Schedule full history load when idle, fall back to setTimeout for unsupported environments;
         // a reader of the full history may have loaded it by then
-        const loadFullHistoryCallback = () => { if (isHistoryPartial.value) void loadFullHistory(); };
+        const loadFullHistoryCallback = () => { if (isHistoryPartial.value) void fullHistory.run(); };
         'requestIdleCallback' in globalThis ? requestIdleCallback(loadFullHistoryCallback) : setTimeout(loadFullHistoryCallback, 1000);
       }
       // Fetch metadata for history tokens no longer in the wallet, so their names, icons
@@ -1173,22 +1180,16 @@ export const useStore = defineStore('store', () => {
     return history;
   }
 
-  // One full load at a time, shared between the idle callback above and a reader that wants it
-  // sooner, so a first open fetches each transaction once
-  let fullHistoryLoad: Promise<TransactionHistoryItem[] | undefined> | undefined;
-  function loadFullHistory() {
-    if (!fullHistoryLoad) {
-      fullHistoryLoad = updateWalletHistory().finally(() => { fullHistoryLoad = undefined; });
-    }
-    return fullHistoryLoad;
-  }
+  // One full load at a time per wallet, shared between the idle callback above, a reader that wants
+  // it sooner and the refreshes after a send or receive, which come two or three per event
+  const fullHistory = sharedRun(() => fetchWalletHistory(-1), () => currentInitialization);
 
   // The wallet's full history for the readers of what it announced (TapSwap listings, hodl
   // contracts, identities these keys made): the one on hand when complete, else the full load,
   // started now rather than when the browser is idle
   async function fullWalletHistory() {
     if (walletHistory.value && !isHistoryPartial.value) return walletHistory.value;
-    const loaded = await loadFullHistory();
+    const loaded = await fullHistory.run();
     if (walletHistory.value && !isHistoryPartial.value) return walletHistory.value;
     if (!loaded) throw new Error(t('store.errors.errorFetchingHistory'));
     return loaded;
