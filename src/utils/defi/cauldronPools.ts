@@ -21,9 +21,10 @@ import {
   deriveHdPublicNodeChild,
 } from "@bitauth/libauth";
 import type { ElectrumNetworkProvider } from "@cashonize/bch-wallet-lib";
+import { mapConcurrent } from "src/utils/concurrency";
 
-// Pool lookups are pipelined over the same electrum connection in batches
-const LOOKUP_BATCH_SIZE = 10;
+// Pool lookups in flight at once over the wallet's electrum connection
+const LOOKUP_CONCURRENCY = 10;
 
 // OP_DEPTH OP_IF OP_DUP OP_HASH160 OP_PUSHBYTES_20
 const CAULDRON_SCRIPT_PREFIX = "746376a914";
@@ -111,11 +112,8 @@ export async function fetchCauldronPools(
     }
   }
 
-  const pools: CauldronPool[] = [];
-  for (let i = 0; i < ownerPkhs.length; i += LOOKUP_BATCH_SIZE) {
-    const batch = ownerPkhs.slice(i, i + LOOKUP_BATCH_SIZE);
-    const batchPools = await Promise.all(batch.map(lookupPools));
-    pools.push(...batchPools.flat());
-  }
-  return pools;
+  // one lookup per address; the next starts as one finishes, rather than in batches that each
+  // wait for their slowest lookup
+  const pools = await mapConcurrent(ownerPkhs, LOOKUP_CONCURRENCY, lookupPools);
+  return pools.flat();
 }

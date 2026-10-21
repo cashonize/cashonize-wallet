@@ -8,6 +8,8 @@
 import type * as BchWalletLib from '@cashonize/bch-wallet-lib'
 import type * as ZodValidation from 'src/utils/zodValidation'
 import type * as ErrorHandling from 'src/utils/errorHandling'
+import type * as Utils from 'src/utils/utils'
+import type * as CacheUtils from 'src/utils/cacheUtils'
 import { vi } from 'vitest'
 
 // Mock wallet instances
@@ -200,8 +202,9 @@ vi.mock('src/utils/errorHandling', async (importOriginal) => ({
 }))
 
 // Mock cacheUtils
-vi.mock('src/utils/cacheUtils', () => ({
+vi.mock('src/utils/cacheUtils', async (importOriginal) => ({
   cachedFetch: vi.fn(),
+  isFreshLookup: (await importOriginal<typeof CacheUtils>()).isFreshLookup,
 }))
 
 // Mock zodValidation
@@ -218,7 +221,9 @@ vi.mock('src/stores/storeUtils', () => ({
 }))
 
 // Mock utils
-vi.mock('src/utils/utils', () => ({
+// the list comparison is the real one: whether the store reassigns tokenList depends on it
+vi.mock('src/utils/utils', async (importOriginal) => ({
+  sameTokenList: (await importOriginal<typeof Utils>()).sameTokenList,
   formatBchAmount: vi.fn((satoshis: number) => (satoshis / 100_000_000).toString()),
   formatBch: vi.fn((satoshis: bigint, network: string) => `${Number(satoshis) / 100_000_000} ${network === 'mainnet' ? 'BCH' : 'tBCH'}`),
   getBalanceFromUtxos: vi.fn().mockReturnValue(0),

@@ -1,7 +1,7 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
 import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, decodeHeader, type HexHeaderI, type Utxo, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib"
-import type { BcmrTokenMetadata, ElectrumTokenData, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
+import type { BcmrTokenMetadata, ElectrumTokenData, TokenList, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -381,6 +381,14 @@ export function getFungibleTokenBalances(tokenUtxos: Utxo[]){
     result[category] = (result[category] ?? 0n) + utxo.token.amount;
   }
   return result
+}
+
+// Whether two token lists hold the same entries in the same order, the coins of their NFTs
+// included, which a refresh of the wallet's coins rebuilds as new objects every time
+export function sameTokenList(a: TokenList, b: TokenList): boolean {
+  const asText = (list: TokenList) => JSON.stringify(list, (_key, value: unknown) =>
+    typeof value === 'bigint' ? value.toString() : value);
+  return asText(a) === asText(b);
 }
 
 export function getBalanceFromUtxos(utxos: Utxo[]) {

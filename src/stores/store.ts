@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, shallowRef, reactive, computed, watch } from 'vue'
+import { ref, shallowRef, reactive, computed, watch, toRaw } from 'vue'
 import {
   HDWallet,
   TestNetHDWallet,
@@ -37,7 +37,7 @@ import {
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
+import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, sameTokenList, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -56,7 +56,7 @@ import { useCashconnectStore } from "./cashconnectStore"
 import { useWizardconnectStore } from "./wizardconnectStore"
 import { ActionableError, displayAndLogError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
-import { cachedFetch } from "src/utils/cacheUtils"
+import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
@@ -1216,7 +1216,11 @@ export const useStore = defineStore('store', () => {
     }
     const otherTokenList = unsortedTokenList.filter(token => !settingsStore.featuredTokens.includes(token.category));
 
-    tokenList.value = [...featuredTokenList, ...otherTokenList];
+    const sortedTokenList = [...featuredTokenList, ...otherTokenList];
+    // assigned only when it changed, so what watches it does not rerun on the refreshes of the
+    // wallet's coins that change nothing in it, several per send; read raw to skip the proxies
+    if (tokenList.value && sameTokenList(toRaw(tokenList.value), sortedTokenList)) return;
+    tokenList.value = sortedTokenList;
   }
 
   // Fetch token metadata from BCMR indexer
@@ -1296,6 +1300,15 @@ export const useStore = defineStore('store', () => {
     return publicKeyHashes;
   }
 
+  // a revisit within a minute, for the same wallet, addresses and coins, reuses the last lookup
+  const DEFI_LOOKUP_TTL_MS = 60_000;
+  let cauldronPoolsLookup: { key: string, at: number } | undefined;
+  let badgerLocksLookup: { key: string, at: number } | undefined;
+  function defiLookupKey(ownerPkhs: string[]) {
+    const coins = (walletUtxos.value ?? []).map(outpointOf).sort();
+    return `${currentInitialization}:${ownerPkhs.join()}:${coins.join()}`;
+  }
+
   // Find the Cauldron liquidity pools the wallet owns. Pools are not held as a token or an NFT,
   // they live at the pool contract address derived from the owner's public key hash, so this is
   // a UTXO lookup per wallet address. Only the portfolio view shows them, so it drives the fetch.
@@ -1303,12 +1316,14 @@ export const useStore = defineStore('store', () => {
     // the portfolio view can ask before the wallet is set, the retry comes with the token list
     if (!_wallet.value) return;
     try {
+      const ownerPkhs = walletPublicKeyHashes();
+      const lookupKey = defiLookupKey(ownerPkhs);
+      if (cauldronPools.value && isFreshLookup(cauldronPoolsLookup, lookupKey, DEFI_LOOKUP_TTL_MS)) return;
       const initialization = currentInitialization;
-      const pools = await fetchCauldronPools(
-        wallet.value.provider, walletPublicKeyHashes(), wallet.value.networkPrefix
-      );
+      const pools = await fetchCauldronPools(wallet.value.provider, ownerPkhs, wallet.value.networkPrefix);
       if (initialization !== currentInitialization) return;
       cauldronPools.value = pools;
+      cauldronPoolsLookup = { key: lookupKey, at: Date.now() };
 
       // the token in a pool does not have to be held by the wallet, so its metadata can be missing
       const poolTokens: TokenList = [];
@@ -1338,10 +1353,14 @@ export const useStore = defineStore('store', () => {
       return;
     }
     try {
+      const ownerPkhs = walletPublicKeyHashes();
+      const lookupKey = defiLookupKey(ownerPkhs);
+      if (badgerLocks.value && isFreshLookup(badgerLocksLookup, lookupKey, DEFI_LOOKUP_TTL_MS)) return;
       const initialization = currentInitialization;
-      const locks = await fetchBadgerLocks(wallet.value.provider, walletPublicKeyHashes());
+      const locks = await fetchBadgerLocks(wallet.value.provider, ownerPkhs);
       if (initialization !== currentInitialization) return;
       badgerLocks.value = locks;
+      badgerLocksLookup = { key: lookupKey, at: Date.now() };
     } catch (error) {
       // swallowed like the Cauldron lookup, so one unreachable request does not keep the
       // portfolio from rendering everything else
