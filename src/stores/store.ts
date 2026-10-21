@@ -1439,8 +1439,12 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Refetch exchange rate when user changes currency
-  watch(() => settingsStore.currency, () => void fetchExchangeRate());
+  // Refetch exchange rate when user changes currency; the old currency's rate is dropped at once,
+  // so no display pairs it with the new currency's symbol meanwhile
+  watch(() => settingsStore.currency, () => {
+    exchangeRate.value = undefined;
+    void fetchExchangeRate();
+  });
   // A server change replaces the network's provider at once, so the next wallet constructed starts
   // on the new server; the active wallet moves there through selectElectrumProvider
   watch([() => settingsStore.electrumServerMainnet, () => settingsStore.electrumServerChipnet], () => {
