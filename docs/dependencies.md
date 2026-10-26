@@ -46,8 +46,10 @@ nostr-tools (through WizardConnect) on 2.x, which removed APIs WalletConnect use
 one major breaks the other. `@walletconnect/relay-auth` also bundles its own copy of noble's
 ed25519, out of any override's reach.
 
-**We don't override them within a major either.** It saves little, and it overrides the crypto
-of a protocol library we don't control. The fix is upstream: when `@walletconnect/utils` and
+**Within a major we override only `@noble/curves` 1.x**, to the 1.9.7 that `@walletconnect/utils`
+already uses: it moves only `ox`, whose curves code serves sign-in verification a Bitcoin Cash
+wallet never runs. The 2.x copies under nostr-tools stay, since overriding them would put
+newer crypto under code tested against older versions, for little gain. The fix is upstream: when `@walletconnect/utils` and
 `relay-auth` move to noble 2.x, upgrade walletkit, core and the `overrides` block together.
 Versions matter, not just duplication: `@noble/curves` 2.3.0 hardened its constant-time code,
 including X25519 against a remote timing attack (fingerprinting, not key recovery), and the
