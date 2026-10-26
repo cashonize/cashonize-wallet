@@ -78,6 +78,8 @@ The Chaingraph queries are typed from a committed introspection (`src/generated/
 pnpm generate:chaingraph
 ```
 
+In VS Code, the completions and inline errors inside the queries come from the gql.tada TypeScript plugin, which only loads with the workspace TypeScript version: accept the prompt to use it, or run "TypeScript: Select TypeScript Version".
+
 ### Run E2E tests
 
 E2E testing is done with [Playwright](https://playwright.dev/). Playwright is configured in `test/e2e/playwright.config.ts`.
