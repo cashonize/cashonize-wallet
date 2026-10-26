@@ -37,7 +37,8 @@ export function tokenListFromUtxos(walletUtxos: Utxo[], reservedUtxos: ReservedU
     });
   }
   for (const category of Object.keys(nftsResult)) {
-    const utxosNftCategory = tokenUtxos.filter((val) =>val.token?.category === category);
+    // a fungible-only coin of the category is no NFT, and would show as one with an empty commitment
+    const utxosNftCategory = tokenUtxos.filter((val) => val.token?.category === category && val.token.nft);
     arrayTokens.push({ category, nfts: utxosNftCategory });
   }
   return arrayTokens

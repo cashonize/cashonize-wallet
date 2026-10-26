@@ -61,4 +61,18 @@ describe('tokenListFromUtxos', () => {
 
     expect(list).toEqual([{ category, nfts: [reserved, nftCoin(1, 'bb')] }])
   })
+
+  it('keeps a category\'s fungible-only coins out of its NFT entry', () => {
+    const list = tokenListFromUtxos([ftCoin(0, 1n), nftCoin(1, '000001')])
+
+    expect(list).toEqual([{ category, amount: 1n }, { category, nfts: [nftCoin(1, '000001')] }])
+  })
+
+  // an empty commitment is still an NFT, and so is an NFT that carries an amount too
+  it('keeps an empty-commitment NFT and a fungible + NFT coin in the NFT entry', () => {
+    const ftNft: Utxo = { ...nftCoin(1, 'aa'), token: { category, amount: 5n, nft: { commitment: 'aa', capability: 'none' } } }
+    const list = tokenListFromUtxos([nftCoin(0, ''), ftNft])
+
+    expect(list).toEqual([{ category, amount: 5n }, { category, nfts: [nftCoin(0, ''), ftNft] }])
+  })
 })
