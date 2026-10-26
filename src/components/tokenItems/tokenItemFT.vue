@@ -137,10 +137,15 @@
       if (tokenMetaData.value?.token?.symbol) {
         alertMessage = t('tokenItem.alerts.sentTokens', { amount: amountSentFormatted, symbol: tokenMetaData.value.token.symbol, address: destinationAddr.value });
       }
+      const sendInfo = {
+        recipient: destinationAddr.value,
+        amount: amountSentFormatted,
+        unit: tokenMetaData.value?.token?.symbol ?? category.slice(0, 8),
+      }
       tokenSendAmount.value = "";
       destinationAddr.value = "";
       displaySendTokens.value = false;
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'), sendInfo);
     }catch(error){
       displayAndLogError(error)
     } finally {

@@ -5,7 +5,8 @@
       "send": "Senden",
       "confirm": "Bestätigen",
       "broadcastAgain": "Erneut senden",
-      "dismiss": "Schließen"
+      "dismiss": "Schließen",
+      "done": "Fertig"
     },
     "status": {
       "sending": "Senden..."
@@ -570,6 +571,9 @@
     "transactionSent": "Transaktion gesendet!",
     "txId": "Transaktions-ID:",
     "linkExplorer": "Link Blockexplorer"
+  },
+  "sendSuccess": {
+    "to": "an"
   },
   "backupWallet": {
     "currentWallet": "Aktuelles Wallet:",

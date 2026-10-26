@@ -157,9 +157,10 @@
       if (nftName) {
         alertMessage = t('tokenItem.alerts.sentNftNamed', { name: nftName, address: destinationAddr.value });
       }
+      const sendInfo = { recipient: destinationAddr.value, amount: nftName || 'NFT', unit: '' }
       destinationAddr.value = "";
       displaySendNft.value = false;
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'), sendInfo);
     }catch(error){
       displayAndLogError(error)
     } finally {

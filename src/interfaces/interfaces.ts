@@ -73,6 +73,16 @@ export interface DialogInfo {
   hideExplorerLink?: boolean
 }
 
+// What the success screen after a send shows, formatted by the send form that knows the unit:
+// "0.0125" + "BCH", "250" + "FURU", or an NFT's name with an empty unit
+export interface SendSuccessInfo {
+  txid: string
+  recipient: string
+  amount: string
+  unit: string
+  fiat?: string | undefined
+}
+
 export interface BcmrTokenNftsParseInfo {
   description?: string | undefined
   fields?: Record<string, {

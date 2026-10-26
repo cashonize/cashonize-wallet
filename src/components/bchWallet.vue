@@ -265,11 +265,17 @@
       const { txId } = await store.spend.send([ sendBchOutput ]);
       const formattedAmount = numberFormatter.format(bchSendAmount.value)
       const alertMessage = t('wallet.sent', { amount: formattedAmount + displayUnitLong.value, address: destinationAddr.value })
+      const sendInfo = {
+        recipient: destinationAddr.value,
+        amount: formattedAmount,
+        unit: bchDisplayUnit.value.trim(),
+        fiat: currencySendAmount.value ? formatFiatAmount(currencySendAmount.value, settingsStore.currency) : undefined,
+      }
       // reset fields
       bchSendAmount.value = undefined;
       currencySendAmount.value = undefined;
       destinationAddr.value = "";
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'), sendInfo);
     } catch(error){
       displayAndLogError(error)
     } finally {
