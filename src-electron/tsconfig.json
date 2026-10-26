@@ -1,0 +1,5 @@
+{
+  "extends": "../.quasar/tsconfig.json",
+  "include": ["../.quasar/*.d.ts", "./*.ts"],
+  "exclude": []
+}
