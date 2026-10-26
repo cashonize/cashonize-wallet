@@ -103,6 +103,8 @@ When the indexer returns `nft_type: "parsable"` with `token.nfts` parse info (by
 
 The parsing engine is `src/parsing/nftParsing.ts` (`NftParseInfo`, `parseNft`), over the spec types in `src/parsing/bcmr-v2.schema.ts`.
 
+A few collections whose registries carry no parse info get a stand-in in `src/parsing/`: Emerald DAO keycards and HoneyBadgers. Parse info a registry does publish takes precedence.
+
 ### BCMR Extensions
 BCMR identities can declare `extensions` — named plugins that modify a UTXO before NFT parsing. Extensions are registered in `src/parsing/extensions/index.ts` and invoked by the store's `parseNftCommitment` method. The main extension is ParyonUSD (`paryonusd.ts`), which fetches the live on-chain loan state for loan-key NFTs.
 

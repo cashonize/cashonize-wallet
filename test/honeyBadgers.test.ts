@@ -35,8 +35,14 @@ describe("parseHoneyBadgersNft", () => {
     }
   });
 
-  it("has no fields for a Badger", () => {
-    expect(parseHoneyBadgersNft(badger20)).toEqual({ success: true, namedFields: [] });
+  // Badger #20 as badgers.cash shows it
+  it("reads a Badger's id and stats", () => {
+    const result = parseHoneyBadgersNft(badger20);
+    expect(result.success).toBe(true);
+    expect(result.nftTypeName).toBeUndefined();
+    expect(result.namedFields?.map(field => `${field.name} ${field.parsedValue?.formatted}`)).toEqual([
+      "Id 20", "Level 0", "Strength 7", "Stamina 8", "Agility 7", "Wisdom 3", "Attack 10", "Defence 3",
+    ]);
   });
 });
 
