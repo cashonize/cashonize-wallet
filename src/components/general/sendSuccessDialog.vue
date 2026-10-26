@@ -9,6 +9,7 @@
   import { copyToClipboard } from 'src/utils/utils'
   import type { SendSuccessInfo } from 'src/interfaces/interfaces'
   import TxNoteField from './TxNoteField.vue'
+  import SendAmount from './SendAmount.vue'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -61,8 +62,7 @@
           <path class="tick" d="M45 61l10 10 20-21" pathLength="1" />
         </svg>
         <div class="title">{{ t('alertDialog.transactionSent') }}</div>
-        <div class="amount">{{ sendInfo.amount }}<span v-if="sendInfo.unit" class="unit">{{ sendInfo.unit }}</span></div>
-        <div v-if="sendInfo.fiat" class="fiat">≈ {{ sendInfo.fiat }}</div>
+        <SendAmount :summary="sendInfo" class="amountBlock" />
         <div class="recipient" @click="copyToClipboard(sendInfo.recipient)">
           <span class="label">{{ t('sendSuccess.to') }}</span>
           <span>{{ shortRecipient }}</span>
@@ -178,24 +178,8 @@
     font-weight: 600;
     font-size: 17px;
   }
-  .amount {
-    font-size: 38px;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    line-height: 1.15;
+  .amountBlock {
     margin-top: 6px;
-    overflow-wrap: anywhere;
-  }
-  .amount .unit {
-    font-size: 0.5em;
-    font-weight: 600;
-    color: var(--color-grey);
-    letter-spacing: 0;
-    margin-left: 6px;
-  }
-  .fiat {
-    font-size: 18px;
-    color: var(--color-grey);
   }
   .recipient {
     display: inline-flex;

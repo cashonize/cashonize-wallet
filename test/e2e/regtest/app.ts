@@ -92,7 +92,8 @@ export async function expectBalance(page: Page, tbch: string) {
 // Confirms a payment when the app asks for it (the "Confirm payments" setting), or else goes on once
 // the broadcast has an outcome
 export async function confirmIfAsked(page: Page) {
-  const confirm = page.locator('.q-dialog:visible').getByRole('button', { name: 'Confirm' })
+  // a send's review says Send, the other confirmations (burns, mints) say Confirm
+  const confirm = page.locator('.q-dialog:visible').getByRole('button', { name: /^(Confirm|Send)$/ })
   const outcome = page.locator('.q-dialog:visible').getByText('Transaction Sent!').or(errorNotification(page))
   await expect(confirm.or(outcome).first()).toBeVisible({ timeout: 60_000 })
   if (await confirm.isVisible()) await confirm.click()

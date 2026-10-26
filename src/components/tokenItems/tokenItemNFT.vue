@@ -16,7 +16,7 @@
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { confirmDialog, confirmSend, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
@@ -262,18 +262,15 @@
       const isAllSelected = selectedNftCount.value === tokenData.value.nfts?.length;
       const nftCount = selectedNftCount.value;
 
-      // confirm payment if setting is enabled
-      if (settingsStore.confirmBeforeSending) {
-        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? category.slice(0, 8)
-        const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
-        const messageKey = isAllSelected ? 'tokenItem.dialogs.confirmNftTransfer.messageAll' : 'tokenItem.dialogs.confirmNftTransfer.message'
-        const confirmed = await confirmDialog(
-          t('tokenItem.dialogs.confirmNftTransfer.title'),
-          t(messageKey, { count: nftCount, symbol: tokenSymbol, address: truncatedAddr }),
-          t('tokenItem.dialogs.confirmButton')
-        )
-        if (!confirmed) return
+      const nftName = tokenName.value;
+      const sendInfo = {
+        recipient: destinationAddr.value,
+        amount: String(nftCount),
+        unit: nftName || 'NFTs',
+        token: { category, iconUrl: store.tokenIconUrl(category) },
       }
+      // confirm payment if setting is enabled
+      if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
 
       // Get selected NFTs from the full list
       const selectedNftsList = tokenData.value.nfts?.filter(nft =>
@@ -295,7 +292,6 @@
       })
       notifySending();
       const { txId } = await store.spend.send(outputArray, selectedNftsList);
-      const nftName = tokenName.value;
       let alertMessage = t('tokenItem.alerts.sentNfts', { count: nftCount, tokenId: category, address: destinationAddr.value });
       if (isAllSelected && nftName) {
         alertMessage = t('tokenItem.alerts.sentAllNftsNamed', { name: nftName, address: destinationAddr.value });
@@ -304,7 +300,6 @@
       } else if (nftName) {
         alertMessage = t('tokenItem.alerts.sentNftsNamed', { count: nftCount, name: nftName, address: destinationAddr.value });
       }
-      const sendInfo = { recipient: destinationAddr.value, amount: String(nftCount), unit: nftName || 'NFTs' }
       destinationAddr.value = "";
       displayBatchTransfer.value = false;
       clearSelection();
@@ -324,19 +319,18 @@
       if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
       store.checkTokenUtxosSpendable(tokenData.value.nfts.slice(0, 1));
 
-      // confirm payment if setting is enabled
-      if (settingsStore.confirmBeforeSending) {
-        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.category.slice(0, 8)
-        const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
-        const confirmed = await confirmDialog(
-          t('tokenItem.dialogs.confirmNftSend.title'),
-          t('tokenItem.dialogs.confirmNftSend.message', { symbol: tokenSymbol, address: truncatedAddr }),
-          t('tokenItem.dialogs.confirmButton')
-        )
-        if (!confirmed) return
-      }
-
       const category = tokenData.value.category;
+      const nftName = tokenName.value;
+      const sendInfo = {
+        recipient: destinationAddr.value,
+        amount: nftName || 'NFT',
+        // a nameless NFT is told apart by the start of its token id, as a nameless token's symbol is
+        unit: nftName ? '' : category.slice(0, 8),
+        token: { category, iconUrl: httpsUrlTokenIcon.value },
+      }
+      // confirm payment if setting is enabled
+      if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
+
       const nftUtxo = tokenData.value.nfts[0]!;
       const nftInfo = nftUtxo.token as TokenI;
       notifySending();
@@ -350,12 +344,10 @@
           },
         }),
       ], [nftUtxo]);
-      const nftName = tokenName.value;
       let alertMessage = t('tokenItem.alerts.sentNft', { tokenId: category, address: destinationAddr.value });
       if (nftName) {
         alertMessage = t('tokenItem.alerts.sentNftNamed', { name: nftName, address: destinationAddr.value });
       }
-      const sendInfo = { recipient: destinationAddr.value, amount: nftName || 'NFT', unit: '' }
       destinationAddr.value = "";
       displaySendNft.value = false;
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'), sendInfo);

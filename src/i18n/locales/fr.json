@@ -182,8 +182,6 @@
     "amountPlaceholder": "montant",
     "max": "max",
     "notEnoughBch": "Pas assez de BCH dans le portefeuille pour envoyer",
-    "confirmPayment": "Confirmer le paiement",
-    "confirmPaymentMessage": "Envoyer {amount}{unit}{fiat} à",
     "sendingTransaction": "Envoi de la transaction...",
     "sent": "Envoyé {amount} à {address}",
     "transactionSuccess": "Transaction envoyée avec succès !",
@@ -385,19 +383,6 @@
       "nftMetadataShort": "chargement..."
     },
     "dialogs": {
-      "confirmTokenSend": {
-        "title": "Confirmer l'envoi de tokens",
-        "message": "Envoyer {amount} {symbol} à\n{address}"
-      },
-      "confirmNftSend": {
-        "title": "Confirmer l'envoi du NFT",
-        "message": "Envoyer NFT {symbol} à\n{address}"
-      },
-      "confirmNftTransfer": {
-        "title": "Confirmer le transfert de NFT",
-        "message": "Envoyer {count} NFTs {symbol} à\n{address}",
-        "messageAll": "Envoyer tous les {count} NFTs {symbol} à\n{address}"
-      },
       "confirmMint": {
         "title": "Confirmer la création",
         "message": "Créer {count} NFTs de catégorie {tokenId} à\n{address}",
@@ -574,6 +559,11 @@
   },
   "sendSuccess": {
     "to": "à"
+  },
+  "sendConfirm": {
+    "title": "Vérifier l'envoi",
+    "to": "À",
+    "cancel": "Annuler"
   },
   "backupWallet": {
     "currentWallet": "Portefeuille actuel :",
