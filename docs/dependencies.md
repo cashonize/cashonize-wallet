@@ -35,6 +35,13 @@ known advisories; the pin guards against a hostile publish, and vendoring would 
 more. Its decoder struggles with very dense codes
 (nimiq/qr-scanner#239).
 
+**vue-router stays on 4.x.** Version 5 brings file-based routing into the package and with it
+15 more dependencies (a Vite plugin, a file watcher, AST tooling), none of which the app would
+use. `@quasar/app-vite` declares `vue-router >= 5`, an unmet peer we accept while Quasar's entry
+needs only `createRouter`. Revisit if Quasar starts relying on v5 APIs or 4.x stops getting
+security fixes. The app uses two routes (the wallet page with its `?uri=` deep link, and a 404)
+plus `router.push` for Capacitor deep links; the Quasar CLI requires a router, so it can't go.
+
 **`@noble/hashes` and `@noble/ciphers` are direct dependencies for BIP38** (scrypt and
 AES-ECB), which neither WebCrypto nor libauth provides.
 
