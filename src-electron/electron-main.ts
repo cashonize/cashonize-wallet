@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, session, shell } from 'electron';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -36,6 +36,33 @@ function configSet(key: string, value: unknown): void {
 
 let mainWindow: BrowserWindow | undefined;
 
+// Links leave the app for the browser, and only safe schemes go there, to prevent protocol abuse
+function openExternalIfSafe(url: string) {
+  try {
+    const parsed = new URL(url);
+    const isHttps = parsed.protocol === 'https:';
+    const isDevLocalhost = parsed.protocol === 'http:' && import.meta.env.QUASAR_DEV && parsed.hostname === 'localhost';
+    if (isHttps || isDevLocalhost) {
+      void shell.openExternal(parsed.href);
+    } else {
+      console.warn('Blocked openExternal for disallowed URL scheme:', url);
+    }
+  } catch {
+    console.warn('Blocked openExternal for invalid URL:', url);
+  }
+}
+
+// The window only ever shows the app's own page: another page loaded in it would look like the wallet
+function isAppPage(url: string, currentUrl: string) {
+  try {
+    const target = new URL(url);
+    const current = new URL(currentUrl);
+    return target.origin === current.origin && target.pathname === current.pathname;
+  } catch {
+    return false;
+  }
+}
+
 function createWindow() {
   const windowState = configGet('windowState') as {
     isMaximized: boolean;
@@ -50,6 +77,7 @@ function createWindow() {
     autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true,
+      sandbox: true, // Electron's default, written out so it stays on
       backgroundThrottling: false, // keep Electrum WebSocket connections alive when window is minimized
       // More info: https://quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
       preload: path.join(import.meta.dirname, 'electron-preload.cjs')
@@ -80,21 +108,14 @@ function createWindow() {
 
   mainWindow.show();
 
-  // Open links in browser window — only allow safe schemes to prevent protocol abuse
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    try {
-      const parsed = new URL(url);
-      const isHttps = parsed.protocol === 'https:';
-      const isDevLocalhost = parsed.protocol === 'http:' && import.meta.env.QUASAR_DEV && parsed.hostname === 'localhost';
-      if (isHttps || isDevLocalhost) {
-        void shell.openExternal(parsed.href);
-      } else {
-        console.warn('Blocked openExternal for disallowed URL scheme:', url);
-      }
-    } catch {
-      console.warn('Blocked openExternal for invalid URL:', url);
-    }
+    openExternalIfSafe(url);
     return { action: 'deny' };
+  });
+  mainWindow.webContents.on('will-navigate', (event) => {
+    if (isAppPage(event.url, mainWindow?.webContents.getURL() ?? '')) return;
+    event.preventDefault();
+    openExternalIfSafe(event.url);
   });
 
   if (import.meta.env.QUASAR_DEBUG) {
@@ -114,6 +135,12 @@ function createWindow() {
 
 app.whenReady().then(() => {
   registerQuasarRuntime();
+  // Grant only what the app uses: the camera for scanning QR codes, and clipboard writes should Chromium ask
+  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback, details) => {
+    const mediaTypes = 'mediaTypes' in details ? details.mediaTypes ?? [] : [];
+    const isCamera = permission === 'media' && mediaTypes.length > 0 && mediaTypes.every(mediaType => mediaType === 'video');
+    callback(isCamera || permission === 'clipboard-sanitized-write');
+  });
   createWindow();
 });
 
