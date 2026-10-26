@@ -88,7 +88,10 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
     if (isInitialized.value) return;
     const core = new Core({
-      projectId: walletConnectProjectId
+      projectId: walletConnectProjectId,
+      // On by default: posts pairing, approval and response failures (flow step names, error
+      // messages, topics) to pulse.walletconnect.org. Nothing in the protocol depends on it.
+      telemetryEnabled: false
     });
     const walletKit = await WalletKit.init({
       // @ts-ignore: it complains about not having a 'relayUrl' property but it is not needed
