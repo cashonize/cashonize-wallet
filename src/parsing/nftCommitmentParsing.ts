@@ -5,6 +5,8 @@ import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { EMERALD_DAO_CATEGORY } from 'src/utils/defi/emeraldDao'
 import { emeraldKeycardParseResult } from 'src/parsing/emeraldKeycard'
+import { BADGERCOIN_CATEGORY } from 'src/utils/defi/badgersStake'
+import { parseHoneyBadgersNft } from 'src/parsing/honeyBadgers'
 
 // Vue composable for Parsable-NFT state.
 // Keeps parsing state and parses the NFT commitment on mount/when metadata becomes available.
@@ -46,7 +48,13 @@ export function useNftCommitmentParsing(getCategory: () => string, getNftUtxo: (
     if (!isEnabled() || isParsable.value || getCategory() !== EMERALD_DAO_CATEGORY) return undefined;
     return emeraldKeycardParseResult(getNftUtxo()?.token?.nft?.commitment, store.exchangeRate, settingsStore.currency);
   });
-  const parseResult = computed(() => parsedResult.value ?? keycardResult.value);
+  // HoneyBadgers NFTs likewise, see honeyBadgers.ts
+  const honeyBadgersResult = computed(() => {
+    const nftUtxo = getNftUtxo();
+    if (!isEnabled() || isParsable.value || getCategory() !== BADGERCOIN_CATEGORY || !nftUtxo) return undefined;
+    return parseHoneyBadgersNft(nftUtxo);
+  });
+  const parseResult = computed(() => parsedResult.value ?? keycardResult.value ?? honeyBadgersResult.value);
 
   return { parseResult, parsingNft, isParsable, hasParyonUsdExtension };
 }
