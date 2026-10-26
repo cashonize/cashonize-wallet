@@ -8,7 +8,7 @@ import {
 } from './mocks/store.mocks'
 
 // Import the mocked storeUtils to control fetchTokenMetadata responses
-import { fetchTokenMetadata as mockFetchTokenMetadataFromIndexer } from '../src/stores/storeUtils'
+import { fetchTokenMetadata as mockFetchTokenMetadataFromIndexer, tokenListFromUtxos as mockTokenListFromUtxos } from '../src/stores/storeUtils'
 
 import { useStore } from '../src/stores/store'
 
@@ -48,6 +48,11 @@ describe('network switch race conditions', () => {
     localStorageMock.clear()
     setActivePinia(createPinia())
     localStorageMock.setItem('network', 'mainnet')
+  })
+
+  // clearAllMocks keeps implementations, so one a test sets is put back here, even when it fails
+  afterEach(() => {
+    vi.mocked(mockTokenListFromUtxos).mockReturnValue([])
   })
 
   it('ignores stale getUtxos result after re-initialization', async () => {
@@ -156,6 +161,33 @@ describe('network switch race conditions', () => {
     await flushAsyncWork()
 
     expect(store.bcmrRegistries).toEqual(freshMetadata)
+  })
+
+  // the history landing first must not look up a held token again: that category-only answer
+  // could land after the wallet's own fetch and replace its NFTs' metadata
+  it('leaves held tokens out of the history\'s metadata fetch while the metadata is loading', async () => {
+    const heldNft = { category: 'held', nfts: [] }
+    vi.mocked(mockTokenListFromUtxos).mockReturnValue([heldNft] as never)
+    const metadataDeferred = createDeferred<Record<string, unknown>>()
+    vi.mocked(mockFetchTokenMetadataFromIndexer)
+      .mockReturnValueOnce(metadataDeferred.promise as never)
+      .mockResolvedValue({})
+    const wallet = createMockWallet()
+    const tokenAmountChanges = [{ category: 'held', amount: 0n }, { category: 'spent', amount: -5n }]
+    wallet.getHistory.mockResolvedValue([{ txid: 'tx', tokenAmountChanges }])
+
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    const init = store.initializeWallet()
+    await flushAsyncWork()
+
+    expect(vi.mocked(mockFetchTokenMetadataFromIndexer).mock.calls.map(call => call[0])).toEqual([
+      [heldNft],
+      [{ category: 'spent', amount: 0n }],
+    ])
+
+    metadataDeferred.resolve({})
+    await init
   })
 })
 

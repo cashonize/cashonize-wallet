@@ -1168,12 +1168,14 @@ export const useStore = defineStore('store', () => {
       isHistoryPartial.value = !merge && count > 0 && history.length < rawHistory.length;
       // Fetch metadata for history tokens no longer in the wallet, so their names, icons
       // and decimals still display. Fire-and-forget: history renders right away and the
-      // metadata fills in reactively.
+      // metadata fills in reactively. Held tokens are left to the wallet's own fetch: while that is
+      // loading, this category-only answer could land after it and drop their NFTs' metadata.
       const missingCategories: string[] = [];
       for (const tx of history) {
         for (const tokenChange of tx.tokenAmountChanges) {
           const category = tokenChange.category;
           if (bcmrRegistries.value?.[category] || queriedHistoryCategories.includes(category)) continue;
+          if (allTokenList.value?.some(token => token.category === category)) continue;
           queriedHistoryCategories.push(category);
           missingCategories.push(category);
         }
