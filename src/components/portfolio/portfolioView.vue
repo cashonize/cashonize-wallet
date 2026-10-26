@@ -85,7 +85,11 @@
   // pledged coin is an ordinary holding the user chose to protect, and counts.
   const includeReserves = ref(false)
   const hasReserves = computed(() => (store.tokenList ?? []).some(token => 'amount' in token && token.inReserve))
-  const checkingAdditionalContractAssets = ref(false)
+  // a first lookup or a retry after a failure, not a silent refresh of rows already shown; each
+  // part shows as loading in its own place until it lands
+  const announcedAssetsLoading = ref(false)
+  const checkingHodlContracts = computed(() => announcedAssetsLoading.value && store.hodlContracts === null)
+  const checkingTapswapListings = computed(() => announcedAssetsLoading.value && store.tapswapListings === null)
   // chipnet balances are shown in the mainnet BCH price here just like on the wallet
   // page, marked with the same 't' prefix on the unit and currency names
   const bchUnitName = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH')
@@ -101,13 +105,13 @@
   const portfolioLoad = sharedRun(loadPortfolioData)
   async function loadPortfolioData() {
     // unawaited: waiting on the transaction index should not hold up the view's loading gate.
-    // The spinner only accompanies the first lookup and retries after a failure;
+    // The spinners only accompany the first lookup and retries after a failure;
     // re-entries with data on screen refresh silently behind the rows already shown.
     if (store.tapswapListings === null || store.hodlContracts === null || store.announcedAssetsError) {
-      checkingAdditionalContractAssets.value = true
+      announcedAssetsLoading.value = true
     }
     void store.fetchWalletAnnouncedAssets().finally(() => {
-      checkingAdditionalContractAssets.value = false
+      announcedAssetsLoading.value = false
     })
     // independent lookups, so the slowest sets the time rather than their sum
     await Promise.all([
@@ -854,9 +858,9 @@
           <div class="donut-center-amount">{{ formatBchValue(totalBchValue ?? 0) }}</div>
         </div>
       </div>
-      <!-- hodl locks count towards the total, and on a first scan of the history they arrive last -->
-      <div v-if="checkingAdditionalContractAssets" class="include-staking">
-        {{ t('portfolio.checkingAdditionalContractAssets') }} <q-spinner-dots size="1.2em" />
+      <!-- hodl locks count towards the total, so the total says while they may still arrive -->
+      <div v-if="checkingHodlContracts" class="include-staking">
+        {{ t('portfolio.checkingHodlContracts') }} <q-spinner-dots size="1.2em" />
       </div>
 
       <div v-if="hasReserves" class="include-staking">
@@ -988,8 +992,12 @@
         </div>
       </template>
 
-      <div v-if="!checkingAdditionalContractAssets && store.announcedAssetsError" class="section-label">
+      <div v-if="!announcedAssetsLoading && store.announcedAssetsError" class="section-label">
         {{ store.announcedAssetsError }}
+      </div>
+
+      <div v-if="checkingTapswapListings" class="section-label">
+        {{ t('portfolio.checkingTapswapListings') }} <q-spinner-dots size="1.2em" />
       </div>
 
       <template v-if="tapswapRows.length">

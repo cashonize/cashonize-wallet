@@ -69,7 +69,7 @@ import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
 import { listingsFromHistory, fetchActiveListings, type TapswapListing } from "src/utils/defi/tapswapListings"
 import { hodlContractsFromHistory, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
-import { updateTransactionIndex, removeTransactionIndex } from "src/utils/history/transactionIndex"
+import { updateTransactionIndex, removeTransactionIndex, type ScannedTransaction } from "src/utils/history/transactionIndex"
 import { mergeNewestPage } from "src/utils/history/historyMerge"
 import { type DappActivityEntry, loadDappActivity, appendDappActivity, clearDappActivity, removeDappActivity, loadDappActivitySeen, saveDappActivitySeen } from "src/utils/dapp/dappActivity"
 import {
@@ -1415,7 +1415,8 @@ export const useStore = defineStore('store', () => {
   // Find the wallet's TapSwap listings and hodl contracts. Both are held by contracts, so the
   // wallet holds nothing that represents them, and both are announced by an OP_RETURN on a
   // transaction the wallet funded, so both are read off the wallet's own transactions. Only the
-  // portfolio view shows them, so it drives the fetch. Both protocols are mainnet only.
+  // portfolio view shows them, so it drives the fetch. Both protocols are mainnet only. Each is
+  // null while its first lookup runs, and the two land independently.
   async function fetchWalletAnnouncedAssets() {
     if (!_wallet.value) return;
     if (network.value !== 'mainnet') {
@@ -1423,40 +1424,67 @@ export const useStore = defineStore('store', () => {
       hodlContracts.value = [];
       return;
     }
+    // after a failure both are looked up anew, and show as loading again until they land
+    if (announcedAssetsError.value) {
+      tapswapListings.value = null;
+      hodlContracts.value = null;
+    }
     announcedAssetsError.value = undefined;
-    try {
-      const initialization = currentInitialization;
-      const ownerPkhs = walletPublicKeyHashes();
-      const { announcements } = await indexedTransactions();
-      if (initialization !== currentInitialization) return;
+    const initialization = currentInitialization;
+
+    async function lookUpListings(announcements: ScannedTransaction[], ownerPkhs: string[]) {
       const listings = await fetchActiveListings(wallet.value.provider, listingsFromHistory(announcements, ownerPkhs, wallet.value.networkPrefix));
       if (initialization !== currentInitialization) return;
       tapswapListings.value = listings;
-
-      const hodlCandidates = hodlContractsFromHistory(announcements, ownerPkhs);
-      const contracts = await fetchHodlContractStates(wallet.value.provider, hodlCandidates);
+      // names and icons fill in after the rows: nothing waits on them
+      void fetchListingMetadata(listings);
+    }
+    async function lookUpHodlContracts(announcements: ScannedTransaction[], ownerPkhs: string[]) {
+      const contracts = await fetchHodlContractStates(wallet.value.provider, hodlContractsFromHistory(announcements, ownerPkhs));
       if (initialization !== currentInitialization) return;
       hodlContracts.value = contracts;
-
-      // NFT listings fetch their NFT-specific metadata (name, icon), which carries the
-      // collection metadata with it; fungible listings fetch the category metadata. The
-      // fetches merge into tapswapRegistries in place.
+    }
+    // NFT listings fetch their NFT-specific metadata (name, icon), which carries the collection
+    // metadata with it; fungible listings fetch the category metadata. The fetches merge into
+    // tapswapRegistries in place.
+    async function fetchListingMetadata(listings: TapswapListing[]) {
+      const fetches: Promise<unknown>[] = [];
+      // several listings of one token or NFT ask once, now that the fetches no longer wait on each other
+      const requested = new Set<string>();
       for (const listing of listings) {
-        if (initialization !== currentInitialization) return;
+        const key = `${listing.category}:${listing.commitment ?? 'fungible'}`;
+        if (requested.has(key)) continue;
+        requested.add(key);
         if (listing.commitment !== undefined) {
           if (tapswapRegistries.value[listing.category]?.nfts?.[listing.commitment]) continue;
-          await fetchNftMetadataFromIndexer(listing.category, listing.commitment, tokenMetadataIndexer.value, tapswapRegistries.value);
+          fetches.push(fetchNftMetadataFromIndexer(listing.category, listing.commitment, tokenMetadataIndexer.value, tapswapRegistries.value));
           continue;
         }
         if (tapswapRegistries.value[listing.category]) continue;
-        await fetchTokenMetadataFromIndexer(
+        fetches.push(fetchTokenMetadataFromIndexer(
           [{ category: listing.category, amount: listing.tokenAmount }], false, tokenMetadataIndexer.value, tapswapRegistries.value
-        );
+        ));
       }
+      const results = await Promise.allSettled(fetches);
+      for (const result of results) {
+        if (result.status === 'rejected') console.error("Failed to fetch TapSwap listing metadata:", result.reason);
+      }
+    }
+
+    try {
+      const ownerPkhs = walletPublicKeyHashes();
+      const { announcements } = await indexedTransactions();
+      if (initialization !== currentInitialization) return;
+      await Promise.all([
+        lookUpListings(announcements, ownerPkhs),
+        lookUpHodlContracts(announcements, ownerPkhs),
+      ]);
     } catch (error) {
       // shown inline in the portfolio view rather than toasted: this fetch re-runs on
       // every portfolio entry, so an unreachable server would toast on each visit
       console.error("Failed to look up TapSwap listings and hodl contracts:", error);
+      // a lookup cut off by a wallet switch is no failure of the wallet now open
+      if (initialization !== currentInitialization) return;
       announcedAssetsError.value = t('portfolio.announcedAssetsLoadingFailed');
       tapswapListings.value ??= [];
       hodlContracts.value ??= [];

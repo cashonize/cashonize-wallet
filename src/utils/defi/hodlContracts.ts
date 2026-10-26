@@ -125,15 +125,15 @@ export async function fetchHodlContractStates(
   provider: ElectrumNetworkProvider,
   candidates: { scriptHash: string, locktime: number }[]
 ) {
-  const contracts: HodlContract[] = [];
-  for (const candidate of candidates) {
+  // every contract ever announced is asked about, the unlocked ones included, so all at once
+  const states = await Promise.all(candidates.map(async (candidate) => {
     const address = encodeCashAddress({
       prefix: "bitcoincash", type: "p2sh", payload: hexToBin(candidate.scriptHash), throwErrors: true
     }).address;
     const utxos = await provider.getUtxos(address);
     const satoshis = utxos.reduce((sum, utxo) => sum + utxo.satoshis, 0n);
-    if (satoshis === 0n) continue;
-    contracts.push({ ...candidate, satoshis });
-  }
+    return { ...candidate, satoshis };
+  }));
+  const contracts: HodlContract[] = states.filter(contract => contract.satoshis > 0n);
   return contracts;
 }
