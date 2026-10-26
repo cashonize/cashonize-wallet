@@ -45,7 +45,7 @@
     "vue": "^3.5.43",
     "vue-i18n": "^11.4.14",
     "vue-router": "^4.6.4",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@bch-wc2/interfaces": "^0.0.16",

@@ -8,5 +8,3 @@ allowBuilds:
   # copies its vendored 7z binary into place for the host arch (Windows Squirrel installer)
   electron-winstaller: true
   esbuild: true
-minimumReleaseAgeExclude:
-  - electron@44.9.3
