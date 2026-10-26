@@ -1251,9 +1251,9 @@ export const useStore = defineStore('store', () => {
     // order the featuredTokenList according to the order in the settingStore
     const featuredTokenList: TokenList = []
     for(const featuredToken of settingsStore.featuredTokens){
-      // if featuredToken in unsortedTokenList, add it to a featuredTokenList
-      const featuredTokenItem = unsortedTokenList.find(token => token.category === featuredToken);
-      if(featuredTokenItem) featuredTokenList.push(featuredTokenItem)
+      // a category holding both fungibles and NFTs has an entry for each, keep both
+      const featuredTokenItems = unsortedTokenList.filter(token => token.category === featuredToken);
+      featuredTokenList.push(...featuredTokenItems)
     }
     const otherTokenList = unsortedTokenList.filter(token => !settingsStore.featuredTokens.includes(token.category));
 
