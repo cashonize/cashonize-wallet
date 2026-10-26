@@ -11,7 +11,7 @@
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { confirmDialog, confirmSend, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { useI18n } from 'vue-i18n'
@@ -111,19 +111,16 @@
       const amountSentFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
 
-      // confirm payment if setting is enabled
-      if (settingsStore.confirmBeforeSending) {
-        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? tokenData.value.category.slice(0, 8)
-        const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
-        const confirmed = await confirmDialog(
-          t('tokenItem.dialogs.confirmTokenSend.title'),
-          t('tokenItem.dialogs.confirmTokenSend.message', { amount: amountSentFormatted, symbol: tokenSymbol, address: truncatedAddr }),
-          t('tokenItem.dialogs.confirmButton')
-        )
-        if (!confirmed) return
-      }
-
       const category = tokenData.value.category;
+      const sendInfo = {
+        recipient: destinationAddr.value,
+        amount: amountSentFormatted,
+        unit: tokenMetaData.value?.token?.symbol ?? category.slice(0, 8),
+        token: { category, iconUrl: store.tokenIconUrl(category) },
+      }
+      // confirm payment if setting is enabled
+      if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
+
       notifySending();
       const { txId } = await store.spend.send([
         new TokenSendRequest({
@@ -140,7 +137,7 @@
       tokenSendAmount.value = "";
       destinationAddr.value = "";
       displaySendTokens.value = false;
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'), sendInfo);
     }catch(error){
       displayAndLogError(error)
     } finally {

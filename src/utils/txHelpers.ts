@@ -3,11 +3,14 @@
 // For error display, use displayAndLogError from errorHandling.ts.
 import { Dialog, Notify } from "quasar";
 import alertDialog from 'src/components/general/alertDialog.vue'
+import sendSuccessDialog from 'src/components/general/sendSuccessDialog.vue'
+import sendConfirmDialog from 'src/components/general/sendConfirmDialog.vue'
 import { useStore } from 'src/stores/store'
 import { useIdentitiesStore } from 'src/stores/identitiesStore'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { displayAndLogError } from 'src/utils/errorHandling'
 import { identityRefusal, refusalMessage, type ReservedInputsCheck } from 'src/utils/dapp/reservedInputs'
+import type { SendSummary } from 'src/interfaces/interfaces'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -48,6 +51,17 @@ export function confirmDialog(
   })
 }
 
+// The review before a send, resolves to false when the user backs out
+export function confirmSend(summary: SendSummary): Promise<boolean> {
+  return new Promise((resolve) => {
+    Dialog.create({
+      component: sendConfirmDialog,
+      componentProps: { summary }
+    }).onOk(() => resolve(true))
+      .onCancel(() => resolve(false))
+  })
+}
+
 export function notifySending(message?: string){
   Notify.create({
     spinner: true,
@@ -58,18 +72,31 @@ export function notifySending(message?: string){
 }
 
 // Handles a successful transaction broadcast: shows feedback, logs the tx and refreshes wallet state.
-export async function handleTransactionBroadcastSuccess(alertMessage: string, txId: string, successMessage: string){
+// A send passes `sendInfo` and gets the success screen, which replaces the dialog and the toast;
+// the other broadcasts (burns, mints, pledges, identity updates) keep the message dialog.
+export async function handleTransactionBroadcastSuccess(
+  alertMessage: string, txId: string, successMessage: string, sendInfo?: SendSummary
+){
   const store = useStore()
-  Dialog.create({
-    component: alertDialog,
-    componentProps: {
-      alertInfo: { message: alertMessage, txid: txId }
-    }
-  })
-  Notify.create({
-    type: 'positive',
-    message: successMessage
-  })
+  if (sendInfo) {
+    Dialog.create({
+      component: sendSuccessDialog,
+      componentProps: {
+        sendInfo: { ...sendInfo, txid: txId }
+      }
+    })
+  } else {
+    Dialog.create({
+      component: alertDialog,
+      componentProps: {
+        alertInfo: { message: alertMessage, txid: txId }
+      }
+    })
+    Notify.create({
+      type: 'positive',
+      message: successMessage
+    })
+  }
   console.log(alertMessage);
   console.log(`${store.explorerUrl}/${txId}`);
   // update utxo list

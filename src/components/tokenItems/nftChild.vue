@@ -14,7 +14,7 @@
   import { useNftCommitmentParsing } from 'src/parsing/nftCommitmentParsing'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
   import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { confirmDialog, confirmSend, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { appendBlockieIcon } from 'src/utils/icons/blockieIcon'
@@ -129,17 +129,16 @@
       store.checkTokenUtxosSpendable([nftData.value]);
 
       const nftInfo = nftData.value.token as TokenI;
-      // confirm payment if setting is enabled
-      if (settingsStore.confirmBeforeSending) {
-        const tokenSymbol = tokenMetaData.value?.token?.symbol ?? nftInfo.category.slice(0, 8)
-        const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
-        const confirmed = await confirmDialog(
-          t('tokenItem.dialogs.confirmNftSend.title'),
-          t('tokenItem.dialogs.confirmNftSend.message', { symbol: tokenSymbol, address: truncatedAddr }),
-          t('tokenItem.dialogs.confirmButton')
-        )
-        if (!confirmed) return
+      const nftName = tokenName.value;
+      const sendInfo = {
+        recipient: destinationAddr.value,
+        amount: nftName || 'NFT',
+        // a nameless NFT is told apart by the start of its token id, as a nameless token's symbol is
+        unit: nftName ? '' : nftInfo.category.slice(0, 8),
+        token: { category: nftInfo.category, iconUrl: httpsUrlTokenIcon.value },
       }
+      // confirm payment if setting is enabled
+      if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
 
       notifySending();
       const { txId } = await store.spend.send([
@@ -152,14 +151,13 @@
           },
         }),
       ], [nftData.value]);
-      const nftName = tokenName.value;
       let alertMessage = t('tokenItem.alerts.sentNft', { tokenId: nftInfo.category, address: destinationAddr.value });
       if (nftName) {
         alertMessage = t('tokenItem.alerts.sentNftNamed', { name: nftName, address: destinationAddr.value });
       }
       destinationAddr.value = "";
       displaySendNft.value = false;
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'), sendInfo);
     }catch(error){
       displayAndLogError(error)
     } finally {

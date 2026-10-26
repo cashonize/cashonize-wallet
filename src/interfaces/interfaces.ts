@@ -73,6 +73,21 @@ export interface DialogInfo {
   hideExplorerLink?: boolean
 }
 
+// What a send's confirm and success screens show, formatted by the send form that knows the unit:
+// "0.0125" + "BCH", "250" + "FURU", or an NFT's name with an empty unit. A token or NFT send
+// carries its category for the icon, with the icon of the NFT itself when it has one.
+export interface SendSummary {
+  recipient: string
+  amount: string
+  unit: string
+  fiat?: string | undefined
+  token?: { category: string, iconUrl?: string | undefined } | undefined
+}
+
+export interface SendSuccessInfo extends SendSummary {
+  txid: string
+}
+
 export interface BcmrTokenNftsParseInfo {
   description?: string | undefined
   fields?: Record<string, {

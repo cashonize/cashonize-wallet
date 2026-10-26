@@ -5,7 +5,8 @@
       "send": "Send",
       "confirm": "Confirm",
       "broadcastAgain": "Broadcast again",
-      "dismiss": "Dismiss"
+      "dismiss": "Dismiss",
+      "done": "Done"
     },
     "status": {
       "sending": "Sending..."
@@ -181,8 +182,6 @@
     "amountPlaceholder": "amount",
     "max": "max",
     "notEnoughBch": "Not enough BCH in wallet to send",
-    "confirmPayment": "Confirm Payment",
-    "confirmPaymentMessage": "Send {amount}{unit}{fiat} to",
     "sendingTransaction": "Sending transaction...",
     "sent": "Sent {amount} to {address}",
     "transactionSuccess": "Transaction successfully sent!",
@@ -384,19 +383,6 @@
       "nftMetadataShort": "loading..."
     },
     "dialogs": {
-      "confirmTokenSend": {
-        "title": "Confirm Token Send",
-        "message": "Send {amount} {symbol} to\n{address}"
-      },
-      "confirmNftSend": {
-        "title": "Confirm NFT Send",
-        "message": "Send {symbol} NFT to\n{address}"
-      },
-      "confirmNftTransfer": {
-        "title": "Confirm NFT Transfer",
-        "message": "Send {count} {symbol} NFTs to\n{address}",
-        "messageAll": "Send all {count} {symbol} NFTs to\n{address}"
-      },
       "confirmMint": {
         "title": "Confirm Mint",
         "message": "Mint {count} NFTs of category {tokenId} to\n{address}",
@@ -570,6 +556,14 @@
     "transactionSent": "Transaction Sent!",
     "txId": "Transaction ID:",
     "linkExplorer": "Link blockexplorer"
+  },
+  "sendSuccess": {
+    "to": "to"
+  },
+  "sendConfirm": {
+    "title": "Review send",
+    "to": "To",
+    "cancel": "Cancel"
   },
   "backupWallet": {
     "currentWallet": "Current wallet:",

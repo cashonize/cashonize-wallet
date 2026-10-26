@@ -5,7 +5,8 @@
       "send": "Enviar",
       "confirm": "Confirmar",
       "broadcastAgain": "Transmitir de nuevo",
-      "dismiss": "Cerrar"
+      "dismiss": "Cerrar",
+      "done": "Listo"
     },
     "status": {
       "sending": "Enviando..."
@@ -181,8 +182,6 @@
     "amountPlaceholder": "monto",
     "max": "máx",
     "notEnoughBch": "No hay suficiente BCH en la billetera para enviar",
-    "confirmPayment": "Confirmar pago",
-    "confirmPaymentMessage": "Enviar {amount}{unit}{fiat} a",
     "sendingTransaction": "Enviando transacción...",
     "sent": "Enviado {amount} a {address}",
     "transactionSuccess": "¡Transacción enviada correctamente!",
@@ -384,19 +383,6 @@
       "nftMetadataShort": "cargando..."
     },
     "dialogs": {
-      "confirmTokenSend": {
-        "title": "Confirmar envío de tokens",
-        "message": "Enviar {amount} {symbol} a\n{address}"
-      },
-      "confirmNftSend": {
-        "title": "Confirmar envío de NFT",
-        "message": "Enviar NFT {symbol} a\n{address}"
-      },
-      "confirmNftTransfer": {
-        "title": "Confirmar transferencia de NFT",
-        "message": "Enviar {count} NFTs {symbol} a\n{address}",
-        "messageAll": "Enviar todos los {count} NFTs {symbol} a\n{address}"
-      },
       "confirmMint": {
         "title": "Confirmar acuñación",
         "message": "Acuñar {count} NFTs de categoría {tokenId} a\n{address}",
@@ -570,6 +556,14 @@
     "transactionSent": "¡Transacción enviada!",
     "txId": "ID de transacción:",
     "linkExplorer": "Enlace al explorador"
+  },
+  "sendSuccess": {
+    "to": "a"
+  },
+  "sendConfirm": {
+    "title": "Revisar envío",
+    "to": "Para",
+    "cancel": "Cancelar"
   },
   "backupWallet": {
     "currentWallet": "Billetera actual:",

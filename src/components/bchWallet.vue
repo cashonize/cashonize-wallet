@@ -12,7 +12,7 @@
   import { useQuasar, type QMenu } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { displayAndLogError } from 'src/utils/errorHandling'
-  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { confirmSend, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { switchWalletWithNotice, maxWallets } from 'src/utils/wallet/walletUtils'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
   import QrScanButton from './qr/qrScanButton.vue';
@@ -248,28 +248,25 @@
       });
       destinationAddr.value = address;
 
-      // confirm payment if setting is enabled
-      if (settingsStore.confirmBeforeSending) {
-        const truncatedAddr = `${destinationAddr.value.slice(0, 24)}...${destinationAddr.value.slice(-8)}`
-        const fiatStr = currencySendAmount.value ? ` (${formatFiatAmount(currencySendAmount.value, settingsStore.currency)})` : ''
-        const confirmed = await confirmDialog(
-          t('wallet.confirmPayment'),
-          `${t('wallet.confirmPaymentMessage', { amount: numberFormatter.format(bchSendAmount.value), unit: displayUnitLong.value, fiat: fiatStr })}\n${truncatedAddr}`,
-          t('common.actions.confirm')
-        )
-        if (!confirmed) return
+      const formattedAmount = numberFormatter.format(bchSendAmount.value)
+      const sendInfo = {
+        recipient: destinationAddr.value,
+        amount: formattedAmount,
+        unit: bchDisplayUnit.value.trim(),
+        fiat: currencySendAmount.value ? formatFiatAmount(currencySendAmount.value, settingsStore.currency) : undefined,
       }
+      // confirm payment if setting is enabled
+      if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
 
       const sendBchOutput = { cashaddr: destinationAddr.value, value:amountSats } ;
       notifySending(t('wallet.sendingTransaction'));
       const { txId } = await store.spend.send([ sendBchOutput ]);
-      const formattedAmount = numberFormatter.format(bchSendAmount.value)
       const alertMessage = t('wallet.sent', { amount: formattedAmount + displayUnitLong.value, address: destinationAddr.value })
       // reset fields
       bchSendAmount.value = undefined;
       currencySendAmount.value = undefined;
       destinationAddr.value = "";
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'));
+      await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'), sendInfo);
     } catch(error){
       displayAndLogError(error)
     } finally {

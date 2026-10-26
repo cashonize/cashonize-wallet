@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, ref, watch, onUnmounted } from 'vue';
+  import { computed, ref } from 'vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -9,9 +9,8 @@
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
-  import CharCounter from '../general/CharCounter.vue';
+  import TxNoteField from '../general/TxNoteField.vue';
   import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, formatTokenAmount, tokenChangeChips } from 'src/utils/utils';
-  import { maxTxNoteLength } from 'src/utils/history/txNotes';
   import { feeRate, isBelowRelayFee, minRelayFeeRate } from 'src/utils/history/txFeeRate';
   import { useI18n } from 'vue-i18n'
 
@@ -43,20 +42,6 @@
     })
   }
 
-  // The note field autosaves: debounced while typing, immediately on blur and on dialog close
-  const noteDraft = ref(store.txNotes[props.historyItem.hash] ?? "");
-  let noteSaveTimeout: ReturnType<typeof setTimeout> | undefined;
-
-  function saveNote() {
-    clearTimeout(noteSaveTimeout);
-    store.setTxNote(props.historyItem.hash, noteDraft.value);
-  }
-
-  watch(noteDraft, () => {
-    clearTimeout(noteSaveTimeout);
-    noteSaveTimeout = setTimeout(saveNote, 500);
-  });
-  onUnmounted(saveNote);
 
   const tokenMetadata = ref(undefined as undefined | BcmrTokenMetadata | BcmrNftMetadata);
   const selectedTokenId = ref("");
@@ -207,20 +192,7 @@
               </div>
             </div>
           </div>
-          <label class="noteField">
-            <input
-              v-model="noteDraft"
-              type="text"
-              :placeholder="t('transactionDialog.notePlaceholder')"
-              :maxlength="maxTxNoteLength"
-              autocomplete="off"
-              spellcheck="false"
-              @blur="saveNote"
-              @keyup.enter="saveNote"
-            >
-            <CharCounter :length="noteDraft.length" :max-length="maxTxNoteLength" />
-            <q-icon name="edit" size="16px" class="noteIcon" />
-          </label>
+          <TxNoteField :txid="historyItem.hash" />
         </div>
 
         <details class="txDetailsCollapse">
@@ -358,37 +330,6 @@
   .txDetailsCollapse summary {
     display: list-item;
     cursor: pointer;
-  }
-  .noteField {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border: 1px solid var(--surface-line-strong);
-    border-radius: 8px;
-    background-color: var(--surface-faint);
-    transition: border-color 0.2s;
-    cursor: text;
-  }
-  .noteField:focus-within {
-    border-color: var(--color-primary);
-  }
-  .noteIcon {
-    flex: none;
-    opacity: 0.55;
-  }
-  .noteField input {
-    flex: 1;
-    min-width: 0;
-    width: auto;
-    border: none;
-    outline: none;
-    box-shadow: none;
-    background: transparent;
-    padding: 0;
-    margin: 0;
-    font-size: inherit;
-    color: inherit;
   }
   .thisWalletTag{
     color: hsla(160, 100%, 37%, 1)
