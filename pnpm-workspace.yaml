@@ -28,14 +28,18 @@ fund: false
 # package.json. Nested pins use "parent>child" selector syntax.
 overrides:
   '@reown/walletkit>@walletconnect/pay': '-'
-  # Security-critical deps that also appear as transitive dependencies (walletkit via
-  # @cashconnect-js/*, libauth and @walletconnect/core via several) — overrides pin every
-  # copy in the graph, which exact versions in package.json alone can't do. Keep in sync
-  # with package.json.
+  # Security-critical deps, pinned graph-wide where they also appear as transitive
+  # dependencies (libauth and @walletconnect/core via several) — overrides pin every copy
+  # in the graph, which exact versions in package.json alone can't do. Keep in sync with
+  # package.json.
   '@bitauth/libauth': 3.1.0-next.8
   '@reown/walletkit': 1.6.0
   '@walletconnect/core': 2.25.0
   '@wizardconnect/core': 0.2.5
+  # ox (via @walletconnect/utils) pins @noble/curves 1.9.1 and relay-auth 1.8.0, while
+  # @walletconnect/utils itself pins 1.9.7: one 1.x copy instead of three. A patch-level
+  # move within 1.9 with no API changes for ox; drop once WalletConnect moves to noble 2.x.
+  '@noble/curves@1': 1.9.7
 
 # Packages explicitly allowed to run install/build lifecycle scripts. Everything else is
 # blocked by pnpm; a future dep that adds an install script fails the install until

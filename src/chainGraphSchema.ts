@@ -4,10 +4,12 @@
 // The introspection is committed so a clone type checks without reaching a server. Taken from
 // https://gql.chaingraph.pat.mn/v1/graphql on 2026-09-01; `pnpm generate:chaingraph` refreshes it.
 
-import { initGraphQLTada } from 'gql.tada';
+import type { initGraphQLTada } from 'gql.tada';
 import type { introspection } from 'src/generated/graphql-env';
 
-export const graphql = initGraphQLTada<{
+// gql.tada is used for its types only: at runtime a document is its own query string, sent as
+// written, so no GraphQL parser or printer ships. This rules out fragments, which need the runtime.
+export const graphql = ((source: string) => source) as unknown as initGraphQLTada<{
   introspection: introspection;
   scalars: {
     bytea: string;
@@ -16,6 +18,6 @@ export const graphql = initGraphQLTada<{
     _text: string;
     enum_nonfungible_token_capability: 'none' | 'mutable' | 'minting';
   };
-}>();
+}>;
 
 export type { ResultOf, VariablesOf, TadaDocumentNode } from 'gql.tada';
