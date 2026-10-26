@@ -88,7 +88,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // the dapp activity log opens from the dapp sessions; this adds its icon to the top nav as well
   const dappActivityInNav = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
-  const confirmBeforeSending = ref(false); // consider changing default to true
+  const confirmBeforeSending = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
   // The identities of the tokens the wallet holds, followed passively. Off by default: the lookups
   // cost the Chaingraph instance a request at every wallet open, and send the token list there as

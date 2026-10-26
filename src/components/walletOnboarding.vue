@@ -34,7 +34,7 @@
   // Preferences - initialize from settingsStore (which reads from localStorage/system preferences)
   const selectedCurrency = ref<Currency>(settingsStore.currency);
   const selectedDarkMode = ref(settingsStore.darkMode);
-  const confirmBeforeSending = ref(true); // default in settingsStore is false, but we want true for new users
+  const confirmBeforeSending = ref(true);
 
   function selectCreate() {
     mode.value = "create";
