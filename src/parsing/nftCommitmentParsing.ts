@@ -50,9 +50,9 @@ export function useNftCommitmentParsing(getCategory: () => string, getNftUtxo: (
   });
   // HoneyBadgers NFTs likewise, see honeyBadgers.ts
   const honeyBadgersResult = computed(() => {
-    const nftUtxo = getNftUtxo();
-    if (!isEnabled() || isParsable.value || getCategory() !== BADGERCOIN_CATEGORY || !nftUtxo) return undefined;
-    return parseHoneyBadgersNft(nftUtxo);
+    const commitment = getNftUtxo()?.token?.nft?.commitment;
+    if (!isEnabled() || isParsable.value || getCategory() !== BADGERCOIN_CATEGORY || commitment === undefined) return undefined;
+    return parseHoneyBadgersNft(commitment);
   });
   const parseResult = computed(() => parsedResult.value ?? keycardResult.value ?? honeyBadgersResult.value);
 

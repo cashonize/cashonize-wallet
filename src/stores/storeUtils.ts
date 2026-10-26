@@ -9,6 +9,7 @@ import { utxoToLibauthOutput } from "src/parsing/utxoConverter"
 import { invokeExtensions } from "src/parsing/extensions/index"
 import { createElectrumAdapter } from "src/parsing/electrumAdapter"
 import type { IdentitySnapshot } from "src/parsing/bcmr-v2.schema"
+import { honeyBadgersTypeKey } from "src/parsing/honeyBadgers"
 
 // A fungible entry says what the wallet can spend of a category and, apart from it, what its held
 // back coins carry: the list shows the whole holding, the way the wallet page shows its balance
@@ -77,14 +78,21 @@ export async function fetchTokenMetadata(
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
 ) {
   const metadataPromises = [];
+  // the commitments each NFT lookup answers for, by its URL
+  const commitmentsByUrl = new Map<string, string[]>();
   for (const item of tokenList) {
     if('nfts' in item && (fetchNftInfo || Object.keys(item.nfts).length == 1)) {
-      const listCommitments = item.nfts.map(nftItem => nftItem.token?.nft?.commitment)
+      const listCommitments = item.nfts.map(nftItem => nftItem.token?.nft?.commitment ?? "")
       const uniqueCommitments = new Set(listCommitments);
       for(const nftCommitment of uniqueCommitments) {
-        const nftEndpoint = nftCommitment ? nftCommitment : "empty"
-        const metadataPromise = cachedFetch(`${tokenMetadataIndexer}/tokens/${item.category}/${nftEndpoint}/`);
-        metadataPromises.push(metadataPromise);
+        const url = nftMetadataUrl(tokenMetadataIndexer, item.category, nftCommitment);
+        const commitments = commitmentsByUrl.get(url);
+        if (commitments) {
+          commitments.push(nftCommitment);
+          continue;
+        }
+        commitmentsByUrl.set(url, [nftCommitment]);
+        metadataPromises.push(cachedFetch(url));
       }
     } else {
       const metadataPromise = cachedFetch(`${tokenMetadataIndexer}/tokens/${item.category}/`);
@@ -106,17 +114,24 @@ export async function fetchTokenMetadata(
       if (!tokenInfoResult) continue;
       const tokenId = tokenInfoResult.token?.category
       if(tokenInfoResult.type_metadata) {
-        const nftEndpoint = response.url.split("/").at(-2) as string;
-        const commitment = nftEndpoint != "empty"? nftEndpoint : "";
         if(!registries[tokenId]) registries[tokenId] = tokenInfoResult;
         if(!registries[tokenId]?.nfts) registries[tokenId].nfts = {}
-        registries[tokenId].nfts[commitment] = tokenInfoResult.type_metadata
+        for (const commitment of commitmentsByUrl.get(response.url) ?? []) {
+          registries[tokenId].nfts[commitment] = tokenInfoResult.type_metadata
+        }
       } else {
         if(!registries[tokenId]) registries[tokenId] = tokenInfoResult;
       }
     }
   }
   return registries;
+}
+
+// The lookup of an NFT's metadata, by its commitment, or by the type a HoneyBadgers NFT is
+// listed under, as no commitment of theirs matches one (see honeyBadgers.ts)
+function nftMetadataUrl(tokenMetadataIndexer: string, category: string, commitment: string) {
+  const typeKey = honeyBadgersTypeKey(category, commitment) ?? commitment;
+  return `${tokenMetadataIndexer}/tokens/${category}/${typeKey || "empty"}/`;
 }
 
 // Fetch NFT metadata for a specific category and commitment
@@ -126,8 +141,7 @@ export async function fetchNftMetadata(
   tokenMetadataIndexer: string,
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
 ) {
-  const nftEndpoint = commitment || "empty";
-  const res = await cachedFetch(`${tokenMetadataIndexer}/tokens/${category}/${nftEndpoint}/`);
+  const res = await cachedFetch(nftMetadataUrl(tokenMetadataIndexer, category, commitment));
   if (res.status !== 200) return bcmrRegistries ?? {};
   const tokenInfoResult = await parseIndexerResponse(res);
   if (!tokenInfoResult) return bcmrRegistries ?? {};
