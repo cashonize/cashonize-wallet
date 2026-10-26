@@ -28,10 +28,10 @@ fund: false
 # package.json. Nested pins use "parent>child" selector syntax.
 overrides:
   '@reown/walletkit>@walletconnect/pay': '-'
-  # Security-critical deps that also appear as transitive dependencies (walletkit via
-  # @cashconnect-js/*, libauth and @walletconnect/core via several) — overrides pin every
-  # copy in the graph, which exact versions in package.json alone can't do. Keep in sync
-  # with package.json.
+  # Security-critical deps, pinned graph-wide where they also appear as transitive
+  # dependencies (libauth and @walletconnect/core via several) — overrides pin every copy
+  # in the graph, which exact versions in package.json alone can't do. Keep in sync with
+  # package.json.
   '@bitauth/libauth': 3.1.0-next.8
   '@reown/walletkit': 1.6.0
   '@walletconnect/core': 2.25.0
