@@ -991,15 +991,16 @@
     "markingIntro": "Empfangsadressen können nach dem Teilen als verwendet markiert werden.",
     "markedInfo": "Eine geteilte Adresse bleibt unbenutzt, bis eine Zahlung eingeht, also gibt die Wallet weiterhin dieselbe aus. Sie als verwendet zu markieren geht zur nächsten Adresse weiter, damit jeder Zahler eine andere bekommt.",
     "unmarkInfo": "Markierte Adressen werden bei den verwendeten Adressen gruppiert, wo du die Markierung aufheben kannst.",
-    "freezeOption": "Adressen einfrieren",
+    "freezeOption": "Einfrieren-Buttons anzeigen",
     "freezeOptionLocked": "Taue alle Adressen auf, um dies auszuschalten",
     "frozenTag": "eingefroren",
+    "frozenTagInfo": "Empfängt weiterhin Zahlungen, wird aber nicht mehr als deine Empfangsadresse angezeigt",
     "freezeAddress": "Adresse einfrieren",
     "unfreezeAddress": "Adresse auftauen",
     "freezeLimitNotify": "Diese Adresse kann nicht eingefroren werden, eine neue Adresse muss verfügbar bleiben. Empfange eine Zahlung, um weitere freizugeben.",
     "freeze": {
       "title": "Diese Adresse einfrieren",
-      "message": "Jeder UTXO auf einer eingefrorenen Adresse, auch die später empfangenen, bleibt in deinem Wallet, wird aber bei jeder Zahlung und jedem Token-Transfer dieser App ausgelassen, und eine dApp-Anfrage, die einen davon ausgibt, wird abgelehnt. Die Adresse empfängt weiterhin, wird aber nicht mehr als deine Empfangsadresse angezeigt. Du kannst sie auf dieser Seite jederzeit auftauen.\n\nDas Einfrieren gilt nur hier: Wenn du diese Seed-Phrase in einer anderen Wallet-App verwendest, friere dieselbe Adresse auch dort ein.",
+      "message": "UTXOs auf einer eingefrorenen Adresse bleiben in deinem Wallet, aber diese App lässt sie bei jeder Zahlung und jedem Token-Transfer aus und lehnt dApp-Anfragen ab, die sie ausgeben, auch UTXOs, die die Adresse später empfängt. Du kannst sie auf dieser Seite jederzeit auftauen.\n\nDas Einfrieren gilt nur hier: Wenn du diese Seed-Phrase in einer anderen Wallet-App verwendest, friere dieselbe Adresse auch dort ein.",
       "button": "Einfrieren"
     },
     "editLabel": "Adressbeschriftung bearbeiten",

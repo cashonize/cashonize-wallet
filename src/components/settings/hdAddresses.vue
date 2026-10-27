@@ -265,7 +265,7 @@
                 <!-- both tags can show at once: with no fresh address left the wallet falls
                      back to handing out an address that was already marked as used -->
                 <span v-if="isMarked(row)" class="marked-tag">{{ t('addressManagement.markedTag') }}</span>
-                <span v-if="isFrozen(row)" class="frozen-tag">{{ t('addressManagement.frozenTag') }}</span>
+                <span v-if="isFrozen(row)" class="frozen-tag" :title="t('addressManagement.frozenTagInfo')">{{ t('addressManagement.frozenTag') }}</span>
               </div>
               <div class="address-sub">
                 <span class="mono">{{ satsToBch(row.spendableBalance) }} {{ bchDisplayUnit }}</span>
@@ -298,6 +298,9 @@
               @save="(label) => store.setAddressLabel(row.address, label)"
             />
             <div class="card-buttons">
+              <span v-if="hasTokens(row)" class="tokens-button" :title="t('hdAddresses.tokenCount', tokenCategoryCount(row))" @click.stop="toggleTokens(row)">
+                <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
+              </span>
               <span class="label-button" :title="t('addressManagement.editLabel')" @click.stop="openLabelDialog(row)">
                 <q-icon name="edit" size="20px" />
               </span>
@@ -325,9 +328,6 @@
                 @click.stop="toggleFreeze(row)"
               >
                 <q-icon name="ac_unit" size="22px" />
-              </span>
-              <span v-if="hasTokens(row)" class="tokens-button" :title="t('hdAddresses.tokenCount', tokenCategoryCount(row))" @click.stop="toggleTokens(row)">
-                <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
               </span>
               <span class="qr-button" @click.stop="openQrDialog(row)">
                 <q-icon name="qr_code_2" size="22px" />
@@ -494,8 +494,8 @@
 }
 
 .frozen-tag {
-  background-color: rgba(10, 193, 143, 0.15);
-  color: var(--color-primary);
+  background-color: rgba(61, 155, 233, 0.15);
+  color: var(--color-frozen);
   border-radius: 10px;
   padding: 0 8px;
   margin-left: 2px;
@@ -563,7 +563,7 @@
 }
 
 .mark-button.frozen {
-  color: var(--color-primary);
+  color: var(--color-frozen);
   opacity: 1;
 }
 

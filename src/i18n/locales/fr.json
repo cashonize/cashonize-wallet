@@ -991,15 +991,16 @@
     "markingIntro": "Les adresses de réception peuvent être marquées comme utilisées après les avoir partagées.",
     "markedInfo": "Une adresse que vous avez partagée reste inutilisée jusqu'à l'arrivée d'un paiement, le portefeuille propose donc toujours la même. La marquer comme utilisée passe à l'adresse suivante, pour que chaque payeur en reçoive une différente.",
     "unmarkInfo": "Les adresses marquées sont regroupées avec les adresses utilisées, où vous pouvez les démarquer.",
-    "freezeOption": "Geler des adresses",
+    "freezeOption": "Afficher les boutons de gel",
     "freezeOptionLocked": "Dégelez toutes les adresses pour désactiver ceci",
     "frozenTag": "gelée",
+    "frozenTagInfo": "Continue de recevoir des paiements, mais n'est plus proposée comme votre adresse de réception",
     "freezeAddress": "Geler l'adresse",
     "unfreezeAddress": "Dégeler l'adresse",
     "freezeLimitNotify": "Impossible de geler cette adresse, une nouvelle adresse doit rester disponible. Recevez un paiement pour en libérer d'autres.",
     "freeze": {
       "title": "Geler cette adresse",
-      "message": "Chaque UTXO d'une adresse gelée, y compris ceux qu'elle recevra plus tard, reste dans votre portefeuille mais est exclu de tous les paiements et transferts de tokens faits par cette app, et une requête de dApp qui en dépense un est refusée. L'adresse continue de recevoir, mais n'est plus proposée comme votre adresse de réception. Dégelez-la depuis cette page à tout moment.\n\nLe gel ne s'applique qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y aussi la même adresse.",
+      "message": "Les UTXO d'une adresse gelée restent dans votre portefeuille, mais cette app les exclut de tous les paiements et transferts de tokens et refuse les requêtes de dApp qui les dépensent, y compris les UTXO que l'adresse recevra plus tard. Dégelez-la depuis cette page à tout moment.\n\nLe gel ne s'applique qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y aussi la même adresse.",
       "button": "Geler"
     },
     "editLabel": "Modifier l'étiquette de l'adresse",

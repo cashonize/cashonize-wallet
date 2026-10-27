@@ -991,15 +991,16 @@
     "markingIntro": "Receiving addresses can be marked as used after sharing them.",
     "markedInfo": "An address you shared stays unused until a payment arrives, so the wallet keeps handing out the same one. Marking it as used moves on to the next address, so every payer gets a different one.",
     "unmarkInfo": "Marked addresses are grouped under used addresses, where you can unmark them.",
-    "freezeOption": "Freeze addresses",
+    "freezeOption": "Show freeze buttons",
     "freezeOptionLocked": "Unfreeze all addresses to turn this off",
     "frozenTag": "frozen",
+    "frozenTagInfo": "Still receives payments, but is no longer shown as your receive address",
     "freezeAddress": "Freeze address",
     "unfreezeAddress": "Unfreeze address",
     "freezeLimitNotify": "Cannot freeze this address, one fresh address has to stay available. Receive a payment to free up more.",
     "freeze": {
       "title": "Freeze this address",
-      "message": "Every UTXO on a frozen address, including the ones it receives later, stays in your wallet but is left out of every payment and token transfer this app makes, and a dApp request spending one is refused. The address keeps receiving, but is no longer handed out as your receive address. Unfreeze it from this page at any time.\n\nFreezing only applies here: if you use this seed phrase in another wallet application, freeze the same address there too.",
+      "message": "UTXOs on a frozen address stay in your wallet, but this app leaves them out of every payment and token transfer and refuses dApp requests that spend them, including UTXOs the address receives later. Unfreeze it from this page at any time.\n\nFreezing only applies here: if you use this seed phrase in another wallet application, freeze the same address there too.",
       "button": "Freeze"
     },
     "editLabel": "Edit address label",

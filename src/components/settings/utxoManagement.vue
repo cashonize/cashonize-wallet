@@ -1093,7 +1093,7 @@ $card-label-width: 90px;
   opacity: 1;
 }
 :deep(.held-marker.frozen) {
-  color: var(--color-primary);
+  color: var(--color-frozen);
 }
 /* the whole row opens the actions, so the whole row says it is clickable */
 .utxo-row.actionable {

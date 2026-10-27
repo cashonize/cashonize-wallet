@@ -991,15 +991,16 @@
     "markingIntro": "Os endereços de recebimento podem ser marcados como usados depois de compartilhá-los.",
     "markedInfo": "Um endereço que você compartilhou continua não usado até chegar um pagamento, então a carteira continua mostrando o mesmo. Marcá-lo como usado passa para o próximo endereço, para que cada pagador receba um diferente.",
     "unmarkInfo": "Os endereços marcados são agrupados com os endereços usados, onde você pode desmarcá-los.",
-    "freezeOption": "Congelar endereços",
+    "freezeOption": "Mostrar botões de congelar",
     "freezeOptionLocked": "Descongele todos os endereços para desativar isto",
     "frozenTag": "congelado",
+    "frozenTagInfo": "Continua recebendo pagamentos, mas deixa de ser mostrado como seu endereço de recebimento",
     "freezeAddress": "Congelar endereço",
     "unfreezeAddress": "Descongelar endereço",
     "freezeLimitNotify": "Não é possível congelar este endereço, um endereço novo precisa continuar disponível. Receba um pagamento para liberar mais.",
     "freeze": {
       "title": "Congelar este endereço",
-      "message": "Cada UTXO de um endereço congelado, incluindo os que ele receber depois, permanece na sua carteira, mas fica fora de todos os pagamentos e transferências de tokens feitos por este app, e um pedido de dApp que gaste um deles é recusado. O endereço continua recebendo, mas deixa de ser mostrado como seu endereço de recebimento. Descongele-o nesta página a qualquer momento.\n\nO congelamento só vale aqui: se você usa esta frase-semente em outro app de carteira, congele o mesmo endereço lá também.",
+      "message": "Os UTXOs de um endereço congelado permanecem na sua carteira, mas este app os deixa fora de todos os pagamentos e transferências de tokens e recusa pedidos de dApps que os gastem, incluindo os UTXOs que o endereço receber depois. Descongele-o nesta página a qualquer momento.\n\nO congelamento só vale aqui: se você usa esta frase-semente em outro app de carteira, congele o mesmo endereço lá também.",
       "button": "Congelar"
     },
     "editLabel": "Editar etiqueta do endereço",
