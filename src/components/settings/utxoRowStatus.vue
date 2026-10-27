@@ -46,11 +46,11 @@
     <InfoPopup v-if="heldByFeature">
       <template #trigger>
         <span v-if="frozenWithAddress" class="held-state">
-          <q-icon name="ac_unit" size="15px" class="held-marker frozen" />
+          <q-icon name="ac_unit" size="17px" class="held-marker frozen" />
           <span class="held-label">{{ t('utxoManagement.markers.frozenShort') }}</span>
         </span>
         <span v-else class="held-state">
-          <q-icon name="lock" size="15px" class="held-marker" />
+          <q-icon name="lock" size="17px" class="held-marker" />
           <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
         </span>
       </template>
@@ -59,7 +59,7 @@
     </InfoPopup>
     <template v-else-if="!compact || frozen">
       <span class="held-state">
-        <q-icon v-if="frozen" name="ac_unit" size="15px" class="held-marker frozen" :title="t('utxoManagement.markers.frozen')" />
+        <q-icon v-if="frozen" name="ac_unit" size="17px" class="held-marker frozen" :title="t('utxoManagement.markers.frozen')" />
         <span class="held-label">{{ stateLabel }}</span>
       </span>
       <span v-if="!compact" class="held-action actions-trigger">
