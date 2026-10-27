@@ -1,11 +1,21 @@
-import { TokenSendRequest } from "@cashonize/bch-wallet-lib";
+import { TokenSendRequest, type Utxo } from "@cashonize/bch-wallet-lib";
 import { tokenListFromUtxos } from "src/stores/storeUtils";
-import { spendableFromUtxos, type ReservedUtxos } from "src/utils/wallet/reservedUtxos";
 import type { WalletType } from "src/interfaces/interfaces";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
 export type TransferPhase = "fungibleTokens" | "nfts" | "bch";
+
+// What the source wallet holds back from the transfer: the filter for a fresh read of its coins
+// and the exclusions every send takes, the store's filterSpendableUtxos and spendExclusions
+export interface TransferHold {
+  filterSpendableUtxos: (utxos: Utxo[]) => Utxo[];
+  excludeUtxoIds: string[];
+  excludeAddresses: string[];
+}
+
+// A wallet with nothing held back, such as a swept key's
+export const noHold: TransferHold = { filterSpendableUtxos: utxos => utxos, excludeUtxoIds: [], excludeAddresses: [] };
 
 export interface TransferProgress {
   phase: TransferPhase;
@@ -23,15 +33,15 @@ export interface TransferProgress {
 export async function transferAllAssets(
   sourceWallet: WalletType,
   destinationAddress: string,
-  reservedUtxos: ReservedUtxos,
-  onProgress?: (progress: TransferProgress) => void
+  hold: TransferHold,
+  onProgress?: (progress: TransferProgress) => void,
 ) {
-  // The held back coins go in excludeUtxoIds, which the library takes out of the wallet's current
-  // coins on every send, so no transaction names coins an earlier one here has spent
-  const excludeUtxoIds = Object.keys(reservedUtxos);
+  // The library applies the exclusions to the wallet's current coins on every send, so no
+  // transaction names coins an earlier one here has spent
+  const { excludeUtxoIds, excludeAddresses } = hold;
   const spendablePool = async () => {
     const allUtxos = await sourceWallet.getUtxos();
-    return spendableFromUtxos(allUtxos, reservedUtxos);
+    return hold.filterSpendableUtxos(allUtxos);
   };
 
   const utxos = await spendablePool();
@@ -50,7 +60,7 @@ export async function transferAllAssets(
         amount: token.amount,
         category: token.category,
       }),
-    ], { excludeUtxoIds });
+    ], { excludeUtxoIds, excludeAddresses });
     transferredFungibleTokens += 1;
     onProgress?.({ phase: "fungibleTokens", completed: transferredFungibleTokens, total: fungibleTokens.length });
   }
@@ -76,7 +86,7 @@ export async function transferAllAssets(
     // named in ensureUtxos, so a mutable NFT gone since the read fails the send rather than being
     // minted anew off the minting NFT sent alongside it
     if (nftOutputs.length) {
-      await sourceWallet.send(nftOutputs, { excludeUtxoIds, ensureUtxos: nftUtxos });
+      await sourceWallet.send(nftOutputs, { excludeUtxoIds, excludeAddresses, ensureUtxos: nftUtxos });
     }
     transferredNfts += 1;
     onProgress?.({ phase: "nfts", completed: transferredNfts, total: nftTokens.length });
@@ -86,6 +96,6 @@ export async function transferAllAssets(
   // the library already leaves token UTXOs out of a plain-BCH selection, named pool or not; this
   // wallet drops them itself as well, since a token UTXO swept as plain BCH would burn its tokens
   const bchPool = (await spendablePool()).filter(utxo => !utxo.token);
-  await sourceWallet.sendMax(destinationAddress, { utxoIds: bchPool, excludeUtxoIds });
+  await sourceWallet.sendMax(destinationAddress, { utxoIds: bchPool, excludeUtxoIds, excludeAddresses });
   onProgress?.({ phase: "bch", completed: 1, total: 1 });
 }

@@ -215,7 +215,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     dappTargetNetwork: "mainnet" | "chipnet",
     selectedAddresses?: string[]
   ){
-    const newWcAddress = mainStore.wallet.getDepositAddress();
+    const newWcAddress = mainStore.currentDepositAddress;
     const wcAccounts = selectedAddresses?.length ? selectedAddresses.map(addr => `bch:${addr}`) : [`bch:${newWcAddress}`]
     const namespaces = {
       bch: {
@@ -514,7 +514,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   function reservedInputsCheck(wcTransactionObj: WcSignTransactionRequest): ReservedInputsCheck {
     const { transaction } = wcTransactionObj;
     const decodedTransaction = typeof transaction === "string" ? decodeTransactionUnsafe(hexToBin(transaction)) : transaction;
-    return useIdentitiesStore().checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs);
+    return useIdentitiesStore().checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs, wcTransactionObj.sourceOutputs);
   }
 
   async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {

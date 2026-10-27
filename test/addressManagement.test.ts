@@ -1,5 +1,11 @@
-import { describe, it, expect } from "vitest";
-import { deriveFreshAddressIndex } from "../src/utils/wallet/addressManagement";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import {
+  deriveFreshAddressIndex,
+  loadFrozenAddresses,
+  saveFrozenAddress,
+  deleteFrozenAddress,
+  removeAddressManagementData,
+} from "../src/utils/wallet/addressManagement";
 
 // Addresses are identified by index ("addr0", "addr1", ...) so marks can be
 // expressed as indices; usedIndices simulates on-chain history per address
@@ -69,5 +75,43 @@ describe("deriveFreshAddressIndex", () => {
     // the user marked address 0 once, then received 19 payments without marking again
     const nineteenPayments = Array.from({ length: 19 }, (_, i) => i + 1);
     expect(derive(nineteenPayments, [0])).toBe(20);
+  });
+});
+
+// The global setup stubs localStorage as a no-op; these tests need a working store
+function makeLocalStorage() {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => { store.set(key, value); },
+    removeItem: (key: string) => { store.delete(key); },
+    clear: () => { store.clear(); },
+  };
+}
+
+describe("frozen addresses", () => {
+  beforeEach(() => {
+    vi.stubGlobal("localStorage", makeLocalStorage());
+  });
+
+  it("saves and loads them per wallet per network", () => {
+    saveFrozenAddress("mainnet", "mywallet", "bitcoincash:qa");
+    expect(loadFrozenAddresses("mainnet", "mywallet")).toEqual(["bitcoincash:qa"]);
+    expect(loadFrozenAddresses("chipnet", "mywallet")).toEqual([]);
+    expect(loadFrozenAddresses("mainnet", "otherwallet")).toEqual([]);
+  });
+
+  it("re-reads before writing, so a freeze from another tab survives", () => {
+    saveFrozenAddress("mainnet", "mywallet", "bitcoincash:qa");
+    localStorage.setItem("frozenAddresses-mainnet-mywallet", JSON.stringify(["bitcoincash:qa", "bitcoincash:qb"]));
+    expect(deleteFrozenAddress("mainnet", "mywallet", "bitcoincash:qa")).toEqual(["bitcoincash:qb"]);
+  });
+
+  it("is removed with the wallet, so a new wallet of the same name starts unfrozen", () => {
+    saveFrozenAddress("mainnet", "mywallet", "bitcoincash:qa");
+    saveFrozenAddress("chipnet", "mywallet", "bchtest:qa");
+    removeAddressManagementData("mywallet");
+    expect(loadFrozenAddresses("mainnet", "mywallet")).toEqual([]);
+    expect(loadFrozenAddresses("chipnet", "mywallet")).toEqual([]);
   });
 });

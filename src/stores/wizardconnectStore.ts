@@ -293,9 +293,9 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   // reserved coin cannot be withheld from them and refusing to sign is the only enforcement.
   // Only called once validateWizTransaction has confirmed the transaction decodes.
   function reservedInputsCheck(request: WizSignTransactionRequest): ReservedInputsCheck {
-    const { transaction } = request.transaction;
+    const { transaction, sourceOutputs } = request.transaction;
     const decodedTransaction = typeof transaction === "string" ? decodeTransactionUnsafe(hexToBin(transaction)) : transaction;
-    return useIdentitiesStore().checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs);
+    return useIdentitiesStore().checkDappReservedInputs(decodedTransaction.inputs, decodedTransaction.outputs, sourceOutputs);
   }
 
   async function showNextSignRequest() {

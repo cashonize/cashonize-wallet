@@ -65,7 +65,7 @@
     preparing.value = true;
     try {
       notifySending(t('createTokens.notifications.preparingPreGenesis'));
-      const { txId } = await store.spend.send([{ cashaddr: store.wallet.getDepositAddress(), value: preparedUtxoValue }]);
+      const { txId } = await store.spend.send([{ cashaddr: store.currentDepositAddress, value: preparedUtxoValue }]);
       $q.notify({ type: 'positive', message: t('createTokens.notifications.transactionSent') });
       await store.updateWalletUtxos();
       // the UTXO the user just asked for is the one they meant

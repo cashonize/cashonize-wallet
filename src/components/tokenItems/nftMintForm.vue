@@ -49,7 +49,7 @@
     if (activeAction.value) return;
     activeAction.value = 'minting';
     try {
-      let recipientAddr = store.wallet.getTokenDepositAddress();
+      let recipientAddr = store.currentTokenDepositAddress;
       if(destinationAddr.value) {
         recipientAddr = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
         destinationAddr.value = recipientAddr;

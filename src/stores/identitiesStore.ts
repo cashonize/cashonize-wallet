@@ -28,7 +28,7 @@ import {
 } from "src/utils/tools/identityLists"
 import { checkPublicationUri, fetchVerifiedRegistry, registryAuthbases, type PublicationUriStatus } from "src/utils/tools/registryFile"
 import { contractStateIdentities, detectIdentities, type DetectedIdentity } from "src/utils/tools/identityDetection"
-import { checkReservedInputs, type SignedInput, type SignedOutput } from "src/utils/dapp/reservedInputs"
+import { checkReservedInputs, frozenAddressInputs, type SignedInput, type SignedOutput, type SignedSourceOutput } from "src/utils/dapp/reservedInputs"
 import type { ScannedTransaction } from "src/utils/history/transactionIndex"
 import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
 import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
@@ -414,8 +414,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
       if (identityOrAuthKeyUtxo) authOutpoints.push(outpointOf(identityOrAuthKeyUtxo));
     }
     // A reservation already made for another reason is left alone: the coin is held back either
-    // way, and rewriting the reason would take it away from whatever made it
-    const toReserve = authOutpoints.filter(outpoint => !mainStore.reservedUtxos[outpoint]);
+    // way, and rewriting the reason would take it away from whatever made it. A frozen address is
+    // no such reason, its hold ends when it is unfrozen, so only the stored reservations count.
+    const toReserve = authOutpoints.filter(outpoint => !mainStore.storedReservations[outpoint]);
     if (mainStore.walletSwitchedSince(started)) return;
     if (toReserve.length) await mainStore.reserveOutpoints(toReserve, 'auth');
     if (resolved.some(identity => identity.status === 'unresolved')) return;
@@ -427,7 +428,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
       ...(mainStore.walletUtxos ?? []).map(outpointOf),
       ...resolved.flatMap(identity => identity.authheadTxid ? [`${identity.authheadTxid}:0`] : []),
     ];
-    for (const [outpoint, reason] of Object.entries(mainStore.reservedUtxos)) {
+    for (const [outpoint, reason] of Object.entries(mainStore.storedReservations)) {
       if (reason !== 'auth') continue;
       if (kept.includes(outpoint)) continue;
       if (mainStore.walletSwitchedSince(started)) return;
@@ -617,12 +618,21 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // What the dapp signing paths ask before refusing a request that spends a held back coin: the
   // identity coins are named here, and the rule itself lives in utils/dapp/reservedInputs.ts.
-  function checkDappReservedInputs(inputs: readonly SignedInput[], outputs: readonly SignedOutput[]) {
+  // The source outputs catch a coin on a frozen address that the wallet's coin list has not seen yet.
+  function checkDappReservedInputs(
+    inputs: readonly SignedInput[],
+    outputs: readonly SignedOutput[],
+    sourceOutputs: readonly SignedSourceOutput[] = [],
+  ) {
     const listed = identities.value ?? [];
     const identityKeys = listed.flatMap(identity => identity.authKeyUtxo ? [outpointOf(identity.authKeyUtxo)] : []);
     const authheads = listed.flatMap(identity => identity.authUtxo ? [outpointOf(identity.authUtxo)] : []);
+    const reservedUtxos = { ...mainStore.reservedUtxos };
+    for (const outpoint of frozenAddressInputs(inputs, sourceOutputs, mainStore.frozenLockingBytecodes)) {
+      reservedUtxos[outpoint] ??= 'address';
+    }
     return checkReservedInputs(inputs, outputs, {
-      reservedUtxos: mainStore.reservedUtxos,
+      reservedUtxos,
       walletUtxos: mainStore.walletUtxos ?? [],
       identityKeys,
       authheads,
@@ -666,7 +676,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     listCategory(category);
     identities.value = [...(identities.value ?? []).filter(listed => listed.category !== category), found];
     const identityOrAuthKeyUtxo = found.authUtxo ?? found.authKeyUtxo;
-    if (identityOrAuthKeyUtxo && !mainStore.reservedUtxos[outpointOf(identityOrAuthKeyUtxo)]) {
+    if (identityOrAuthKeyUtxo && !mainStore.storedReservations[outpointOf(identityOrAuthKeyUtxo)]) {
       await mainStore.reserveOutpoints([outpointOf(identityOrAuthKeyUtxo)], 'auth');
     }
     refreshIdentities().catch(error => console.error("Failed to resolve the added identity:", error));
@@ -680,7 +690,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     dismissedIdentities.value = removeFromIdentityList('dismissed', ...walletKey(), category);
     listCategory(category);
     const outpoint = `${authheadTxId}:0`;
-    if (!mainStore.reservedUtxos[outpoint]) await mainStore.reserveOutpoints([outpoint], 'auth');
+    if (!mainStore.storedReservations[outpoint]) await mainStore.reserveOutpoints([outpoint], 'auth');
     try {
       // the resolve reads the wallet's coins, which must include the one just made
       await mainStore.updateWalletUtxos();

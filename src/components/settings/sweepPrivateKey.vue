@@ -14,7 +14,7 @@
   import { convertToCurrency, formatFiatAmount } from 'src/utils/utils'
   import { useUnverifiedTokenMetadata } from 'src/utils/unverifiedTokenMetadata'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
-  import { transferAllAssets, type TransferProgress } from 'src/utils/tools/transferAssets'
+  import { noHold, transferAllAssets, type TransferProgress } from 'src/utils/tools/transferAssets'
   import { decryptBip38Key, isBip38Key, isUncompressedBip38Key } from 'src/utils/tools/bip38'
   import type { TokenList } from 'src/interfaces/interfaces'
 
@@ -265,11 +265,11 @@
     isSweeping.value = true;
     try {
       const wif = getWifToSweep();
-      const tokenAwareAddress = store.wallet.getTokenDepositAddress();
+      const tokenAwareAddress = store.currentTokenDepositAddress;
 
       // no reservations: they belong to this wallet, and the coins being swept are another key's
       await withTempWallet(wif, (tempWallet) =>
-        transferAllAssets(tempWallet, tokenAwareAddress, {}, notifySweepPhase)
+        transferAllAssets(tempWallet, tokenAwareAddress, noHold, notifySweepPhase)
       );
 
       $q.notify({

@@ -189,7 +189,7 @@
   // The genesis request and the outputs beside it: output 0 is the authhead, carrying the reserve
   // and the minting NFT if there is one, then what is issued to circulation and the publication
   function genesisOutputs(category: string, reserveAmount: bigint, circulatingAmount: bigint) {
-    const tokenAddress = store.wallet.getTokenDepositAddress();
+    const tokenAddress = store.currentTokenDepositAddress;
     const genesisRequest = {
       cashaddr: tokenAddress,
       amount: reserveAmount,

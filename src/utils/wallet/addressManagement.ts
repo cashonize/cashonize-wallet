@@ -1,6 +1,6 @@
 // Address management for HD wallets: addresses the user marked as used (so the wallet hands
-// out a fresh receive address) and address labels. Both are stored in localStorage
-// per wallet per network as cashaddr-keyed data; they never leave the device.
+// out a fresh receive address), address labels and frozen addresses. All are stored in
+// localStorage per wallet per network as cashaddr-keyed data; they never leave the device.
 
 export const maxAddressLabelLength = 100;
 
@@ -12,6 +12,10 @@ function addressMarksKey(network: Network, walletName: string): string {
 
 function addressLabelsKey(network: Network, walletName: string): string {
   return `addressLabels-${network}-${walletName}`;
+}
+
+function frozenAddressesKey(network: Network, walletName: string): string {
+  return `frozenAddresses-${network}-${walletName}`;
 }
 
 export function loadAddressMarks(network: Network, walletName: string): string[] {
@@ -69,22 +73,49 @@ export function saveAddressLabel(
   return addressLabels;
 }
 
+// A frozen address holds back every coin on it, the ones it receives later included, so the
+// freeze is kept by address rather than as the outpoints it holds now (see reservedUtxos.ts)
+export function loadFrozenAddresses(network: Network, walletName: string): string[] {
+  const readFrozen = localStorage.getItem(frozenAddressesKey(network, walletName));
+  if (!readFrozen) return [];
+  try {
+    return JSON.parse(readFrozen) as string[];
+  } catch {
+    return [];
+  }
+}
+
+// Same fresh read-modify-write approach as saveAddressMark.
+export function saveFrozenAddress(network: Network, walletName: string, address: string): string[] {
+  const frozenAddresses = loadFrozenAddresses(network, walletName);
+  if (!frozenAddresses.includes(address)) frozenAddresses.push(address);
+  localStorage.setItem(frozenAddressesKey(network, walletName), JSON.stringify(frozenAddresses));
+  return frozenAddresses;
+}
+
+export function deleteFrozenAddress(network: Network, walletName: string, address: string): string[] {
+  const frozenAddresses = loadFrozenAddresses(network, walletName).filter(frozen => frozen !== address);
+  localStorage.setItem(frozenAddressesKey(network, walletName), JSON.stringify(frozenAddresses));
+  return frozenAddresses;
+}
+
 // A future wallet created under the same name must not inherit the old wallet's data
 export function removeAddressManagementData(walletName: string) {
   for (const network of ['mainnet', 'chipnet'] as const) {
     localStorage.removeItem(addressMarksKey(network, walletName));
     localStorage.removeItem(addressLabelsKey(network, walletName));
+    localStorage.removeItem(frozenAddressesKey(network, walletName));
   }
 }
 
-// The receive address to hand out: the first address that is neither used on-chain nor marked
-// as used, staying within gapSize of the last used address. A seed restore stops scanning
-// there, so a payment beyond it would never be found. Returns undefined when every address in
-// that window is marked, callers should then fall back to the wallet's own default address.
+// The receive address to hand out: the first address that is neither used on-chain nor skipped
+// (marked as used or frozen), staying within gapSize of the last used address. A seed restore
+// stops scanning there, so a payment beyond it would never be found. Returns undefined when every
+// address in that window is skipped, callers should then fall back to the wallet's own default.
 export function deriveFreshAddressIndex(
   isAddressUsed: (index: number) => boolean,
   addressAtIndex: (index: number) => string,
-  markedAddresses: string[],
+  skippedAddresses: string[],
   gapSize: number,
 ): number | undefined {
   let lastUsedIndex = -1;
@@ -93,7 +124,7 @@ export function deriveFreshAddressIndex(
       lastUsedIndex = index;
       continue;
     }
-    if (!markedAddresses.includes(addressAtIndex(index))) return index;
+    if (!skippedAddresses.includes(addressAtIndex(index))) return index;
   }
   return undefined;
 }

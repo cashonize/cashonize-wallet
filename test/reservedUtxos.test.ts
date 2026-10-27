@@ -8,6 +8,7 @@ import {
   spendableFromUtxos,
   reservedFromUtxos,
   reservedTransactionInputs,
+  withFrozenAddresses,
   outpointOf,
 } from "../src/utils/wallet/reservedUtxos";
 
@@ -126,6 +127,27 @@ describe('spendableFromUtxos', () => {
       [`${txidB}:1`]: 'pledge' as const,
     };
     expect(spendableFromUtxos([coinA, coinB], reserved)).toEqual([]);
+  });
+});
+
+describe('withFrozenAddresses', () => {
+  const frozenCoin = { ...coinC, address: "bitcoincash:qfrozen" };
+
+  it('holds back every coin on a frozen address', () => {
+    const held = withFrozenAddresses([coinA, frozenCoin], {}, ["bitcoincash:qfrozen"]);
+    expect(held).toEqual({ [`${txidC}:0`]: 'address' });
+    expect(spendableFromUtxos([coinA, frozenCoin], held)).toEqual([coinA]);
+  });
+
+  it('keeps the stored reason of a coin on a frozen address', () => {
+    const stored = { [`${txidC}:0`]: 'pledge' as const };
+    expect(withFrozenAddresses([frozenCoin], stored, ["bitcoincash:qfrozen"])).toEqual(stored);
+  });
+
+  it('leaves the stored reservations themselves untouched', () => {
+    const stored = { [`${txidB}:1`]: 'manual' as const };
+    withFrozenAddresses([frozenCoin], stored, ["bitcoincash:qfrozen"]);
+    expect(stored).toEqual({ [`${txidB}:1`]: 'manual' });
   });
 });
 

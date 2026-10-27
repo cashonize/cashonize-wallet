@@ -43,6 +43,30 @@ function toHex(bytes: Bytes): string {
   return typeof bytes === "string" ? bytes : binToHex(bytes);
 }
 
+// The script an input spends, as the request states it alongside the transaction
+export interface SignedSourceOutput {
+  lockingBytecode: Bytes;
+}
+
+// The inputs spending a coin of a frozen address, read off the scripts the request says they spend
+// (sourceOutputs, in input order) rather than the wallet's coin list, which can trail a coin that
+// just arrived. A signature commits to the script its input spends, so a request misstating it
+// gets no valid signature.
+export function frozenAddressInputs(
+  inputs: readonly SignedInput[],
+  sourceOutputs: readonly SignedSourceOutput[],
+  frozenLockingBytecodes: string[],
+): Outpoint[] {
+  if (!frozenLockingBytecodes.length) return [];
+  const outpoints: Outpoint[] = [];
+  for (const [index, input] of inputs.entries()) {
+    const sourceOutput = sourceOutputs[index];
+    if (!sourceOutput || !frozenLockingBytecodes.includes(toHex(sourceOutput.lockingBytecode))) continue;
+    outpoints.push(`${toHex(input.outpointTransactionHash)}:${input.outpointIndex}`);
+  }
+  return outpoints;
+}
+
 export interface ReservedInputContext {
   reservedUtxos: ReservedUtxos;
   walletUtxos: Utxo[];
