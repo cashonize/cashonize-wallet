@@ -10,8 +10,9 @@ type Network = 'mainnet' | 'chipnet';
 // 'manual' is the user freezing a coin themselves and is theirs to undo; 'pledge' and 'auth' are
 // held by a feature, and are released through that feature rather than by unfreezing them here:
 // a pledge by cancelling it, an authhead by transferring the identity or removing it from the
-// identities page
-export type ReservationReason = 'pledge' | 'manual' | 'auth';
+// identities page. 'address' is never stored: it marks a coin on a frozen address, released by
+// unfreezing the address (see withFrozenAddresses)
+export type ReservationReason = 'pledge' | 'manual' | 'auth' | 'address';
 
 // Held by the feature that made the reservation rather than by the user, so the coin is only
 // released through that feature. Written as "everything but 'manual'" so a reason added later is
@@ -83,6 +84,24 @@ export function removeReservedUtxos(walletName: string) {
   for (const network of ['mainnet', 'chipnet'] as const) {
     localStorage.removeItem(reservedUtxosKey(network, walletName));
   }
+}
+
+// The stored reservations plus every coin on a frozen address. A coin a feature already holds
+// keeps that reason, so it keeps that feature's release path; a coin the user froze on its own is
+// frozen with its address instead, so the address freeze cannot be undone one coin at a time.
+export function withFrozenAddresses(
+  utxos: Utxo[],
+  reservedUtxos: ReservedUtxos,
+  frozenAddresses: string[],
+): ReservedUtxos {
+  if (!frozenAddresses.length) return reservedUtxos;
+  const merged = { ...reservedUtxos };
+  for (const utxo of utxos) {
+    if (!frozenAddresses.includes(utxo.address)) continue;
+    const outpoint = outpointOf(utxo);
+    if (!isFeatureReservation(merged[outpoint])) merged[outpoint] = 'address';
+  }
+  return merged;
 }
 
 // The coins the wallet may spend: what is left to the library once the reserved outpoints are excluded

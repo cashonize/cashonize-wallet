@@ -79,6 +79,9 @@ import {
   loadAddressLabels,
   saveAddressLabel,
   removeAddressManagementData,
+  loadFrozenAddresses,
+  saveFrozenAddress,
+  deleteFrozenAddress,
   deriveFreshAddressIndex
 } from "src/utils/wallet/addressManagement"
 import {
@@ -88,6 +91,7 @@ import {
   removeReservedUtxos,
   spendableFromUtxos,
   reservedFromUtxos,
+  withFrozenAddresses,
   outpointOf,
   type Outpoint,
   type ReservedUtxos,
@@ -188,8 +192,11 @@ export const useStore = defineStore('store', () => {
   // (see utils/addressManagement.ts)
   const addressMarks = ref([] as string[]);
   const addressLabels = ref({} as Record<string, string>);
-  // Coins held back from coin selection, keyed by outpoint (see utils/wallet/reservedUtxos.ts)
-  const reservedUtxos = ref({} as ReservedUtxos);
+  // Coins held back from coin selection by a stored reservation, keyed by outpoint
+  // (see utils/wallet/reservedUtxos.ts); reservedUtxos below adds the coins on frozen addresses
+  const storedReservations = ref({} as ReservedUtxos);
+  // HD addresses whose every coin is held back, the ones they receive later included
+  const frozenAddresses = ref([] as string[]);
   // Private labels on the wallet's coins, keyed by outpoint (see utils/wallet/utxoLabels.ts)
   const utxoLabels = ref({} as UtxoLabels);
   const tokenList = ref(null as (TokenList | null))
@@ -252,6 +259,25 @@ export const useStore = defineStore('store', () => {
     return wallet.value.hasAddress(address);
   }
 
+  // Everything held back, keyed by outpoint: the stored reservations and the coins currently on a
+  // frozen address. Anything asking whether a coin is held reads this one.
+  const reservedUtxos = computed(() => {
+    return withFrozenAddresses(walletUtxos.value ?? [], storedReservations.value, frozenAddresses.value);
+  })
+
+  // For the dapp signing check, which reads the scripts a request's inputs spend
+  const frozenLockingBytecodes = computed(() => frozenAddresses.value.flatMap(address => {
+    const decoded = cashAddressToLockingBytecode(address);
+    return typeof decoded === 'string' ? [] : [binToHex(decoded.bytecode)];
+  }))
+
+  // Filters a fresh getUtxos() read down to the coins the wallet may spend: the stored
+  // reservations and the frozen addresses applied to that read rather than to walletUtxos,
+  // which can trail the coins the read brought in
+  function filterSpendableUtxos(utxos: Utxo[]): Utxo[] {
+    return spendableFromUtxos(utxos, withFrozenAddresses(utxos, storedReservations.value, frozenAddresses.value));
+  }
+
   // undefined while the utxo set is still loading, matching walletUtxos
   const spendableUtxos = computed(() => {
     if (!walletUtxos.value) return undefined;
@@ -280,25 +306,42 @@ export const useStore = defineStore('store', () => {
   // empty when no Chaingraph instance is configured for the network
   const chaingraph = computed(() => network.value == 'mainnet' ? settingsStore.chaingraphMainnet : settingsStore.chaingraphChipnet)
 
-  // Index of the receive address shown on the wallet page. For HD wallets this skips addresses
-  // the user marked as used; undefined for single-address wallets and when every address in the
-  // discovery window is marked, which markAddressUsed refuses to bring about but another open
-  // tab marking at the same time still can (see deriveFreshAddressIndex)
-  const currentAddressIndex = computed(() => {
-    // rawHistory and walletCache below sit outside Vue reactivity, walletUtxos is the
-    // signal that they advanced (see walletHasAddress)
-    void walletUtxos.value;
-    // marks are kept but ignored while the setting is off, so the wallet hands out the same
-    // address it would have without the feature
-    if (!settingsStore.enableAddressMarking) return undefined;
+  // The first unused receive address that is not skipped, within the seed-restore discovery
+  // window; undefined for single-address wallets and when every address in that window is skipped
+  // (see deriveFreshAddressIndex)
+  function freshReceiveIndex(skippedAddresses: string[]) {
     const activeWallet = _wallet.value;
     if (!(activeWallet instanceof HDWallet)) return undefined;
     return deriveFreshAddressIndex(
       (index) => (activeWallet.rawHistory.get(DEPOSIT_BRANCH)?.[index]?.length ?? 0) > 0,
       (index) => activeWallet.walletCache.getByIndex(index, DEPOSIT_BRANCH).address,
-      addressMarks.value,
+      skippedAddresses,
       GAP_SIZE,
     );
+  }
+
+  // What the receive address skips: the frozen addresses, a payment to which could not be spent
+  // from here, and the marked ones while marking is on
+  function skippedReceiveAddresses() {
+    if (!settingsStore.enableAddressMarking) return frozenAddresses.value;
+    return [...addressMarks.value, ...frozenAddresses.value];
+  }
+
+  // Index of the receive address shown on the wallet page. For HD wallets this skips the marked
+  // and frozen addresses; undefined for single-address wallets and when every address in the
+  // discovery window is skipped, which marking and freezing refuse to bring about but another
+  // open tab doing so at the same time still can
+  const currentAddressIndex = computed(() => {
+    // rawHistory and walletCache below sit outside Vue reactivity, walletUtxos is the
+    // signal that they advanced (see walletHasAddress)
+    void walletUtxos.value;
+    // marks are kept but ignored while the setting is off, so with nothing frozen the wallet
+    // hands out the same address it would have without either feature
+    if (!settingsStore.enableAddressMarking && !frozenAddresses.value.length) return undefined;
+    const index = freshReceiveIndex(skippedReceiveAddresses());
+    if (index !== undefined || !settingsStore.enableAddressMarking) return index;
+    // with every address in the window skipped, a marked one is still better than a frozen one
+    return freshReceiveIndex(frozenAddresses.value);
   })
 
   const currentDepositAddress = computed(() => {
@@ -498,7 +541,8 @@ export const useStore = defineStore('store', () => {
     dappActivitySeenAt.value = loadDappActivitySeen(newNetwork, newWallet.name);
     addressMarks.value = loadAddressMarks(newNetwork, newWallet.name);
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
-    reservedUtxos.value = loadReservedUtxos(newNetwork, newWallet.name);
+    storedReservations.value = loadReservedUtxos(newNetwork, newWallet.name);
+    frozenAddresses.value = loadFrozenAddresses(newNetwork, newWallet.name);
     utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
     identitiesStore.loadForWallet(newNetwork, newWallet.name);
   }
@@ -535,13 +579,7 @@ export const useStore = defineStore('store', () => {
   function markAddressUsed(address: string) {
     const activeWallet = wallet.value;
     if (!(activeWallet instanceof HDWallet)) return;
-    const simulatedMarks = [...addressMarks.value, address];
-    const freshIndexAfterMark = deriveFreshAddressIndex(
-      (index) => (activeWallet.rawHistory.get(DEPOSIT_BRANCH)?.[index]?.length ?? 0) > 0,
-      (index) => activeWallet.walletCache.getByIndex(index, DEPOSIT_BRANCH).address,
-      simulatedMarks,
-      GAP_SIZE,
-    );
+    const freshIndexAfterMark = freshReceiveIndex([...addressMarks.value, ...frozenAddresses.value, address]);
     if (freshIndexAfterMark === undefined) {
       Notify.create({
         message: t('addressManagement.markLimitNotify'),
@@ -561,6 +599,33 @@ export const useStore = defineStore('store', () => {
 
   function unmarkAddressUsed(address: string) {
     addressMarks.value = deleteAddressMark(network.value, wallet.value.name, address);
+  }
+
+  // A frozen address keeps receiving, but every coin on it is held back like a reserved one,
+  // including the ones it receives later. Like marking, freezing refuses to leave no fresh receive
+  // address in the discovery window; marks are left out of that count, since the receive address
+  // falls back to a marked one before it would to a frozen one. Returns whether it was frozen.
+  async function freezeAddress(address: string) {
+    const freshBefore = freshReceiveIndex(frozenAddresses.value);
+    const freshAfter = freshReceiveIndex([...frozenAddresses.value, address]);
+    if (freshBefore !== undefined && freshAfter === undefined) {
+      Notify.create({
+        message: t('addressManagement.freezeLimitNotify'),
+        icon: 'warning',
+        color: "red"
+      })
+      return false;
+    }
+    frozenAddresses.value = saveFrozenAddress(network.value, wallet.value.name, address);
+    updateTokenList();
+    await refreshMaxAmountToSend();
+    return true;
+  }
+
+  async function unfreezeAddress(address: string) {
+    frozenAddresses.value = deleteFrozenAddress(network.value, wallet.value.name, address);
+    updateTokenList();
+    await refreshMaxAmountToSend();
   }
 
   function setAddressLabel(address: string, label: string) {
@@ -661,7 +726,7 @@ export const useStore = defineStore('store', () => {
       // Fetch fiat balance and max amount to send in parallel
       // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
       console.time('fetch fiat balance & max amount to send');
-      const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend(spendConfig());
+      const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend(spendExclusions());
       const balancePromises = [promiseMaxAmountToSend];
       const [resultMaxAmountToSend] = await Promise.all(balancePromises);
       console.timeEnd('fetch fiat balance & max amount to send');
@@ -867,7 +932,8 @@ export const useStore = defineStore('store', () => {
     maxAmountToSend.value = undefined;
     walletUtxos.value = undefined;
     heldOutpoints.clear();
-    reservedUtxos.value = {}; // setWallet loads the incoming wallet's own set
+    storedReservations.value = {}; // setWallet loads the incoming wallet's own sets
+    frozenAddresses.value = [];
     pendingTokenSearch.value = undefined;
     pendingHistorySearch.value = undefined;
     tokenList.value = null;
@@ -1610,7 +1676,7 @@ export const useStore = defineStore('store', () => {
   // resolve reserves what it found in one go, since the refresh at the end costs an electrum call.
   async function reserveOutpoints(outpoints: Outpoint[], reason: ReservationReason) {
     for (const outpoint of outpoints) {
-      reservedUtxos.value = saveReservedOutpoint(network.value, wallet.value.name, outpoint, reason);
+      storedReservations.value = saveReservedOutpoint(network.value, wallet.value.name, outpoint, reason);
     }
     // the fungible balances count what can be spent, and nothing else re-reads them on their own
     updateTokenList();
@@ -1620,7 +1686,7 @@ export const useStore = defineStore('store', () => {
   // Drops a reservation without spending; cancelling a pledge goes through spend.releaseReservedCoin
   async function dropReservation(outpoint: string) {
     const releasedToken = walletUtxos.value?.find(utxo => outpointOf(utxo) === outpoint)?.token;
-    reservedUtxos.value = deleteReservedOutpoint(network.value, wallet.value.name, outpoint);
+    storedReservations.value = deleteReservedOutpoint(network.value, wallet.value.name, outpoint);
     if (releasedToken) updateTokenList();
     await refreshMaxAmountToSend();
   }
@@ -1639,9 +1705,10 @@ export const useStore = defineStore('store', () => {
   // every reserved outpoint, BCH and token coin alike, goes in excludeUtxoIds, which every library
   // spend and token operation takes out of the wallet's current coins, so no snapshot of them can
   // trail. One whose coin is gone is ignored there. No caller passes send options through here,
-  // so nothing can name a reserved coin back in.
-  function spendConfig() {
-    return { excludeUtxoIds: Object.keys(reservedUtxos.value) };
+  // so nothing can name a reserved coin back in. A frozen address goes in excludeAddresses, which
+  // also catches the coins it received after walletUtxos was last read.
+  function spendExclusions() {
+    return { excludeUtxoIds: Object.keys(reservedUtxos.value), excludeAddresses: frozenAddresses.value };
   }
 
   // An output is this wallet's when its locking bytecode reads as an address this wallet has;
@@ -1662,9 +1729,10 @@ export const useStore = defineStore('store', () => {
     return ownsLockingBytecode(decoded.bytecode);
   }
 
-  // The wallet's own addresses in both forms, for the outputs an identity operation keeps here
+  // The wallet's own addresses in both forms, for the outputs an identity operation keeps here:
+  // the current receive address, never a frozen one
   function walletAddresses() {
-    return { bch: wallet.value.getDepositAddress(), token: wallet.value.getTokenDepositAddress() };
+    return { bch: currentDepositAddress.value, token: currentTokenDepositAddress.value };
   }
 
   // A spend's steps after its broadcast, which run again when a broadcast whose outcome was
@@ -1777,10 +1845,10 @@ export const useStore = defineStore('store', () => {
     // An NFT send names its coins in ensureUtxos: matched by commitment alone, a mutable NFT spent
     // elsewhere since it was shown would be minted anew off the category's minting NFT
     async send(requests: SendRequestType, ensureUtxos: Utxo[] = [], afterBroadcast?: AfterBroadcast, holdBack?: HoldBack) {
-      return spendExplained(() => wallet.value.send(requests, { ...spendConfig(), ensureUtxos }), afterBroadcast, holdBack);
+      return spendExplained(() => wallet.value.send(requests, { ...spendExclusions(), ensureUtxos }), afterBroadcast, holdBack);
     },
     async sendMax(cashaddr: string) {
-      return spendExplained(() => wallet.value.sendMax(cashaddr, spendConfig()));
+      return spendExplained(() => wallet.value.sendMax(cashaddr, spendExclusions()));
     },
     // the library takes the first vout-0 BCH coin of the pool it is handed as the genesis input,
     // and that coin's txid becomes the category, so the picked coin goes at the front of the pool.
@@ -1792,24 +1860,24 @@ export const useStore = defineStore('store', () => {
     ) {
       const outpoint = outpointOf(genesisInput);
       const allUtxos = await wallet.value.getUtxos();
-      const spendable = spendableFromUtxos(allUtxos, reservedUtxos.value);
+      const spendable = filterSpendableUtxos(allUtxos);
       const picked = spendable.find(utxo => outpointOf(utxo) === outpoint);
       // a coin spent elsewhere since it was picked would otherwise create a category nobody chose
       if (!picked || picked.vout !== 0 || picked.token) throw new Error(t('store.errors.genesisInputUnavailable'));
       const otherCoins = spendable.filter(utxo => outpointOf(utxo) !== outpoint);
       const pool = [picked, ...otherCoins];
-      return spendExplained(() => wallet.value.tokenGenesis(genesisRequest, sendRequests, { ...spendConfig(), utxoIds: pool }));
+      return spendExplained(() => wallet.value.tokenGenesis(genesisRequest, sendRequests, { ...spendExclusions(), utxoIds: pool }));
     },
     // tokenMint and tokenBurn locate their token input themselves, the minting NFT and the burned
     // coins included, and leave the excluded coins out of that too
     async tokenMint(mintRequests: TokenMintRequest | TokenMintRequest[]) {
-      return spendExplained(() => wallet.value.tokenMint(mintRequests, spendConfig()));
+      return spendExplained(() => wallet.value.tokenMint(mintRequests, spendExclusions()));
     },
     async tokenBurn(burnRequest: TokenBurnRequest, message?: string) {
-      return spendExplained(() => wallet.value.tokenBurn(burnRequest, message, spendConfig()));
+      return spendExplained(() => wallet.value.tokenBurn(burnRequest, message, spendExclusions()));
     },
     async getMaxAmountToSend() {
-      return wallet.value.getMaxAmountToSend(spendConfig());
+      return wallet.value.getMaxAmountToSend(spendExclusions());
     },
 
     // The one path that spends past a reservation: every identity operation is this spend, the old
@@ -1828,6 +1896,18 @@ export const useStore = defineStore('store', () => {
       // held back coin among the ones asked for included
       const authOutpoint = outpointOf(authUtxo);
       const excludeUtxoIds = Object.keys(reservedUtxos.value).filter(outpoint => outpoint !== authOutpoint);
+      // an identity coin on a frozen address is still spent here, its reservation being what holds
+      // it, so that address leaves excludeAddresses and its other coins go in excludeUtxoIds,
+      // read fresh so that one arrived since walletUtxos was read stays out too
+      const excludeAddresses = frozenAddresses.value.filter(address => address !== authUtxo.address);
+      if (excludeAddresses.length < frozenAddresses.value.length) {
+        const allUtxos = await wallet.value.getUtxos();
+        for (const utxo of allUtxos) {
+          const outpoint = outpointOf(utxo);
+          if (utxo.address !== authUtxo.address || outpoint === authOutpoint) continue;
+          if (!excludeUtxoIds.includes(outpoint)) excludeUtxoIds.push(outpoint);
+        }
+      }
       // The authhead has moved to output 0 of this transaction. When that is ours, it is held back
       // now, before the wallet's own view or Chaingraph has seen the transaction: the first request
       // says where it went, which no utxo snapshot can yet. A transfer's output 0 is not ours. A
@@ -1835,7 +1915,7 @@ export const useStore = defineStore('store', () => {
       const holdBackNewAuthhead = async (txId: string) => {
         const first = Array.isArray(requests) ? requests[0] : requests;
         const newAuthhead = `${txId}:0`;
-        if (first && 'cashaddr' in first && ownsAddress(first.cashaddr) && !reservedUtxos.value[newAuthhead]) {
+        if (first && 'cashaddr' in first && ownsAddress(first.cashaddr) && !storedReservations.value[newAuthhead]) {
           await reserveOutpoints([newAuthhead], 'auth');
         }
       };
@@ -1848,6 +1928,7 @@ export const useStore = defineStore('store', () => {
         ...options,
         tokenUtxoIds: [authUtxo, ...categoryUtxos],
         excludeUtxoIds,
+        excludeAddresses,
         ensureUtxos: [authUtxo],
       }), afterBroadcast, holdBackNewAuthhead);
     },
@@ -1855,7 +1936,7 @@ export const useStore = defineStore('store', () => {
     // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
     // makes the signed pledge the campaign holds unusable
     async releaseReservedCoin(utxo: Utxo) {
-      return sendSingleCoin(utxo, wallet.value.getDepositAddress());
+      return sendSingleCoin(utxo, currentDepositAddress.value);
     },
 
     // The user spending one chosen coin whole, frozen or not. A pledged coin is refused: the
@@ -1864,6 +1945,10 @@ export const useStore = defineStore('store', () => {
     async sendUtxo(utxo: Utxo, cashaddr: string) {
       if (reservedUtxos.value[outpointOf(utxo)] === 'pledge') {
         throw new Error(t('store.errors.cannotSendPledgedUtxo'));
+      }
+      // a coin on a frozen address is released by unfreezing the address, not by sending it
+      if (reservedUtxos.value[outpointOf(utxo)] === 'address') {
+        throw new Error(t('store.errors.tokenUtxoHeldBack'));
       }
       return sendSingleCoin(utxo, cashaddr);
     },
@@ -1885,7 +1970,10 @@ export const useStore = defineStore('store', () => {
     maxAmountToSend,
     walletUtxos,
     spendableUtxos,
-    reservedUtxos,
+    reservedUtxos, // stored reservations plus the coins on frozen addresses
+    storedReservations,
+    filterSpendableUtxos,
+    spendExclusions,
     reservedWalletUtxos,
     reserveOutpoints,
     currentInitializationToken,
@@ -1916,6 +2004,10 @@ export const useStore = defineStore('store', () => {
     currentTokenDepositAddress,
     markAddressUsed,
     unmarkAddressUsed,
+    frozenAddresses,
+    frozenLockingBytecodes,
+    freezeAddress,
+    unfreezeAddress,
     setAddressLabel,
     walletInitFailed,
     pendingTokenSearch,

@@ -157,7 +157,8 @@
     activePhase.value = undefined;
     phaseProgress.value = {};
     try {
-      await transferAllAssets(store.wallet, destination, store.reservedUtxos, onTransferProgress);
+      const hold = { filterSpendableUtxos: store.filterSpendableUtxos, ...store.spendExclusions() };
+      await transferAllAssets(store.wallet, destination, hold, onTransferProgress);
       destinationInput.value = "";
       $q.notify({ type: 'positive', message: t('transferAllAssets.notifications.success') });
     } catch (error) {

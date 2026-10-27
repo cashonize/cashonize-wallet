@@ -169,6 +169,8 @@
               <div class="address-text mono">
                 {{ truncateAddress(row.address) }}
                 <span v-if="selectedAddress === row.address" class="selected-tag">{{ t('walletConnect.addressSelect.selectedTag') }}</span>
+                <!-- a dapp request spending this address's coins is refused, which the user should know before picking it -->
+                <span v-if="store.frozenAddresses.includes(row.address)" class="frozen-tag">{{ t('addressManagement.frozenTag') }}</span>
               </div>
               <div class="address-sub">
                 <span class="mono">{{ satsToBch(row.spendableBalance) }} {{ bchDisplayUnit }}</span>
@@ -322,6 +324,14 @@
 
 .tokens-button .chevron.open {
   transform: rotate(180deg);
+}
+
+.frozen-tag {
+  background-color: rgba(10, 193, 143, 0.15);
+  color: var(--color-primary);
+  border-radius: 10px;
+  padding: 0 8px;
+  margin-left: 2px;
 }
 
 .selected-tag {

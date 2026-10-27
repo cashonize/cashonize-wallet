@@ -6,6 +6,7 @@
   import { useI18n } from 'vue-i18n'
   import { CHANGE_BRANCH, DEPOSIT_BRANCH, HDWallet } from '@cashonize/bch-wallet-lib';
   import { useWindowSize } from 'src/utils/composables'
+  import { confirmDialog } from 'src/utils/txHelpers'
   import { maxAddressLabelLength } from 'src/utils/wallet/addressManagement'
   import { buildAddressRows, tokenCategoryCount, type AddressRow } from 'src/utils/wallet/addressRows'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
@@ -35,11 +36,42 @@
   const showLabelDialog = ref(false);
   const labelDialogRow = ref<AddressRow | null>(null);
   const labelDraft = ref("");
+  // Like the other options this is not remembered, but it cannot be off while an address is
+  // frozen: the freeze applies regardless, and an off switch would read as nothing being frozen
+  const freezeOption = ref(store.frozenAddresses.length > 0);
+  const anyAddressFrozen = computed(() => store.frozenAddresses.length > 0);
+  const showFreezeButtons = computed(() => freezeOption.value || anyAddressFrozen.value);
 
   // Marks are kept but ignored while the setting is off, which also drops the tag,
   // the unmark button and the grouping of marked addresses under used
   function isMarked(row: AddressRow): boolean {
     return settingsStore.enableAddressMarking && store.addressMarks.includes(row.address);
+  }
+
+  // Unlike marks a freeze is never ignored, so its tag shows whatever the settings say
+  function isFrozen(row: AddressRow): boolean {
+    return store.frozenAddresses.includes(row.address);
+  }
+
+  // An unused change address is known only to the wallet, so there is nothing to freeze it for,
+  // and the next transaction's change would land in the freeze. One frozen already can be unfrozen.
+  function canToggleFreeze(row: AddressRow): boolean {
+    if (isFrozen(row)) return true;
+    return selectedChain.value === "receiving" || row.txCount > 0;
+  }
+
+  // Freezing changes what the wallet reports as spendable, so it says so before it happens
+  async function toggleFreeze(row: AddressRow) {
+    if (isFrozen(row)) {
+      await store.unfreezeAddress(row.address);
+      return;
+    }
+    const confirmed = await confirmDialog(
+      t('addressManagement.freeze.title'),
+      t('addressManagement.freeze.message'),
+      t('addressManagement.freeze.button')
+    );
+    if (confirmed) await store.freezeAddress(row.address);
   }
 
   function labelFor(row: AddressRow): string | undefined {
@@ -102,9 +134,10 @@
     return rows.filter(row => row.balance > 0n);
   }
 
-  // Addresses the user marked as used are grouped under used: they are no longer handed out
-  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount > 0 || isMarked(row))));
-  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0 && !isMarked(row))));
+  // Addresses the user marked as used or froze are grouped under used: they are no longer handed out
+  const isSkipped = (row: AddressRow) => isMarked(row) || isFrozen(row);
+  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount > 0 || isSkipped(row))));
+  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0 && !isSkipped(row))));
   const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount > 0)));
   const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount === 0)));
 
@@ -180,6 +213,10 @@
       <div class="option-item">
         {{ t('hdAddresses.showTokenAddresses') }} <q-toggle v-model="showTokenAddresses" dense />
       </div>
+      <div class="option-item" :title="anyAddressFrozen ? t('addressManagement.freezeOptionLocked') : undefined">
+        {{ t('addressManagement.freezeOption') }}
+        <q-toggle :model-value="showFreezeButtons" :disable="anyAddressFrozen" dense @update:model-value="(value: boolean) => freezeOption = value" />
+      </div>
     </div>
 
     <div class="intro">
@@ -228,6 +265,7 @@
                 <!-- both tags can show at once: with no fresh address left the wallet falls
                      back to handing out an address that was already marked as used -->
                 <span v-if="isMarked(row)" class="marked-tag">{{ t('addressManagement.markedTag') }}</span>
+                <span v-if="isFrozen(row)" class="frozen-tag" :title="t('addressManagement.frozenTagInfo')">{{ t('addressManagement.frozenTag') }}</span>
               </div>
               <div class="address-sub">
                 <span class="mono">{{ satsToBch(row.spendableBalance) }} {{ bchDisplayUnit }}</span>
@@ -260,6 +298,9 @@
               @save="(label) => store.setAddressLabel(row.address, label)"
             />
             <div class="card-buttons">
+              <span v-if="hasTokens(row)" class="tokens-button" :title="t('hdAddresses.tokenCount', tokenCategoryCount(row))" @click.stop="toggleTokens(row)">
+                <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
+              </span>
               <span class="label-button" :title="t('addressManagement.editLabel')" @click.stop="openLabelDialog(row)">
                 <q-icon name="edit" size="20px" />
               </span>
@@ -279,8 +320,14 @@
               >
                 <q-icon name="unarchive" size="22px" />
               </span>
-              <span v-if="hasTokens(row)" class="tokens-button" :title="t('hdAddresses.tokenCount', tokenCategoryCount(row))" @click.stop="toggleTokens(row)">
-                <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
+              <span
+                v-if="showFreezeButtons && canToggleFreeze(row)"
+                class="mark-button"
+                :class="{ frozen: isFrozen(row) }"
+                :title="isFrozen(row) ? t('addressManagement.unfreezeAddress') : t('addressManagement.freezeAddress')"
+                @click.stop="toggleFreeze(row)"
+              >
+                <q-icon name="ac_unit" size="22px" />
               </span>
               <span class="qr-button" @click.stop="openQrDialog(row)">
                 <q-icon name="qr_code_2" size="22px" />
@@ -446,6 +493,14 @@
   margin-left: 2px;
 }
 
+.frozen-tag {
+  background-color: rgba(61, 155, 233, 0.15);
+  color: var(--color-frozen);
+  border-radius: 10px;
+  padding: 0 8px;
+  margin-left: 2px;
+}
+
 .marked-tag {
   background-color: var(--surface-strong);
   opacity: 0.8;
@@ -504,6 +559,11 @@
 .tokens-button:hover,
 .label-button:hover,
 .mark-button:hover {
+  opacity: 1;
+}
+
+.mark-button.frozen {
+  color: var(--color-frozen);
   opacity: 1;
 }
 

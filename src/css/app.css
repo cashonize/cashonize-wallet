@@ -3,6 +3,8 @@
 :root {
   --color-primary: #0ac18f;
   --q-primary: #0ac18f;
+  /* frozen coins and addresses, an ice blue that reads on both themes */
+  --color-frozen: #3d9be9;
   /* The surfaces the cards, boxes and list rows are built from, named by strength since one alpha
      serves as a resting fill here and a hover there. Neutral grey alphas rather than named colours,
      so they read on both themes and need no dark mode rules of their own. */

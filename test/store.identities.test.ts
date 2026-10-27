@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Utxo } from '@cashonize/bch-wallet-lib'
-import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth'
+import { binToHex, cashAddressToLockingBytecode, encodeCashAddress, hexToBin, sha256, utf8ToBin } from '@bitauth/libauth'
 
 import {
   localStorageMock,
@@ -1050,5 +1050,55 @@ describe('auth reservations follow the authchain', () => {
 
     expect(store.reservedUtxos).toEqual({})
     expect(store.spendableUtxos).toEqual([authUtxo])
+  })
+})
+
+describe('an identity coin on a frozen address', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorageMock.clear()
+    setActivePinia(createPinia())
+    localStorageMock.setItem('network', 'mainnet')
+  })
+
+  // the freeze ends when the address is unfrozen, so it is no reason to skip the identity's own
+  it('is reserved for the identity underneath the freeze, and stays held once unfrozen', async () => {
+    stubAuthheadQueries({ [categoryA]: authheadA })
+    listIdentities([categoryA])
+    const authUtxo = utxo(authheadA, 0)
+    const { store, identitiesStore } = await startStore([authUtxo])
+    await store.freezeAddress(authUtxo.address)
+
+    await identitiesStore.refreshIdentities()
+    expect(store.storedReservations[outpointOf(authUtxo)]).toBe('auth')
+
+    await store.unfreezeAddress(authUtxo.address)
+    expect(store.spendableUtxos).toEqual([])
+  })
+})
+
+describe('a dapp request spending a frozen address', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorageMock.clear()
+    setActivePinia(createPinia())
+    localStorageMock.setItem('network', 'mainnet')
+  })
+
+  // the wallet's coin list can trail a coin that just arrived; the request says what each input spends
+  it('is refused for a coin the wallet has not seen yet, read off the spent script', async () => {
+    const frozenAddress = encodeCashAddress({ prefix: 'bitcoincash', type: 'p2pkh', payload: new Uint8Array(20).fill(7) }).address
+    const decoded = cashAddressToLockingBytecode(frozenAddress)
+    if (typeof decoded === 'string') throw new Error(decoded)
+    const { store, identitiesStore } = await startStore([])
+    await store.freezeAddress(frozenAddress)
+    const arrivedTxid = 'ab'.repeat(32)
+
+    const inputs = [{ outpointTransactionHash: hexToBin(arrivedTxid), outpointIndex: 0 }]
+    const outputs = [{ lockingBytecode: decoded.bytecode }]
+    expect(identitiesStore.checkDappReservedInputs(inputs, outputs).refusals).toEqual([])
+
+    const check = identitiesStore.checkDappReservedInputs(inputs, outputs, [{ lockingBytecode: decoded.bytecode }])
+    expect(check.refusals).toEqual([{ outpoint: `${arrivedTxid}:0`, reason: 'held' }])
   })
 })

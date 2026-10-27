@@ -1,6 +1,6 @@
 import { hexToBin } from "@bitauth/libauth";
 import type { Utxo } from "@cashonize/bch-wallet-lib";
-import { checkReservedInputs, refusalMessage, type SignedOutput } from "../src/utils/dapp/reservedInputs";
+import { checkReservedInputs, frozenAddressInputs, refusalMessage, type SignedOutput } from "../src/utils/dapp/reservedInputs";
 import type { ReservedUtxos } from "../src/utils/wallet/reservedUtxos";
 
 // Every AuthGuard spend takes the AuthKey as an input, so a wallet that refuses every held back
@@ -201,5 +201,21 @@ describe('the exemption reaches no further than the identity input', () => {
   it('leaves a transaction spending nothing held back alone', () => {
     const check = checkReservedInputs([spends(tokenCategory, 3)], [identityOutput(ours, 1n)], context);
     expect(check).toEqual({ refusals: [], returning: [] });
+  });
+});
+
+// The wallet's coin list can trail a coin that just reached a frozen address; the script each input
+// spends is in the request, and the signature commits to it
+describe('frozenAddressInputs', () => {
+  const oursHex = "76a914" + "11".repeat(20) + "88ac";
+
+  it('names the inputs that spend a frozen address, matched to sourceOutputs by index', () => {
+    const inputs = [spends(pledgeTxid, 0), spends(authheadTxid, 3)];
+    const sourceOutputs = [{ lockingBytecode: theirs }, { lockingBytecode: ours }];
+    expect(frozenAddressInputs(inputs, sourceOutputs, [oursHex])).toEqual([`${authheadTxid}:3`]);
+  });
+
+  it('names nothing while no address is frozen', () => {
+    expect(frozenAddressInputs([spends(pledgeTxid, 0)], [{ lockingBytecode: ours }], [])).toEqual([]);
   });
 });

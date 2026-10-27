@@ -269,7 +269,7 @@
         color: 'grey-5',
         timeout: 1000
       })
-      await store.spend.sendMax(store.wallet.getDepositAddress())
+      await store.spend.sendMax(store.currentDepositAddress)
       $q.notify({
         type: 'positive',
         message: t('utxoManagement.notifications.consolidatedSuccess')
@@ -318,7 +318,7 @@
         if (amount <= 0n) continue;
         const { txId } = await store.spend.send([
           new TokenSendRequest({
-            cashaddr: store.wallet.getTokenDepositAddress(),
+            cashaddr: store.currentTokenDepositAddress,
             amount,
             category: uniqueTokenIdToSplit,
           }),
@@ -1093,7 +1093,7 @@ $card-label-width: 90px;
   opacity: 1;
 }
 :deep(.held-marker.frozen) {
-  color: var(--color-primary);
+  color: var(--color-frozen);
 }
 /* the whole row opens the actions, so the whole row says it is clickable */
 .utxo-row.actionable {

@@ -21,12 +21,17 @@
   const heldByFeature = computed(() => isFeatureReservation(reason.value))
   const frozen = computed(() => reason.value === 'manual')
 
+  // a coin on a frozen address is frozen too, but released with its address rather than here
+  const frozenWithAddress = computed(() => reason.value === 'address')
+
   const heldText = computed(() => {
     if (reason.value === 'auth') return t('utxoManagement.markers.reservedAuth')
+    if (frozenWithAddress.value) return t('utxoManagement.markers.frozenAddress')
     return t('utxoManagement.markers.reserved')
   })
   const releaseText = computed(() => {
     if (reason.value === 'auth') return t('utxoManagement.markers.reservedAuthRelease')
+    if (frozenWithAddress.value) return t('utxoManagement.markers.frozenAddressRelease')
     return t('utxoManagement.markers.reservedRelease')
   })
   const stateLabel = computed(() => {
@@ -40,8 +45,12 @@
     <span v-if="!compact" class="cell-label">{{ t('utxoManagement.tableHeaders.status') }}</span>
     <InfoPopup v-if="heldByFeature">
       <template #trigger>
-        <span class="held-state">
-          <q-icon name="lock" size="15px" class="held-marker" />
+        <span v-if="frozenWithAddress" class="held-state">
+          <q-icon name="ac_unit" size="17px" class="held-marker frozen" />
+          <span class="held-label">{{ t('utxoManagement.markers.frozenShort') }}</span>
+        </span>
+        <span v-else class="held-state">
+          <q-icon name="lock" size="17px" class="held-marker" />
           <span class="held-label">{{ t('utxoManagement.markers.reservedShort') }}</span>
         </span>
       </template>
@@ -50,7 +59,7 @@
     </InfoPopup>
     <template v-else-if="!compact || frozen">
       <span class="held-state">
-        <q-icon v-if="frozen" name="ac_unit" size="15px" class="held-marker frozen" :title="t('utxoManagement.markers.frozen')" />
+        <q-icon v-if="frozen" name="ac_unit" size="17px" class="held-marker frozen" :title="t('utxoManagement.markers.frozen')" />
         <span class="held-label">{{ stateLabel }}</span>
       </span>
       <span v-if="!compact" class="held-action actions-trigger">
