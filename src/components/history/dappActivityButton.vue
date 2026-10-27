@@ -98,7 +98,7 @@
             <span v-if="store.dappActivity.length > shownCount" class="activity-action" @click="shownCount += pageSize">
               {{ t('dappActivity.showMore') }}
             </span>
-            <span class="activity-action" @click="clearLog">{{ t('dappActivity.clear') }}</span>
+            <button type="button" class="button clear-button" @click="clearLog">{{ t('dappActivity.clear') }}</button>
           </div>
         </q-card-section>
       </q-card>
@@ -178,14 +178,16 @@ body.dark .activityDialog {
 }
 .activity-actions {
   display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
+  align-items: center;
+  margin-top: 12px;
 }
 .activity-action {
   cursor: pointer;
   color: var(--color-primary);
 }
-.activity-action:last-child {
+/* secondary like the settings' clear buttons, sized down for the dialog */
+.clear-button {
   margin-left: auto;
+  padding: 0.75rem 1.5rem;
 }
 </style>
