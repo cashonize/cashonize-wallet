@@ -29,6 +29,10 @@ body {
      platforms they are absent and the page is not drawn edge to edge. */
   padding-bottom: var(--safe-area-inset-bottom, 0px);
 }
+/* same for notifies: fixed elements center on the viewport minus the scrollbar */
+.q-notifications__list {
+  padding-left: calc(100vw - 100%);
+}
 body.dark {
   --bg-color: #000;
   --bg-secondary-color: #16181c;
