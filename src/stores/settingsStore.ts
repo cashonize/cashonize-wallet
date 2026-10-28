@@ -56,6 +56,7 @@ export function removeSettingsMenuKeys() {
 
 const { width,height } = useWindowSize();
 const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
+const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
 const isMobileDevice = width.value / height.value < 1.5
 
 export const useSettingsStore = defineStore('settingsStore', () => {
@@ -87,8 +88,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const enableAddressMarking = ref(false);
   // the dapp activity log opens from the dapp sessions; this adds its icon to the top nav as well
   const dappActivityInNav = ref(false);
-  // the main tabs in a bar at the bottom of the screen, within thumb reach, on narrow screens only
-  const bottomNavOnMobile = ref(false);
+  // the main tabs in a bar at the bottom of the screen, within thumb reach, on narrow screens only;
+  // on by default in the Android app, where tablets keep the top nav by being wider
+  const bottomNavOnMobile = ref(Boolean(isCapacitor));
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
