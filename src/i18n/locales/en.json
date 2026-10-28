@@ -1427,6 +1427,7 @@
       "tokenAddressQrDefault": "Show token address QR code by default",
       "enableAddressMarking": "Enable advanced address management: mark addresses as used",
       "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets.",
+      "bottomNavOnMobile": "Show the navigation tabs at the bottom on small screens",
       "dappActivityInNav": "Show the dApp activity icon in the top navigation",
       "followTokenIdentities": "Follow the identities of the tokens you hold",
       "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every held token at every wallet open.",
