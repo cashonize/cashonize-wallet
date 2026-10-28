@@ -8,3 +8,7 @@ allowBuilds:
   # copies its vendored 7z binary into place for the host arch (Windows Squirrel installer)
   electron-winstaller: true
   esbuild: true
+
+# a release taken before pnpm's one-day minimum age, for its Chromium security fixes
+minimumReleaseAgeExclude:
+  - 'electron@45.1.0'
