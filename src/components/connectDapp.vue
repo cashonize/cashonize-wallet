@@ -167,7 +167,7 @@
         <WCSessions />
         <CCSessions />
         <WizSessions />
-        <div v-if="hasNoSessions" class="q-pa-md">{{ t('dapp.noActiveSessions') }}</div>
+        <div v-if="hasNoSessions" class="sessions-empty">{{ t('dapp.noActiveSessions') }}</div>
       </div>
     </fieldset>
 
@@ -206,12 +206,20 @@
     top: 8px;
     right: 7px;
   }
+  /* on the first heading's line, like the button beside it */
+  .sessions-empty {
+    padding: 8px 16px 4px;
+  }
   /* on small phones the heading and the button overlap, so the button takes its own line above */
   @media only screen and (max-width: 450px) {
     .sessions-activity-button {
       position: static;
       display: block;
       text-align: right;
+    }
+    /* the button's own line already spaces it from the legend */
+    .sessions-empty {
+      padding-top: 0;
     }
   }
   /* Styled like the about-page note on the onboarding page */
