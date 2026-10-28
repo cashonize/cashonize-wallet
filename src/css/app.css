@@ -14,6 +14,8 @@
   --surface-line: rgba(128, 128, 128, 0.2);
   --surface-line-strong: rgba(128, 128, 128, 0.25); /* the firmer edge of a chip or a label box */
   --bottom-nav-height: 64px;
+  /* the tallest the bottom inset gets, so the bottom nav's padding stays put while Chrome's chin slides away */
+  --safe-area-max-inset-bottom: env(safe-area-max-inset-bottom, 0px);
 }
 
 #app {
@@ -36,12 +38,14 @@ body {
 .q-notifications__list {
   padding-left: calc(100vw - 100%);
 }
-/* the optional bottom nav bar (WalletPage) is fixed, the page end and the notifies keep clear of it */
+/* the optional bottom nav bar (WalletPage) is fixed, the page end and the notifies keep clear of it.
+   It follows env() rather than Capacitor's variables: Chrome on Android reports the inset without
+   viewport-fit=cover too, changing it as its chin slides away on scroll */
 body.bottom-nav {
-  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-max-inset-bottom));
 }
 body.bottom-nav .q-notifications__list--bottom {
-  bottom: calc(var(--bottom-nav-height) + var(--safe-area-inset-bottom, 0px));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--bottom-nav-height));
 }
 body.dark {
   --bg-color: #000;

@@ -335,10 +335,12 @@ header {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* Chrome's pattern for bottom bars: a fixed padding of the largest inset, moved down by what is
+     not currently needed, so the bar never relayouts while scrolling */
+  bottom: calc(env(safe-area-inset-bottom, 0px) - var(--safe-area-max-inset-bottom));
   z-index: 1000;
   display: flex;
-  padding-bottom: var(--safe-area-inset-bottom, 0px);
+  padding-bottom: var(--safe-area-max-inset-bottom);
   background-color: var(--bg-color);
   border-top: 1px solid var(--color-lightGrey);
   user-select: none;
