@@ -36,6 +36,13 @@ import {
   matWifiOff,
 } from '@quasar/extras/material-icons'
 import { outlinedInfo } from '@quasar/extras/material-icons-outlined'
+import {
+  symOutlinedAccountBalanceWallet,
+  symOutlinedHistory,
+  symOutlinedLink,
+  symOutlinedToll,
+} from '@quasar/extras/material-symbols-outlined'
+import { ionSettingsOutline } from '@quasar/extras/ionicons-v8'
 
 // TODO: Replace icon-name strings with direct SVG imports for compile-time checking.
 // Note: Until then, add every new icon name here; unmapped names render as literal text.
@@ -57,6 +64,7 @@ const appIcons: Record<string, string> = {
   image: matImage,
   info: matInfo,
   info_outline: outlinedInfo,
+  ion_settings_outline: ionSettingsOutline,
   keyboard_arrow_down: matKeyboardArrowDown,
   keyboard_arrow_up: matKeyboardArrowUp,
   lock: matLock,
@@ -69,6 +77,10 @@ const appIcons: Record<string, string> = {
   send: matSend,
   swap_horiz: matSwapHoriz,
   swap_vert: matSwapVert,
+  sym_o_account_balance_wallet: symOutlinedAccountBalanceWallet,
+  sym_o_history: symOutlinedHistory,
+  sym_o_link: symOutlinedLink,
+  sym_o_toll: symOutlinedToll,
   sync: matSync,
   tune: matTune,
   unarchive: matUnarchive,

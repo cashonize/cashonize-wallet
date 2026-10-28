@@ -56,6 +56,7 @@
   const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
   const enableAddressMarking = ref(settingsStore.enableAddressMarking);
   const dappActivityInNav = ref(settingsStore.dappActivityInNav);
+  const bottomNavOnMobile = ref(settingsStore.bottomNavOnMobile);
   // advanced settings
   const predefinedElectrumServersMainnet = [
     "electrum.imaginary.cash",
@@ -390,6 +391,10 @@
     localStorage.setItem("dappActivityInNav", dappActivityInNav.value? "true" : "false");
     settingsStore.dappActivityInNav = dappActivityInNav.value;
   }
+  function toggleBottomNavOnMobile(){
+    localStorage.setItem("bottomNavOnMobile", bottomNavOnMobile.value? "true" : "false");
+    settingsStore.bottomNavOnMobile = bottomNavOnMobile.value;
+  }
   function toggleEnableAddressMarking(){
     localStorage.setItem("enableAddressMarking", enableAddressMarking.value? "true" : "false");
     settingsStore.enableAddressMarking = enableAddressMarking.value;
@@ -610,6 +615,10 @@
           <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
         </InfoPopup>
         <q-toggle v-model="enableAddressMarking" @update:model-value="toggleEnableAddressMarking" dense />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.bottomNavOnMobile') }} <q-toggle v-model="bottomNavOnMobile" @update:model-value="toggleBottomNavOnMobile" dense />
       </div>
 
       <div style="margin-bottom: 15px;">

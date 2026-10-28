@@ -21,7 +21,7 @@
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
-  import { defineComponent, ref, computed, watch, onMounted } from 'vue'
+  import { defineComponent, ref, computed, watch, watchEffect, onMounted, onUnmounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
   import { preloadIcons } from 'src/utils/icons/preloadIcons'
@@ -45,6 +45,30 @@
 
   // French and Portuguese tab labels are long enough to overflow small phone screens
   const compactNavTabs = computed(() => ['fr', 'pt'].includes(locale.value))
+
+  // Below the width where Addresses leaves the nav, so the bottom bar holds five tabs
+  const navAtBottom = computed(() =>
+    !!store.displayView && settingsStore.bottomNavOnMobile && width.value <= addressesNavTabMinWidth
+  );
+  // the notifies are mounted outside the page, they keep clear of the bar through the body class
+  watchEffect(() => document.body.classList.toggle('bottom-nav', navAtBottom.value));
+
+  // An on-screen keyboard that resizes the page would lift the bar over the form being filled in,
+  // so the bar steps aside while a text field has focus
+  const textFieldFocused = ref(false);
+  function onFocusChange() {
+    const element = document.activeElement;
+    textFieldFocused.value = element instanceof HTMLTextAreaElement
+      || (element instanceof HTMLInputElement && !['checkbox', 'radio'].includes(element.type));
+  }
+  onMounted(() => {
+    document.addEventListener('focusin', onFocusChange);
+    document.addEventListener('focusout', onFocusChange);
+  });
+  onUnmounted(() => {
+    document.removeEventListener('focusin', onFocusChange);
+    document.removeEventListener('focusout', onFocusChange);
+  });
 
   const props = defineProps<{
     uri: string | undefined
@@ -242,7 +266,10 @@
 <template>
   <header>
     <HeaderLogo />
-    <nav v-if="store.displayView" style="display: flex; justify-content: center; user-select: none;" class="tabs" :class="{ compact: compactNavTabs }">
+    <div v-if="navAtBottom && settingsStore.dappActivityInNav" class="header-dapp-activity">
+      <DappActivityButton icon-only />
+    </div>
+    <nav v-if="store.displayView && !navAtBottom" style="display: flex; justify-content: center; user-select: none;" class="tabs" :class="{ compact: compactNavTabs }">
       <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ t('nav.wallet') }} </div>
       <div v-if="width > addressesNavTabMinWidth && settingsStore.getWalletType(store.activeWalletName) === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ t('nav.tokens') }} </div>
@@ -264,10 +291,75 @@
     </KeepAlive>
     <settingsMenu v-if="store.displayView == 5" />
   </main>
+  <nav v-if="navAtBottom" v-show="!textFieldFocused" class="bottom-nav">
+    <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }">
+      <q-icon name="sym_o_account_balance_wallet" size="24px" />
+      <span>{{ t('nav.wallet') }}</span>
+    </div>
+    <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }">
+      <q-icon name="sym_o_toll" size="24px" />
+      <span>{{ t('nav.tokens') }}</span>
+    </div>
+    <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }">
+      <q-icon name="sym_o_history" size="24px" />
+      <span>{{ t('nav.history') }}</span>
+    </div>
+    <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }">
+      <q-icon name="sym_o_link" size="24px" style="transform: rotate(-45deg);" />
+      <span>{{ t('nav.connect') }}</span>
+    </div>
+    <div @click="store.changeView(5)" :class="{ active: store.displayView == 5 }">
+      <span style="position: relative;">
+        <q-icon name="ion_settings_outline" size="24px" style="transform: scale(0.875);" />
+        <span v-if="showNotificationIcon" class="notification-dot" style="top: 0; right: -2px;"></span>
+      </span>
+      <span>{{ t('settings.title') }}</span>
+    </div>
+  </nav>
 </template>
 
 <style scoped>
 .active {
   color: var(--color-primary);
+}
+header {
+  position: relative;
+}
+/* the header keeps the dApp activity icon when the tabs move to the bottom */
+.header-dapp-activity {
+  position: absolute;
+  top: calc(15px + var(--safe-area-inset-top, 0px));
+  right: 12px;
+}
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  padding-bottom: var(--safe-area-inset-bottom, 0px);
+  background-color: var(--bg-color);
+  border-top: 1px solid var(--color-lightGrey);
+  user-select: none;
+}
+.bottom-nav > div {
+  flex: 1;
+  min-width: 0;
+  height: var(--bottom-nav-height);
+  padding: 0 2px;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 12px;
+}
+.bottom-nav > div > span:last-child {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

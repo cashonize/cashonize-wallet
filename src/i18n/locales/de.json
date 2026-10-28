@@ -1427,6 +1427,7 @@
       "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen",
       "enableAddressMarking": "Erweiterte Adressverwaltung aktivieren: Adressen als verwendet markieren",
       "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets.",
+      "bottomNavOnMobile": "Die Navigation auf kleinen Bildschirmen unten anzeigen",
       "dappActivityInNav": "Das dApp-Aktivitätssymbol in der oberen Navigation anzeigen",
       "followTokenIdentities": "Die Identitäten der gehaltenen Tokens verfolgen",
       "followTokenIdentitiesHint": "Die Liste der gehaltenen Tokens geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Standardmäßig aus: dann wird nur die Identität eines Tokens nachgeschlagen, dessen AuthKey dieses Wallet hält. Einschalten schlägt bei jedem Öffnen des Wallets jeden gehaltenen Token nach.",

@@ -35,7 +35,7 @@ const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 export const settingsMenuKeys = [
   // user options
   "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "qrAnimation",
-  "tokenAddressQrDefault", "enableAddressMarking", "dappActivityInNav",
+  "tokenAddressQrDefault", "enableAddressMarking", "dappActivityInNav", "bottomNavOnMobile",
   // token settings
   "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
   "allowDappIdentitySpends",
@@ -87,6 +87,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const enableAddressMarking = ref(false);
   // the dapp activity log opens from the dapp sessions; this adds its icon to the top nav as well
   const dappActivityInNav = ref(false);
+  // the main tabs in a bar at the bottom of the screen, within thumb reach, on narrow screens only
+  const bottomNavOnMobile = ref(false);
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
@@ -205,6 +207,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readDappActivityInNav = localStorage.getItem("dappActivityInNav");
   if(readDappActivityInNav) dappActivityInNav.value = readDappActivityInNav == "true";
+
+  const readBottomNavOnMobile = localStorage.getItem("bottomNavOnMobile");
+  if(readBottomNavOnMobile) bottomNavOnMobile.value = readBottomNavOnMobile == "true";
 
   const readDarkMode = localStorage.getItem("darkMode");
   if(readDarkMode == "true"){
@@ -552,6 +557,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     tokenAddressQrDefault,
     enableAddressMarking,
     dappActivityInNav,
+    bottomNavOnMobile,
     hasPlayedAnimation,
     featuredTokens,
     hiddenTokens,
