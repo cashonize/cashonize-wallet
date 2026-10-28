@@ -206,6 +206,14 @@
     top: 8px;
     right: 7px;
   }
+  /* on small phones the heading and the button overlap, so the button takes its own line above */
+  @media only screen and (max-width: 450px) {
+    .sessions-activity-button {
+      position: static;
+      display: block;
+      text-align: right;
+    }
+  }
   /* Styled like the about-page note on the onboarding page */
   .explore-dapps-note {
     text-align: center;
