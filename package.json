@@ -64,7 +64,6 @@
     "jiti": "^2.7.0",
     "rollup-plugin-visualizer": "^7.1.1",
     "typescript": "^6.0.3",
-    "vite-plugin-checker": "^0.14.4",
     "vitest": "5.0.5",
     "vue-tsc": "^3.3.13",
     "ws": "^8.21.0"

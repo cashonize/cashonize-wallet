@@ -85,8 +85,7 @@ The dApp protocols bring most of the tree, each for its own reasons:
   `barcode-detector/ponyfill` (ZXing in WebAssembly, actively maintained), whose ~1 MB of
   WebAssembly the app must serve itself rather than from its default CDN. The browser's
   `BarcodeDetector` alone won't do, as several platforms lack it.
-- **Dev tooling that doesn't ship**: `vite-plugin-checker` (duplicates the `vue-tsc` CI check)
-  and `rollup-plugin-visualizer`.
+- **Dev tooling that doesn't ship**: `rollup-plugin-visualizer`.
 - **A schema check for the Chaingraph queries**: an unknown field only shows in the editor. A
   vitest validating them with graphql-js (installed through gql.tada) against a committed
   schema file would catch it in CI.
