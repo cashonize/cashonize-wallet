@@ -62,6 +62,7 @@ function createImageData(size: number) {
 }
 
 function buildOpts(opts: BlockiesOptions) {
+  // eslint-disable-next-line no-restricted-properties -- an icon seed, not a secret
   const seed = opts.seed || Math.floor((Math.random() * Math.pow(10, 16))).toString(16);
   seedrand(seed);
   return {

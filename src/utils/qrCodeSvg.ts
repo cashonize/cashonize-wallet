@@ -65,6 +65,7 @@ function animationDelay(
     case 'FadeInCenterOut':
       return distanceFromCenter(x, y, count, entity) * 20;
     case 'MaterializeIn':
+      // eslint-disable-next-line no-restricted-properties -- an animation delay, not a secret
       return entity === 'module' ? Math.random() * 200 : 200;
     case 'RadialRipple':
     case 'RadialRippleIn':

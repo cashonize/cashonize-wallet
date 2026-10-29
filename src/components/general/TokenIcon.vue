@@ -15,8 +15,6 @@
 
   function appendBlockieIcon() {
     if (!fallbackRef.value) return;
-    // Clear any existing content
-    fallbackRef.value.innerHTML = '';
     const icon = createIcon({
       seed: props.tokenId,
       size: 12,
@@ -24,7 +22,7 @@
       spotcolor: '#000'
     });
     icon.style.cssText = `display: block; border-radius: 50%; width: ${props.size}px; height: ${props.size}px;`;
-    fallbackRef.value.appendChild(icon);
+    fallbackRef.value.replaceChildren(icon);
   }
 
   onMounted(() => {

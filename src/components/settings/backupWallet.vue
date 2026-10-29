@@ -130,7 +130,7 @@
       // Pick 4 random indices
       const indices: number[] = [];
       while (indices.length < 4) {
-        const randomIndex = Math.floor(Math.random() * words.length);
+        const randomIndex = crypto.getRandomValues(new Uint32Array(1))[0]! % words.length;
         if (!indices.includes(randomIndex)) {
           indices.push(randomIndex);
         }
