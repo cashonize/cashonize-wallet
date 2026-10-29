@@ -1418,6 +1418,7 @@
       "showCauldronFTValueHint": "Exibe o valor em fiat na aba Tokens para tokens fungíveis com pelo menos 1 BCH de liquidez combinada nos pools da Cauldron DEX",
       "showCauldronFTValuePortfolioNote": "A visão de portfólio sempre mostra os valores dos tokens",
       "enableTokenBurn": "Mostrar o botão de queimar nos tokens",
+      "identitiesHeading": "Identidades (avançado)",
       "enableQrScan": "Habilitar leitura de QR",
       "selectUnit": "Selecionar unidade Bitcoin Cash:",
       "bchUnit": "BCH",

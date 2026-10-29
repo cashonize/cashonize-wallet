@@ -1418,6 +1418,7 @@
       "showCauldronFTValueHint": "Affiche la valeur en devise dans l'onglet Tokens pour les tokens fongibles avec au moins 1 BCH de liquidité combinée dans les pools de Cauldron DEX",
       "showCauldronFTValuePortfolioNote": "La vue portfolio affiche toujours les valeurs des tokens",
       "enableTokenBurn": "Afficher le bouton de destruction sur les tokens",
+      "identitiesHeading": "Identités (avancé)",
       "enableQrScan": "Activer le scan QR",
       "selectUnit": "Sélectionner l'unité Bitcoin Cash :",
       "bchUnit": "BCH",

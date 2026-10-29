@@ -1418,6 +1418,7 @@
       "showCauldronFTValueHint": "Zeigt den Fiat-Wert im Token-Tab für fungible Tokens mit mindestens 1 BCH kombinierter Liquidität über die Cauldron-DEX-Pools",
       "showCauldronFTValuePortfolioNote": "Die Portfolio-Ansicht zeigt Token-Werte immer an",
       "enableTokenBurn": "Schaltfläche zum Verbrennen bei Tokens anzeigen",
+      "identitiesHeading": "Identitäten (Erweitert)",
       "enableQrScan": "QR-Scan aktivieren",
       "selectUnit": "Bitcoin Cash Einheit auswählen:",
       "bchUnit": "BCH",

@@ -651,6 +651,8 @@
         {{ t('settings.userOptions.enableTokenBurn') }} <q-toggle v-model="selectedTokenBurn" @update:model-value="changeTokenBurn()" dense />
       </div>
 
+      <div style="font-weight: 600; margin: 25px 0 15px;">{{ t('settings.userOptions.identitiesHeading') }}</div>
+
       <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.followTokenIdentities') }}
         <InfoPopup style="margin-right: 6px;">
