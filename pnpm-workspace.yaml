@@ -29,7 +29,7 @@ fund: false
 overrides:
   '@reown/walletkit>@walletconnect/pay': '-'
   # Quasar CLI deps for modes and options we don't use, loaded only when used: the https dev
-  # server's certificate, and the PWA/SSR/Cordova static server and Cordova config parser
+  # server's certificate, and the PWA/SSR/SSG/Cordova static server and Cordova config parser
   '@quasar/app-vite>@quasar/ssl-certificate': '-'
   '@quasar/app-vite>serve-static': '-'
   '@quasar/app-vite>elementtree': '-'

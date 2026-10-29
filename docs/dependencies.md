@@ -45,7 +45,7 @@ plus `router.push` for Capacitor deep links; the Quasar CLI requires a router, s
 **Dependencies of a dependency that we never load are removed with a `'-'` override** in
 `pnpm-workspace.yaml`. That fits a package that loads them only for a feature or mode we don't
 use, so the tree loses them while the code that would import them never runs. The Quasar CLI's
-`@quasar/ssl-certificate` (an https dev server), `serve-static` (the PWA, SSR and Cordova modes)
+`@quasar/ssl-certificate` (an https dev server), `serve-static` (the PWA, SSR, SSG and Cordova modes)
 and `elementtree` (Cordova) go this way, 41 packages in all, as does walletkit's
 `@walletconnect/pay` (see Protocol libraries). If an upgrade starts loading one on a path we use,
 the build or app fails with a missing module, rather than breaking quietly.
