@@ -78,7 +78,7 @@
   );
   
   const nftMetadata = computed(() => {
-    if(!isSingleNft.value) return
+    if(!isSingleNft.value) return undefined
     const nftData = tokenData.value.nfts?.[0];
     const commitment = nftData?.token?.nft?.commitment;
     const matchedNftMetadata = tokenMetaData?.value?.nfts?.[commitment ?? ""]
