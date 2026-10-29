@@ -270,7 +270,7 @@ const BcmrExtensionsSchema = z.record(
 
 const BcmrNftMetadataSchema = z.object({
   name: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
   uris: BcmrUrisSchema.optional(),
   extensions: BcmrExtensionsSchema.optional(),
 });
@@ -322,7 +322,7 @@ const BcmrTokenNftsSchema = z.object({
 
 const BcmrTokenResponseSchema = z.object({
   name: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
   token: z.object({
     category: Hex64Schema,
     decimals: z.number().int().nonnegative().max(18).optional(),

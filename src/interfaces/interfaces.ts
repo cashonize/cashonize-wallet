@@ -106,7 +106,7 @@ export interface BcmrTokenNftsParseInfo {
 
 export interface BcmrTokenMetadata {
   name: string
-  description: string
+  description?: string | undefined
   token: {
     category: string
     decimals?: number | undefined
@@ -122,7 +122,7 @@ export interface BcmrTokenMetadata {
 
 export interface BcmrNftMetadata {
   name: string
-  description: string
+  description?: string | undefined
   uris?: Record<string, string> | undefined
   extensions?: BcmrExtensions | undefined
 }
