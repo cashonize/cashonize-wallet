@@ -93,6 +93,9 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
       // messages, topics) to pulse.walletconnect.org. Nothing in the protocol depends on it.
       telemetryEnabled: false
     });
+    // telemetryEnabled doesn't cover the start-up INIT event (client id, user agent, domain), which
+    // WalletKit sends to pulse.walletconnect.org on every init
+    core.eventClient.init = async () => {};
     const walletKit = await WalletKit.init({
       // @ts-ignore: it complains about not having a 'relayUrl' property but it is not needed
       core,

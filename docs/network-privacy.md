@@ -29,8 +29,8 @@ address the wallet subscribes to, the indexers the tokens it looks up.
 **Each dApp protocol talks through relays the user doesn't choose**, which see who connects,
 when, and how much is sent, though not the encrypted content:
 - **WalletConnect** uses Reown's relay, and looks up each dApp's domain with Reown's Verify
-  service. Its telemetry, on by default, is turned off; one start-up event (client id and user agent)
-  still reaches Reown's pulse service regardless of that setting.
+  service. Its telemetry, on by default, is turned off, including the start-up event (client id and
+  user agent) that WalletKit sends to Reown's pulse service regardless of that setting.
 - **CashConnect** uses a single Nostr relay, `nostr.infra.cash`, the library's default; pairing
   links naming another relay are refused.
 - **WizardConnect** uses Nostr relays from the dApp's pairing link or the library's defaults.
