@@ -45,12 +45,12 @@ plus `router.push` for Capacitor deep links; the Quasar CLI requires a router, s
 **Dependencies of a dependency that we never load are removed with a `'-'` override** in
 `pnpm-workspace.yaml`. That fits a package that loads them only for a feature or mode we don't
 use, so the tree loses them while the code that would import them never runs. The Quasar CLI's
-`@quasar/ssl-certificate` (an https dev server), `serve-static` (the PWA, SSR, SSG and Cordova modes)
-and `elementtree` (Cordova) go this way, 41 packages in all. So do the server and storage-driver
-dependencies of `unstorage` (13 packages), which WalletConnect's key-value storage uses only with
-its own IndexedDB driver, and walletkit's `@walletconnect/pay` (see Protocol libraries). If an
-upgrade starts loading one on a path we use, the build or app fails with a missing module, rather
-than breaking quietly.
+`@quasar/ssl-certificate` (an https dev server), `serve-static` (the PWA, SSR, SSG and Cordova
+modes) and `elementtree` (Cordova) go this way, 41 packages in all. So do the server and
+storage-driver dependencies of `unstorage` (13 packages), which WalletConnect's key-value storage
+uses only with its own IndexedDB driver, and walletkit's `@walletconnect/pay` (see Protocol
+libraries). If an upgrade starts loading one on a path we use, the build or app fails with a
+missing module, rather than breaking quietly.
 
 **`@noble/hashes` and `@noble/ciphers` are direct dependencies for BIP38** (scrypt and
 AES-ECB), which neither WebCrypto nor libauth provides.
