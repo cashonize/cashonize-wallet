@@ -8,6 +8,8 @@
   const { t } = useI18n()
 
   const isBrowser = import.meta.env.QUASAR_SPA_MODE;
+  const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
+  const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 </script>
 
 <template>
@@ -48,6 +50,10 @@
         <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
       </a>
     </div>
+
+    <p v-if="isCapacitor || isDesktop" style="color: grey; font-style: italic; margin: 0 0 15px;">
+      {{ isCapacitor ? t('aboutCashonize.logoHintTaps') : t('aboutCashonize.logoHintClicks') }}
+    </p>
 
     <div style="margin-bottom: 15px;">
       <a style="color: var(--font-color); cursor: pointer;" href="https://x.com/GeukensMathieu" target="_blank">

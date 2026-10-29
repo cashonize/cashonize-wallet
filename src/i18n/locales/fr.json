@@ -954,7 +954,9 @@
     "learnMore": "Visitez le site web de Cashonize",
     "downloadPage": "Visitez la page de téléchargement de Cashonize",
     "viewSource": "Voir le code source",
-    "followOnX": "Suivez les actualités sur X"
+    "followOnX": "Suivez les actualités sur X",
+    "logoHintTaps": "Vous vous ennuyez ? Tapotez rapidement le logo quelques fois.",
+    "logoHintClicks": "Psst... essayez de cliquer plusieurs fois sur le logo."
   },
   "hdAddresses": {
     "title": "Adresses du portefeuille HD",

@@ -954,7 +954,9 @@
     "learnMore": "Besuche die Cashonize-Website",
     "downloadPage": "Besuche die Cashonize-Downloadseite",
     "viewSource": "Quellcode ansehen",
-    "followOnX": "Folge Neuigkeiten auf X"
+    "followOnX": "Folge Neuigkeiten auf X",
+    "logoHintTaps": "Langeweile? Tippe ein paarmal schnell auf das Logo.",
+    "logoHintClicks": "Psst... klick mal ein paarmal auf das Logo."
   },
   "hdAddresses": {
     "title": "HD Wallet Adressen",

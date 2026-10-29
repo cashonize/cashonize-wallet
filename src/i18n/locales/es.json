@@ -954,7 +954,9 @@
     "learnMore": "Visita el sitio web de Cashonize",
     "downloadPage": "Visita la página de descargas de Cashonize",
     "viewSource": "Ver el código fuente",
-    "followOnX": "Sigue las novedades en X"
+    "followOnX": "Sigue las novedades en X",
+    "logoHintTaps": "¿Te aburres? Dale unos toques rápidos al logo.",
+    "logoHintClicks": "Psst... prueba a hacer clic en el logo varias veces."
   },
   "hdAddresses": {
     "title": "Direcciones de billetera HD",

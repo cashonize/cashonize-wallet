@@ -954,7 +954,9 @@
     "learnMore": "Visite o site do Cashonize",
     "downloadPage": "Visite a página de downloads do Cashonize",
     "viewSource": "Ver o código-fonte",
-    "followOnX": "Acompanhe as novidades no X"
+    "followOnX": "Acompanhe as novidades no X",
+    "logoHintTaps": "Bateu o tédio? Dê alguns toques rápidos no logo.",
+    "logoHintClicks": "Psst... tente clicar no logo algumas vezes."
   },
   "hdAddresses": {
     "title": "Endereços da Carteira HD",
