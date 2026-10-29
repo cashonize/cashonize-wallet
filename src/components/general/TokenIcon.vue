@@ -16,7 +16,7 @@
   function appendBlockieIcon() {
     if (!fallbackRef.value) return;
     const icon = createIcon({
-      seed: props.tokenId,
+      identifier: props.tokenId,
       size: 12,
       scale: Math.ceil(props.size / 12),
       spotcolor: '#000'
