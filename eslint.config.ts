@@ -5,6 +5,15 @@ import pluginVue from 'eslint-plugin-vue'
 import pluginQuasar from '@quasar/app-vite/eslint'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 
+// These QSelect and QChatMessage props render their content as HTML, the same injection as
+// v-html but out of vue/no-v-html's sight. The rules match the attribute as written, so both
+// spellings are listed.
+const quasarHtmlProps = [
+  'options-html', 'optionsHtml', 'display-value-html', 'displayValueHtml',
+  'label-html', 'labelHtml', 'name-html', 'nameHtml',
+  'text-html', 'textHtml', 'stamp-html', 'stampHtml',
+]
+
 export default defineConfigWithVueTs(
   {
     /**
@@ -86,6 +95,20 @@ export default defineConfigWithVueTs(
         { allowTernary: true } // Allow function calls and other expressions in ternaries
       ],
 
+      // A wallet renders untrusted text (token metadata, dApp metadata, labels) next to its keys,
+      // so markup only enters the DOM through an explicit, reviewed exception.
+      'vue/no-v-html': 'error',
+      'vue/no-restricted-v-bind': ['error', 'innerHTML', 'outerHTML', ...quasarHtmlProps],
+      'vue/no-restricted-static-attribute': ['error', ...quasarHtmlProps],
+      // no runtime code from strings, and randomness comes from crypto.getRandomValues
+      'no-eval': 'error',
+      'no-new-func': 'error',
+      'no-script-url': 'error',
+      'no-restricted-properties': ['error', {
+        object: 'Math', property: 'random',
+        message: 'Use crypto.getRandomValues: Math.random is predictable.',
+      }],
+
       // allow debugger during development only
       'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
     }
@@ -106,6 +129,24 @@ export default defineConfigWithVueTs(
           selector: `CallExpression > MemberExpression[property.name='${method}'][object.property.name='wallet']`,
           message: `Use store.spend.${method}() instead of store.wallet.${method}(), so coin selection stays narrowed to the spendable pool and cannot pick up a reserved coin.`,
         })),
+        // The HTML sinks vue/no-v-html cannot see. They share this rule because a second
+        // no-restricted-syntax entry for the same files would replace the one above.
+        {
+          selector: "Property[key.name='html'][value.value=true]",
+          message: 'Quasar renders the message as HTML with html: true. Keep it text, with white-space: pre-line for line breaks.',
+        },
+        {
+          selector: "AssignmentExpression[left.property.name=/^(innerHTML|outerHTML)$/]",
+          message: 'Build DOM nodes or use textContent instead of assigning HTML.',
+        },
+        {
+          selector: "CallExpression[callee.property.name=/^(insertAdjacentHTML|createContextualFragment)$/]",
+          message: 'Build DOM nodes instead of inserting HTML.',
+        },
+        {
+          selector: "CallExpression[callee.object.name='document'][callee.property.name=/^(write|writeln)$/]",
+          message: 'Build DOM nodes instead of writing HTML into the document.',
+        },
       ],
     }
   },

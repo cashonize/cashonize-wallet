@@ -2,7 +2,7 @@ import { createIcon } from 'src/utils/icons/blockies';
 
 export function appendBlockieIcon(tokenId: string, templateSelector: string) {
   const icon = createIcon({
-    seed: tokenId,
+    identifier: tokenId,
     size: 12,
     scale: 4,
     spotcolor: '#000'

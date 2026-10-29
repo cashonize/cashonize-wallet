@@ -128,14 +128,12 @@
     } else {
       const words = store.wallet.mnemonic.split(' ');
       // Pick 4 random indices
-      const indices: number[] = [];
-      while (indices.length < 4) {
-        const randomIndex = Math.floor(Math.random() * words.length);
-        if (!indices.includes(randomIndex)) {
-          indices.push(randomIndex);
-        }
-      }
-      indices.sort((a, b) => a - b);
+      const randomValues = crypto.getRandomValues(new Uint32Array(words.length));
+      const indices = Array.from(randomValues, (random, index) => ({ random, index }))
+        .sort((a, b) => a.random - b.random)
+        .slice(0, 4)
+        .map(({ index }) => index)
+        .sort((a, b) => a - b);
       verificationIndices.value = indices;
       verificationWords.value = Array(4).fill('');
       showBackupVerification.value = true;

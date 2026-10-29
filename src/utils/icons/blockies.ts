@@ -1,11 +1,11 @@
 // Deterministic blocky identicon generator
 // Adapted from @download/blockies (https://github.com/nickytonline/blockies)
-// Generates unique canvas icons from a seed string using Xorshift PRNG
+// Generates unique canvas icons from an identifier string using Xorshift PRNG
 // Ported to TypeScript with renamed variables and a Seed tuple type
 // for the PRNG state so array access is type-safe without ts-ignore
 
 interface BlockiesOptions {
-  seed?: string;
+  identifier: string;
   size?: number;
   scale?: number;
   color?: string;
@@ -18,11 +18,11 @@ type Seed = [number, number, number, number];
 // Xorshift PRNG: [x, y, z, w] 32-bit values
 const randseed: Seed = [0, 0, 0, 0];
 
-function seedrand(seed: string) {
+function seedrand(identifier: string) {
   randseed.fill(0);
-  for (let i = 0; i < seed.length; i++) {
+  for (let i = 0; i < identifier.length; i++) {
     const idx = (i % 4) as 0 | 1 | 2 | 3;
-    randseed[idx] = ((randseed[idx] << 5) - randseed[idx]) + seed.charCodeAt(i);
+    randseed[idx] = ((randseed[idx] << 5) - randseed[idx]) + identifier.charCodeAt(i);
   }
 }
 
@@ -62,8 +62,7 @@ function createImageData(size: number) {
 }
 
 function buildOpts(opts: BlockiesOptions) {
-  const seed = opts.seed || Math.floor((Math.random() * Math.pow(10, 16))).toString(16);
-  seedrand(seed);
+  seedrand(opts.identifier);
   return {
     size: opts.size || 8,
     scale: opts.scale || 4,
