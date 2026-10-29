@@ -1417,7 +1417,7 @@
       "showCauldronFTValue": "Show fiat value in the tokens list",
       "showCauldronFTValueHint": "Display fiat value on the Tokens tab for fungible tokens with at least 1 BCH combined liquidity across Cauldron DEX pools",
       "showCauldronFTValuePortfolioNote": "The portfolio view always shows token values",
-      "enableTokenBurn": "Enable token-burn",
+      "enableTokenBurn": "Show the burn button on tokens",
       "enableQrScan": "Enable QR scan",
       "selectUnit": "Select Bitcoin Cash unit:",
       "bchUnit": "BCH",
