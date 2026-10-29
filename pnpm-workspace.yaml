@@ -28,6 +28,11 @@ fund: false
 # package.json. Nested pins use "parent>child" selector syntax.
 overrides:
   '@reown/walletkit>@walletconnect/pay': '-'
+  # Quasar CLI deps for modes and options we don't use, loaded only when used: the https dev
+  # server's certificate, and the PWA/SSR/Cordova static server and Cordova config parser
+  '@quasar/app-vite>@quasar/ssl-certificate': '-'
+  '@quasar/app-vite>serve-static': '-'
+  '@quasar/app-vite>elementtree': '-'
   # Security-critical deps, pinned graph-wide where they also appear as transitive
   # dependencies (libauth and @walletconnect/core via several) — overrides pin every copy
   # in the graph, which exact versions in package.json alone can't do. Keep in sync with
