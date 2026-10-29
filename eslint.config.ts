@@ -5,11 +5,14 @@ import pluginVue from 'eslint-plugin-vue'
 import pluginQuasar from '@quasar/app-vite/eslint'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 
-// Quasar props that render their value as HTML (QSelect's and QChatMessage's), in both spellings
+// These QSelect and QChatMessage props render their content as HTML, the same injection as
+// v-html but out of vue/no-v-html's sight. The rules match the attribute as written, so both
+// spellings are listed.
 const quasarHtmlProps = [
-  'options-html', 'display-value-html',
-  'label-html', 'name-html', 'text-html', 'stamp-html',
-].flatMap(name => [name, name.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase())])
+  'options-html', 'optionsHtml', 'display-value-html', 'displayValueHtml',
+  'label-html', 'labelHtml', 'name-html', 'nameHtml',
+  'text-html', 'textHtml', 'stamp-html', 'stampHtml',
+]
 
 export default defineConfigWithVueTs(
   {
