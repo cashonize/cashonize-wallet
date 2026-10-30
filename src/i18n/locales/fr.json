@@ -92,6 +92,9 @@
       "broadcastAgainSent": "La transaction {txId} a été diffusée"
     },
     "errors": {
+      "chipnetCopyChanged": "La copie chipnet de {name} a changé depuis la vérification, rien n'a donc été retiré.",
+      "chipnetCopyRemovalRunning": "Une copie chipnet est en cours de retrait. Réessayez une fois terminé.",
+      "chipnetCopyHoldsCoins": "La copie chipnet de {name} contient des pièces chipnet, rien n'a donc été retiré.",
       "cannotDeleteActiveWallet": "Impossible de supprimer le portefeuille actuellement actif",
       "cachedKeysNotCleared": "Le portefeuille a été supprimé, mais les clés qu'il avait mises en cache n'ont pas pu être retirées.",
       "walletNotFoundOnNetwork": "Le portefeuille \"{name}\" n'existe pas sur {network}",
@@ -573,6 +576,9 @@
       "showButton": "Afficher la phrase de récupération",
       "hideButton": "Masquer la phrase de récupération",
       "verifyButton": "Vérifier votre sauvegarde",
+      "dismissButton": "Ignorer le rappel de sauvegarde",
+      "dismissHint": "Ceci est un portefeuille {network}, sans fonds réels : le rappel de sauvegarde peut être désactivé.",
+      "dismissed": "Rappel de sauvegarde désactivé : ceci est un portefeuille {network}.",
       "copyButton": "Copier la phrase de récupération",
       "copyTitle": "Copier la phrase de récupération",
       "copyMessage": "Copier votre phrase de récupération dans le presse-papiers n'est pas recommandé pour des raisons de sécurité, mais est autorisé par commodité.\nVous pouvez vider votre presse-papiers ensuite en copiant autre chose.",
@@ -625,6 +631,7 @@
   },
   "addWallet": {
     "title": "Ajouter un portefeuille",
+    "onNetwork": "Ce portefeuille est créé sur {network} uniquement.",
     "walletName": {
       "label": "Nom du portefeuille :",
       "placeholder": "Entrez le nom du portefeuille",
@@ -649,9 +656,9 @@
   "walletsOverview": {
     "currentWallet": "Portefeuille actuel :",
     "yourWallets": "Vos portefeuilles ({count}) :",
+    "mainnetWallets": "Portefeuilles mainnet ({count}) :",
+    "devWallets": "Portefeuilles de développement ({count}) :",
     "current": "(actuel)",
-    "mainnetOnly": "(mainnet uniquement)",
-    "chipnetOnly": "(chipnet uniquement)",
     "walletTypeLabel": "Type : ",
     "walletTypeHD": "Portefeuille HD",
     "walletTypeSingle": "adresse unique",
@@ -667,6 +674,7 @@
     "backupLabels": {
       "notBackedUp": "non sauvegardé",
       "imported": "importé",
+      "dismissed": "sauvegarde ignorée",
       "backedUp": "sauvegardé"
     },
     "deleteWallet": {
@@ -1253,7 +1261,8 @@
     "notifications": {
       "sessionApproved": "Session approuvée",
       "successfullySignedTransaction": "Transaction signée avec succès",
-      "networkMismatch": "Cette dApp nécessite que le portefeuille soit sur {network}. Veuillez aller dans les paramètres et changer de réseau pour utiliser cette dApp.",
+      "networkMismatch": "Cette dApp nécessite un portefeuille sur {network}. Ouvrez un portefeuille {network} pour utiliser cette dApp.",
+      "networkMismatchChipnet": "Cette dApp nécessite un portefeuille sur {network}. Ouvrez un portefeuille {network} pour utiliser cette dApp : un portefeuille qui a aussi une ancienne copie chipnet s'ouvre sur chipnet depuis les paramètres développeur.",
       "notStarted": "CashConnect n'est pas démarré.",
       "privateKeyNotFound": "La clé privée est introuvable pour l'adresse : {address}",
       "failedToConvertCashAddr": "Échec de la conversion de CashAddr en Locking Bytecode",
@@ -1497,9 +1506,6 @@
       "default": "(par défaut)"
     },
     "developer": {
-      "changeNetwork": "Changer de réseau :",
-      "mainnet": "mainnet",
-      "chipnet": "chipnet",
       "enableMintNfts": "Activer la création de NFTs",
       "enableMintNftsHint": "Ajoute une action de création aux NFTs de création, vous permettant de créer plus de NFTs dans la même catégorie",
       "strictWcSchema": "Validation stricte des requêtes dApp",
@@ -1507,7 +1513,23 @@
       "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
       "nonTokenIdentities": "Activer la création d'identités sans token",
-      "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore."
+      "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore.",
+      "addChipnetWallet": "→ Ajouter un portefeuille chipnet",
+      "addChipnetWalletHint": "Crée ou importe un portefeuille sur chipnet uniquement.",
+      "alsoOnNetwork": "Portefeuille aussi sur {network}",
+      "sameKeysHint": "{name} a une copie sur l'autre réseau avec les mêmes clés, de l'époque où Cashonize enregistrait chaque portefeuille sur mainnet et chipnet. Depuis la liste des portefeuilles, {name} s'ouvre sur mainnet.",
+      "otherKeysHint": "{name} existe aussi sur l'autre réseau, avec d'autres clés. Depuis la liste des portefeuilles, {name} s'ouvre sur mainnet.",
+      "openOnNetwork": "Ouvrir sur {network}",
+      "removeChipnetCopy": "Retirer la copie chipnet",
+      "removeChipnetCopyTitle": "Retirer la copie chipnet ?",
+      "removeChipnetCopyConfirm": "Retirer la copie chipnet de {name} laisse {name} sur mainnet uniquement. Ses clés restent dans le portefeuille mainnet.",
+      "chipnetCopyHoldsCoins": "La copie chipnet de {name} contient des pièces chipnet, elle est donc conservée. Pour la retirer, envoyez-les vers un autre portefeuille chipnet et vérifiez à nouveau.",
+      "chipnetCopyRemoved": "Copie chipnet de {name} retirée.",
+      "checkChipnetCopy": "Vérifier si retirable",
+      "checkingChipnetCopy": "Vérification de l'historique chipnet…",
+      "chipnetCopyUnused": "La copie chipnet de {name} n'a jamais été utilisée, elle peut donc être retirée.",
+      "chipnetCopyEmpty": "La copie chipnet de {name} a été utilisée mais ne contient aucune pièce, elle peut donc être retirée. Son historique chipnet reste sur la chaîne.",
+      "chipnetCopyCheckFailed": "Impossible de lire les pièces de la copie chipnet. Vérifiez le serveur chipnet et réessayez."
     },
     "madeWith": "Fait avec {heart} par Mathieu G."
   },

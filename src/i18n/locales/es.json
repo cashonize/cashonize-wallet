@@ -92,6 +92,9 @@
       "broadcastAgainSent": "La transacción {txId} fue transmitida"
     },
     "errors": {
+      "chipnetCopyChanged": "La copia de chipnet de {name} cambió desde que se comprobó, así que no se quitó nada.",
+      "chipnetCopyRemovalRunning": "Se está quitando una copia de chipnet. Inténtalo de nuevo cuando termine.",
+      "chipnetCopyHoldsCoins": "La copia de chipnet de {name} tiene monedas de chipnet, así que no se quitó nada.",
       "cannotDeleteActiveWallet": "No se puede eliminar la billetera actualmente activa",
       "cachedKeysNotCleared": "La cartera fue eliminada, pero no se pudieron eliminar las claves que tenía en caché.",
       "walletNotFoundOnNetwork": "La billetera \"{name}\" no existe en {network}",
@@ -573,6 +576,9 @@
       "showButton": "Mostrar frase semilla",
       "hideButton": "Ocultar frase semilla",
       "verifyButton": "Verificar tu respaldo",
+      "dismissButton": "Descartar recordatorio de copia",
+      "dismissHint": "Esta es una billetera de {network}, sin fondos reales: el recordatorio de copia de seguridad se puede desactivar.",
+      "dismissed": "Recordatorio de copia desactivado: esta es una billetera de {network}.",
       "copyButton": "Copiar frase semilla",
       "copyTitle": "Copiar frase semilla",
       "copyMessage": "Copiar tu frase semilla al portapapeles no se recomienda por razones de seguridad, pero se permite por conveniencia.\nPuedes limpiar tu portapapeles después copiando otra cosa.",
@@ -625,6 +631,7 @@
   },
   "addWallet": {
     "title": "Agregar billetera",
+    "onNetwork": "Esta billetera se crea solo en {network}.",
     "walletName": {
       "label": "Nombre de billetera:",
       "placeholder": "Ingresa el nombre de la billetera",
@@ -649,9 +656,9 @@
   "walletsOverview": {
     "currentWallet": "Billetera actual:",
     "yourWallets": "Tus billeteras ({count}):",
+    "mainnetWallets": "Billeteras de mainnet ({count}):",
+    "devWallets": "Billeteras de desarrollo ({count}):",
     "current": "(actual)",
-    "mainnetOnly": "(solo mainnet)",
-    "chipnetOnly": "(solo chipnet)",
     "walletTypeLabel": "Tipo: ",
     "walletTypeHD": "Billetera HD",
     "walletTypeSingle": "dirección única",
@@ -667,6 +674,7 @@
     "backupLabels": {
       "notBackedUp": "sin respaldo",
       "imported": "importada",
+      "dismissed": "respaldo descartado",
       "backedUp": "respaldada"
     },
     "deleteWallet": {
@@ -1253,7 +1261,8 @@
     "notifications": {
       "sessionApproved": "Sesión aprobada",
       "successfullySignedTransaction": "Transacción firmada exitosamente",
-      "networkMismatch": "Esta dApp requiere que la billetera esté en {network}. Por favor navega a configuración y cambia la red para usar esta dApp.",
+      "networkMismatch": "Esta dApp necesita una billetera en {network}. Abre una billetera de {network} para usar esta dApp.",
+      "networkMismatchChipnet": "Esta dApp necesita una billetera en {network}. Abre una billetera de {network} para usar esta dApp: una billetera que también tiene una copia antigua de chipnet se abre en chipnet desde los ajustes de desarrollador.",
       "notStarted": "CashConnect no está iniciado.",
       "privateKeyNotFound": "No se pudo encontrar la clave privada para la dirección: {address}",
       "failedToConvertCashAddr": "Error al convertir CashAddr a Locking Bytecode",
@@ -1497,9 +1506,6 @@
       "default": "(predeterminado)"
     },
     "developer": {
-      "changeNetwork": "Cambiar red:",
-      "mainnet": "mainnet",
-      "chipnet": "chipnet",
       "enableMintNfts": "Habilitar acuñar NFTs",
       "enableMintNftsHint": "Agrega una acción de acuñar a los NFTs de acuñación, permitiéndote crear más NFTs en la misma categoría",
       "strictWcSchema": "Validación estricta de solicitudes de dApps",
@@ -1507,7 +1513,23 @@
       "showPrivateKeyWif": "Mostrar la clave privada WIF en la página de respaldo",
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única.",
       "nonTokenIdentities": "Habilitar crear identidades sin token",
-      "nonTokenIdentitiesHint": "Muestra Añadir nueva en la página de identidades, que crea una identidad a partir de cualquier UTXO de esta billetera en lugar de un token. Las identidades de personas, organizaciones y contratos son nuevas, y pocas herramientas las leen todavía."
+      "nonTokenIdentitiesHint": "Muestra Añadir nueva en la página de identidades, que crea una identidad a partir de cualquier UTXO de esta billetera en lugar de un token. Las identidades de personas, organizaciones y contratos son nuevas, y pocas herramientas las leen todavía.",
+      "addChipnetWallet": "→ Agregar billetera de chipnet",
+      "addChipnetWalletHint": "Crea o importa una billetera solo en chipnet.",
+      "alsoOnNetwork": "Billetera también en {network}",
+      "sameKeysHint": "{name} tiene una copia en la otra red con las mismas claves, de cuando Cashonize guardaba cada billetera en mainnet y chipnet. Desde la lista de billeteras, {name} se abre en mainnet.",
+      "otherKeysHint": "{name} también existe en la otra red, con otras claves. Desde la lista de billeteras, {name} se abre en mainnet.",
+      "openOnNetwork": "Abrir en {network}",
+      "removeChipnetCopy": "Quitar copia de chipnet",
+      "removeChipnetCopyTitle": "¿Quitar la copia de chipnet?",
+      "removeChipnetCopyConfirm": "Quitar la copia de chipnet de {name} deja {name} solo en mainnet. Sus claves siguen en la billetera de mainnet.",
+      "chipnetCopyHoldsCoins": "La copia de chipnet de {name} tiene monedas de chipnet, así que se queda. Para quitarla, envíalas a otra billetera de chipnet y comprueba de nuevo.",
+      "chipnetCopyRemoved": "Se quitó la copia de chipnet de {name}.",
+      "checkChipnetCopy": "Comprobar si se puede quitar",
+      "checkingChipnetCopy": "Comprobando historial de chipnet…",
+      "chipnetCopyUnused": "La copia de chipnet de {name} nunca se usó, así que se puede quitar.",
+      "chipnetCopyEmpty": "La copia de chipnet de {name} se usó pero no tiene monedas, así que se puede quitar. Su historial de chipnet queda en la cadena.",
+      "chipnetCopyCheckFailed": "No se pudieron leer las monedas de la copia de chipnet. Revisa el servidor de chipnet e inténtalo de nuevo."
     },
     "madeWith": "Hecho con {heart} por Mathieu G."
   },

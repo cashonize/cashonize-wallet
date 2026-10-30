@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import { appNetworks, walletDbName } from 'src/utils/wallet/networks'
   import EmojiItem from './general/emojiItem.vue'
   import InfoPopup from './general/InfoPopup.vue'
   import backupWallet from './settings/backupWallet.vue'
@@ -19,6 +20,9 @@
   import { curatedElectrumServers, type ElectrumNetwork } from 'src/utils/wallet/electrumServers'
   import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
+  import { chipnetCopyState, tiedChipnetCopy, type ChipnetCopyState } from 'src/utils/wallet/tiedWallets'
+  import { maxWallets } from 'src/utils/wallet/walletUtils'
+  import { Notify } from 'quasar'
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
@@ -111,7 +115,6 @@
   const customTokenMetadataIndexerChipnet = ref(isCustomTokenMetadataIndexerChipnet ? storedTokenMetadataIndexerChipnet : "");
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
-  const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
   const enableNonTokenIdentities = ref(settingsStore.nonTokenIdentities);
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
@@ -122,10 +125,38 @@
     return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n);
   });
 
-  // Used to disable network options the current wallet doesn't exist on
-  // Note: wallets are created for both networks by default, very old wallets may be the exception
-  const currentWalletInfo = computed(() => {
-    return store.availableWallets.find(w => w.name === store.activeWalletName);
+  // The active wallet's chipnet copy, when it is from the time every wallet got one, and what
+  // checking its chipnet history found
+  const tiedCopyId = ref<string | undefined>();
+  const tiedCopyCheck = ref<'unchecked' | 'checking' | ChipnetCopyState | 'failed'>('unchecked');
+  const tiedCopyRemovable = computed(() => tiedCopyCheck.value === 'unused' || tiedCopyCheck.value === 'empty');
+  // Whether the active wallet's name also has a row on the other network: an older wallet's copy,
+  // or a chipnet wallet of another seed that early versions made under the same name
+  const activeOnBothNetworks = computed(() => {
+    const walletInfo = store.availableWallets.find(w => w.name === store.activeWalletName);
+    return walletInfo !== undefined && walletInfo.hasMainnet && walletInfo.hasChipnet;
+  });
+  const otherNetwork = computed(() => store.network === 'mainnet' ? 'chipnet' : 'mainnet');
+  // whether the lookup for the open wallet has answered, so the hint never guesses "other keys"
+  const tiedCopyLoaded = ref(false);
+  async function loadTiedCopy() {
+    const walletName = store.activeWalletName;
+    tiedCopyCheck.value = 'unchecked';
+    tiedCopyLoaded.value = false;
+    let chipnetId: string | undefined;
+    try {
+      chipnetId = await tiedChipnetCopy(walletName);
+    } catch (error) {
+      console.error(error);
+      return;
+    }
+    // a lookup for a wallet switched away from meanwhile is dropped
+    if (store.activeWalletName !== walletName) return;
+    tiedCopyId.value = chipnetId;
+    tiedCopyLoaded.value = true;
+  }
+  watch([settingsSection, () => store.activeWalletName], ([section]) => {
+    if (section === 4) void loadTiedCopy();
   });
 
   const isPwaMode = window.matchMedia('(display-mode: standalone)').matches;
@@ -413,8 +444,7 @@
       // TODO: see if we need 'resetWalletState' to cancel subscriptions, etc.
 
       // the library's databases: wallet keys, electrum cache, HD wallet address/UTXO cache
-      indexedDB.deleteDatabase("bitcoincash");
-      indexedDB.deleteDatabase("bchtest");
+      for (const network of appNetworks) indexedDB.deleteDatabase(walletDbName(network));
       indexedDB.deleteDatabase("ElectrumNetworkProviderCache");
       indexedDB.deleteDatabase("WalletCache");
 
@@ -496,10 +526,56 @@
     location.reload();
   }
 
-  function changeNetwork(){
+  // A wallet name with rows on both networks opens on mainnet from the wallet list; this opens the
+  // other one. Any other wallet is on one network, reached by opening it from the wallet list.
+  async function openOtherSide(){
+    if (store.removingChipnetCopy) return;
     settingsStore.hasPlayedAnimation = false;
-    // fire-and-forget promise does not wait on full wallet initialization
-    void store.changeNetwork(selectedNetwork.value)
+    await store.changeNetwork(otherNetwork.value);
+  }
+  function addChipnetWallet(){
+    if (store.availableWallets.length >= maxWallets) {
+      Notify.create({ message: t('walletsOverview.walletLimitReached', { max: maxWallets }), icon: 'info', color: "grey-6" });
+      return;
+    }
+    store.addWalletNetwork = 'chipnet';
+    store.changeView(9);
+  }
+  async function checkChipnetCopy(){
+    const chipnetId = tiedCopyId.value;
+    if (!chipnetId || store.removingChipnetCopy) return;
+    tiedCopyCheck.value = 'checking';
+    let result: ChipnetCopyState | 'failed';
+    try {
+      result = await chipnetCopyState(chipnetId);
+    } catch (error) {
+      console.error(error);
+      result = 'failed';
+    }
+    // another wallet opened meanwhile has a check of its own
+    if (tiedCopyId.value === chipnetId) tiedCopyCheck.value = result;
+  }
+  async function removeChipnetCopy(){
+    const walletName = store.activeWalletName;
+    const chipnetId = tiedCopyId.value;
+    if (!chipnetId || !tiedCopyRemovable.value) return;
+    const confirmed = await confirmDialog(
+      t('settings.developer.removeChipnetCopyTitle'),
+      t('settings.developer.removeChipnetCopyConfirm', { name: walletName }),
+      t('settings.developer.removeChipnetCopy')
+    );
+    if (!confirmed || store.removingChipnetCopy) return;
+    let removed: boolean;
+    try {
+      removed = await store.removeChipnetCopy(walletName, chipnetId);
+    } catch (error) {
+      displayAndLogError(error);
+      await loadTiedCopy();
+      return;
+    }
+    await loadTiedCopy();
+    if (!removed) return;
+    Notify.create({ message: t('settings.developer.chipnetCopyRemoved', { name: walletName }), icon: 'info', color: "grey-6" });
   }
   function changeMintNfts(){
     localStorage.setItem("mintNfts", enableMintNfts.value? "true" : "false");
@@ -923,11 +999,35 @@
     </div>
     <div v-else-if="settingsSection == 4">
       <div>
-        <label for="selectNetwork">{{ t('settings.developer.changeNetwork') }}</label>
-        <select v-model="selectedNetwork" @change="changeNetwork()">
-          <option value="mainnet" :disabled="!currentWalletInfo?.hasMainnet">{{ t('settings.developer.mainnet') }}</option>
-          <option value="chipnet" :disabled="!currentWalletInfo?.hasChipnet">{{ t('settings.developer.chipnet') }}</option>
-        </select>
+        <div style="cursor: pointer;" @click="addChipnetWallet()">{{ t('settings.developer.addChipnetWallet') }}</div>
+        <div style="font-size: smaller; color: grey;">
+          {{ t('settings.developer.addChipnetWalletHint') }}
+        </div>
+      </div>
+
+      <div v-if="activeOnBothNetworks" style="margin-top:15px">
+        <label>{{ t('settings.developer.alsoOnNetwork', { network: otherNetwork }) }}</label>
+        <div v-if="tiedCopyLoaded" style="font-size: smaller; color: grey;">
+          <i18n-t :keypath="tiedCopyId ? 'settings.developer.sameKeysHint' : 'settings.developer.otherKeysHint'" tag="span">
+            <template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template>
+          </i18n-t>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
+          <input @click="openOtherSide()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.openOnNetwork', { network: otherNetwork })" class="button">
+          <!-- the row's gap spaces the buttons, not chota's margin on a following button -->
+          <input v-if="tiedCopyId && !tiedCopyRemovable" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking' || store.removingChipnetCopy" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="margin-left: 0;">
+        </div>
+        <template v-if="tiedCopyId">
+          <div v-if="tiedCopyCheck === 'checking'" style="margin-top: 8px;">{{ t('settings.developer.checkingChipnetCopy') }}</div>
+          <div v-else-if="tiedCopyCheck === 'holdsCoins'" style="margin-top: 8px;">
+            <i18n-t keypath="settings.developer.chipnetCopyHoldsCoins" tag="span"><template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template></i18n-t>
+          </div>
+          <div v-else-if="tiedCopyCheck === 'failed'" style="margin-top: 8px; color: red;">{{ t('settings.developer.chipnetCopyCheckFailed') }}</div>
+          <div v-else-if="tiedCopyRemovable" style="margin-top: 8px;">
+            <i18n-t :keypath="tiedCopyCheck === 'unused' ? 'settings.developer.chipnetCopyUnused' : 'settings.developer.chipnetCopyEmpty'" tag="span"><template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template></i18n-t>
+            <input @click="removeChipnetCopy()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.removeChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
+          </div>
+        </template>
       </div>
 
       <div style="margin-top:15px">

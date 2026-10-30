@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
-import { BroadcastTimeoutError, NetworkType, HDWallet, SignedMessage } from "@cashonize/bch-wallet-lib";
+import { BroadcastTimeoutError, HDWallet, SignedMessage } from "@cashonize/bch-wallet-lib";
+import { appNetworkOf } from "src/utils/wallet/networks";
 import { useStore } from "./store"
 import { useIdentitiesStore } from "./identitiesStore"
 import {
@@ -165,10 +166,10 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     }
     const dappNetworkPrefix = namespaces.bch?.chains?.[0]?.split(":")[1];
     const dappTargetNetwork = dappNetworkPrefix == "bitcoincash" ? "mainnet" : "chipnet";
-    const currentNetwork = mainStore.wallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet"
+    const currentNetwork = appNetworkOf(mainStore.wallet.network)
     if (currentNetwork != dappTargetNetwork) {
       Dialog.create({
-        message: t('cashConnect.notifications.networkMismatch', { network: dappTargetNetwork }),
+        message: t(dappTargetNetwork === 'chipnet' ? 'cashConnect.notifications.networkMismatchChipnet' : 'cashConnect.notifications.networkMismatch', { network: dappTargetNetwork }),
         ok: { label: 'OK', color: 'primary', unelevated: true },
         class: 'flex justify-center',
       })

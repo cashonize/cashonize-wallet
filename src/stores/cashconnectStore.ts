@@ -127,7 +127,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     if (currentChain !== targetChainCashonizeFormat) {
       // Cashonize UI uses "Mainnet" and "Chipnet" to identify networks.
       throw new Error(
-        t('cashConnect.notifications.networkMismatch', { network: (targetChain === 'bitcoincash') ? 'Mainnet' : 'Chipnet' })
+        t(targetChain === 'bitcoincash' ? 'cashConnect.notifications.networkMismatch' : 'cashConnect.notifications.networkMismatchChipnet', { network: (targetChain === 'bitcoincash') ? 'Mainnet' : 'Chipnet' })
       );
     }
     return await new Promise<SessionCreateRequest>((resolve, reject) => {

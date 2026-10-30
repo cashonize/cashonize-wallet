@@ -92,6 +92,9 @@
       "broadcastAgainSent": "Transaction {txId} was broadcast"
     },
     "errors": {
+      "chipnetCopyChanged": "The chipnet copy of {name} changed since it was checked, so nothing was removed.",
+      "chipnetCopyRemovalRunning": "A chipnet copy is being removed. Try again once it is done.",
+      "chipnetCopyHoldsCoins": "The chipnet copy of {name} holds chipnet coins, so nothing was removed.",
       "cannotDeleteActiveWallet": "Cannot delete the currently active wallet",
       "cachedKeysNotCleared": "The wallet was deleted, but the keys it had cached could not be removed.",
       "walletNotFoundOnNetwork": "Wallet \"{name}\" does not exist on {network}",
@@ -573,6 +576,9 @@
       "showButton": "Show seed phrase",
       "hideButton": "Hide seed phrase",
       "verifyButton": "Verify your backup",
+      "dismissButton": "Dismiss backup reminder",
+      "dismissHint": "This is a {network} wallet, which holds no real funds: the backup reminder can be turned off.",
+      "dismissed": "Backup reminder turned off: this is a {network} wallet.",
       "copyButton": "Copy Seed Phrase",
       "copyTitle": "Copy Seed Phrase",
       "copyMessage": "Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.\nYou can clear your clipboard afterwards by copying something else.",
@@ -625,6 +631,7 @@
   },
   "addWallet": {
     "title": "Add Wallet",
+    "onNetwork": "This wallet is made on {network} only.",
     "walletName": {
       "label": "Wallet name:",
       "placeholder": "Enter wallet name",
@@ -649,9 +656,9 @@
   "walletsOverview": {
     "currentWallet": "Current wallet:",
     "yourWallets": "Your wallets ({count}):",
+    "mainnetWallets": "Mainnet wallets ({count}):",
+    "devWallets": "Development wallets ({count}):",
     "current": "(current)",
-    "mainnetOnly": "(mainnet only)",
-    "chipnetOnly": "(chipnet only)",
     "walletTypeLabel": "Type: ",
     "walletTypeHD": "HD Wallet",
     "walletTypeSingle": "single address",
@@ -667,6 +674,7 @@
     "backupLabels": {
       "notBackedUp": "not backed up",
       "imported": "imported",
+      "dismissed": "backup dismissed",
       "backedUp": "backed up"
     },
     "deleteWallet": {
@@ -1253,7 +1261,8 @@
     "notifications": {
       "sessionApproved": "Session approved",
       "successfullySignedTransaction": "Successfully signed transaction",
-      "networkMismatch": "This dApp requires wallet to be on {network}. Please navigate to settings and change network to use this dApp.",
+      "networkMismatch": "This dApp needs a wallet on {network}. Open a {network} wallet to use this dApp.",
+      "networkMismatchChipnet": "This dApp needs a wallet on {network}. Open a {network} wallet to use this dApp: a wallet that also has an older chipnet copy opens on chipnet from the developer settings.",
       "notStarted": "CashConnect is not started.",
       "privateKeyNotFound": "Private key could not be found for address: {address}",
       "failedToConvertCashAddr": "Failed to convert CashAddr to Locking Bytecode",
@@ -1497,9 +1506,6 @@
       "default": "(default)"
     },
     "developer": {
-      "changeNetwork": "Change network:",
-      "mainnet": "mainnet",
-      "chipnet": "chipnet",
       "enableMintNfts": "Enable mint NFTs",
       "enableMintNftsHint": "Adds a mint action to minting NFTs, allowing you to create more NFTs in the same category",
       "strictWcSchema": "Strict dApp request validation",
@@ -1507,7 +1513,23 @@
       "showPrivateKeyWif": "Show WIF private key on backup page",
       "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets.",
       "nonTokenIdentities": "Enable creating non-token identities",
-      "nonTokenIdentitiesHint": "Shows Add new on the identities page, which makes an identity from any UTXO of this wallet rather than from a token. Identities of people, organizations and contracts are new, and few tools read them yet."
+      "nonTokenIdentitiesHint": "Shows Add new on the identities page, which makes an identity from any UTXO of this wallet rather than from a token. Identities of people, organizations and contracts are new, and few tools read them yet.",
+      "addChipnetWallet": "→ Add chipnet wallet",
+      "addChipnetWalletHint": "Creates or imports a wallet on chipnet only.",
+      "alsoOnNetwork": "Wallet also on {network}",
+      "sameKeysHint": "{name} has a copy on the other network with the same keys, from when Cashonize stored every wallet on mainnet and chipnet. From the wallet list, {name} opens on mainnet.",
+      "otherKeysHint": "{name} also exists on the other network, with other keys. From the wallet list, {name} opens on mainnet.",
+      "openOnNetwork": "Open on {network}",
+      "removeChipnetCopy": "Remove chipnet copy",
+      "removeChipnetCopyTitle": "Remove the chipnet copy?",
+      "removeChipnetCopyConfirm": "Removing the chipnet copy of {name} leaves {name} on mainnet only. Its keys stay in the mainnet wallet.",
+      "chipnetCopyHoldsCoins": "The chipnet copy of {name} holds chipnet coins, so it stays. To remove it, send them to another chipnet wallet and check again.",
+      "chipnetCopyRemoved": "Removed the chipnet copy of {name}.",
+      "checkChipnetCopy": "Check if removable",
+      "checkingChipnetCopy": "Checking chipnet history…",
+      "chipnetCopyUnused": "The chipnet copy of {name} was never used, so it can be removed.",
+      "chipnetCopyEmpty": "The chipnet copy of {name} was used but holds no coins, so it can be removed. Its chipnet history stays on the chain.",
+      "chipnetCopyCheckFailed": "Could not read the chipnet copy's coins. Check the chipnet server and try again."
     },
     "madeWith": "Made with {heart} by Mathieu G."
   },

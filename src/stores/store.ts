@@ -28,7 +28,6 @@ import {
   type TokenGenesisRequest,
   type TokenMintRequest,
   type TokenBurnRequest,
-  NetworkType
 } from "@cashonize/bch-wallet-lib"
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
 import {
@@ -60,6 +59,8 @@ import { ActionableError, displayAndLogError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
+import { appNetworkOf, appNetworks, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
+import { removeEmptyChipnetCopy } from "src/utils/wallet/tiedWallets"
 import { sharedRun } from "src/utils/concurrency"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
@@ -164,6 +165,12 @@ export const useStore = defineStore('store', () => {
   // Multi-wallet state
   const activeWalletName = ref(localStorage.getItem('activeWalletName') ?? defaultWalletName);
   const availableWallets = ref([] as WalletInfo[]);
+  // The network the Add wallet view creates or imports on: mainnet, unless the developer settings
+  // opened it for another
+  const addWalletNetwork = ref<AppNetwork>('mainnet');
+  // Set while a chipnet copy is being removed, here rather than in the settings view, which unmounts
+  // when the removal leaves the copy: no wallet may be opened on another network meanwhile
+  const removingChipnetCopy = ref(false);
   // Wallet State
   // _wallet holds the wallet object and is null until one is set.
   // The wallet's internals belong to bch-wallet-lib: it owns the key cache and the address
@@ -248,7 +255,7 @@ export const useStore = defineStore('store', () => {
   const latestGithubRelease = ref(undefined as undefined | string);
 
   // Computed properties
-  const network = computed(() => wallet.value.network == NetworkType.Mainnet ? "mainnet" : "chipnet")
+  const network = computed(() => appNetworkOf(wallet.value.network))
   const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
 
   // Access to the wallet without a null check at every call site: throws rather than hand out
@@ -552,8 +559,8 @@ export const useStore = defineStore('store', () => {
   // The provider of the selected server of the wallet's network, which initializeWallet puts the
   // wallet on (a wallet constructed after the server was selected is on it already)
   let walletProvider: ElectrumNetworkProvider | undefined;
-  async function selectElectrumProvider(walletNetwork: NetworkType) {
-    walletProvider = await providerForSelectedServer(walletNetwork == NetworkType.Mainnet ? 'mainnet' : 'testnet');
+  async function selectElectrumProvider(walletNetwork: WalletType['network']) {
+    walletProvider = await providerForSelectedServer(appNetworkOf(walletNetwork) === 'mainnet' ? 'mainnet' : 'testnet');
   }
 
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
@@ -567,9 +574,9 @@ export const useStore = defineStore('store', () => {
     _wallet.value = newWallet;
     // the network left keeps no connection open: a fresh provider for its server connects once used
     if (previousNetwork && previousNetwork !== newWallet.network) {
-      void providerForSelectedServer(previousNetwork == NetworkType.Mainnet ? 'mainnet' : 'testnet', true);
+      void providerForSelectedServer(appNetworkOf(previousNetwork) === 'mainnet' ? 'mainnet' : 'testnet', true);
     }
-    const newNetwork = newWallet.network == NetworkType.Mainnet ? "mainnet" : "chipnet";
+    const newNetwork = appNetworkOf(newWallet.network);
     txNotes.value = loadTxNotes(newNetwork, newWallet.name);
     dappActivity.value = loadDappActivity(newNetwork, newWallet.name);
     dappActivitySeenAt.value = loadDappActivitySeen(newNetwork, newWallet.name);
@@ -1008,8 +1015,7 @@ export const useStore = defineStore('store', () => {
   // Avoid WalletClass.named() here: it creates a fresh random wallet if the name is missing.
   // Loading must reconstruct from the saved walletId; .named() is only for creation flows.
   async function loadExistingWallet(walletName: string, network: 'mainnet' | 'chipnet'): Promise<WalletType> {
-    const dbName = network === 'mainnet' ? 'bitcoincash' : 'bchtest';
-    const walletId = await getNamedWalletId(walletName, dbName);
+    const walletId = await getNamedWalletId(walletName, walletDbName(network));
     if (!walletId) {
       throw new Error(t('store.errors.walletNotFoundOnNetwork', { name: walletName, network }));
     }
@@ -1040,21 +1046,32 @@ export const useStore = defineStore('store', () => {
     changeView(1);
   }
 
-  // Switching networks resets all wallet state and reinitializes the wallet on the new network
+  // Opens the active wallet on the other network, which only older wallets have a copy on; resets
+  // all wallet state. Returns whether it did: a wallet that is not there is left as it is, and no
+  // wallet changes network while a chipnet copy is being removed.
   async function changeNetwork(
-    newNetwork: 'mainnet' | 'chipnet',
+    newNetwork: AppNetwork,
     awaitWalletInitialization: boolean = false
-  ){
-    // Load the wallet on the new network first: if it does not exist there,
-    // this throws and the current wallet state is left untouched
+  ): Promise<boolean> {
+    if (removingChipnetCopy.value) {
+      displayAndLogError(new Error(t('store.errors.chipnetCopyRemovalRunning')));
+      return false;
+    }
+    return openActiveWalletOn(newNetwork, awaitWalletInitialization);
+  }
+
+  async function openActiveWalletOn(newNetwork: AppNetwork, awaitWalletInitialization: boolean): Promise<boolean> {
+    // Load the wallet on the new network first: if it does not exist there, this throws and the
+    // current wallet state is left untouched
     let newWallet: WalletType;
     try {
       newWallet = await loadExistingWallet(activeWalletName.value, newNetwork);
     } catch (error) {
       displayAndLogError(error);
-      return;
+      return false;
     }
     await activateWallet(newWallet, newNetwork, awaitWalletInitialization);
+    return true;
   }
 
   interface SwitchWalletResult {
@@ -1066,15 +1083,13 @@ export const useStore = defineStore('store', () => {
     // Get the current network from localStorage (default to mainnet)
     const currentNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
 
-    // If the wallet doesn't exist on the current network, target a network where it does
-    // (availableWallets may be stale, loadExistingWallet below re-checks IndexedDB)
+    // The network follows the wallet: a wallet opens on mainnet when it has a mainnet row, so an
+    // older wallet's chipnet copy opens only from the developer settings (availableWallets may be
+    // stale, loadExistingWallet below re-checks IndexedDB)
     let targetNetwork = currentNetwork;
     const walletInfo = availableWallets.value.find(w => w.name === walletName);
     if (walletInfo) {
-      const networkSelector = currentNetwork === 'mainnet' ? 'hasMainnet' : 'hasChipnet';
-      if (!walletInfo[networkSelector]) {
-        targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
-      }
+      targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
     }
 
     const newWallet = await loadExistingWallet(walletName, targetNetwork);
@@ -1097,9 +1112,10 @@ export const useStore = defineStore('store', () => {
     if (walletName === activeWalletName.value) {
       throw new Error(t('store.errors.cannotDeleteActiveWallet'));
     }
-    // Delete from both mainnet and testnet databases, each with its HD wallet's cached keys
-    await deleteNamedWallet(walletName, 'bitcoincash');
-    await deleteNamedWallet(walletName, 'bchtest');
+    // Delete from every network's database, each with its HD wallet's cached keys
+    for (const network of appNetworks) {
+      await deleteNamedWallet(walletName, walletDbName(network));
+    }
     removeTxNotes(walletName);
     removeTransactionIndex(walletName);
     removeDappActivity(walletName);
@@ -1123,6 +1139,28 @@ export const useStore = defineStore('store', () => {
         color: "red"
       })
     }
+  }
+
+  // Removes the chipnet copy of an older wallet that holds no coins (removeEmptyChipnetCopy checks
+  // it again before deleting), leaving the wallet on mainnet only. Returns false, having removed
+  // nothing, when another removal is running or the copy in use could not be left (which shows
+  // why). The guard is set before anything else, so no wallet changes network from the first step
+  // on. The copy's chipnet notes, labels and the like stay in localStorage: no other wallet can
+  // take the name while the mainnet one has it, and deleteWallet removes them with it.
+  async function removeChipnetCopy(walletName: string, checkedChipnetId: string): Promise<boolean> {
+    if (removingChipnetCopy.value) return false;
+    removingChipnetCopy.value = true;
+    try {
+      // the copy in use is left first, so the wallet open is never a deleted row
+      if (walletName === activeWalletName.value && network.value === 'chipnet') {
+        if (!await openActiveWalletOn('mainnet', true)) return false;
+      }
+      await removeEmptyChipnetCopy(walletName, checkedChipnetId);
+    } finally {
+      removingChipnetCopy.value = false;
+      await refreshAvailableWallets();
+    }
+    return true;
   }
 
   async function initializeWalletConnect() {
@@ -2078,6 +2116,9 @@ export const useStore = defineStore('store', () => {
     switchWallet,
     refreshAvailableWallets,
     deleteWallet,
+    removeChipnetCopy,
+    removingChipnetCopy,
+    addWalletNetwork,
     fetchTokenInfo,
     fetchNftMetadata,
     parseNftCommitment,

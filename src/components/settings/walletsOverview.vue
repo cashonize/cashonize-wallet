@@ -5,6 +5,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { switchWalletWithNotice, maxWallets } from 'src/utils/wallet/walletUtils'
+  import type { WalletInfo } from 'src/utils/wallet/dbUtils'
   import { useI18n } from 'vue-i18n'
 
 
@@ -35,10 +36,35 @@
     return isImported ? t('walletsOverview.dateLabels.importDate') + ' ' : t('walletsOverview.dateLabels.creationDate') + ' ';
   }
 
+  // Wallets on a development network get a list of their own, once there are any. An older wallet
+  // that also has its chipnet copy is a mainnet wallet: the copy is the developer settings' business.
+  const walletGroups = computed(() => {
+    const mainnetWallets = store.availableWallets.filter(wallet => wallet.hasMainnet);
+    const devWallets = store.availableWallets.filter(wallet => !wallet.hasMainnet);
+    if (devWallets.length === 0) {
+      return [{ title: t('walletsOverview.yourWallets', { count: mainnetWallets.length }), wallets: mainnetWallets, dev: false }];
+    }
+    return [
+      { title: t('walletsOverview.mainnetWallets', { count: mainnetWallets.length }), wallets: mainnetWallets, dev: false },
+      { title: t('walletsOverview.devWallets', { count: devWallets.length }), wallets: devWallets, dev: true },
+    ].filter(group => group.wallets.length > 0);
+  });
+  // once there are development wallets, another one can be added from here too, not only from the
+  // developer settings
+  const hasDevWallets = computed(() => store.availableWallets.some(wallet => !wallet.hasMainnet));
+  function addChipnetWallet() {
+    store.addWalletNetwork = 'chipnet';
+    store.changeView(9);
+  }
+  // the network of a development wallet, shown under its name
+  function devNetwork(wallet: WalletInfo): string {
+    return wallet.hasChipnet ? 'chipnet' : '';
+  }
   function getBackupStatusLabel(walletName: string): string {
     const status = settingsStore.getBackupStatus(walletName);
     if (status === 'none') return t('walletsOverview.backupLabels.notBackedUp');
     if (status === 'imported') return t('walletsOverview.backupLabels.imported');
+    if (status === 'dismissed') return t('walletsOverview.backupLabels.dismissed');
     return t('walletsOverview.backupLabels.backedUp');
   }
 
@@ -87,10 +113,10 @@
       {{ t('walletsOverview.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
     </div>
 
-    <div v-if="store.availableWallets.length > 0" style="margin-bottom: 20px;">
-      <div style="margin-bottom: 10px;">{{ t('walletsOverview.yourWallets', { count: store.availableWallets.length }) }}</div>
+    <div v-for="group in walletGroups" :key="group.title" style="margin-bottom: 20px;">
+      <div style="margin-bottom: 10px;">{{ group.title }}</div>
       <div
-        v-for="wallet in store.availableWallets"
+        v-for="wallet in group.wallets"
         :key="wallet.name"
         class="wallet-item"
         :class="{ active: wallet.name === store.activeWalletName, clickable: wallet.name !== store.activeWalletName }"
@@ -103,8 +129,7 @@
           <span class="wallet-section-left">
             <span class="wallet-name-styled">{{ wallet.name }}</span>
             <span v-if="wallet.name === store.activeWalletName" class="active-badge">{{ t('walletsOverview.current') }}</span>
-            <span v-if="!wallet.hasChipnet" class="network-badge">{{ t('walletsOverview.mainnetOnly') }}</span>
-            <span v-else-if="!wallet.hasMainnet" class="network-badge">{{ t('walletsOverview.chipnetOnly') }}</span>
+            <span v-if="group.dev" class="wallet-network">{{ devNetwork(wallet) }}</span>
           </span>
           <span class="wallet-section-center show-desktop-only">
             <span class="wallet-type-col">{{ t('walletsOverview.walletTypeLabel') }}{{ getWalletTypeLabel(wallet.name) }}</span>
@@ -138,6 +163,9 @@
     </div>
     <div v-else style="margin-bottom: 15px; color: #888;">
       {{ t('walletsOverview.walletLimitReached', { max: maxWallets }) }}
+    </div>
+    <div v-if="canAddMoreWallets && hasDevWallets" style="margin-bottom: 15px; cursor: pointer;" @click="addChipnetWallet()">
+      {{ t('settings.developer.addChipnetWallet') }}
     </div>
   </div>
 </template>
@@ -236,10 +264,12 @@ body.dark .wallet-item {
   color: #ccc;
   margin: 0 12px;
 }
-.network-badge {
-  color: grey;
-  font-size: smaller;
-  margin-left: 8px;
+.wallet-network {
+  display: block;
+  /* lines up with the wallet name's text, inside its padding (.wallet-name-styled) */
+  padding-left: 8px;
+  font-size: 12px;
+  color: #888;
 }
 .delete-wallet-btn {
   background: none;

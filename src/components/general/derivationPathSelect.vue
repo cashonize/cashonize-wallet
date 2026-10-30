@@ -3,6 +3,7 @@
   import { useI18n } from 'vue-i18n'
   import { DERIVATION_PATHS, scanDerivationPaths } from 'src/utils/wallet/walletUtils'
   import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
+  import type { AppNetwork } from 'src/utils/wallet/networks'
   const { t } = useI18n()
 
   const emit = defineEmits<{
@@ -14,6 +15,8 @@
     seedPhrase: string
     seedPhraseValid: boolean
     walletType: 'single' | 'hd'
+    // the network the wallet is imported on, whose server the scan asks
+    network?: AppNetwork
   }>()
 
   const selectedPath = ref<DerivationPathType>(props.modelValue)
@@ -53,7 +56,7 @@
       const timeout = new Promise<never>((_resolve, reject) =>
         setTimeout(() => reject(new Error('derivation path scan timed out')), SCAN_TIMEOUT_MS)
       )
-      const result = await Promise.race([scanDerivationPaths(props.seedPhrase), timeout])
+      const result = await Promise.race([scanDerivationPaths(props.seedPhrase, props.network ?? 'mainnet'), timeout])
       if (scanGeneration !== startedForGeneration) return
       detectionStatus.value = 'done'
       foundPaths.value = result.usedPaths

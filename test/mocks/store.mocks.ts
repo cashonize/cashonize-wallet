@@ -77,6 +77,7 @@ class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static from
 // classes are the real ones too, as the store tells them apart with instanceof.
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   OpReturnData: (await importOriginal<typeof BchWalletLib>()).OpReturnData,
+  networkConfig: (await importOriginal<typeof BchWalletLib>()).networkConfig,
   MAX_OP_RETURN_BYTES: (await importOriginal<typeof BchWalletLib>()).MAX_OP_RETURN_BYTES,
   InsufficientFundsError: (await importOriginal<typeof BchWalletLib>()).InsufficientFundsError,
   UtxoNotAvailableError: (await importOriginal<typeof BchWalletLib>()).UtxoNotAvailableError,

@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
 import { Dialog, Notify } from "quasar";
-import { BroadcastTimeoutError, NetworkType, HDWallet } from "@cashonize/bch-wallet-lib";
+import { BroadcastTimeoutError, HDWallet, networkConfig } from "@cashonize/bch-wallet-lib";
 import { currentExchangeRate } from "src/utils/utils";
 import {
   WalletConnectionManager,
@@ -469,7 +469,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     return {
       privateChains,
       relayHmacKey: relaySecretNode.privateKey,
-      xpubNetwork: wallet.network === NetworkType.Mainnet ? "mainnet" : "testnet",
+      xpubNetwork: networkConfig(wallet.network).keyVersion,
     };
   }
 

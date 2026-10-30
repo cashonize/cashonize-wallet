@@ -92,6 +92,9 @@
       "broadcastAgainSent": "Transaktion {txId} wurde gesendet"
     },
     "errors": {
+      "chipnetCopyChanged": "Die Chipnet-Kopie von {name} hat sich seit der Prüfung geändert, daher wurde nichts entfernt.",
+      "chipnetCopyRemovalRunning": "Eine Chipnet-Kopie wird gerade entfernt. Versuche es erneut, sobald das erledigt ist.",
+      "chipnetCopyHoldsCoins": "Die Chipnet-Kopie von {name} hat Chipnet-Guthaben, daher wurde nichts entfernt.",
       "cannotDeleteActiveWallet": "Das aktive Wallet kann nicht gelöscht werden",
       "cachedKeysNotCleared": "Die Wallet wurde gelöscht, aber die von ihr zwischengespeicherten Schlüssel konnten nicht entfernt werden.",
       "walletNotFoundOnNetwork": "Wallet \"{name}\" existiert nicht auf {network}",
@@ -573,6 +576,9 @@
       "showButton": "Seed phrase anzeigen",
       "hideButton": "Seed phrase verbergen",
       "verifyButton": "Backup überprüfen",
+      "dismissButton": "Backup-Erinnerung ausblenden",
+      "dismissHint": "Dies ist eine {network}-Wallet ohne echtes Guthaben: die Backup-Erinnerung kann ausgeschaltet werden.",
+      "dismissed": "Backup-Erinnerung ausgeschaltet: dies ist eine {network}-Wallet.",
       "copyButton": "Seed Phrase kopieren",
       "copyTitle": "Seed Phrase kopieren",
       "copyMessage": "Deine seed phrase in die Zwischenablage zu kopieren wird aus Sicherheitsgründen nicht empfohlen, ist aber der Einfachheit halber erlaubt.\nDu kannst deine Zwischenablage danach leeren, indem du etwas anderes kopierst.",
@@ -625,6 +631,7 @@
   },
   "addWallet": {
     "title": "Wallet hinzufügen",
+    "onNetwork": "Diese Wallet wird nur auf {network} erstellt.",
     "walletName": {
       "label": "Wallet-Name:",
       "placeholder": "Wallet-Name eingeben",
@@ -649,9 +656,9 @@
   "walletsOverview": {
     "currentWallet": "Aktuelles Wallet:",
     "yourWallets": "Deine Wallets ({count}):",
+    "mainnetWallets": "Mainnet-Wallets ({count}):",
+    "devWallets": "Entwicklungs-Wallets ({count}):",
     "current": "(aktuell)",
-    "mainnetOnly": "(nur mainnet)",
-    "chipnetOnly": "(nur chipnet)",
     "walletTypeLabel": "Typ: ",
     "walletTypeHD": "HD Wallet",
     "walletTypeSingle": "Einzeladresse",
@@ -667,6 +674,7 @@
     "backupLabels": {
       "notBackedUp": "nicht gesichert",
       "imported": "importiert",
+      "dismissed": "Backup verworfen",
       "backedUp": "gesichert"
     },
     "deleteWallet": {
@@ -1253,7 +1261,8 @@
     "notifications": {
       "sessionApproved": "Sitzung genehmigt",
       "successfullySignedTransaction": "Transaktion erfolgreich signiert",
-      "networkMismatch": "Diese dApp erfordert, dass das Wallet auf {network} ist. Bitte navigiere zu den Einstellungen und wechsle das Netzwerk, um diese dApp zu verwenden.",
+      "networkMismatch": "Diese dApp benötigt eine Wallet auf {network}. Öffne eine {network}-Wallet, um diese dApp zu verwenden.",
+      "networkMismatchChipnet": "Diese dApp benötigt eine Wallet auf {network}. Öffne eine {network}-Wallet, um diese dApp zu verwenden: Eine Wallet mit einer älteren Chipnet-Kopie öffnet sich auf Chipnet über die Entwicklereinstellungen.",
       "notStarted": "CashConnect ist nicht gestartet.",
       "privateKeyNotFound": "Privater Schlüssel konnte für Adresse nicht gefunden werden: {address}",
       "failedToConvertCashAddr": "CashAddr konnte nicht in Locking Bytecode umgewandelt werden",
@@ -1497,9 +1506,6 @@
       "default": "(Standard)"
     },
     "developer": {
-      "changeNetwork": "Netzwerk wechseln:",
-      "mainnet": "mainnet",
-      "chipnet": "chipnet",
       "enableMintNfts": "Mint NFTs aktivieren",
       "enableMintNftsHint": "Fügt eine Mint-Aktion zu minting NFTs hinzu, mit der du weitere NFTs in derselben Kategorie erstellen kannst",
       "strictWcSchema": "Strenge Prüfung von dApp-Anfragen",
@@ -1507,7 +1513,23 @@
       "showPrivateKeyWif": "WIF-Schlüssel auf der Backup-Seite anzeigen",
       "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu.",
       "nonTokenIdentities": "Erstellen von Identitäten ohne Token aktivieren",
-      "nonTokenIdentitiesHint": "Zeigt Neue hinzufügen auf der Identitäten-Seite, das aus einem beliebigen UTXO dieses Wallets statt aus einem Token eine Identität macht. Identitäten von Personen, Organisationen und Verträgen sind neu, und wenige Werkzeuge lesen sie bisher."
+      "nonTokenIdentitiesHint": "Zeigt Neue hinzufügen auf der Identitäten-Seite, das aus einem beliebigen UTXO dieses Wallets statt aus einem Token eine Identität macht. Identitäten von Personen, Organisationen und Verträgen sind neu, und wenige Werkzeuge lesen sie bisher.",
+      "addChipnetWallet": "→ Chipnet-Wallet hinzufügen",
+      "addChipnetWalletHint": "Erstellt oder importiert eine Wallet nur auf Chipnet.",
+      "alsoOnNetwork": "Wallet auch auf {network}",
+      "sameKeysHint": "{name} hat eine Kopie auf dem anderen Netzwerk mit denselben Schlüsseln, aus der Zeit, als Cashonize jede Wallet auf Mainnet und Chipnet speicherte. Aus der Wallet-Liste öffnet sich {name} auf Mainnet.",
+      "otherKeysHint": "{name} gibt es auch auf dem anderen Netzwerk, mit anderen Schlüsseln. Aus der Wallet-Liste öffnet sich {name} auf Mainnet.",
+      "openOnNetwork": "Auf {network} öffnen",
+      "removeChipnetCopy": "Chipnet-Kopie entfernen",
+      "removeChipnetCopyTitle": "Chipnet-Kopie entfernen?",
+      "removeChipnetCopyConfirm": "Ohne die Chipnet-Kopie von {name} bleibt {name} nur auf Mainnet. Die Schlüssel bleiben in der Mainnet-Wallet.",
+      "chipnetCopyHoldsCoins": "Die Chipnet-Kopie von {name} hat Chipnet-Guthaben und bleibt daher. Um sie zu entfernen, sende es an eine andere Chipnet-Wallet und prüfe erneut.",
+      "chipnetCopyRemoved": "Chipnet-Kopie von {name} entfernt.",
+      "checkChipnetCopy": "Entfernbarkeit prüfen",
+      "checkingChipnetCopy": "Chipnet-Verlauf wird geprüft…",
+      "chipnetCopyUnused": "Die Chipnet-Kopie von {name} wurde nie benutzt und kann entfernt werden.",
+      "chipnetCopyEmpty": "Die Chipnet-Kopie von {name} wurde benutzt, hat aber kein Guthaben und kann entfernt werden. Ihr Chipnet-Verlauf bleibt auf der Chain.",
+      "chipnetCopyCheckFailed": "Das Guthaben der Chipnet-Kopie konnte nicht gelesen werden. Prüfe den Chipnet-Server und versuche es erneut."
     },
     "madeWith": "Erstellt mit {heart} von Mathieu G."
   },
