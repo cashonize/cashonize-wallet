@@ -8,7 +8,9 @@ import {
   DEPOSIT_BRANCH,
   CHANGE_BRANCH,
   Config,
+  createFailoverProvider,
   createProvider,
+  type FailoverTransportOptions,
   DefaultProvider,
   setGlobalProvider,
   deleteNamedWallet,
@@ -36,7 +38,8 @@ import {
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, sameTokenList, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
+import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, sameTokenList, STALE_TIP_SECONDS, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
+import { electrumServersOf, saveLastGoodElectrumServer, type ElectrumNetwork } from "src/utils/wallet/electrumServers"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -132,14 +135,20 @@ Config.EnforceCashTokenReceiptAddresses = true;
 Config.UseIndexedDBCache = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
 
-// Point the library's default electrum servers at the user's selected servers, for a global
-// provider the library would make itself: the store sets its own, for the selected server, as the
-// global provider of each network (see selectedProviders). Without this the library falls back to
-// its built-in servers, leaking the wallet's addresses to a server the user never selected. Kept
-// in sync with settings via a watch (see below).
+// The servers each network's mode may use, in the order they are tried
+function electrumServers(network: ElectrumNetwork) {
+  if (network === 'mainnet') return electrumServersOf('mainnet', settingsStore.electrumModeMainnet, settingsStore.electrumServerMainnet);
+  return electrumServersOf('chipnet', settingsStore.electrumModeChipnet, settingsStore.electrumServerChipnet);
+}
+
+// Point the library's default electrum servers at the first server of each network's mode, for a
+// global provider the library would make itself: the store sets its own as the global provider of
+// each network (see selectedProviders). Without this the library falls back to its built-in
+// servers, leaking the wallet's addresses to a server the user never selected, and under the
+// single mode to a second server. Kept in sync with settings via a watch (see below).
 function setDefaultElectrumServers() {
-  DefaultProvider.servers.mainnet = [electrumWssUrl(settingsStore.electrumServerMainnet)];
-  DefaultProvider.servers.testnet = [electrumWssUrl(settingsStore.electrumServerChipnet)];
+  DefaultProvider.servers.mainnet = [electrumWssUrl(electrumServers('mainnet')[0]!)];
+  DefaultProvider.servers.testnet = [electrumWssUrl(electrumServers('chipnet')[0]!)];
 }
 setDefaultElectrumServers();
 
@@ -464,33 +473,58 @@ export const useStore = defineStore('store', () => {
 
   const canGoBack = computed(() => viewStack.length > 1);
 
-  // The provider of each network's selected electrum server. It is also the library's global
-  // provider of that network, so a wallet constructed anywhere (loading, creating and importing,
-  // the derivation path scan, the sweep) starts on the selected server rather than being moved
-  // there after it subscribed. Wallet switches share it, and a server change replaces it; the
-  // replaced one is disconnected once no wallet is on it any more.
+  // The provider of each network's electrum servers, which fails over between them itself (the
+  // library's createFailoverProvider). It is also the library's global provider of that network,
+  // so a wallet constructed anywhere (loading, creating and importing, the derivation path scan,
+  // the sweep) starts on it rather than being moved there after it subscribed. A failover keeps
+  // the provider, so wallets follow it without a move. Wallet switches share it, and a mode or
+  // server change replaces it; the replaced one is disconnected once no wallet is on it any more.
   type ProviderNetwork = 'mainnet' | 'testnet';
-  const selectedProviders: Partial<Record<ProviderNetwork, { server: string; provider: Promise<ElectrumNetworkProvider> }>> = {};
+  const selectedProviders: Partial<Record<ProviderNetwork, { choice: string; provider: Promise<ElectrumNetworkProvider> }>> = {};
   const replacedProviders = new Set<ElectrumNetworkProvider>();
+  // The server each network's provider is on, for the messages that name it
+  const electrumServerInUse = reactive<Partial<Record<ProviderNetwork, string>>>({});
 
-  // `fresh` makes a new one for an unchanged server too, which connects only once it is used
+  // `fresh` makes a new one for an unchanged choice too, which connects only once it is used
   function providerForSelectedServer(network: ProviderNetwork, fresh = false): Promise<ElectrumNetworkProvider> {
-    const server = electrumWssUrl(network === 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet);
+    const settingsNetwork = network === 'mainnet' ? 'mainnet' : 'chipnet';
+    const mode = network === 'mainnet' ? settingsStore.electrumModeMainnet : settingsStore.electrumModeChipnet;
+    // keyed on the choice rather than the list, which a failover reorders under automatic
+    const choice = `${mode} ${network === 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet}`;
     const selected = selectedProviders[network];
-    if (selected?.server === server && !fresh) return selected.provider;
-    const provider = createProvider(network, server, { connectTimeout: ELECTRUM_CONNECT_TIMEOUT_MS })
+    if (selected?.choice === choice && !fresh) return selected.provider;
+    const servers = electrumServers(settingsNetwork);
+    const urls = servers.map(electrumWssUrl);
+    const options: FailoverTransportOptions = {
+      connectTimeout: ELECTRUM_CONNECT_TIMEOUT_MS,
+      onServerChange: (url) => {
+        if (selectedProviders[network]?.provider !== provider) return;
+        const server = servers[urls.indexOf(url)]!;
+        electrumServerInUse[network] = server;
+        if (mode === 'automatic') saveLastGoodElectrumServer(settingsNetwork, server);
+      },
+    };
+    // chipnet's hashrate is too erratic for a gap between blocks to say anything about the server
+    if (network === 'mainnet') options.staleTipSeconds = STALE_TIP_SECONDS;
+    const provider = createFailoverProvider(network, urls, options)
       .then((made) => {
         setGlobalProvider(network, made);
         return made;
       });
-    selectedProviders[network] = { server, provider };
-    // one that cannot be made (a server address the library refuses) is not kept, so the next call
-    // tries again; its rejection reaches whoever awaits it, and is no unhandled rejection otherwise
+    selectedProviders[network] = { choice, provider };
+    delete electrumServerInUse[network];
+    // one that cannot be made is not kept, so the next call tries again; its rejection reaches
+    // whoever awaits it, and is no unhandled rejection otherwise
     provider.catch(() => {
       if (selectedProviders[network]?.provider === provider) delete selectedProviders[network];
     });
     if (selected) selected.provider.then(retireProvider, () => {});
     return provider;
+  }
+
+  // The server in use, or before one connected the servers the mode may use
+  function electrumServerName(network: ProviderNetwork) {
+    return electrumServerInUse[network] ?? electrumServers(network === 'mainnet' ? 'mainnet' : 'chipnet').join(', ');
   }
 
   // The active wallet may still be on a replaced provider until initializeWallet moves it
@@ -683,7 +717,6 @@ export const useStore = defineStore('store', () => {
       // // Kick off exchange rate fetch immediately, so it's available as soon as possible for fiat balance display during initialization
       void fetchExchangeRate();
 
-      const electrumServer = network.value == 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet
       // Started here and awaited further down, so the dapp inits run alongside the connect. The
       // catch is attached in the same expression, so a failed connect never surfaces as an
       // unhandled rejection; it lands in walletInitFailed and the offline path instead.
@@ -698,7 +731,8 @@ export const useStore = defineStore('store', () => {
         .catch(error => {
           // a server change since replaced this provider, and the move to the newer one reports
           if (provider !== walletProvider) return false;
-          displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server: electrumServer })))
+          const server = electrumServerName(network.value == 'mainnet' ? 'mainnet' : 'testnet');
+          displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server })))
           // still log the original error for debugging
           console.error("Electrum connect error:", error)
           return false;
@@ -908,7 +942,7 @@ export const useStore = defineStore('store', () => {
     if (dismissStaleServerWarning) return;
     console.warn(`Electrum server tip at height ${header.height} is ${hoursBehind} hours old`);
     dismissStaleServerWarning = Notify.create({
-      message: t('store.errors.staleElectrumServer', { server: settingsStore.electrumServerMainnet, hours: hoursBehind }),
+      message: t('store.errors.staleElectrumServer', { server: electrumServerName('mainnet'), hours: hoursBehind }),
       icon: 'warning',
       color: 'red',
       timeout: 0,
@@ -1581,9 +1615,12 @@ export const useStore = defineStore('store', () => {
     exchangeRate.value = undefined;
     void fetchExchangeRate();
   });
-  // A server change replaces the network's provider at once, so the next wallet constructed starts
-  // on the new server; the active wallet moves there through selectElectrumProvider
-  watch([() => settingsStore.electrumServerMainnet, () => settingsStore.electrumServerChipnet], () => {
+  // A server or mode change replaces the network's provider at once, so the next wallet constructed
+  // starts on the new servers; the active wallet moves there through selectElectrumProvider
+  watch([
+    () => settingsStore.electrumServerMainnet, () => settingsStore.electrumServerChipnet,
+    () => settingsStore.electrumModeMainnet, () => settingsStore.electrumModeChipnet,
+  ], () => {
     setDefaultElectrumServers();
     void providerForSelectedServer('mainnet');
     void providerForSelectedServer('testnet');
@@ -2031,6 +2068,7 @@ export const useStore = defineStore('store', () => {
     changeView,
     setWallet,
     selectElectrumProvider,
+    electrumServerInUse,
     validateElectrumServer,
     initializeWallet,
     resetWalletState,

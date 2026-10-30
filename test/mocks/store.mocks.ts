@@ -106,6 +106,7 @@ vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   balanceResponseFromSatoshi: vi.fn().mockReturnValue({ sat: 0, bch: 0 }),
   binToHex: vi.fn((arr: Uint8Array) => Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')),
   createProvider: vi.fn().mockResolvedValue(mockProvider),
+  createFailoverProvider: vi.fn().mockResolvedValue(mockProvider),
   setGlobalProvider: vi.fn(),
   DefaultProvider: {
     servers: { mainnet: [], testnet: [], regtest: [] },
@@ -154,6 +155,8 @@ vi.mock('src/stores/settingsStore', () => ({
     explorerChipnet: 'https://chipnet.chaingraph.cash',
     electrumServerMainnet: 'electrum.imaginary.cash',
     electrumServerChipnet: 'chipnet.bch.ninja',
+    electrumModeMainnet: 'single',
+    electrumModeChipnet: 'single',
     tokenMetadataIndexerMainnet: 'https://bcmr.paytaca.com/api',
     tokenMetadataIndexerChipnet: 'https://bcmr-chipnet.paytaca.com/api',
     chaingraphMainnet: 'https://chaingraph.example.com/v1/graphql',
@@ -239,5 +242,6 @@ vi.mock('src/utils/utils', async (importOriginal) => ({
     return isHD ? mockTestNetHDWalletFromId(walletId) : mockTestNetWalletFromId(walletId)
   }),
   convertElectrumTokenData: vi.fn(),
+  STALE_TIP_SECONDS: (await importOriginal<typeof Utils>()).STALE_TIP_SECONDS,
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),
 }))

@@ -31,7 +31,7 @@ const storage = vi.hoisted(() => {
 })
 vi.stubGlobal('localStorage', storage)
 
-// The provider the wallets run on: the store makes the one createProvider returns the global
+// The provider the wallets run on: the store makes the one createFailoverProvider returns the global
 // provider of mainnet, where a wallet is constructed
 const { fakeProvider } = vi.hoisted(() => ({
   fakeProvider: {
@@ -48,12 +48,14 @@ const { fakeProvider } = vi.hoisted(() => ({
 }))
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   ...await importOriginal<typeof BchWalletLib>(),
-  createProvider: vi.fn().mockResolvedValue(fakeProvider),
+  createFailoverProvider: vi.fn().mockResolvedValue(fakeProvider),
 }))
 vi.mock('src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
     electrumServerMainnet: 'electrum.imaginary.cash',
     electrumServerChipnet: 'chipnet.bch.ninja',
+    electrumModeMainnet: 'single',
+    electrumModeChipnet: 'single',
     featuredTokens: [],
     getWalletType: vi.fn().mockReturnValue('single'),
   })),

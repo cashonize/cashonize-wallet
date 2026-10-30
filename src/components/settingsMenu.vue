@@ -16,6 +16,7 @@
   import { removeAllTransactionIndexes } from "src/utils/history/transactionIndex";
   import { displayAndLogError } from "src/utils/errorHandling";
   import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
+  import { curatedElectrumServers, type ElectrumNetwork } from 'src/utils/wallet/electrumServers'
   import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
   const store = useStore()
@@ -58,24 +59,14 @@
   const dappActivityInNav = ref(settingsStore.dappActivityInNav);
   const bottomNavOnMobile = ref(settingsStore.bottomNavOnMobile);
   // advanced settings
-  const predefinedElectrumServersMainnet = [
-    "electrum.imaginary.cash",
-    "bch.imaginary.cash",
-    "cashnode.bch.ninja",
-    "fulcrum.greyh.at",
-    "electroncash.dk",
-    "fulcrum.jettscythe.xyz",
-    "bch.loping.net",
-    "fulcrum.criptolayer.net"
-  ];
+  const selectedElectrumMode = ref(settingsStore.electrumModeMainnet);
+  const selectedElectrumModeChipnet = ref(settingsStore.electrumModeChipnet);
+  const predefinedElectrumServersMainnet = curatedElectrumServers.mainnet;
   const storedElectrumServer = settingsStore.electrumServerMainnet;
   const isCustomElectrumServer = !predefinedElectrumServersMainnet.includes(storedElectrumServer);
   const selectedElectrumServer = ref(isCustomElectrumServer ? "custom" : storedElectrumServer);
   const customElectrumServer = ref(isCustomElectrumServer ? storedElectrumServer : "127.0.0.1");
-  const predefinedElectrumServersChipnet = [
-    "chipnet.bch.ninja",
-    "chipnet.imaginary.cash"
-  ];
+  const predefinedElectrumServersChipnet = curatedElectrumServers.chipnet;
   const storedElectrumServerChipnet = settingsStore.electrumServerChipnet;
   const isCustomElectrumServerChipnet = !predefinedElectrumServersChipnet.includes(storedElectrumServerChipnet);
   const selectedElectrumServerChipnet = ref(isCustomElectrumServerChipnet ? "custom" : storedElectrumServerChipnet);
@@ -199,6 +190,27 @@
     settingsStore[explorerNetwork] = selectedExplorer.value;
     localStorage.setItem(explorerNetwork, selectedExplorer.value);
   }
+  // Changing the mode resets wallet state and triggers a full wallet reinitialization, as a server change does
+  async function changeElectrumMode(targetNetwork: ElectrumNetwork){
+    if(!store._wallet) throw new Error('No wallet set in global store');
+    const mode = targetNetwork == "mainnet" ? selectedElectrumMode.value : selectedElectrumModeChipnet.value;
+    store.changeView(1)
+    // Only reset electrum state, keep WC/CC sessions alive
+    await store.resetWalletState({ resetDappConnections: false })
+    // preferred falls back on the curated list, which a custom server never mixes into: it starts
+    // from the list's first server instead
+    const curated = curatedElectrumServers[targetNetwork];
+    const server = targetNetwork == "mainnet" ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet;
+    if (mode === "preferred" && !curated.includes(server)) {
+      settingsStore.chooseElectrumServer(targetNetwork, curated[0]!);
+      if (targetNetwork == "mainnet") selectedElectrumServer.value = curated[0]!;
+      else selectedElectrumServerChipnet.value = curated[0]!;
+    }
+    settingsStore.setElectrumMode(targetNetwork, mode);
+    await store.selectElectrumProvider(store._wallet.network)
+    // fire-and-forget promise does not wait on full wallet initialization
+    void store.initializeWallet();
+  }
   // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
   async function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
     if (targetNetwork === "mainnet" && selectedElectrumServer.value === "custom") return;
@@ -207,14 +219,8 @@
     store.changeView(1)
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
-    if(targetNetwork == "mainnet"){
-      settingsStore.electrumServerMainnet = selectedElectrumServer.value
-      localStorage.setItem("electrum-mainnet", selectedElectrumServer.value);
-    }
-    if(targetNetwork == "chipnet"){
-      settingsStore.electrumServerChipnet = selectedElectrumServerChipnet.value
-      localStorage.setItem("electrum-chipnet", selectedElectrumServerChipnet.value);
-    }
+    const selected = targetNetwork == "mainnet" ? selectedElectrumServer.value : selectedElectrumServerChipnet.value;
+    settingsStore.chooseElectrumServer(targetNetwork, selected);
     await store.selectElectrumProvider(store._wallet.network)
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
@@ -237,16 +243,9 @@
     store.changeView(1)
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
-    if(targetNetwork == "mainnet"){
-      settingsStore.electrumServerMainnet = trimmedServer;
-      localStorage.setItem("electrum-mainnet", trimmedServer);
-      customElectrumServer.value = trimmedServer;
-    }
-    if(targetNetwork == "chipnet"){
-      settingsStore.electrumServerChipnet = trimmedServer;
-      localStorage.setItem("electrum-chipnet", trimmedServer);
-      customElectrumServerChipnet.value = trimmedServer;
-    }
+    settingsStore.chooseElectrumServer(targetNetwork, trimmedServer);
+    if(targetNetwork == "mainnet") customElectrumServer.value = trimmedServer;
+    if(targetNetwork == "chipnet") customElectrumServerChipnet.value = trimmedServer;
     await store.selectElectrumProvider(store._wallet.network)
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
@@ -672,15 +671,23 @@
     <div v-else-if="settingsSection == 3" style="padding-bottom: 15px;">
       <div v-if="store.network == 'mainnet'" style="margin-top:15px">
         <label>{{ t('settings.advanced.electrumMainnet') }}</label> <InfoPopup>
-          <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }}</div>
+          <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }} {{ t('settings.advanced.electrumModeHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')">
+        <select v-model="selectedElectrumMode" @change="changeElectrumMode('mainnet')">
+          <option value="automatic">{{ t('settings.advanced.electrumModeAutomatic') }}</option>
+          <option value="preferred">{{ t('settings.advanced.electrumModePreferred') }}</option>
+          <option value="single">{{ t('settings.advanced.electrumModeSingle') }}</option>
+        </select>
+        <select v-if="selectedElectrumMode !== 'automatic'" v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')" style="margin-top: 8px;">
           <option v-for="(server, index) in predefinedElectrumServersMainnet" :key="server" :value="server">
             {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
           </option>
-          <option value="custom">{{ t('settings.advanced.custom') }}</option>
+          <option v-if="selectedElectrumMode === 'single'" value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <div v-if="selectedElectrumServer === 'custom'" style="margin-top: 8px;">
+        <div v-if="store.electrumServerInUse.mainnet" style="font-size: smaller; color: grey;">
+          {{ t('settings.advanced.electrumInUse', { server: store.electrumServerInUse.mainnet }) }}
+        </div>
+        <div v-if="selectedElectrumMode === 'single' && selectedElectrumServer === 'custom'" style="margin-top: 8px;">
           <input
             v-model="customElectrumServer"
             @blur="saveCustomElectrumServer('mainnet')"
@@ -707,15 +714,23 @@
 
       <div v-if="store.network == 'chipnet'" style="margin-top:15px">
         <label>{{ t('settings.advanced.electrumChipnet') }}</label> <InfoPopup>
-          <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }}</div>
+          <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }} {{ t('settings.advanced.electrumModeHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')">
+        <select v-model="selectedElectrumModeChipnet" @change="changeElectrumMode('chipnet')">
+          <option value="automatic">{{ t('settings.advanced.electrumModeAutomatic') }}</option>
+          <option value="preferred">{{ t('settings.advanced.electrumModePreferred') }}</option>
+          <option value="single">{{ t('settings.advanced.electrumModeSingle') }}</option>
+        </select>
+        <select v-if="selectedElectrumModeChipnet !== 'automatic'" v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')" style="margin-top: 8px;">
           <option v-for="(server, index) in predefinedElectrumServersChipnet" :key="server" :value="server">
             {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
           </option>
-          <option value="custom">{{ t('settings.advanced.custom') }}</option>
+          <option v-if="selectedElectrumModeChipnet === 'single'" value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <div v-if="selectedElectrumServerChipnet === 'custom'" style="margin-top: 8px;">
+        <div v-if="store.electrumServerInUse.testnet" style="font-size: smaller; color: grey;">
+          {{ t('settings.advanced.electrumInUse', { server: store.electrumServerInUse.testnet }) }}
+        </div>
+        <div v-if="selectedElectrumModeChipnet === 'single' && selectedElectrumServerChipnet === 'custom'" style="margin-top: 8px;">
           <input
             v-model="customElectrumServerChipnet"
             @blur="saveCustomElectrumServer('chipnet')"
