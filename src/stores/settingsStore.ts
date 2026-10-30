@@ -6,25 +6,52 @@ import { BitpayRatesSchema, CoinGeckoRatesSchema, CoinbaseRatesSchema } from "sr
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
 import { defaultWalletName } from "./constants";
-import { storedElectrumMode, type ElectrumNetwork, type ElectrumServerMode } from "src/utils/wallet/electrumServers";
+import { storedElectrumMode, type ElectrumServerMode } from "src/utils/wallet/electrumServers";
+import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
-const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
-const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
-const defaultElectrumMainnet = "electrum.imaginary.cash"
-const defaultElectrumChipnet = "chipnet.imaginary.cash"
+// The per-network options: each network's default and storage key. Mainnet and chipnet keep the
+// keys they had before a third network, so a stored choice carries over; the electrum, electrum
+// mode and Chaingraph keys were per network by name already.
+const defaultExplorers: Record<AppNetwork, string> = {
+  mainnet: "https://blockchair.com/bitcoin-cash/transaction",
+  chipnet: "https://chipnet.chaingraph.cash/tx",
+  testnet4: "https://tbch4.loping.net/tx",
+};
+const explorerKeys: Record<AppNetwork, string> = {
+  mainnet: "explorerMainnet",
+  chipnet: "explorerChipnet",
+  testnet4: "explorer-testnet4",
+};
+const defaultElectrumServers: Record<AppNetwork, string> = {
+  mainnet: "electrum.imaginary.cash",
+  chipnet: "chipnet.imaginary.cash",
+  testnet4: "testnet4.imaginary.cash",
+};
 // One Chaingraph instance per network: some instances index several chains behind one endpoint
 // and some serve one chain each, so the setting names an endpoint per network. No public
-// instance serves chipnet reliably yet.
-const defaultChaingraphMainnet = "https://gql.chaingraph.pat.mn/v1/graphql";
-const defaultChaingraphChipnet = "";
+// instance serves chipnet or testnet4 reliably yet: "" is none, and identities use electrum.
+const defaultChaingraphs: Record<AppNetwork, string> = {
+  mainnet: "https://gql.chaingraph.pat.mn/v1/graphql",
+  chipnet: "",
+  testnet4: "",
+};
 const defaultCauldronIndexer = "https://indexer.riften.net";
 // The token metadata endpoints: a BCMR indexer that indexes token identities only, keyed by
 // category. Not a way to name a non-token identity, which the identities page reads from its own
-// registry. Stored under the old "bcmrIndexer*" keys, which a user never sees.
-const defaultTokenMetadataIndexerMainnet = "https://bcmr.paytaca.com/api";
-const defaultTokenMetadataIndexerChipnet = "https://bcmr-chipnet.paytaca.com/api";
+// registry. Stored under the old "bcmrIndexer*" keys, which a user never sees. Testnet4 has none,
+// "" turning token metadata off.
+const defaultTokenMetadataIndexers: Record<AppNetwork, string> = {
+  mainnet: "https://bcmr.paytaca.com/api",
+  chipnet: "https://bcmr-chipnet.paytaca.com/api",
+  testnet4: "",
+};
+const tokenMetadataIndexerKeys: Record<AppNetwork, string> = {
+  mainnet: "bcmrIndexerMainnet",
+  chipnet: "bcmrIndexerChipnet",
+  testnet4: "bcmrIndexer-testnet4",
+};
 // The default must serve the content directly with CORS headers: a redirect hop without them
 // breaks reads that need them, like the canvas pixel read behind the portfolio chart's icon colors.
 const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
@@ -35,7 +62,7 @@ const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 // wallet type in walletMetadata. A new option belongs here, read by the store at startup.
 export const settingsMenuKeys = [
   // user options
-  "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "qrAnimation",
+  "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "explorer-testnet4", "qrAnimation",
   "tokenAddressQrDefault", "enableAddressMarking", "dappActivityInNav", "bottomNavOnMobile",
   // token settings
   "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
@@ -44,8 +71,9 @@ export const settingsMenuKeys = [
   // their way back to the setting
   "currency", "dateFormat",
   // advanced settings
-  "electrum-mainnet", "electrum-chipnet", "electrumMode-mainnet", "electrumMode-chipnet", "chaingraph-mainnet", "chaingraph-chipnet", "cauldronIndexer",
-  "bcmrIndexerMainnet", "bcmrIndexerChipnet", "ipfsGateway", "exchangeRateProvider",
+  "electrum-mainnet", "electrum-chipnet", "electrum-testnet4", "electrumMode-mainnet", "electrumMode-chipnet",
+  "electrumMode-testnet4", "chaingraph-mainnet", "chaingraph-chipnet", "chaingraph-testnet4", "cauldronIndexer",
+  "bcmrIndexerMainnet", "bcmrIndexerChipnet", "bcmrIndexer-testnet4", "ipfsGateway", "exchangeRateProvider",
   // developer settings
   "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
 ] as const;
@@ -67,17 +95,16 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const locale = ref("en");
   const currency = ref<Currency>("usd");
   const bchUnit = ref("bch" as ("bch" | "sat"));
-  const explorerMainnet = ref(defaultExplorerMainnet);
-  const explorerChipnet = ref(defaultExplorerChipnet);
-  const electrumServerMainnet = ref(defaultElectrumMainnet);
-  const electrumServerChipnet = ref(defaultElectrumChipnet);
-  const electrumModeMainnet = ref<ElectrumServerMode>(storedElectrumMode("mainnet"));
-  const electrumModeChipnet = ref<ElectrumServerMode>(storedElectrumMode("chipnet"));
-  const chaingraphMainnet = ref(defaultChaingraphMainnet);
-  const chaingraphChipnet = ref(defaultChaingraphChipnet);
+  const explorer = ref<Record<AppNetwork, string>>({ ...defaultExplorers });
+  const electrumServer = ref<Record<AppNetwork, string>>({ ...defaultElectrumServers });
+  const electrumMode = ref({
+    mainnet: storedElectrumMode("mainnet"),
+    chipnet: storedElectrumMode("chipnet"),
+    testnet4: storedElectrumMode("testnet4"),
+  } as Record<AppNetwork, ElectrumServerMode>);
+  const chaingraph = ref<Record<AppNetwork, string>>({ ...defaultChaingraphs });
   const cauldronIndexer = ref(defaultCauldronIndexer);
-  const tokenMetadataIndexerMainnet = ref(defaultTokenMetadataIndexerMainnet);
-  const tokenMetadataIndexerChipnet = ref(defaultTokenMetadataIndexerChipnet);
+  const tokenMetadataIndexer = ref<Record<AppNetwork, string>>({ ...defaultTokenMetadataIndexers });
   const ipfsGateway = ref(defaultIpfsGateway);
   const darkMode  = ref(false);
   const tokenBurn = ref(false);
@@ -265,22 +292,37 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     alert("Using Cashonize as an 'Installed Web app' links the wallet data to the browser usage. Deleting the browser data will also affect the installed web app.");
   });
 
-  const readElectrumMainnet = localStorage.getItem("electrum-mainnet") ?? "";
-  if(readElectrumMainnet) electrumServerMainnet.value = readElectrumMainnet
+  for (const network of appNetworks) {
+    const readElectrum = localStorage.getItem(`electrum-${network}`);
+    if (readElectrum) electrumServer.value[network] = readElectrum;
+    const readExplorer = localStorage.getItem(explorerKeys[network]);
+    if (readExplorer) explorer.value[network] = readExplorer;
+    const readTokenMetadataIndexer = localStorage.getItem(tokenMetadataIndexerKeys[network]);
+    if (readTokenMetadataIndexer) tokenMetadataIndexer.value[network] = readTokenMetadataIndexer;
+  }
 
-  const readElectrumChipnet = localStorage.getItem("electrum-chipnet") ?? "";
-  if(readElectrumChipnet) electrumServerChipnet.value = readElectrumChipnet
-
-  function setElectrumMode(network: ElectrumNetwork, mode: ElectrumServerMode) {
-    if (network === "mainnet") electrumModeMainnet.value = mode;
-    else electrumModeChipnet.value = mode;
+  function setElectrumMode(network: AppNetwork, mode: ElectrumServerMode) {
+    electrumMode.value[network] = mode;
     localStorage.setItem(`electrumMode-${network}`, mode);
   }
   // The server the preferred and single modes start from; automatic ignores it
-  function chooseElectrumServer(network: ElectrumNetwork, server: string) {
-    if (network === "mainnet") electrumServerMainnet.value = server;
-    else electrumServerChipnet.value = server;
+  function chooseElectrumServer(network: AppNetwork, server: string) {
+    electrumServer.value[network] = server;
     localStorage.setItem(`electrum-${network}`, server);
+  }
+  function setExplorer(network: AppNetwork, explorerUrl: string) {
+    explorer.value[network] = explorerUrl;
+    localStorage.setItem(explorerKeys[network], explorerUrl);
+  }
+  // "" is no instance
+  function setChaingraph(network: AppNetwork, chaingraphUrl: string) {
+    chaingraph.value[network] = chaingraphUrl;
+    localStorage.setItem(`chaingraph-${network}`, chaingraphUrl);
+  }
+  // "" is no indexer, which turns token metadata off
+  function setTokenMetadataIndexer(network: AppNetwork, indexerUrl: string) {
+    tokenMetadataIndexer.value[network] = indexerUrl;
+    localStorage.setItem(tokenMetadataIndexerKeys[network], indexerUrl);
   }
 
   // the setting was one URL for both networks; that key becomes the mainnet one. Written back
@@ -288,29 +330,22 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // dropping the old key without it would lose a custom instance on the next load.
   const readChaingraphMainnet = localStorage.getItem("chaingraph-mainnet") ?? localStorage.getItem("chaingraph") ?? "";
   if (readChaingraphMainnet) {
-    chaingraphMainnet.value = readChaingraphMainnet;
+    chaingraph.value.mainnet = readChaingraphMainnet;
     localStorage.setItem("chaingraph-mainnet", readChaingraphMainnet);
   }
   localStorage.removeItem("chaingraph");
-  const readChaingraphChipnet = localStorage.getItem("chaingraph-chipnet");
-  if (readChaingraphChipnet !== null) chaingraphChipnet.value = readChaingraphChipnet;
+  // a test network's "" is a choice, of no instance
+  for (const network of appNetworks.filter(network => network !== 'mainnet')) {
+    const readChaingraph = localStorage.getItem(`chaingraph-${network}`);
+    if (readChaingraph !== null) chaingraph.value[network] = readChaingraph;
+  }
 
   const readCauldronIndexer = localStorage.getItem("cauldronIndexer") ?? "";
   if(readCauldronIndexer) cauldronIndexer.value = readCauldronIndexer
-
-  const readTokenMetadataIndexerMainnet = localStorage.getItem("bcmrIndexerMainnet") ?? "";
-  if(readTokenMetadataIndexerMainnet) tokenMetadataIndexerMainnet.value = readTokenMetadataIndexerMainnet
-
-  const readTokenMetadataIndexerChipnet = localStorage.getItem("bcmrIndexerChipnet") ?? "";
-  if(readTokenMetadataIndexerChipnet) tokenMetadataIndexerChipnet.value = readTokenMetadataIndexerChipnet
   
   const readIpfsGateway = localStorage.getItem("ipfsGateway") ?? "";
   if(readIpfsGateway) ipfsGateway.value = readIpfsGateway
 
-  const readExplorerMainnet = localStorage.getItem("explorerMainnet") ?? "";
-  const readExplorerChipnet = localStorage.getItem("explorerChipnet") ?? "";
-  if(readExplorerMainnet) explorerMainnet.value = readExplorerMainnet
-  if(readExplorerChipnet) explorerChipnet.value = readExplorerChipnet
 
   // The "authchains" developer option this setting replaces resolved every held token's chain for
   // the same people, so its value carries over, written under the new key before the old one goes,
@@ -555,19 +590,17 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     locale,
     currency,
     bchUnit,
-    explorerMainnet,
-    explorerChipnet,
-    electrumServerMainnet,
-    electrumServerChipnet,
-    electrumModeMainnet,
-    electrumModeChipnet,
+    explorer,
+    electrumServer,
+    electrumMode,
     setElectrumMode,
     chooseElectrumServer,
-    chaingraphMainnet,
-    chaingraphChipnet,
+    setExplorer,
+    setChaingraph,
+    setTokenMetadataIndexer,
+    chaingraph,
     cauldronIndexer,
-    tokenMetadataIndexerMainnet,
-    tokenMetadataIndexerChipnet,
+    tokenMetadataIndexer,
     ipfsGateway,
     darkMode,
     showFiatValueHistory,

@@ -4,13 +4,14 @@
 //   preferred: the user's pick first, then the curated list; back to the pick at the next open
 //   single: the user's pick and nothing else, ever
 
+import type { AppNetwork } from "src/utils/wallet/networks"
+
 export type ElectrumServerMode = 'automatic' | 'preferred' | 'single'
-export type ElectrumNetwork = 'mainnet' | 'chipnet'
 
 export const electrumServerModes: readonly ElectrumServerMode[] = ['automatic', 'preferred', 'single']
 
 // Short on purpose: every server failed over to sees all of a wallet's addresses
-export const curatedElectrumServers: Record<ElectrumNetwork, readonly string[]> = {
+export const curatedElectrumServers: Record<AppNetwork, readonly string[]> = {
   mainnet: [
     "electrum.imaginary.cash",
     "bch.imaginary.cash",
@@ -25,6 +26,11 @@ export const curatedElectrumServers: Record<ElectrumNetwork, readonly string[]> 
     "chipnet.imaginary.cash",
     "chipnet.c3-soft.com:64004",
     "chipnet.bch.ninja",
+  ],
+  testnet4: [
+    "testnet4.imaginary.cash",
+    "blackie.c3-soft.com:62004",
+    "tbch4.loping.net:62004",
   ],
 }
 
@@ -47,24 +53,24 @@ export function electrumServerList(
   return [first, ...curated.filter(server => server !== first)]
 }
 
-export function electrumServersOf(network: ElectrumNetwork, mode: ElectrumServerMode, selected: string): string[] {
+export function electrumServersOf(network: AppNetwork, mode: ElectrumServerMode, selected: string): string[] {
   return electrumServerList(mode, selected, loadLastGoodElectrumServer(network), curatedElectrumServers[network])
 }
 
 // State rather than an option, so not among the settings menu keys
-const lastGoodKey = (network: ElectrumNetwork) => `electrumLastGood-${network}`
+const lastGoodKey = (network: AppNetwork) => `electrumLastGood-${network}`
 
-export function loadLastGoodElectrumServer(network: ElectrumNetwork): string | null {
+export function loadLastGoodElectrumServer(network: AppNetwork): string | null {
   return localStorage.getItem(lastGoodKey(network))
 }
 
-export function saveLastGoodElectrumServer(network: ElectrumNetwork, server: string) {
+export function saveLastGoodElectrumServer(network: AppNetwork, server: string) {
   localStorage.setItem(lastGoodKey(network), server)
 }
 
 // A stored server predates the modes and was the user's explicit pick, which only ever meant that
 // one server: it stays that, so nothing changes for whoever chose their own server
-export function storedElectrumMode(network: ElectrumNetwork): ElectrumServerMode {
+export function storedElectrumMode(network: AppNetwork): ElectrumServerMode {
   const stored = localStorage.getItem(`electrumMode-${network}`)
   if (electrumServerModes.includes(stored as ElectrumServerMode)) return stored as ElectrumServerMode
   if (localStorage.getItem(`electrum-${network}`)) return 'single'

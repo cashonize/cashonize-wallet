@@ -1449,8 +1449,7 @@
       "disableTokenIconsHint": "Token- und NFT-Bilder können auf jedem Server liegen, den der Ersteller des Tokens wählt, und dieser Server sieht deine IP-Adresse, wenn ein Bild geladen wird."
     },
     "advanced": {
-      "electrumMainnet": "Electrum-Server mainnet:",
-      "electrumChipnet": "Electrum-Server chipnet:",
+      "electrumServerOn": "Electrum-Server {network}:",
       "electrumInvalidUrl": "Ungültige Electrum-Server-Adresse",
       "electrumHint": "Die Verbindung der Wallet zum BCH-Netzwerk. Guthaben, Transaktionsverlauf und das Senden laufen über diesen Server.",
       "electrumModeAutomatic": "Automatisch (empfohlen)",
@@ -1460,6 +1459,7 @@
       "electrumInUse": "In Verwendung: {server}",
       "tokenMetadataIndexer": "Token-Metadaten-Indexer:",
       "tokenMetadataIndexerHint": "Ein BCMR-Indexer, der Token-Metadaten nach Kategorie liefert: Namen, Icons, Dezimalstellen, NFT-Typen. Nur Token-Identitäten; andere Identitäten liest die Identitäten-Seite aus ihren eigenen Registries.",
+      "tokenMetadataIndexerNone": "Keiner",
       "tokenMetadataIndexerCustomPlaceholder": "z.B. https://bcmr.example.com/api",
       "electrumCustomPlaceholder": "z.B. 127.0.0.1 oder fulcrum.example.com:443",
       "electrumCustomHint": "Erfordert WSS, Port 50004 wird angenommen, falls kein anderer angegeben ist.",

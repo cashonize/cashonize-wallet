@@ -59,7 +59,7 @@ describe('resetting the settings', () => {
   it('brings the options back to their defaults and keeps the wallet state', () => {
     const defaults = useSettingsStore()
     const defaultCurrency = defaults.currency
-    const defaultElectrum = defaults.electrumServerMainnet
+    const defaultElectrum = defaults.electrumServer.mainnet
 
     storage.setItem('currency', 'eur')
     storage.setItem('electrum-mainnet', 'electrum.example.org')
@@ -73,7 +73,7 @@ describe('resetting the settings', () => {
     const settingsStore = useSettingsStore()
 
     expect(settingsStore.currency).toBe(defaultCurrency)
-    expect(settingsStore.electrumServerMainnet).toBe(defaultElectrum)
+    expect(settingsStore.electrumServer.mainnet).toBe(defaultElectrum)
     expect(settingsStore.allowDappIdentitySpends).toBe(false)
     expect(settingsStore.getWalletType('mywallet')).toBe('hd')
     expect(settingsStore.getBackupStatus('mywallet')).toBe('verified')

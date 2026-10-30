@@ -12,8 +12,8 @@ import { displayAndLogError } from '../src/utils/errorHandling'
 // reactive, so that the store sees a server change as the settings menu makes it
 const settings = reactive({
   ...vi.mocked(useSettingsStore)(),
-  electrumServerMainnet: 'a.example', electrumServerChipnet: 'b.example',
-  electrumModeMainnet: 'single', electrumModeChipnet: 'single',
+  electrumServer: { mainnet: 'a.example', chipnet: 'b.example', testnet4: 't4.example' },
+  electrumMode: { mainnet: 'single', chipnet: 'single', testnet4: 'single' },
 })
 vi.mocked(useSettingsStore).mockReturnValue(settings as never)
 const { useStore } = await import('../src/stores/store')
@@ -73,10 +73,8 @@ describe('the electrum providers of the selected servers', () => {
       made.push(provider)
       return Promise.resolve(provider as never)
     })
-    settings.electrumServerMainnet = 'a.example'
-    settings.electrumServerChipnet = 'b.example'
-    settings.electrumModeMainnet = 'single'
-    settings.electrumModeChipnet = 'single'
+    settings.electrumServer = { mainnet: 'a.example', chipnet: 'b.example', testnet4: 't4.example' }
+    settings.electrumMode = { mainnet: 'single', chipnet: 'single', testnet4: 'single' }
   })
   // the settings are shared, so a store left from an earlier test would react to them too
   afterEach(() => {
@@ -89,11 +87,12 @@ describe('the electrum providers of the selected servers', () => {
     await flush()
     expect(setGlobalProvider).toHaveBeenCalledWith('mainnet', madeFor('wss://a.example:50004'))
     expect(setGlobalProvider).toHaveBeenCalledWith('testnet', madeFor('wss://b.example:50004'))
+    expect(setGlobalProvider).toHaveBeenCalledWith('testnet4', madeFor('wss://t4.example:50004'))
 
     const provider = madeFor('wss://a.example:50004')
     await store.setWallet(walletOn(provider) as never)
     await store.setWallet(walletOn(provider) as never)
-    expect(createFailoverProvider).toHaveBeenCalledTimes(2)
+    expect(createFailoverProvider).toHaveBeenCalledTimes(3)
   })
 
   it('replaces the provider on a server change, and disconnects the old one once the wallet is off it', async () => {
@@ -104,7 +103,7 @@ describe('the electrum providers of the selected servers', () => {
     await store.setWallet(wallet as never)
     await store.initializeWallet()
 
-    settings.electrumServerMainnet = 'c.example'
+    settings.electrumServer.mainnet = 'c.example'
     await nextTick()
     await flush()
     const newProvider = madeFor('wss://c.example:50004')
@@ -125,7 +124,8 @@ describe('the electrum providers of the selected servers', () => {
     await flush()
 
     await expect(store.selectElectrumProvider(NetworkType.Mainnet)).resolves.toBeUndefined()
-    expect(createFailoverProvider).toHaveBeenCalledTimes(3)
+    // one per network at startup, the mainnet one failed, and made again
+    expect(createFailoverProvider).toHaveBeenCalledTimes(4)
   })
 
   it('disconnects a replaced provider no wallet is on at once', async () => {
@@ -133,7 +133,7 @@ describe('the electrum providers of the selected servers', () => {
     await flush()
     await store.setWallet(walletOn(madeFor('wss://a.example:50004')) as never)
 
-    settings.electrumServerChipnet = 'd.example'
+    settings.electrumServer.chipnet = 'd.example'
     await nextTick()
     await flush()
     expect(madeFor('wss://b.example:50004').disconnect).toHaveBeenCalledOnce()
@@ -149,7 +149,7 @@ describe('the electrum providers of the selected servers', () => {
     await store.setWallet(wallet as never)
     await store.initializeWallet()
 
-    settings.electrumServerMainnet = 'c.example'
+    settings.electrumServer.mainnet = 'c.example'
     await store.selectElectrumProvider(NetworkType.Mainnet)
     wallet.setProvider.mockRejectedValueOnce(new Error('unreachable'))
     await store.initializeWallet()
@@ -173,12 +173,12 @@ describe('the electrum providers of the selected servers', () => {
 
     let failMove!: (error: Error) => void
     wallet.setProvider.mockImplementationOnce(() => new Promise<void>((_resolve, reject) => { failMove = reject }))
-    settings.electrumServerMainnet = 'b2.example'
+    settings.electrumServer.mainnet = 'b2.example'
     await store.selectElectrumProvider(NetworkType.Mainnet)
     const slowMove = store.initializeWallet()
     await flush()
 
-    settings.electrumServerMainnet = 'c.example'
+    settings.electrumServer.mainnet = 'c.example'
     await store.selectElectrumProvider(NetworkType.Mainnet)
     await flush()
     // the wallet never got onto the one in between, so it goes at once
@@ -220,14 +220,14 @@ describe('the electrum providers of the selected servers', () => {
     await flush()
     expect(vi.mocked(createFailoverProvider).mock.calls[0]?.[1]).toEqual(['wss://a.example:50004'])
 
-    settings.electrumServerMainnet = 'd.example'
+    settings.electrumServer.mainnet = 'd.example'
     await nextTick()
     expect(vi.mocked(createFailoverProvider).mock.calls.at(-1)?.[1]).toEqual(['wss://d.example:50004'])
     expect(DefaultProvider.servers.mainnet).toEqual(['wss://d.example:50004'])
   })
 
   it('under automatic starts at the last server that worked, and remembers the one the provider settles on', async () => {
-    settings.electrumModeMainnet = 'automatic'
+    settings.electrumMode.mainnet = 'automatic'
     localStorageMock.setItem('electrumLastGood-mainnet', 'fulcrum.greyh.at')
     useStore()
     await flush()
@@ -240,8 +240,8 @@ describe('the electrum providers of the selected servers', () => {
   })
 
   it('under preferred does not move the pick from the front for the server a failover took', async () => {
-    settings.electrumModeMainnet = 'preferred'
-    settings.electrumServerMainnet = 'cashnode.bch.ninja'
+    settings.electrumMode.mainnet = 'preferred'
+    settings.electrumServer.mainnet = 'cashnode.bch.ninja'
     const store = useStore()
     await flush()
     made[0]!.options!.onServerChange!('wss://bch.loping.net:50004')
@@ -255,7 +255,7 @@ describe('the electrum providers of the selected servers', () => {
   })
 
   it('names the server in use when the wallet cannot connect', async () => {
-    settings.electrumModeMainnet = 'automatic'
+    settings.electrumMode.mainnet = 'automatic'
     const store = useStore()
     await flush()
     const provider = made[0]!
@@ -271,7 +271,7 @@ describe('the electrum providers of the selected servers', () => {
   it('makes a new provider on a mode change', async () => {
     useStore()
     await flush()
-    settings.electrumModeMainnet = 'automatic'
+    settings.electrumMode.mainnet = 'automatic'
     await nextTick()
     await flush()
     expect(vi.mocked(createFailoverProvider).mock.calls.at(-1)?.[1]).toHaveLength(8)
