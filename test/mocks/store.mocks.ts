@@ -29,7 +29,7 @@ export const mockMainnetWallet = {
 
 export const mockChipnetWallet = {
   name: 'testWallet',
-  network: 'chipnet',
+  network: 'testnet', // the library's name for chipnet
   cashaddr: 'bchtest:qtest',
   tokenaddr: 'bchtest:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
@@ -44,9 +44,15 @@ export const mockWalletNamed = vi.fn()
 export const mockTestNetWalletNamed = vi.fn()
 export const mockHDWalletNamed = vi.fn()
 export const mockTestNetHDWalletNamed = vi.fn()
-export const mockWalletFromId = vi.fn().mockResolvedValue(mockMainnetWallet)
+// the wallet of the network a stored id is loaded with, as the library's fromId gives
+function walletOfNetwork(_walletId: string, options?: { network?: string }) {
+  if (options?.network === 'testnet') return Promise.resolve(mockChipnetWallet)
+  if (options?.network === 'testnet4') return Promise.resolve({ ...mockChipnetWallet, network: 'testnet4' })
+  return Promise.resolve(mockMainnetWallet)
+}
+export const mockWalletFromId = vi.fn(walletOfNetwork)
 export const mockTestNetWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
-export const mockHDWalletFromId = vi.fn().mockResolvedValue(mockMainnetWallet)
+export const mockHDWalletFromId = vi.fn(walletOfNetwork)
 export const mockTestNetHDWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
 
 // Mock localStorage
@@ -78,6 +84,8 @@ class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static from
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   OpReturnData: (await importOriginal<typeof BchWalletLib>()).OpReturnData,
   networkConfig: (await importOriginal<typeof BchWalletLib>()).networkConfig,
+  knownNetworks: (await importOriginal<typeof BchWalletLib>()).knownNetworks,
+  registerNetwork: (await importOriginal<typeof BchWalletLib>()).registerNetwork,
   MAX_OP_RETURN_BYTES: (await importOriginal<typeof BchWalletLib>()).MAX_OP_RETURN_BYTES,
   InsufficientFundsError: (await importOriginal<typeof BchWalletLib>()).InsufficientFundsError,
   UtxoNotAvailableError: (await importOriginal<typeof BchWalletLib>()).UtxoNotAvailableError,
@@ -130,12 +138,10 @@ export const mockPruneDeletedWalletCaches = vi.fn().mockResolvedValue(undefined)
 export const mockNamedWalletExistsInDb = vi.fn().mockResolvedValue(true)
 function defaultGetNamedWalletId(
   _name: string,
-  dbName: 'bitcoincash' | 'bchtest'
+  dbName: 'bitcoincash' | 'bchtest' | 'bchtest4'
 ): Promise<string | undefined> {
-  const walletId = dbName === 'bitcoincash'
-    ? 'seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0'
-    : 'seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0'
-  return Promise.resolve(walletId)
+  const network = { bitcoincash: 'mainnet', bchtest: 'testnet', bchtest4: 'testnet4' }[dbName]
+  return Promise.resolve(`seed:${network}:test mnemonic:m/44'/145'/0'/0/0`)
 }
 export const mockGetNamedWalletId = vi.fn(defaultGetNamedWalletId)
 
@@ -152,16 +158,11 @@ vi.mock('src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
     currency: 'usd',
     bchUnit: 'bch',
-    explorerMainnet: 'https://blockchair.com',
-    explorerChipnet: 'https://chipnet.chaingraph.cash',
-    electrumServerMainnet: 'electrum.imaginary.cash',
-    electrumServerChipnet: 'chipnet.bch.ninja',
-    electrumModeMainnet: 'single',
-    electrumModeChipnet: 'single',
-    tokenMetadataIndexerMainnet: 'https://bcmr.paytaca.com/api',
-    tokenMetadataIndexerChipnet: 'https://bcmr-chipnet.paytaca.com/api',
-    chaingraphMainnet: 'https://chaingraph.example.com/v1/graphql',
-    chaingraphChipnet: '',
+    explorer: { mainnet: 'https://blockchair.com', chipnet: 'https://chipnet.chaingraph.cash', testnet4: 'https://tbch4.loping.net/tx' },
+    electrumServer: { mainnet: 'electrum.imaginary.cash', chipnet: 'chipnet.bch.ninja', testnet4: 'testnet4.imaginary.cash' },
+    electrumMode: { mainnet: 'single', chipnet: 'single', testnet4: 'single' },
+    tokenMetadataIndexer: { mainnet: 'https://bcmr.paytaca.com/api', chipnet: 'https://bcmr-chipnet.paytaca.com/api', testnet4: '' },
+    chaingraph: { mainnet: 'https://chaingraph.example.com/v1/graphql', chipnet: '', testnet4: '' },
     ipfsGateway: 'https://ipfs.io/ipfs/',
     followTokenIdentities: true,
     featuredTokens: [],
@@ -181,17 +182,19 @@ vi.mock('src/stores/walletconnectStore', () => ({
 }))
 
 // Mock cashconnectStore
+export const mockCashconnectStart = vi.fn().mockResolvedValue(undefined)
 vi.mock('src/stores/cashconnectStore', () => ({
   useCashconnectStore: vi.fn(() => ({
-    start: vi.fn().mockResolvedValue(undefined),
+    start: mockCashconnectStart,
     stop: vi.fn().mockResolvedValue(undefined),
   })),
 }))
 
 // Mock wizardconnectStore
+export const mockWizardconnectStart = vi.fn().mockResolvedValue(undefined)
 vi.mock('src/stores/wizardconnectStore', () => ({
   useWizardconnectStore: vi.fn(() => ({
-    start: vi.fn().mockResolvedValue(undefined),
+    start: mockWizardconnectStart,
     stop: vi.fn().mockResolvedValue(undefined),
   })),
 }))
@@ -237,11 +240,9 @@ vi.mock('src/utils/utils', async (importOriginal) => ({
   getBalanceFromUtxos: vi.fn().mockReturnValue(0),
   getTokenUtxos: vi.fn().mockReturnValue([]),
   walletTypeFromWalletId: vi.fn((walletId: string) => walletId.startsWith('hd:') ? 'hd' : 'single'),
-  loadWalletFromId: vi.fn((walletId: string, network: 'mainnet' | 'chipnet') => {
-    const isHD = walletId.startsWith('hd:')
-    if (network === 'mainnet') return isHD ? mockHDWalletFromId(walletId) : mockWalletFromId(walletId)
-    return isHD ? mockTestNetHDWalletFromId(walletId) : mockTestNetWalletFromId(walletId)
-  }),
+  // the real one, on the mocked wallet classes: which class and network a stored id loads with is
+  // what the network tests check
+  loadWalletFromId: (await importOriginal<typeof Utils>()).loadWalletFromId,
   convertElectrumTokenData: vi.fn(),
   STALE_TIP_SECONDS: (await importOriginal<typeof Utils>()).STALE_TIP_SECONDS,
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),

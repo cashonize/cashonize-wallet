@@ -4,7 +4,7 @@ import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
 import { BroadcastTimeoutError, HDWallet, SignedMessage } from "@cashonize/bch-wallet-lib";
-import { appNetworkOf } from "src/utils/wallet/networks";
+import { appNetworkOf, dappsAvailableOn } from "src/utils/wallet/networks";
 import { useStore } from "./store"
 import { useIdentitiesStore } from "./identitiesStore"
 import {
@@ -113,6 +113,14 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     });
     walletKit.on('session_request', (event) => {
       console.debug("Session request received:", event);
+      // Sessions are not per wallet: one paired on chipnet stays, and names its chain bch:bchtest,
+      // which testnet4 shares. A wallet on a network without dApp connections serves none of them.
+      if (!dappsAvailableOn(mainStore.network)) {
+        const message = t('dapp.unavailableOnNetwork', { network: mainStore.network });
+        const response = { id: event.id, jsonrpc: '2.0', error: { message, code: 5100 } };
+        walletKit.respondSessionRequest({ topic: event.topic, response }).catch(console.error);
+        return;
+      }
       const sessionAddresses = getSessionAddresses(event.topic);
       const walletAddress = sessionAddresses[0] ?? mainStore.wallet.getDepositAddress();
       wcRequest(event, walletAddress, sessionAddresses).catch(console.error);
@@ -161,6 +169,14 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         message: t('walletConnect.errors.unsupportedBlockchain', { chains: Object.keys(namespaces).join(", ") }),
         icon: 'warning',
         color: "red"
+      })
+      return;
+    }
+    if (!dappsAvailableOn(mainStore.network)) {
+      Dialog.create({
+        message: t('dapp.unavailableOnNetwork', { network: mainStore.network }),
+        ok: { label: 'OK', color: 'primary', unelevated: true },
+        class: 'flex justify-center',
       })
       return;
     }

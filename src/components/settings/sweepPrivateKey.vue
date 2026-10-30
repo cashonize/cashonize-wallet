@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
-  import { NetworkType, TestNetWallet, Wallet, convert, decodeWif } from '@cashonize/bch-wallet-lib';
+  import { NetworkType, Wallet, convert, decodeWif } from '@cashonize/bch-wallet-lib';
+  import { libraryNetwork } from 'src/utils/wallet/networks';
   import { decodePrivateKeyWif, encodePrivateKeyWif } from '@bitauth/libauth';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -111,9 +112,8 @@
 
   // A wallet subscribes to its address as it is constructed, so the one made for a look at the
   // key or for its sweep is stopped once that is done
-  async function withTempWallet<T>(wif: string, use: (tempWallet: Wallet | TestNetWallet) => Promise<T>): Promise<T> {
-    const walletClass = (store.network == 'mainnet') ? Wallet : TestNetWallet;
-    const tempWallet = await walletClass.fromWIF(wif);
+  async function withTempWallet<T>(wif: string, use: (tempWallet: Wallet) => Promise<T>): Promise<T> {
+    const tempWallet = await Wallet.fromWIF(wif, { network: libraryNetwork(store.network) });
     try {
       return await use(tempWallet);
     } finally {
@@ -305,8 +305,8 @@
     if (store.network === 'mainnet' && wifNetwork !== NetworkType.Mainnet) {
       return t('sweepPrivateKey.qrErrors.notMainnetWif');
     }
-    if (store.network === 'chipnet' && wifNetwork !== NetworkType.Testnet) {
-      return t('sweepPrivateKey.qrErrors.notChipnetWif');
+    if (store.network !== 'mainnet' && wifNetwork !== NetworkType.Testnet) {
+      return t('sweepPrivateKey.qrErrors.notTestnetWif', { network: store.network });
     }
     return true;
   }

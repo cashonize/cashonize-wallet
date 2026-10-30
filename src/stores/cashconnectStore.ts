@@ -42,6 +42,7 @@ import {
   walletTemplateToCompilerBch,
 } from "@bitauth/libauth";
 import { outputOfRawTransaction } from "src/utils/dapp/sourceOutput";
+import { dappsAvailableOn } from "src/utils/wallet/networks";
 
 export const useCashconnectStore = defineStore("cashconnectStore", () => {
   // Accesses the wallet reactively via cross-store ref (mainStore.wallet) inside defineStore setup,
@@ -91,10 +92,16 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     //       And the `start()` call thinks that the existing instance still exists.
     const cashConnectPrevInstance = cashConnectWallet.value;
     cashConnectWallet.value = undefined;
+    // the sessions are the stopped wallet's, and a wallet that starts no CashConnect (testnet4)
+    // must not list them
+    sessions.value = {};
     // Stop the CashConnect Wallet service.
     await cashConnectPrevInstance.stop();
   }
   async function pair(wcUri: string) {
+    if (!dappsAvailableOn(mainStore.network)) {
+      throw new Error(t('dapp.unavailableOnNetwork', { network: mainStore.network }));
+    }
     if(!cashConnectWallet.value) {
       throw new Error(t('cashConnect.notifications.notStarted'));
     }
@@ -116,6 +123,9 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     sessions.value = updatedSessions;
   }
   async function onSessionProposal(proposal: SessionProposalResponse): Promise<SessionCreateRequest> {
+    if (!dappsAvailableOn(mainStore.network)) {
+      throw new Error(t('dapp.unavailableOnNetwork', { network: mainStore.network }));
+    }
     // Check the network and prompt user to switch if incorrect.
     // NOTE: The walletClass.network property appears to return quirky values (e.g. undefined).
     //       So we use the networkPrefix property to determine which chain we are currently on.

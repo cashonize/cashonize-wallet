@@ -77,6 +77,8 @@ export async function fetchTokenMetadata(
   tokenMetadataIndexer: string,
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
 ) {
+  // no indexer on the network (testnet4): tokens show without metadata
+  if (!tokenMetadataIndexer) return bcmrRegistries ?? {};
   const metadataPromises = [];
   // the commitments each NFT lookup answers for, by its URL
   const commitmentsByUrl = new Map<string, string[]>();
@@ -141,6 +143,7 @@ export async function fetchNftMetadata(
   tokenMetadataIndexer: string,
   bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
 ) {
+  if (!tokenMetadataIndexer) return bcmrRegistries ?? {};
   const res = await cachedFetch(nftMetadataUrl(tokenMetadataIndexer, category, commitment));
   if (res.status !== 200) return bcmrRegistries ?? {};
   const tokenInfoResult = await parseIndexerResponse(res);

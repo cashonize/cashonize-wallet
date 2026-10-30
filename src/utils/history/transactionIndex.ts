@@ -3,6 +3,7 @@
 // network, so an open decodes what arrived since the last one rather than the whole history, and
 // only their outputs and input outpoints, never the prevouts a history item is built from.
 
+import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
 import {
   decodeTransaction,
   hexToBin,
@@ -15,7 +16,7 @@ import { listingOffer } from "src/utils/defi/tapswapListings";
 import { hodlAnnouncement } from "src/utils/defi/hodlContracts";
 import { continuesAuthchain, isIdentityMarker, isP2pkh } from "src/utils/tools/identityDetection";
 
-type Network = 'mainnet' | 'chipnet';
+type Network = AppNetwork;
 
 // What the detectors read of a transaction, which a history item carries too. Inputs have their
 // outpoint only, except the token of input 1, the AuthKey an AuthGuard spend opens with
@@ -89,8 +90,7 @@ function saveIndex(network: Network, walletName: string, index: StoredIndex) {
 
 // A future wallet created under the same name must not inherit the old wallet's index
 export function removeTransactionIndex(walletName: string) {
-  localStorage.removeItem(indexKey('mainnet', walletName));
-  localStorage.removeItem(indexKey('chipnet', walletName));
+  for (const network of appNetworks) localStorage.removeItem(indexKey(network, walletName));
 }
 
 // Clearing the cached history clears what was read off it too

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import { devNetworks } from 'src/utils/wallet/networks'
   import { ref, computed, onActivated, onDeactivated } from "vue"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
@@ -122,8 +123,15 @@
 <template>
   <fieldset class="item">
     <legend>{{ t('addWallet.title') }}</legend>
-    <div v-if="store.addWalletNetwork !== 'mainnet'" style="margin-bottom: 15px; color: grey;">
-      {{ t('addWallet.onNetwork', { network: store.addWalletNetwork }) }}
+    <!-- opened for a development wallet: the test network it is made on, and only on -->
+    <div v-if="store.addWalletNetwork !== 'mainnet'" style="margin-bottom: 15px;">
+      <label for="addWalletNetwork">{{ t('addWallet.networkLabel') }}</label>
+      <select id="addWalletNetwork" v-model="store.addWalletNetwork" :disabled="step !== 1" style="max-width: 300px;">
+        <option v-for="network in devNetworks" :key="network" :value="network">{{ network }}</option>
+      </select>
+      <div style="font-size: smaller; color: grey; margin-top: 5px;">
+        {{ t('addWallet.onNetwork', { network: store.addWalletNetwork }) }}
+      </div>
     </div>
 
     <div v-if="step === 1">

@@ -39,8 +39,8 @@
   // Wallets on a development network get a list of their own, once there are any. An older wallet
   // that also has its chipnet copy is a mainnet wallet: the copy is the developer settings' business.
   const walletGroups = computed(() => {
-    const mainnetWallets = store.availableWallets.filter(wallet => wallet.hasMainnet);
-    const devWallets = store.availableWallets.filter(wallet => !wallet.hasMainnet);
+    const mainnetWallets = store.availableWallets.filter(wallet => wallet.networks.includes('mainnet'));
+    const devWallets = store.availableWallets.filter(wallet => !wallet.networks.includes('mainnet'));
     if (devWallets.length === 0) {
       return [{ title: t('walletsOverview.yourWallets', { count: mainnetWallets.length }), wallets: mainnetWallets, dev: false }];
     }
@@ -51,14 +51,14 @@
   });
   // once there are development wallets, another one can be added from here too, not only from the
   // developer settings
-  const hasDevWallets = computed(() => store.availableWallets.some(wallet => !wallet.hasMainnet));
-  function addChipnetWallet() {
+  const hasDevWallets = computed(() => store.availableWallets.some(wallet => !wallet.networks.includes('mainnet')));
+  function addDevWallet() {
     store.addWalletNetwork = 'chipnet';
     store.changeView(9);
   }
   // the network of a development wallet, shown under its name
   function devNetwork(wallet: WalletInfo): string {
-    return wallet.hasChipnet ? 'chipnet' : '';
+    return wallet.networks.join(', ');
   }
   function getBackupStatusLabel(walletName: string): string {
     const status = settingsStore.getBackupStatus(walletName);
@@ -164,8 +164,8 @@
     <div v-else style="margin-bottom: 15px; color: #888;">
       {{ t('walletsOverview.walletLimitReached', { max: maxWallets }) }}
     </div>
-    <div v-if="canAddMoreWallets && hasDevWallets" style="margin-bottom: 15px; cursor: pointer;" @click="addChipnetWallet()">
-      {{ t('settings.developer.addChipnetWallet') }}
+    <div v-if="canAddMoreWallets && hasDevWallets" style="margin-bottom: 15px; cursor: pointer;" @click="addDevWallet()">
+      {{ t('settings.developer.addDevWallet') }}
     </div>
   </div>
 </template>

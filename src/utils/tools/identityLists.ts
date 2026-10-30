@@ -1,7 +1,8 @@
 // The lists the identities feature persists, all per wallet per network and all of them ids,
 // categories or txids, in one localStorage shape. Nothing here knows what an authchain is.
 
-type Network = 'mainnet' | 'chipnet';
+import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
+type Network = AppNetwork;
 
 const identityListKeys = {
   // identities the wallet follows, which is what gets resolved and reserved
@@ -81,7 +82,7 @@ export function clearIdentityList(list: IdentityList, network: Network, walletNa
 // Every identity list on both networks: a future wallet created under the same name must not
 // inherit the old wallet's identities
 export function removeIdentityData(walletName: string) {
-  for (const network of ['mainnet', 'chipnet'] as const) {
+  for (const network of appNetworks) {
     for (const list of Object.keys(identityListKeys) as IdentityList[]) {
       clearIdentityList(list, network, walletName);
     }

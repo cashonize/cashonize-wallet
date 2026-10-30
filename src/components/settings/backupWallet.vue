@@ -75,7 +75,7 @@
   // wallet's chipnet copy: it has the keys of the mainnet wallet.
   const isDevWallet = computed(() => {
     const walletInfo = store.availableWallets.find(w => w.name === store.activeWalletName);
-    return store.network !== 'mainnet' && walletInfo !== undefined && !walletInfo.hasMainnet;
+    return store.network !== 'mainnet' && walletInfo !== undefined && !walletInfo.networks.includes('mainnet');
   });
   function dismissBackupReminder() {
     settingsStore.setBackupStatus(store.activeWalletName, 'dismissed');

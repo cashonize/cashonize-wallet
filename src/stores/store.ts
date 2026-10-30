@@ -38,7 +38,7 @@ import {
   type WalletType
 } from "../interfaces/interfaces"
 import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, sameTokenList, STALE_TIP_SECONDS, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
-import { electrumServersOf, saveLastGoodElectrumServer, type ElectrumNetwork } from "src/utils/wallet/electrumServers"
+import { electrumServersOf, saveLastGoodElectrumServer } from "src/utils/wallet/electrumServers"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -59,7 +59,7 @@ import { ActionableError, displayAndLogError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
-import { appNetworkOf, appNetworks, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
+import { appNetworkOf, appNetworks, dappsAvailableOn, libraryNetwork, storedAppNetwork, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
 import { removeEmptyChipnetCopy } from "src/utils/wallet/tiedWallets"
 import { sharedRun } from "src/utils/concurrency"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
@@ -137,9 +137,8 @@ Config.UseIndexedDBCache = true;
 BaseWallet.StorageProvider = IndexedDBProvider;
 
 // The servers each network's mode may use, in the order they are tried
-function electrumServers(network: ElectrumNetwork) {
-  if (network === 'mainnet') return electrumServersOf('mainnet', settingsStore.electrumModeMainnet, settingsStore.electrumServerMainnet);
-  return electrumServersOf('chipnet', settingsStore.electrumModeChipnet, settingsStore.electrumServerChipnet);
+function electrumServers(network: AppNetwork) {
+  return electrumServersOf(network, settingsStore.electrumMode[network], settingsStore.electrumServer[network]);
 }
 
 // Point the library's default electrum servers at the first server of each network's mode, for a
@@ -148,8 +147,9 @@ function electrumServers(network: ElectrumNetwork) {
 // servers, leaking the wallet's addresses to a server the user never selected, and under the
 // single mode to a second server. Kept in sync with settings via a watch (see below).
 function setDefaultElectrumServers() {
-  DefaultProvider.servers.mainnet = [electrumWssUrl(electrumServers('mainnet')[0]!)];
-  DefaultProvider.servers.testnet = [electrumWssUrl(electrumServers('chipnet')[0]!)];
+  for (const network of appNetworks) {
+    DefaultProvider.servers[libraryNetwork(network)] = [electrumWssUrl(electrumServers(network)[0]!)];
+  }
 }
 setDefaultElectrumServers();
 
@@ -256,7 +256,7 @@ export const useStore = defineStore('store', () => {
 
   // Computed properties
   const network = computed(() => appNetworkOf(wallet.value.network))
-  const explorerUrl = computed(() => network.value == "mainnet" ? settingsStore.explorerMainnet : settingsStore.explorerChipnet);
+  const explorerUrl = computed(() => settingsStore.explorer[network.value]);
 
   // Access to the wallet without a null check at every call site: throws rather than hand out
   // null. Read-only, so replacing the wallet goes through _wallet.
@@ -318,9 +318,10 @@ export const useStore = defineStore('store', () => {
   })
 
   const dappConnectionStoresInitDone = computed(() => isWcInitDone.value && isCcInitDone.value && isWizInitDone.value)
-  const tokenMetadataIndexer = computed(() => network.value == 'mainnet' ? settingsStore.tokenMetadataIndexerMainnet : settingsStore.tokenMetadataIndexerChipnet)
+  // empty when no indexer is configured for the network, which turns token metadata off
+  const tokenMetadataIndexer = computed(() => settingsStore.tokenMetadataIndexer[network.value])
   // empty when no Chaingraph instance is configured for the network
-  const chaingraph = computed(() => network.value == 'mainnet' ? settingsStore.chaingraphMainnet : settingsStore.chaingraphChipnet)
+  const chaingraph = computed(() => settingsStore.chaingraph[network.value])
 
   // The first unused receive address that is not skipped, within the seed-restore discovery
   // window; undefined for single-address wallets and when every address in that window is skipped
@@ -486,21 +487,19 @@ export const useStore = defineStore('store', () => {
   // the sweep) starts on it rather than being moved there after it subscribed. A failover keeps
   // the provider, so wallets follow it without a move. Wallet switches share it, and a mode or
   // server change replaces it; the replaced one is disconnected once no wallet is on it any more.
-  type ProviderNetwork = 'mainnet' | 'testnet';
-  const selectedProviders: Partial<Record<ProviderNetwork, { choice: string; provider: Promise<ElectrumNetworkProvider> }>> = {};
+  const selectedProviders: Partial<Record<AppNetwork, { choice: string; provider: Promise<ElectrumNetworkProvider> }>> = {};
   const replacedProviders = new Set<ElectrumNetworkProvider>();
   // The server each network's provider is on, for the messages that name it
-  const electrumServerInUse = reactive<Partial<Record<ProviderNetwork, string>>>({});
+  const electrumServerInUse = reactive<Partial<Record<AppNetwork, string>>>({});
 
   // `fresh` makes a new one for an unchanged choice too, which connects only once it is used
-  function providerForSelectedServer(network: ProviderNetwork, fresh = false): Promise<ElectrumNetworkProvider> {
-    const settingsNetwork = network === 'mainnet' ? 'mainnet' : 'chipnet';
-    const mode = network === 'mainnet' ? settingsStore.electrumModeMainnet : settingsStore.electrumModeChipnet;
+  function providerForSelectedServer(network: AppNetwork, fresh = false): Promise<ElectrumNetworkProvider> {
+    const mode = settingsStore.electrumMode[network];
     // keyed on the choice rather than the list, which a failover reorders under automatic
-    const choice = `${mode} ${network === 'mainnet' ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet}`;
+    const choice = `${mode} ${settingsStore.electrumServer[network]}`;
     const selected = selectedProviders[network];
     if (selected?.choice === choice && !fresh) return selected.provider;
-    const servers = electrumServers(settingsNetwork);
+    const servers = electrumServers(network);
     const urls = servers.map(electrumWssUrl);
     const options: FailoverTransportOptions = {
       connectTimeout: ELECTRUM_CONNECT_TIMEOUT_MS,
@@ -508,14 +507,14 @@ export const useStore = defineStore('store', () => {
         if (selectedProviders[network]?.provider !== provider) return;
         const server = servers[urls.indexOf(url)]!;
         electrumServerInUse[network] = server;
-        if (mode === 'automatic') saveLastGoodElectrumServer(settingsNetwork, server);
+        if (mode === 'automatic') saveLastGoodElectrumServer(network, server);
       },
     };
-    // chipnet's hashrate is too erratic for a gap between blocks to say anything about the server
+    // a test network's hashrate is too erratic for a gap between blocks to say anything about the server
     if (network === 'mainnet') options.staleTipSeconds = STALE_TIP_SECONDS;
-    const provider = createFailoverProvider(network, urls, options)
+    const provider = createFailoverProvider(libraryNetwork(network), urls, options)
       .then((made) => {
-        setGlobalProvider(network, made);
+        setGlobalProvider(libraryNetwork(network), made);
         return made;
       });
     selectedProviders[network] = { choice, provider };
@@ -530,8 +529,8 @@ export const useStore = defineStore('store', () => {
   }
 
   // The server in use, or before one connected the servers the mode may use
-  function electrumServerName(network: ProviderNetwork) {
-    return electrumServerInUse[network] ?? electrumServers(network === 'mainnet' ? 'mainnet' : 'chipnet').join(', ');
+  function electrumServerName(network: AppNetwork) {
+    return electrumServerInUse[network] ?? electrumServers(network).join(', ');
   }
 
   // The active wallet may still be on a replaced provider until initializeWallet moves it
@@ -547,20 +546,19 @@ export const useStore = defineStore('store', () => {
     }
   }
   // made now, so that the first wallet constructed already finds them
-  void providerForSelectedServer('mainnet');
-  void providerForSelectedServer('testnet');
+  for (const network of appNetworks) void providerForSelectedServer(network);
 
   // Whether the library takes a server address, checked before a setting changes to it; the
   // provider made for the check connects to nothing
-  async function validateElectrumServer(network: 'mainnet' | 'chipnet', server: string) {
-    await createProvider(network === 'mainnet' ? 'mainnet' : 'testnet', electrumWssUrl(server));
+  async function validateElectrumServer(network: AppNetwork, server: string) {
+    await createProvider(libraryNetwork(network), electrumWssUrl(server));
   }
 
   // The provider of the selected server of the wallet's network, which initializeWallet puts the
   // wallet on (a wallet constructed after the server was selected is on it already)
   let walletProvider: ElectrumNetworkProvider | undefined;
   async function selectElectrumProvider(walletNetwork: WalletType['network']) {
-    walletProvider = await providerForSelectedServer(appNetworkOf(walletNetwork) === 'mainnet' ? 'mainnet' : 'testnet');
+    walletProvider = await providerForSelectedServer(appNetworkOf(walletNetwork));
   }
 
   // setWallet is a simple wrapper "set" function for the internal _wallet in the store.
@@ -574,7 +572,7 @@ export const useStore = defineStore('store', () => {
     _wallet.value = newWallet;
     // the network left keeps no connection open: a fresh provider for its server connects once used
     if (previousNetwork && previousNetwork !== newWallet.network) {
-      void providerForSelectedServer(appNetworkOf(previousNetwork) === 'mainnet' ? 'mainnet' : 'testnet', true);
+      void providerForSelectedServer(appNetworkOf(previousNetwork), true);
     }
     const newNetwork = appNetworkOf(newWallet.network);
     txNotes.value = loadTxNotes(newNetwork, newWallet.name);
@@ -738,7 +736,7 @@ export const useStore = defineStore('store', () => {
         .catch(error => {
           // a server change since replaced this provider, and the move to the newer one reports
           if (provider !== walletProvider) return false;
-          const server = electrumServerName(network.value == 'mainnet' ? 'mainnet' : 'testnet');
+          const server = electrumServerName(network.value);
           displayAndLogError(new Error(t('store.errors.unableToConnectElectrum', { server })))
           // still log the original error for debugging
           console.error("Electrum connect error:", error)
@@ -931,7 +929,7 @@ export const useStore = defineStore('store', () => {
     cancelWatchBlocks = await wallet.value.watchBlocks(header => {
       if (initialization !== currentInitialization) return;
       currentBlockHeight.value = header.height;
-      // chipnet's hashrate is too erratic for a gap between blocks to say anything about the server
+      // a test network's hashrate is too erratic for a gap between blocks to say anything about the server
       if (network.value === 'mainnet') warnIfServerTipStale(header);
     }, false);
   }
@@ -1014,7 +1012,7 @@ export const useStore = defineStore('store', () => {
 
   // Avoid WalletClass.named() here: it creates a fresh random wallet if the name is missing.
   // Loading must reconstruct from the saved walletId; .named() is only for creation flows.
-  async function loadExistingWallet(walletName: string, network: 'mainnet' | 'chipnet'): Promise<WalletType> {
+  async function loadExistingWallet(walletName: string, network: AppNetwork): Promise<WalletType> {
     const walletId = await getNamedWalletId(walletName, walletDbName(network));
     if (!walletId) {
       throw new Error(t('store.errors.walletNotFoundOnNetwork', { name: walletName, network }));
@@ -1031,7 +1029,7 @@ export const useStore = defineStore('store', () => {
   // Resets all wallet state and makes the given (already loaded) wallet the active one
   async function activateWallet(
     newWallet: WalletType,
-    network: 'mainnet' | 'chipnet',
+    network: AppNetwork,
     awaitWalletInitialization: boolean = false
   ){
     await resetWalletState();
@@ -1076,20 +1074,20 @@ export const useStore = defineStore('store', () => {
 
   interface SwitchWalletResult {
     success: true;
-    networkChanged?: 'mainnet' | 'chipnet'; // Set if network was changed to accommodate wallet
+    networkChanged?: AppNetwork; // Set if network was changed to accommodate wallet
   }
 
   async function switchWallet(walletName: string): Promise<SwitchWalletResult> {
     // Get the current network from localStorage (default to mainnet)
-    const currentNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
+    const currentNetwork = storedAppNetwork();
 
-    // The network follows the wallet: a wallet opens on mainnet when it has a mainnet row, so an
-    // older wallet's chipnet copy opens only from the developer settings (availableWallets may be
-    // stale, loadExistingWallet below re-checks IndexedDB)
+    // The network follows the wallet: it opens on its own network, mainnet for an older wallet
+    // that also has its chipnet copy, which opens only from the developer settings
+    // (availableWallets may be stale, loadExistingWallet below re-checks IndexedDB)
     let targetNetwork = currentNetwork;
     const walletInfo = availableWallets.value.find(w => w.name === walletName);
-    if (walletInfo) {
-      targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
+    if (walletInfo?.networks[0]) {
+      targetNetwork = walletInfo.networks[0];
     }
 
     const newWallet = await loadExistingWallet(walletName, targetNetwork);
@@ -1194,6 +1192,12 @@ export const useStore = defineStore('store', () => {
   }
 
   async function initializeCashConnect() {
+    // CashConnect keeps its sessions per seed, not per network: started on a network without dApp
+    // connections, it would bring back the sessions the same seed has on another network
+    if (!dappsAvailableOn(network.value)) {
+      isCcInitDone.value = true;
+      return;
+    }
     try{
       // Initialize CashConnect.
       const cashconnectWallet = useCashconnectStore();
@@ -1237,6 +1241,10 @@ export const useStore = defineStore('store', () => {
   }
 
   function initializeWizardConnect() {
+    if (!dappsAvailableOn(network.value)) {
+      isWizInitDone.value = true;
+      return;
+    }
     try {
       const wizardconnectStore = useWizardconnectStore();
 
@@ -1655,16 +1663,13 @@ export const useStore = defineStore('store', () => {
   });
   // A server or mode change replaces the network's provider at once, so the next wallet constructed
   // starts on the new servers; the active wallet moves there through selectElectrumProvider
-  watch([
-    () => settingsStore.electrumServerMainnet, () => settingsStore.electrumServerChipnet,
-    () => settingsStore.electrumModeMainnet, () => settingsStore.electrumModeChipnet,
-  ], () => {
+  watch([() => settingsStore.electrumServer, () => settingsStore.electrumMode], () => {
     setDefaultElectrumServers();
-    void providerForSelectedServer('mainnet');
-    void providerForSelectedServer('testnet');
-  });
+    for (const network of appNetworks) void providerForSelectedServer(network);
+  }, { deep: true });
 
   async function fetchTokenInfo(categoryId: string) {
+    if (!tokenMetadataIndexer.value) throw new Error(t('store.errors.noTokenMetadataIndexer', { network: network.value }));
     const res = await cachedFetch(`${tokenMetadataIndexer.value}/tokens/${categoryId}/`);
     if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
     // the helper logs why a reply was unusable, so the throw only has to say that it was

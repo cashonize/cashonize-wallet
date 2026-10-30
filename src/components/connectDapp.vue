@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import { dappsAvailableOn } from 'src/utils/wallet/networks'
   import { ref, computed, watch } from 'vue'
   import { useQuasar } from 'quasar';
   import { storeToRefs } from 'pinia';
@@ -143,6 +144,9 @@
 <template>
     <fieldset class="item" style="padding-bottom: 1.5rem;">
       <legend>{{ t('dapp.title') }}</legend>
+      <div v-if="!dappsAvailableOn(store.network)" style="margin-bottom: 10px; color: grey;">
+        {{ t('dapp.unavailableOnNetwork', { network: store.network }) }}
+      </div>
       <div style="margin-bottom: 10px;">
         {{ t('dapp.connectText') }}
         <!-- WizardConnect requires an HD wallet, so the listed connection methods depend on the wallet type -->

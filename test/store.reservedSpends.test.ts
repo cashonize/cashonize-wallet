@@ -52,10 +52,8 @@ vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
 }))
 vi.mock('src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
-    electrumServerMainnet: 'electrum.imaginary.cash',
-    electrumServerChipnet: 'chipnet.bch.ninja',
-    electrumModeMainnet: 'single',
-    electrumModeChipnet: 'single',
+    electrumServer: { mainnet: 'electrum.imaginary.cash', chipnet: 'chipnet.bch.ninja', testnet4: 'testnet4.imaginary.cash' },
+    electrumMode: { mainnet: 'single', chipnet: 'single', testnet4: 'single' },
     featuredTokens: [],
     getWalletType: vi.fn().mockReturnValue('single'),
   })),

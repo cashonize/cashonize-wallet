@@ -4,7 +4,8 @@
 
 export const maxAddressLabelLength = 100;
 
-type Network = 'mainnet' | 'chipnet';
+import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
+type Network = AppNetwork;
 
 function addressMarksKey(network: Network, walletName: string): string {
   return `addressMarks-${network}-${walletName}`;
@@ -101,7 +102,7 @@ export function deleteFrozenAddress(network: Network, walletName: string, addres
 
 // A future wallet created under the same name must not inherit the old wallet's data
 export function removeAddressManagementData(walletName: string) {
-  for (const network of ['mainnet', 'chipnet'] as const) {
+  for (const network of appNetworks) {
     localStorage.removeItem(addressMarksKey(network, walletName));
     localStorage.removeItem(addressLabelsKey(network, walletName));
     localStorage.removeItem(frozenAddressesKey(network, walletName));

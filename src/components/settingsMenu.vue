@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { appNetworks, walletDbName } from 'src/utils/wallet/networks'
+  import { appNetworks, walletDbName, type AppNetwork } from 'src/utils/wallet/networks'
   import EmojiItem from './general/emojiItem.vue'
   import InfoPopup from './general/InfoPopup.vue'
   import backupWallet from './settings/backupWallet.vue'
@@ -17,7 +17,7 @@
   import { removeAllTransactionIndexes } from "src/utils/history/transactionIndex";
   import { displayAndLogError } from "src/utils/errorHandling";
   import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
-  import { curatedElectrumServers, type ElectrumNetwork } from 'src/utils/wallet/electrumServers'
+  import { curatedElectrumServers } from 'src/utils/wallet/electrumServers'
   import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { chipnetCopyState, tiedChipnetCopy, type ChipnetCopyState } from 'src/utils/wallet/tiedWallets'
@@ -62,26 +62,21 @@
   const enableAddressMarking = ref(settingsStore.enableAddressMarking);
   const dappActivityInNav = ref(settingsStore.dappActivityInNav);
   const bottomNavOnMobile = ref(settingsStore.bottomNavOnMobile);
-  // advanced settings
-  const selectedElectrumMode = ref(settingsStore.electrumModeMainnet);
-  const selectedElectrumModeChipnet = ref(settingsStore.electrumModeChipnet);
-  const predefinedElectrumServersMainnet = curatedElectrumServers.mainnet;
-  const storedElectrumServer = settingsStore.electrumServerMainnet;
-  const isCustomElectrumServer = !predefinedElectrumServersMainnet.includes(storedElectrumServer);
+  // advanced settings, for the active network's options: opening a wallet of another network
+  // leaves this view, so the network is the same for as long as it is open
+  const activeNetwork = store.network;
+  const selectedElectrumMode = ref(settingsStore.electrumMode[activeNetwork]);
+  const predefinedElectrumServers = curatedElectrumServers[activeNetwork];
+  const storedElectrumServer = settingsStore.electrumServer[activeNetwork];
+  const isCustomElectrumServer = !predefinedElectrumServers.includes(storedElectrumServer);
   const selectedElectrumServer = ref(isCustomElectrumServer ? "custom" : storedElectrumServer);
   const customElectrumServer = ref(isCustomElectrumServer ? storedElectrumServer : "127.0.0.1");
-  const predefinedElectrumServersChipnet = curatedElectrumServers.chipnet;
-  const storedElectrumServerChipnet = settingsStore.electrumServerChipnet;
-  const isCustomElectrumServerChipnet = !predefinedElectrumServersChipnet.includes(storedElectrumServerChipnet);
-  const selectedElectrumServerChipnet = ref(isCustomElectrumServerChipnet ? "custom" : storedElectrumServerChipnet);
-  const customElectrumServerChipnet = ref(isCustomElectrumServerChipnet ? storedElectrumServerChipnet : "127.0.0.1");
   function isLocalServer(serverInput: string) {
     // The custom server may carry a ":port" suffix, the check is about the host
     const host = serverInput.trim().split(":")[0] ?? "";
     return host === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(host);
   }
   const isLocalElectrumServer = computed(() => isLocalServer(customElectrumServer.value));
-  const isLocalElectrumServerChipnet = computed(() => isLocalServer(customElectrumServerChipnet.value));
   // the first entry is labeled as the default, keep it in sync with settingsStore
   const predefinedIpfsGateways = [
     "https://ipfs.filebase.io/ipfs/",
@@ -93,26 +88,50 @@
   const isCustomIpfsGateway = !predefinedIpfsGateways.includes(storedIpfsGateway);
   const selectedIpfsGateway = ref(isCustomIpfsGateway ? "custom" : storedIpfsGateway);
   const customIpfsGateway = ref(isCustomIpfsGateway ? storedIpfsGateway : "http://localhost:8080/ipfs/");
-  // per network like electrum; chipnet has no predefined instance, only "none" or a custom one
-  const predefinedChaingraphsMainnet = ["https://gql.chaingraph.pat.mn/v1/graphql"];
-  const storedChaingraphMainnet = settingsStore.chaingraphMainnet;
-  const isCustomChaingraphMainnet = !predefinedChaingraphsMainnet.includes(storedChaingraphMainnet);
-  const selectedChaingraphMainnet = ref(isCustomChaingraphMainnet ? "custom" : storedChaingraphMainnet);
-  const customChaingraphMainnet = ref(isCustomChaingraphMainnet ? storedChaingraphMainnet : "");
-  const storedChaingraphChipnet = settingsStore.chaingraphChipnet;
-  const selectedChaingraphChipnet = ref(storedChaingraphChipnet ? "custom" : "");
-  const customChaingraphChipnet = ref(storedChaingraphChipnet);
+  // Per network like electrum, the first entry the default. A network without one has "" (none)
+  // as its default, and a custom instance or indexer can still be set.
+  const predefinedChaingraphs: Record<AppNetwork, string[]> = {
+    mainnet: ["https://gql.chaingraph.pat.mn/v1/graphql"],
+    chipnet: [],
+    testnet4: [],
+  };
+  const storedChaingraph = settingsStore.chaingraph[activeNetwork];
+  const isCustomChaingraph = storedChaingraph !== "" && !predefinedChaingraphs[activeNetwork].includes(storedChaingraph);
+  const selectedChaingraph = ref(isCustomChaingraph ? "custom" : storedChaingraph);
+  const customChaingraph = ref(isCustomChaingraph ? storedChaingraph : "");
   const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
-  const predefinedTokenMetadataIndexersMainnet = ["https://bcmr.paytaca.com/api"];
-  const predefinedTokenMetadataIndexersChipnet = ["https://bcmr-chipnet.paytaca.com/api"];
-  const storedTokenMetadataIndexer = settingsStore.tokenMetadataIndexerMainnet;
-  const isCustomTokenMetadataIndexer = !predefinedTokenMetadataIndexersMainnet.includes(storedTokenMetadataIndexer);
+  const predefinedTokenMetadataIndexers: Record<AppNetwork, string[]> = {
+    mainnet: ["https://bcmr.paytaca.com/api"],
+    chipnet: ["https://bcmr-chipnet.paytaca.com/api"],
+    testnet4: [],
+  };
+  const storedTokenMetadataIndexer = settingsStore.tokenMetadataIndexer[activeNetwork];
+  const isCustomTokenMetadataIndexer = storedTokenMetadataIndexer !== "" && !predefinedTokenMetadataIndexers[activeNetwork].includes(storedTokenMetadataIndexer);
   const selectedTokenMetadataIndexer = ref(isCustomTokenMetadataIndexer ? "custom" : storedTokenMetadataIndexer);
   const customTokenMetadataIndexer = ref(isCustomTokenMetadataIndexer ? storedTokenMetadataIndexer : "");
-  const storedTokenMetadataIndexerChipnet = settingsStore.tokenMetadataIndexerChipnet;
-  const isCustomTokenMetadataIndexerChipnet = !predefinedTokenMetadataIndexersChipnet.includes(storedTokenMetadataIndexerChipnet);
-  const selectedTokenMetadataIndexerChipnet = ref(isCustomTokenMetadataIndexerChipnet ? "custom" : storedTokenMetadataIndexerChipnet);
-  const customTokenMetadataIndexerChipnet = ref(isCustomTokenMetadataIndexerChipnet ? storedTokenMetadataIndexerChipnet : "");
+  const explorerOptions: Record<AppNetwork, { url: string; label: string }[]> = {
+    mainnet: [
+      { url: "https://blockchair.com/bitcoin-cash/transaction", label: "Blockchair" },
+      { url: "https://explorer.salemkode.com/tx", label: "SalemKode explorer" },
+      { url: "https://bchexplorer.info/tx", label: "bchexplorer.info by Paytaca" },
+      { url: "https://blockbook.pat.mn/tx", label: "BlockBook Pat" },
+      { url: "https://3xpl.com/bitcoin-cash/transaction", label: "3xpl" },
+      { url: "https://bchexplorer.cash/tx", label: "bchexplorer.cash by Melroy" },
+      { url: "https://explorer.bch.ninja/tx", label: "explorer.bch.ninja (no Token Metadata)" },
+      { url: "https://bch.loping.net/tx", label: "bch.loping.net (no Token Metadata)" },
+      { url: "https://explorer.coinex.com/bch/tx", label: "CoinEx explorer (no CashTokens support)" },
+    ],
+    chipnet: [
+      { url: "https://chipnet.bch.ninja/tx", label: "chipnet.bch.ninja" },
+      { url: "https://chipnet.imaginary.cash/tx", label: "chipnet.imaginary.cash" },
+      { url: "https://chipnet.chaingraph.cash/tx", label: "chipnet.chaingraph.cash" },
+      { url: "https://chipnet.bchexplorer.info/tx", label: "chipnet.bchexplorer.info" },
+    ],
+    testnet4: [
+      { url: "https://tbch4.loping.net/tx", label: "tbch4.loping.net" },
+      { url: "https://testnet4.imaginary.cash/tx", label: "testnet4.imaginary.cash" },
+    ],
+  };
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
   const enableMintNfts = ref(settingsStore.mintNfts);
@@ -134,7 +153,7 @@
   // or a chipnet wallet of another seed that early versions made under the same name
   const activeOnBothNetworks = computed(() => {
     const walletInfo = store.availableWallets.find(w => w.name === store.activeWalletName);
-    return walletInfo !== undefined && walletInfo.hasMainnet && walletInfo.hasChipnet;
+    return walletInfo !== undefined && walletInfo.networks.includes('mainnet') && walletInfo.networks.includes('chipnet');
   });
   const otherNetwork = computed(() => store.network === 'mainnet' ? 'chipnet' : 'mainnet');
   // whether the lookup for the open wallet has answered, so the hint never guesses "other keys"
@@ -217,56 +236,49 @@
     localStorage.setItem("dateFormat", dateFormat.value);
   }
   function changeBlockExplorer(){
-    const explorerNetwork = store.network == "mainnet" ? "explorerMainnet" : "explorerChipnet";
-    settingsStore[explorerNetwork] = selectedExplorer.value;
-    localStorage.setItem(explorerNetwork, selectedExplorer.value);
+    settingsStore.setExplorer(activeNetwork, selectedExplorer.value);
   }
   // Changing the mode resets wallet state and triggers a full wallet reinitialization, as a server change does
-  async function changeElectrumMode(targetNetwork: ElectrumNetwork){
+  async function changeElectrumMode(){
     if(!store._wallet) throw new Error('No wallet set in global store');
-    const mode = targetNetwork == "mainnet" ? selectedElectrumMode.value : selectedElectrumModeChipnet.value;
+    const mode = selectedElectrumMode.value;
     store.changeView(1)
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
     // preferred falls back on the curated list, which a custom server never mixes into: it starts
     // from the list's first server instead
-    const curated = curatedElectrumServers[targetNetwork];
-    const server = targetNetwork == "mainnet" ? settingsStore.electrumServerMainnet : settingsStore.electrumServerChipnet;
-    if (mode === "preferred" && !curated.includes(server)) {
-      settingsStore.chooseElectrumServer(targetNetwork, curated[0]!);
-      if (targetNetwork == "mainnet") selectedElectrumServer.value = curated[0]!;
-      else selectedElectrumServerChipnet.value = curated[0]!;
+    const curated = curatedElectrumServers[activeNetwork];
+    if (mode === "preferred" && !curated.includes(settingsStore.electrumServer[activeNetwork])) {
+      settingsStore.chooseElectrumServer(activeNetwork, curated[0]!);
+      selectedElectrumServer.value = curated[0]!;
     }
-    settingsStore.setElectrumMode(targetNetwork, mode);
+    settingsStore.setElectrumMode(activeNetwork, mode);
     await store.selectElectrumProvider(store._wallet.network)
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }
   // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
-  async function changeElectrumServer(targetNetwork: "mainnet" | "chipnet"){
-    if (targetNetwork === "mainnet" && selectedElectrumServer.value === "custom") return;
-    if (targetNetwork === "chipnet" && selectedElectrumServerChipnet.value === "custom") return;
+  async function changeElectrumServer(){
+    if (selectedElectrumServer.value === "custom") return;
     if(!store._wallet) throw new Error('No wallet set in global store');
     store.changeView(1)
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
-    const selected = targetNetwork == "mainnet" ? selectedElectrumServer.value : selectedElectrumServerChipnet.value;
-    settingsStore.chooseElectrumServer(targetNetwork, selected);
+    settingsStore.chooseElectrumServer(activeNetwork, selectedElectrumServer.value);
     await store.selectElectrumProvider(store._wallet.network)
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
   }
   // Changing electrum servers resets wallet state and triggers a full wallet reinitialization
-  async function saveCustomElectrumServer(targetNetwork: "mainnet" | "chipnet"){
-    const customServer = targetNetwork == "mainnet" ? customElectrumServer.value : customElectrumServerChipnet.value;
+  async function saveCustomElectrumServer(){
     // server operators publish full urls like wss://fulcrum.pat.mn:443, strip a pasted scheme
     // and trailing slash so the stored value is always host or host:port
-    const trimmedServer = customServer.trim().replace(/^(wss?|https?):\/\//i, "").replace(/\/+$/, "");
+    const trimmedServer = customElectrumServer.value.trim().replace(/^(wss?|https?):\/\//i, "").replace(/\/+$/, "");
     if (!trimmedServer) return;
     if(!store._wallet) throw new Error('No wallet set in global store');
     // an address the library refuses changes nothing, rather than leaving the wallet reset
     try {
-      await store.validateElectrumServer(targetNetwork, trimmedServer);
+      await store.validateElectrumServer(activeNetwork, trimmedServer);
     } catch {
       displayAndLogError(new Error(t('settings.advanced.electrumInvalidUrl')));
       return;
@@ -274,9 +286,8 @@
     store.changeView(1)
     // Only reset electrum state, keep WC/CC sessions alive
     await store.resetWalletState({ resetDappConnections: false })
-    settingsStore.chooseElectrumServer(targetNetwork, trimmedServer);
-    if(targetNetwork == "mainnet") customElectrumServer.value = trimmedServer;
-    if(targetNetwork == "chipnet") customElectrumServerChipnet.value = trimmedServer;
+    settingsStore.chooseElectrumServer(activeNetwork, trimmedServer);
+    customElectrumServer.value = trimmedServer;
     await store.selectElectrumProvider(store._wallet.network)
     // fire-and-forget promise does not wait on full wallet initialization
     void store.initializeWallet();
@@ -292,14 +303,12 @@
     settingsStore.ipfsGateway = trimmedGateway;
     localStorage.setItem("ipfsGateway", trimmedGateway);
   }
-  function changeChaingraph(network: 'mainnet' | 'chipnet'){
-    const selected = network === 'mainnet' ? selectedChaingraphMainnet.value : selectedChaingraphChipnet.value;
-    if (selected === "custom") return;
-    applyChaingraph(network, selected);
+  function changeChaingraph(){
+    if (selectedChaingraph.value === "custom") return;
+    settingsStore.setChaingraph(activeNetwork, selectedChaingraph.value);
   }
   const verifyingCustomChaingraph = ref(false);
-  async function saveCustomChaingraph(network: 'mainnet' | 'chipnet'){
-    const customChaingraph = network === 'mainnet' ? customChaingraphMainnet : customChaingraphChipnet;
+  async function saveCustomChaingraph(){
     const trimmedChaingraph = customChaingraph.value.trim();
     if (!trimmedChaingraph || verifyingCustomChaingraph.value) return;
     let normalizedChaingraph: string;
@@ -320,12 +329,7 @@
     } finally {
       verifyingCustomChaingraph.value = false;
     }
-    applyChaingraph(network, normalizedChaingraph);
-  }
-  function applyChaingraph(network: 'mainnet' | 'chipnet', chaingraphUrl: string){
-    if (network === 'mainnet') settingsStore.chaingraphMainnet = chaingraphUrl;
-    else settingsStore.chaingraphChipnet = chaingraphUrl;
-    localStorage.setItem(`chaingraph-${network}`, chaingraphUrl);
+    settingsStore.setChaingraph(activeNetwork, normalizedChaingraph);
   }
   function changeCauldronIndexer(){
     settingsStore.cauldronIndexer = selectedCauldronIndexer.value;
@@ -333,31 +337,21 @@
     // refetch token prices from the newly selected indexer
     void store.fetchCauldronPricesForTokens();
   }
-  function changeTokenMetadataIndexer(targetNetwork: "mainnet" | "chipnet"){
-    const selected = targetNetwork == "mainnet" ? selectedTokenMetadataIndexer.value : selectedTokenMetadataIndexerChipnet.value;
-    if (selected === "custom") return;
-    applyTokenMetadataIndexer(targetNetwork, selected);
+  function changeTokenMetadataIndexer(){
+    if (selectedTokenMetadataIndexer.value === "custom") return;
+    applyTokenMetadataIndexer(selectedTokenMetadataIndexer.value);
   }
-  function saveCustomTokenMetadataIndexer(targetNetwork: "mainnet" | "chipnet"){
-    const customIndexer = targetNetwork == "mainnet" ? customTokenMetadataIndexer.value : customTokenMetadataIndexerChipnet.value;
+  function saveCustomTokenMetadataIndexer(){
     // the store appends /tokens/... paths, so strip any trailing slash
-    let trimmedIndexer = customIndexer.trim().replace(/\/+$/, "");
+    let trimmedIndexer = customTokenMetadataIndexer.value.trim().replace(/\/+$/, "");
     if (!trimmedIndexer) return;
     // without a scheme the value would be used as a path on the app's own origin
     if (!/^https?:\/\//i.test(trimmedIndexer)) trimmedIndexer = `https://${trimmedIndexer}`;
-    if (targetNetwork == "mainnet") customTokenMetadataIndexer.value = trimmedIndexer;
-    if (targetNetwork == "chipnet") customTokenMetadataIndexerChipnet.value = trimmedIndexer;
-    applyTokenMetadataIndexer(targetNetwork, trimmedIndexer);
+    customTokenMetadataIndexer.value = trimmedIndexer;
+    applyTokenMetadataIndexer(trimmedIndexer);
   }
-  function applyTokenMetadataIndexer(targetNetwork: "mainnet" | "chipnet", indexerUrl: string){
-    if(targetNetwork == "mainnet"){
-      settingsStore.tokenMetadataIndexerMainnet = indexerUrl;
-      localStorage.setItem("bcmrIndexerMainnet", indexerUrl);
-    }
-    if(targetNetwork == "chipnet"){
-      settingsStore.tokenMetadataIndexerChipnet = indexerUrl;
-      localStorage.setItem("bcmrIndexerChipnet", indexerUrl);
-    }
+  function applyTokenMetadataIndexer(indexerUrl: string){
+    settingsStore.setTokenMetadataIndexer(activeNetwork, indexerUrl);
     // refetch token metadata from the newly selected indexer
     store.bcmrRegistries = undefined;
     if (store.tokenList) void store.fetchTokenMetadata(store.tokenList, false);
@@ -533,7 +527,7 @@
     settingsStore.hasPlayedAnimation = false;
     await store.changeNetwork(otherNetwork.value);
   }
-  function addChipnetWallet(){
+  function addDevWallet(){
     if (store.availableWallets.length >= maxWallets) {
       Notify.create({ message: t('walletsOverview.walletLimitReached', { max: maxWallets }), icon: 'info', color: "grey-6" });
       return;
@@ -648,22 +642,8 @@
 
       <div style="margin-bottom: 15px;">
         <label for="selectExplorer">{{ t('settings.userOptions.blockExplorer') }}</label>
-        <select v-if="store.network == 'mainnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
-          <option value="https://blockchair.com/bitcoin-cash/transaction">Blockchair</option>
-          <option value="https://explorer.salemkode.com/tx">SalemKode explorer</option>
-          <option value="https://bchexplorer.info/tx">bchexplorer.info by Paytaca</option>
-          <option value="https://blockbook.pat.mn/tx">BlockBook Pat</option>
-          <option value="https://3xpl.com/bitcoin-cash/transaction">3xpl</option>
-          <option value="https://bchexplorer.cash/tx">bchexplorer.cash by Melroy</option>
-          <option value="https://explorer.bch.ninja/tx">explorer.bch.ninja (no Token Metadata)</option>
-          <option value="https://bch.loping.net/tx">bch.loping.net (no Token Metadata)</option>
-          <option value="https://explorer.coinex.com/bch/tx">CoinEx explorer (no CashTokens support)</option>
-        </select>
-        <select v-if="store.network == 'chipnet'" v-model="selectedExplorer" @change="changeBlockExplorer()">
-          <option value="https://chipnet.bch.ninja/tx">chipnet.bch.ninja</option>
-          <option value="https://chipnet.imaginary.cash/tx">chipnet.imaginary.cash</option>
-          <option value="https://chipnet.chaingraph.cash/tx">chipnet.chaingraph.cash</option>
-          <option value="https://chipnet.bchexplorer.info/tx">chipnet.bchexplorer.info</option>
+        <select v-model="selectedExplorer" @change="changeBlockExplorer()">
+          <option v-for="explorer in explorerOptions[activeNetwork]" :key="explorer.url" :value="explorer.url">{{ explorer.label }}</option>
         </select>
       </div>
 
@@ -745,29 +725,29 @@
       </div>
     </div>
     <div v-else-if="settingsSection == 3" style="padding-bottom: 15px;">
-      <div v-if="store.network == 'mainnet'" style="margin-top:15px">
-        <label>{{ t('settings.advanced.electrumMainnet') }}</label> <InfoPopup>
+      <div style="margin-top:15px">
+        <label>{{ t('settings.advanced.electrumServerOn', { network: activeNetwork }) }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }} {{ t('settings.advanced.electrumModeHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedElectrumMode" @change="changeElectrumMode('mainnet')">
+        <select v-model="selectedElectrumMode" @change="changeElectrumMode()">
           <option value="automatic">{{ t('settings.advanced.electrumModeAutomatic') }}</option>
           <option value="preferred">{{ t('settings.advanced.electrumModePreferred') }}</option>
           <option value="single">{{ t('settings.advanced.electrumModeSingle') }}</option>
         </select>
-        <select v-if="selectedElectrumMode !== 'automatic'" v-model="selectedElectrumServer" @change="changeElectrumServer('mainnet')" style="margin-top: 8px;">
-          <option v-for="(server, index) in predefinedElectrumServersMainnet" :key="server" :value="server">
+        <select v-if="selectedElectrumMode !== 'automatic'" v-model="selectedElectrumServer" @change="changeElectrumServer()" style="margin-top: 8px;">
+          <option v-for="(server, index) in predefinedElectrumServers" :key="server" :value="server">
             {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
           </option>
           <option v-if="selectedElectrumMode === 'single'" value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <div v-if="store.electrumServerInUse.mainnet" style="font-size: smaller; color: grey;">
-          {{ t('settings.advanced.electrumInUse', { server: store.electrumServerInUse.mainnet }) }}
+        <div v-if="store.electrumServerInUse[activeNetwork]" style="font-size: smaller; color: grey;">
+          {{ t('settings.advanced.electrumInUse', { server: store.electrumServerInUse[activeNetwork] }) }}
         </div>
         <div v-if="selectedElectrumMode === 'single' && selectedElectrumServer === 'custom'" style="margin-top: 8px;">
           <input
             v-model="customElectrumServer"
-            @blur="saveCustomElectrumServer('mainnet')"
-            @keyup.enter="saveCustomElectrumServer('mainnet')"
+            @blur="saveCustomElectrumServer()"
+            @keyup.enter="saveCustomElectrumServer()"
             type="text"
             :placeholder="t('settings.advanced.electrumCustomPlaceholder')"
             style="width: 100%;"
@@ -782,49 +762,6 @@
               </i18n-t>
             </span>
             <span v-if="isLocalElectrumServer && !isBrowser">
-              {{ t('settings.advanced.electrumSelfSignedApp') }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <label>{{ t('settings.advanced.electrumChipnet') }}</label> <InfoPopup>
-          <div style="max-width: 300px;">{{ t('settings.advanced.electrumHint') }} {{ t('settings.advanced.electrumModeHint') }}</div>
-        </InfoPopup>
-        <select v-model="selectedElectrumModeChipnet" @change="changeElectrumMode('chipnet')">
-          <option value="automatic">{{ t('settings.advanced.electrumModeAutomatic') }}</option>
-          <option value="preferred">{{ t('settings.advanced.electrumModePreferred') }}</option>
-          <option value="single">{{ t('settings.advanced.electrumModeSingle') }}</option>
-        </select>
-        <select v-if="selectedElectrumModeChipnet !== 'automatic'" v-model="selectedElectrumServerChipnet" @change="changeElectrumServer('chipnet')" style="margin-top: 8px;">
-          <option v-for="(server, index) in predefinedElectrumServersChipnet" :key="server" :value="server">
-            {{ server }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
-          </option>
-          <option v-if="selectedElectrumModeChipnet === 'single'" value="custom">{{ t('settings.advanced.custom') }}</option>
-        </select>
-        <div v-if="store.electrumServerInUse.testnet" style="font-size: smaller; color: grey;">
-          {{ t('settings.advanced.electrumInUse', { server: store.electrumServerInUse.testnet }) }}
-        </div>
-        <div v-if="selectedElectrumModeChipnet === 'single' && selectedElectrumServerChipnet === 'custom'" style="margin-top: 8px;">
-          <input
-            v-model="customElectrumServerChipnet"
-            @blur="saveCustomElectrumServer('chipnet')"
-            @keyup.enter="saveCustomElectrumServer('chipnet')"
-            type="text"
-            :placeholder="t('settings.advanced.electrumCustomPlaceholder')"
-            style="width: 100%;"
-          >
-          <div style="font-size: smaller; color: grey;">
-            {{ t('settings.advanced.electrumCustomHint') }}
-            <span v-if="isLocalElectrumServerChipnet && isBrowser">
-              <i18n-t keypath="settings.advanced.electrumSelfSignedBrowser" tag="span">
-                <template #link>
-                  <a :href="electrumWssUrl(customElectrumServerChipnet.trim()).replace('wss://', 'https://')" target="_blank">{{ t('settings.advanced.electrumSelfSignedVisit') }}</a>
-                </template>
-              </i18n-t>
-            </span>
-            <span v-if="isLocalElectrumServerChipnet && !isBrowser">
               {{ t('settings.advanced.electrumSelfSignedApp') }}
             </span>
           </div>
@@ -866,29 +803,18 @@
         <label>{{ t('settings.advanced.chaingraph') }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.chaingraphHint') }}</div>
         </InfoPopup>
-        <select v-if="store.network == 'mainnet'" v-model="selectedChaingraphMainnet" @change="changeChaingraph('mainnet')">
-          <option value="https://gql.chaingraph.pat.mn/v1/graphql">Pat's Chaingraph {{ t('settings.advanced.default') }}</option>
+        <select v-model="selectedChaingraph" @change="changeChaingraph()">
+          <option v-if="predefinedChaingraphs[activeNetwork].length === 0" value="">{{ t('settings.advanced.chaingraphNone') }} {{ t('settings.advanced.default') }}</option>
+          <option v-for="(chaingraphUrl, index) in predefinedChaingraphs[activeNetwork]" :key="chaingraphUrl" :value="chaingraphUrl">
+            {{ getHostname(chaingraphUrl) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
+          </option>
           <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
-        <select v-else v-model="selectedChaingraphChipnet" @change="changeChaingraph('chipnet')">
-          <option value="">{{ t('settings.advanced.chaingraphNone') }} {{ t('settings.advanced.default') }}</option>
-          <option value="custom">{{ t('settings.advanced.custom') }}</option>
-        </select>
-        <div v-if="(store.network == 'mainnet' ? selectedChaingraphMainnet : selectedChaingraphChipnet) === 'custom'" style="margin-top: 8px;">
+        <div v-if="selectedChaingraph === 'custom'" style="margin-top: 8px;">
           <input
-            v-if="store.network == 'mainnet'"
-            v-model="customChaingraphMainnet"
-            @blur="saveCustomChaingraph('mainnet')"
-            @keyup.enter="saveCustomChaingraph('mainnet')"
-            type="text"
-            :placeholder="t('settings.advanced.chaingraphCustomPlaceholder')"
-            style="width: 100%;"
-          >
-          <input
-            v-else
-            v-model="customChaingraphChipnet"
-            @blur="saveCustomChaingraph('chipnet')"
-            @keyup.enter="saveCustomChaingraph('chipnet')"
+            v-model="customChaingraph"
+            @blur="saveCustomChaingraph()"
+            @keyup.enter="saveCustomChaingraph()"
             type="text"
             :placeholder="t('settings.advanced.chaingraphCustomPlaceholder')"
             style="width: 100%;"
@@ -914,12 +840,13 @@
         </select>
       </div>
 
-      <div v-if="store.network == 'mainnet'" style="margin-top:15px">
+      <div style="margin-top:15px">
         <label>{{ t('settings.advanced.tokenMetadataIndexer') }}</label> <InfoPopup>
           <div style="max-width: 300px;">{{ t('settings.advanced.tokenMetadataIndexerHint') }}</div>
         </InfoPopup>
-        <select v-model="selectedTokenMetadataIndexer" @change="changeTokenMetadataIndexer('mainnet')">
-          <option v-for="(indexer, index) in predefinedTokenMetadataIndexersMainnet" :key="indexer" :value="indexer">
+        <select v-model="selectedTokenMetadataIndexer" @change="changeTokenMetadataIndexer()">
+          <option v-if="predefinedTokenMetadataIndexers[activeNetwork].length === 0" value="">{{ t('settings.advanced.tokenMetadataIndexerNone') }} {{ t('settings.advanced.default') }}</option>
+          <option v-for="(indexer, index) in predefinedTokenMetadataIndexers[activeNetwork]" :key="indexer" :value="indexer">
             {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
           </option>
           <option value="custom">{{ t('settings.advanced.custom') }}</option>
@@ -927,30 +854,8 @@
         <div v-if="selectedTokenMetadataIndexer === 'custom'" style="margin-top: 8px;">
           <input
             v-model="customTokenMetadataIndexer"
-            @blur="saveCustomTokenMetadataIndexer('mainnet')"
-            @keyup.enter="saveCustomTokenMetadataIndexer('mainnet')"
-            type="text"
-            :placeholder="t('settings.advanced.tokenMetadataIndexerCustomPlaceholder')"
-            style="width: 100%;"
-          >
-        </div>
-      </div>
-
-      <div v-if="store.network == 'chipnet'" style="margin-top:15px">
-        <label>{{ t('settings.advanced.tokenMetadataIndexer') }}</label> <InfoPopup>
-          <div style="max-width: 300px;">{{ t('settings.advanced.tokenMetadataIndexerHint') }}</div>
-        </InfoPopup>
-        <select v-model="selectedTokenMetadataIndexerChipnet" @change="changeTokenMetadataIndexer('chipnet')">
-          <option v-for="(indexer, index) in predefinedTokenMetadataIndexersChipnet" :key="indexer" :value="indexer">
-            {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
-          </option>
-          <option value="custom">{{ t('settings.advanced.custom') }}</option>
-        </select>
-        <div v-if="selectedTokenMetadataIndexerChipnet === 'custom'" style="margin-top: 8px;">
-          <input
-            v-model="customTokenMetadataIndexerChipnet"
-            @blur="saveCustomTokenMetadataIndexer('chipnet')"
-            @keyup.enter="saveCustomTokenMetadataIndexer('chipnet')"
+            @blur="saveCustomTokenMetadataIndexer()"
+            @keyup.enter="saveCustomTokenMetadataIndexer()"
             type="text"
             :placeholder="t('settings.advanced.tokenMetadataIndexerCustomPlaceholder')"
             style="width: 100%;"
@@ -999,9 +904,9 @@
     </div>
     <div v-else-if="settingsSection == 4">
       <div>
-        <div style="cursor: pointer;" @click="addChipnetWallet()">{{ t('settings.developer.addChipnetWallet') }}</div>
+        <div style="cursor: pointer;" @click="addDevWallet()">{{ t('settings.developer.addDevWallet') }}</div>
         <div style="font-size: smaller; color: grey;">
-          {{ t('settings.developer.addChipnetWalletHint') }}
+          {{ t('settings.developer.addDevWalletHint') }}
         </div>
       </div>
 

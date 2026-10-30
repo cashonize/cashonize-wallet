@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "The chipnet copy of {name} changed since it was checked, so nothing was removed.",
+      "noTokenMetadataIndexer": "There is no token metadata indexer for {network}.",
       "chipnetCopyRemovalRunning": "A chipnet copy is being removed. Try again once it is done.",
       "chipnetCopyHoldsCoins": "The chipnet copy of {name} holds chipnet coins, so nothing was removed.",
       "cannotDeleteActiveWallet": "Cannot delete the currently active wallet",
@@ -455,6 +456,7 @@
   },
   "dapp": {
     "title": "Connect to dApp",
+    "unavailableOnNetwork": "dApp connections are not available on {network}: dApps name a test network only by its bchtest address prefix or its xpub version, which it shares with chipnet.",
     "connectText": "Connect to BCH dApps with supported connection methods.",
     "supportedMethods": "WalletConnect, CashConnect and WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect and CashConnect",
@@ -632,6 +634,7 @@
   "addWallet": {
     "title": "Add Wallet",
     "onNetwork": "This wallet is made on {network} only.",
+    "networkLabel": "Network:",
     "walletName": {
       "label": "Wallet name:",
       "placeholder": "Enter wallet name",
@@ -1057,7 +1060,7 @@
     "qrErrors": {
       "notWif": "Not a QR code encoding a Private Key in WIF format",
       "notMainnetWif": "Not a QR code encoding a Mainnet Private Key in WIF format",
-      "notChipnetWif": "Not a QR code encoding a Chipnet Private Key in WIF format"
+      "notTestnetWif": "Not a QR code encoding a {network} Private Key in WIF format"
     }
   },
   "transferAllAssets": {
@@ -1449,8 +1452,7 @@
       "disableTokenIconsHint": "Token and NFT images can be hosted on any server the token's creator picks, which sees your IP address when an image loads."
     },
     "advanced": {
-      "electrumMainnet": "Electrum server mainnet:",
-      "electrumChipnet": "Electrum server chipnet:",
+      "electrumServerOn": "Electrum server {network}:",
       "electrumInvalidUrl": "Invalid Electrum server address",
       "electrumHint": "The wallet's connection to the BCH network. Balances, transaction history and sending all go through this server.",
       "electrumModeAutomatic": "Automatic (recommended)",
@@ -1460,6 +1462,7 @@
       "electrumInUse": "In use: {server}",
       "tokenMetadataIndexer": "Token metadata indexer:",
       "tokenMetadataIndexerHint": "A BCMR indexer serving token metadata by category: names, icons, decimals, NFT types. Token identities only; other identities are read from their own registries by the identities page.",
+      "tokenMetadataIndexerNone": "None",
       "tokenMetadataIndexerCustomPlaceholder": "e.g. https://bcmr.example.com/api",
       "electrumCustomPlaceholder": "e.g. 127.0.0.1 or fulcrum.example.com:443",
       "electrumCustomHint": "Requires WSS, port 50004 is assumed unless another is specified.",
@@ -1514,8 +1517,8 @@
       "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets.",
       "nonTokenIdentities": "Enable creating non-token identities",
       "nonTokenIdentitiesHint": "Shows Add new on the identities page, which makes an identity from any UTXO of this wallet rather than from a token. Identities of people, organizations and contracts are new, and few tools read them yet.",
-      "addChipnetWallet": "→ Add chipnet wallet",
-      "addChipnetWalletHint": "Creates or imports a wallet on chipnet only.",
+      "addDevWallet": "→ Add development wallet",
+      "addDevWalletHint": "Creates or imports a wallet on a test network, chipnet or testnet4, and only there.",
       "alsoOnNetwork": "Wallet also on {network}",
       "sameKeysHint": "{name} has a copy on the other network with the same keys, from when Cashonize stored every wallet on mainnet and chipnet. From the wallet list, {name} opens on mainnet.",
       "otherKeysHint": "{name} also exists on the other network, with other keys. From the wallet list, {name} opens on mainnet.",
@@ -1926,7 +1929,7 @@
       "since": "Established {year}"
     },
     "openCheckFailed": "Could not look up this wallet's identities: {reason} An identity it holds may not be held back yet. Reload, or check the Chaingraph server in the settings.",
-    "chaingraphNotConfigured": "No Chaingraph server is set for chipnet, so identities are looked up over electrum, one step per link of the chain, which takes longer for a long chain. A server can be set in the advanced settings.",
+    "chaingraphNotConfigured": "No Chaingraph server is set for {network}, so identities are looked up over electrum, one step per link of the chain, which takes longer for a long chain. A server can be set in the advanced settings.",
     "electrum": {
       "transactionNotFound": "The electrum server has no transaction with that id.",
       "unsupportedScript": "The identity output's script is not an address, so electrum cannot say whether it was spent.",

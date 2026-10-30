@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "A cópia de chipnet de {name} mudou desde a verificação, então nada foi removido.",
+      "noTokenMetadataIndexer": "Não há indexador de metadados de tokens para a {network}.",
       "chipnetCopyRemovalRunning": "Uma cópia de chipnet está sendo removida. Tente de novo quando terminar.",
       "chipnetCopyHoldsCoins": "A cópia de chipnet de {name} tem moedas de chipnet, então nada foi removido.",
       "cannotDeleteActiveWallet": "Não é possível excluir a carteira ativa",
@@ -455,6 +456,7 @@
   },
   "dapp": {
     "title": "Conectar a dApp",
+    "unavailableOnNetwork": "Conexões com dApps não estão disponíveis na {network}: os dApps identificam uma rede de teste apenas pelo prefixo de endereço bchtest ou pela versão do xpub, que ela compartilha com a chipnet.",
     "connectText": "Conecte-se a dApps BCH com os métodos de conexão suportados.",
     "supportedMethods": "WalletConnect, CashConnect e WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect e CashConnect",
@@ -632,6 +634,7 @@
   "addWallet": {
     "title": "Adicionar Carteira",
     "onNetwork": "Esta carteira é criada apenas na {network}.",
+    "networkLabel": "Rede:",
     "walletName": {
       "label": "Nome da carteira:",
       "placeholder": "Insira o nome da carteira",
@@ -1057,7 +1060,7 @@
     "qrErrors": {
       "notWif": "Não é um QR code com chave privada no formato WIF",
       "notMainnetWif": "Não é um QR code com chave privada Mainnet no formato WIF",
-      "notChipnetWif": "Não é um QR code com chave privada Chipnet no formato WIF"
+      "notTestnetWif": "Não é um QR code com chave privada {network} no formato WIF"
     }
   },
   "transferAllAssets": {
@@ -1449,8 +1452,7 @@
       "disableTokenIconsHint": "As imagens de tokens e NFTs podem estar hospedadas em qualquer servidor escolhido pelo criador do token, que vê o seu endereço IP quando uma imagem é carregada."
     },
     "advanced": {
-      "electrumMainnet": "Servidor Electrum mainnet:",
-      "electrumChipnet": "Servidor Electrum chipnet:",
+      "electrumServerOn": "Servidor Electrum {network}:",
       "electrumInvalidUrl": "Endereço do servidor Electrum inválido",
       "electrumHint": "A conexão da carteira com a rede BCH. Saldos, histórico de transações e envios passam por este servidor.",
       "electrumModeAutomatic": "Automático (recomendado)",
@@ -1460,6 +1462,7 @@
       "electrumInUse": "Em uso: {server}",
       "tokenMetadataIndexer": "Indexador de metadados de tokens:",
       "tokenMetadataIndexerHint": "Um indexador BCMR que serve metadados de tokens por categoria: nomes, ícones, decimais, tipos de NFT. Só identidades de tokens; as outras identidades são lidas dos seus próprios registros pela página de identidades.",
+      "tokenMetadataIndexerNone": "Nenhum",
       "tokenMetadataIndexerCustomPlaceholder": "ex: https://bcmr.example.com/api",
       "electrumCustomPlaceholder": "ex: 127.0.0.1 ou fulcrum.example.com:443",
       "electrumCustomHint": "Requer WSS, a porta 50004 é assumida se nenhuma outra for especificada.",
@@ -1514,8 +1517,8 @@
       "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único.",
       "nonTokenIdentities": "Habilitar criação de identidades sem token",
       "nonTokenIdentitiesHint": "Mostra Adicionar nova na página das identidades, que cria uma identidade a partir de qualquer UTXO desta carteira em vez de um token. As identidades de pessoas, organizações e contratos são novas, e poucas ferramentas as leem ainda.",
-      "addChipnetWallet": "→ Adicionar carteira de chipnet",
-      "addChipnetWalletHint": "Cria ou importa uma carteira apenas na chipnet.",
+      "addDevWallet": "→ Adicionar carteira de desenvolvimento",
+      "addDevWalletHint": "Cria ou importa uma carteira numa rede de teste, chipnet ou testnet4, e só nela.",
       "alsoOnNetwork": "Carteira também na {network}",
       "sameKeysHint": "{name} tem uma cópia na outra rede com as mesmas chaves, de quando o Cashonize guardava cada carteira na mainnet e na chipnet. Pela lista de carteiras, {name} abre na mainnet.",
       "otherKeysHint": "{name} também existe na outra rede, com outras chaves. Pela lista de carteiras, {name} abre na mainnet.",
@@ -1926,7 +1929,7 @@
       "since": "Desde {year}"
     },
     "openCheckFailed": "Não foi possível consultar as identidades desta carteira: {reason} Uma identidade que tem pode ainda não estar retida. Recarregue, ou verifique o servidor Chaingraph nas definições.",
-    "chaingraphNotConfigured": "Nenhum servidor Chaingraph está definido para a chipnet, então as identidades são consultadas por electrum, um passo por elo da cadeia, o que demora mais numa cadeia longa. Um servidor pode ser definido nas configurações avançadas.",
+    "chaingraphNotConfigured": "Nenhum servidor Chaingraph está definido para a {network}, então as identidades são consultadas por electrum, um passo por elo da cadeia, o que demora mais numa cadeia longa. Um servidor pode ser definido nas configurações avançadas.",
     "electrum": {
       "transactionNotFound": "O servidor electrum não tem nenhuma transação com esse id.",
       "unsupportedScript": "O script da saída de identidade não é um endereço, então o electrum não pode dizer se foi gasta.",

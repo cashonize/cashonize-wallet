@@ -284,7 +284,7 @@
             <a :href="BCMR_DOCS_URL" target="_blank">{{ t('identities.learn.registriesLink') }}</a>
           </template>
           <template #studio>
-            <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank">CashTokens Studio</a>
+            <a v-if="CASHTOKENS_STUDIO_URL[store.network]" :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank">CashTokens Studio</a><span v-else>CashTokens Studio</span>
           </template>
         </i18n-t>
       </div>
@@ -398,7 +398,7 @@
       </div>
       <div v-if="!store.chaingraph" class="warning-box" style="margin-bottom: 10px;">
         <q-icon name="warning" size="20px" class="warning-box-icon" />
-        <div>{{ t('identities.chaingraphNotConfigured') }}</div>
+        <div>{{ t('identities.chaingraphNotConfigured', { network: store.network }) }}</div>
       </div>
       <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }} <q-spinner-dots size="1.2em" /></div>
       <div v-else-if="!identities.length" class="description">

@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "La copia de chipnet de {name} cambió desde que se comprobó, así que no se quitó nada.",
+      "noTokenMetadataIndexer": "No hay un indexador de metadatos de tokens para {network}.",
       "chipnetCopyRemovalRunning": "Se está quitando una copia de chipnet. Inténtalo de nuevo cuando termine.",
       "chipnetCopyHoldsCoins": "La copia de chipnet de {name} tiene monedas de chipnet, así que no se quitó nada.",
       "cannotDeleteActiveWallet": "No se puede eliminar la billetera actualmente activa",
@@ -455,6 +456,7 @@
   },
   "dapp": {
     "title": "Conectar a dApp",
+    "unavailableOnNetwork": "Las conexiones con dApps no están disponibles en {network}: las dApps identifican una red de prueba solo por su prefijo de dirección bchtest o su versión de xpub, que comparte con chipnet.",
     "connectText": "Conéctate a dApps de BCH mediante los métodos de conexión compatibles.",
     "supportedMethods": "WalletConnect, CashConnect y WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect y CashConnect",
@@ -632,6 +634,7 @@
   "addWallet": {
     "title": "Agregar billetera",
     "onNetwork": "Esta billetera se crea solo en {network}.",
+    "networkLabel": "Red:",
     "walletName": {
       "label": "Nombre de billetera:",
       "placeholder": "Ingresa el nombre de la billetera",
@@ -1057,7 +1060,7 @@
     "qrErrors": {
       "notWif": "No es un código QR que codifica una clave privada en formato WIF",
       "notMainnetWif": "No es un código QR que codifica una clave privada de Mainnet en formato WIF",
-      "notChipnetWif": "No es un código QR que codifica una clave privada de Chipnet en formato WIF"
+      "notTestnetWif": "No es un código QR que codifica una clave privada de {network} en formato WIF"
     }
   },
   "transferAllAssets": {
@@ -1449,8 +1452,7 @@
       "disableTokenIconsHint": "Las imágenes de tokens y NFT pueden estar alojadas en cualquier servidor que elija el creador del token, que ve tu dirección IP cuando se carga una imagen."
     },
     "advanced": {
-      "electrumMainnet": "Servidor Electrum mainnet:",
-      "electrumChipnet": "Servidor Electrum chipnet:",
+      "electrumServerOn": "Servidor Electrum {network}:",
       "electrumInvalidUrl": "Dirección del servidor Electrum no válida",
       "electrumHint": "La conexión de la billetera a la red BCH. Los saldos, el historial de transacciones y los envíos pasan por este servidor.",
       "electrumModeAutomatic": "Automático (recomendado)",
@@ -1460,6 +1462,7 @@
       "electrumInUse": "En uso: {server}",
       "tokenMetadataIndexer": "Indexador de metadatos de tokens:",
       "tokenMetadataIndexerHint": "Un indexador BCMR que sirve metadatos de tokens por categoría: nombres, iconos, decimales, tipos de NFT. Solo identidades de tokens; las demás identidades las lee la página de identidades desde sus propios registros.",
+      "tokenMetadataIndexerNone": "Ninguno",
       "tokenMetadataIndexerCustomPlaceholder": "ej. https://bcmr.example.com/api",
       "electrumCustomPlaceholder": "ej. 127.0.0.1 o fulcrum.example.com:443",
       "electrumCustomHint": "Requiere WSS, se asume el puerto 50004 salvo que se especifique otro.",
@@ -1514,8 +1517,8 @@
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única.",
       "nonTokenIdentities": "Habilitar crear identidades sin token",
       "nonTokenIdentitiesHint": "Muestra Añadir nueva en la página de identidades, que crea una identidad a partir de cualquier UTXO de esta billetera en lugar de un token. Las identidades de personas, organizaciones y contratos son nuevas, y pocas herramientas las leen todavía.",
-      "addChipnetWallet": "→ Agregar billetera de chipnet",
-      "addChipnetWalletHint": "Crea o importa una billetera solo en chipnet.",
+      "addDevWallet": "→ Agregar billetera de desarrollo",
+      "addDevWalletHint": "Crea o importa una billetera en una red de prueba, chipnet o testnet4, y solo allí.",
       "alsoOnNetwork": "Billetera también en {network}",
       "sameKeysHint": "{name} tiene una copia en la otra red con las mismas claves, de cuando Cashonize guardaba cada billetera en mainnet y chipnet. Desde la lista de billeteras, {name} se abre en mainnet.",
       "otherKeysHint": "{name} también existe en la otra red, con otras claves. Desde la lista de billeteras, {name} se abre en mainnet.",
@@ -1926,7 +1929,7 @@
       "since": "Desde {year}"
     },
     "openCheckFailed": "No se pudieron consultar las identidades de esta billetera: {reason} Una identidad que tiene puede no estar retenida todavía. Recarga, o revisa el servidor Chaingraph en los ajustes.",
-    "chaingraphNotConfigured": "No hay un servidor Chaingraph configurado para chipnet, así que las identidades se consultan por electrum, un paso por eslabón de la cadena, lo que tarda más en una cadena larga. Se puede configurar un servidor en los ajustes avanzados.",
+    "chaingraphNotConfigured": "No hay un servidor Chaingraph configurado para {network}, así que las identidades se consultan por electrum, un paso por eslabón de la cadena, lo que tarda más en una cadena larga. Se puede configurar un servidor en los ajustes avanzados.",
     "electrum": {
       "transactionNotFound": "El servidor electrum no tiene ninguna transacción con ese id.",
       "unsupportedScript": "El script de la salida de identidad no es una dirección, así que electrum no puede decir si fue gastada.",

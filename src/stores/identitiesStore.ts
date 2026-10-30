@@ -34,6 +34,7 @@ import { outpointOf, type Outpoint } from "src/utils/wallet/reservedUtxos"
 import { isAuthKey, STUDIO_KEY_COMMITMENT } from "src/utils/tools/authGuard"
 import { truncateHash } from "src/utils/utils"
 import { i18n } from 'src/boot/i18n'
+import type { AppNetwork } from 'src/utils/wallet/networks'
 const { t } = i18n.global
 
 
@@ -95,7 +96,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
 
   // Called when a wallet becomes the active one: the lists are its own, and everything derived
   // from the chain starts empty rather than carrying the last wallet's answers.
-  function loadForWallet(network: 'mainnet' | 'chipnet', walletName: string) {
+  function loadForWallet(network: AppNetwork, walletName: string) {
     identityCategories.value = loadIdentityList('categories', network, walletName);
     dismissedIdentities.value = loadIdentityList('dismissed', network, walletName);
     unseenIdentities.value = loadIdentityList('unseen', network, walletName);

@@ -1,8 +1,6 @@
 import {
   Wallet,
   HDWallet,
-  TestNetWallet,
-  TestNetHDWallet,
   Config,
   getAddrsByXpubKey,
   getNetworkProvider,
@@ -187,7 +185,7 @@ export async function suggestNextWalletName(network: AppNetwork = 'mainnet'): Pr
   }
   // No numbered names yet (e.g. only "mywallet"): number by the mainnet wallets, so the
   // second wallet is suggested as "wallet 2"
-  const mainnetWalletCount = existingWallets.filter(walletInfo => walletInfo.hasMainnet).length;
+  const mainnetWalletCount = existingWallets.filter(walletInfo => walletInfo.networks.includes('mainnet')).length;
   const nextNumber = highestNumber ? highestNumber + 1 : mainnetWalletCount + 1;
   return `wallet ${nextNumber}`;
 }
@@ -213,8 +211,7 @@ export async function createNewWallet(name: string, network: AppNetwork = 'mainn
     Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
     // .named() deliberately creates the new wallet here (non-existence checked above),
     // elsewhere wallets should be loaded through store.loadExistingWallet
-    const WalletClass = network === 'mainnet' ? Wallet : TestNetWallet;
-    const newWallet = await WalletClass.named(trimmedName);
+    const newWallet = await Wallet.named(trimmedName, { network: libraryNetwork(network) });
 
     // Update store state
     store.activeWalletName = trimmedName;
@@ -290,8 +287,7 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
     const walletId = `seed:${libraryNetwork(network)}:${normalizedSeedPhrase}:${fullDerivationPath}`;
     await saveNamedWallet(trimmedName, walletId, walletDbName(network));
 
-    const WalletClass = network === 'mainnet' ? Wallet : TestNetWallet;
-    const importedWallet = await WalletClass.named(trimmedName);
+    const importedWallet = await Wallet.named(trimmedName, { network: libraryNetwork(network) });
 
     // Update store state
     store.activeWalletName = trimmedName;
@@ -343,8 +339,7 @@ export async function createNewHDWallet(name: string, network: AppNetwork = 'mai
     Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
     // .named() deliberately creates the new wallet here (non-existence checked above),
     // elsewhere wallets should be loaded through store.loadExistingWallet
-    const WalletClass = network === 'mainnet' ? HDWallet : TestNetHDWallet;
-    const newWallet = await WalletClass.named(trimmedName);
+    const newWallet = await HDWallet.named(trimmedName, { network: libraryNetwork(network) });
 
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
@@ -408,8 +403,7 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
     const walletId = `hd:${libraryNetwork(network)}:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
     await saveNamedWallet(trimmedName, walletId, walletDbName(network));
 
-    const WalletClass = network === 'mainnet' ? HDWallet : TestNetHDWallet;
-    const importedWallet = await WalletClass.named(trimmedName);
+    const importedWallet = await HDWallet.named(trimmedName, { network: libraryNetwork(network) });
 
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);

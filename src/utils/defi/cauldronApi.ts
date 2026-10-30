@@ -1,6 +1,7 @@
 import { CauldronValueLockedSchema } from "../zodValidation";
 import { cachedFetch } from "../cacheUtils";
 import { useSettingsStore } from "src/stores/settingsStore";
+import type { AppNetwork } from "src/utils/wallet/networks";
 
 // The chipnet indexer is not user-configurable, it is the only one serving chipnet
 const CAULDRON_INDEXER_CHIPNET = "https://indexer-chipnet.riften.net";
@@ -16,12 +17,13 @@ export interface CauldronPriceData {
   hasSufficientLiquidity: boolean;
 }
 
-// Fetch prices for multiple tokens
+// Fetch prices for multiple tokens; none on a network without a Cauldron indexer (testnet4)
 export async function fetchCauldronPrices(
   tokenIds: string[],
-  network: 'mainnet' | 'chipnet'
+  network: AppNetwork
 ): Promise<Record<string, CauldronPriceData>> {
   const results: Record<string, CauldronPriceData> = {};
+  if (network !== 'mainnet' && network !== 'chipnet') return results;
   const isMainnet = network === 'mainnet';
   const indexerUrl = isMainnet ? useSettingsStore().cauldronIndexer : CAULDRON_INDEXER_CHIPNET;
   const minLiquiditySats = isMainnet ? MIN_LIQUIDITY_SATS_MAINNET : MIN_LIQUIDITY_SATS_CHIPNET;

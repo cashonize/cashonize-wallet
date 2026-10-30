@@ -2,11 +2,12 @@
 // outpoint-keyed map. A label belongs to its outpoint: it survives freezing and unfreezing, and
 // becomes unreachable once the coin is spent. Labels never leave the device.
 
+import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
 import type { Outpoint } from "src/utils/wallet/reservedUtxos";
 
 export const maxUtxoLabelLength = 100;
 
-type Network = 'mainnet' | 'chipnet';
+type Network = AppNetwork;
 
 export type UtxoLabels = Record<Outpoint, string>;
 
@@ -46,7 +47,7 @@ export function saveUtxoLabel(
 
 // A future wallet created under the same name must not inherit the old wallet's labels
 export function removeUtxoLabels(walletName: string) {
-  for (const network of ['mainnet', 'chipnet'] as const) {
+  for (const network of appNetworks) {
     localStorage.removeItem(utxoLabelsKey(network, walletName));
   }
 }

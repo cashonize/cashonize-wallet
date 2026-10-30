@@ -1,9 +1,10 @@
 // Private transaction notes, stored in localStorage per wallet per network as a txid → note map.
 // Keyed by txid so notes survive rescans and re-imports; notes never leave the device.
 
-export const maxTxNoteLength = 200;
+import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
+type Network = AppNetwork;
 
-type Network = 'mainnet' | 'chipnet';
+export const maxTxNoteLength = 200;
 
 function txNotesKey(network: Network, walletName: string): string {
   return `txNotes-${network}-${walletName}`;
@@ -41,6 +42,5 @@ export function saveTxNote(
 
 // A future wallet created under the same name must not inherit the old wallet's notes
 export function removeTxNotes(walletName: string) {
-  localStorage.removeItem(txNotesKey('mainnet', walletName));
-  localStorage.removeItem(txNotesKey('chipnet', walletName));
+  for (const network of appNetworks) localStorage.removeItem(txNotesKey(network, walletName));
 }

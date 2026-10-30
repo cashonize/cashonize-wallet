@@ -32,7 +32,7 @@
         <b>{{ t(`createTokens.home.cardLeads.${line}`) }}</b> {{ t(`createTokens.home.walletLines.${line}`) }}
       </div>
     </div>
-    <div class="home-card" :class="{ selected: selectedHome === 'studio' }" @click="selectedHome = 'studio'">
+    <div v-if="CASHTOKENS_STUDIO_URL[store.network]" class="home-card" :class="{ selected: selectedHome === 'studio' }" @click="selectedHome = 'studio'">
       <div class="home-card-title">
         <span class="home-radio"></span>
         <b>{{ t('createTokens.home.studio') }}</b>

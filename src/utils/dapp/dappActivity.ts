@@ -4,7 +4,8 @@
 // Signed-only entries are matched against the wallet history by txid: whether the dapp
 // broadcast them shows there, not here.
 
-type Network = 'mainnet' | 'chipnet';
+import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
+type Network = AppNetwork;
 
 export type DappActivityOutcome = 'sent' | 'signed' | 'broadcastFailed' | 'messageSigned';
 
@@ -71,7 +72,7 @@ export function saveDappActivitySeen(network: Network, walletName: string, time:
 
 // A future wallet created under the same name must not inherit the old wallet's activity
 export function removeDappActivity(walletName: string) {
-  for (const network of ['mainnet', 'chipnet'] as const) {
+  for (const network of appNetworks) {
     clearDappActivity(network, walletName);
     localStorage.removeItem(dappActivitySeenKey(network, walletName));
   }
