@@ -114,7 +114,6 @@
   const customTokenMetadataIndexerChipnet = ref(isCustomTokenMetadataIndexerChipnet ? storedTokenMetadataIndexerChipnet : "");
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);
   // developer options
-  const selectedNetwork = ref<"mainnet" | "chipnet">(store.network);
   const enableMintNfts = ref(settingsStore.mintNfts);
   const enableNonTokenIdentities = ref(settingsStore.nonTokenIdentities);
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
@@ -504,19 +503,11 @@
     location.reload();
   }
 
-  async function changeNetwork(){
-    const targetNetwork = selectedNetwork.value;
-    const previousWallet = store.activeWalletName;
+  // A tied wallet's two sides share its name: this opens the side on the other network. Any other
+  // wallet is on one network, reached by opening it from the wallet list.
+  async function openOtherSide(){
     settingsStore.hasPlayedAnimation = false;
-    const opened = await store.changeNetwork(targetNetwork);
-    if (!opened) {
-      selectedNetwork.value = store.network;
-      Notify.create({ message: t('settings.developer.noWalletOnNetwork', { network: targetNetwork }), icon: 'info', color: "grey-6" });
-      return;
-    }
-    if (opened !== previousWallet) {
-      Notify.create({ message: t('settings.developer.openedWalletOnNetwork', { name: opened, network: targetNetwork }), icon: 'info', color: "grey-6" });
-    }
+    await store.changeNetwork(store.network === 'mainnet' ? 'chipnet' : 'mainnet');
   }
   function addChipnetWallet(){
     store.addWalletNetwork = 'chipnet';
@@ -553,7 +544,6 @@
       await loadTiedCopy();
       return;
     }
-    selectedNetwork.value = store.network;
     await loadTiedCopy();
     Notify.create({ message: t('settings.developer.chipnetCopyRemoved', { name: walletName }), icon: 'info', color: "grey-6" });
   }
@@ -979,12 +969,7 @@
     </div>
     <div v-else-if="settingsSection == 4">
       <div>
-        <label for="selectNetwork">{{ t('settings.developer.changeNetwork') }}</label>
-        <select v-model="selectedNetwork" @change="changeNetwork()">
-          <option value="mainnet">{{ t('settings.developer.mainnet') }}</option>
-          <option value="chipnet">{{ t('settings.developer.chipnet') }}</option>
-        </select>
-        <input @click="addChipnetWallet()" type="button" :value="t('settings.developer.addChipnetWallet')" class="button" style="display: block; margin-top: 8px;">
+        <input @click="addChipnetWallet()" type="button" :value="t('settings.developer.addChipnetWallet')" class="button" style="display: block;">
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.addChipnetWalletHint') }}
         </div>
@@ -995,6 +980,7 @@
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.chipnetCopyHint') }}
         </div>
+        <input @click="openOtherSide()" type="button" :value="store.network === 'mainnet' ? t('settings.developer.openChipnetCopy') : t('settings.developer.openMainnetWallet')" class="button" style="display: block; margin-top: 8px;">
         <input v-if="tiedCopyCheck !== 'unused'" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking'" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
         <div v-if="tiedCopyCheck === 'checking'" style="margin-top: 8px;">{{ t('settings.developer.checkingChipnetCopy') }}</div>
         <div v-else-if="tiedCopyCheck === 'used'" style="margin-top: 8px;">{{ t('settings.developer.chipnetCopyUsed', { name: store.activeWalletName }) }}</div>

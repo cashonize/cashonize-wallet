@@ -287,62 +287,21 @@ describe('changeNetwork', () => {
 
   it('loads the wallet on the new network when it exists there', async () => {
     localStorageMock.setItem('network', 'mainnet')
-    mockGetAllWalletsWithNetworkInfo.mockResolvedValue([{ name: 'myWallet', hasMainnet: true, hasChipnet: true }])
 
     const store = useStore()
     await store.setWallet(mockMainnetWallet as never)
     store.activeWalletName = 'myWallet'
 
-    expect(await store.changeNetwork('chipnet')).toBe('myWallet')
+    expect(await store.changeNetwork('chipnet')).toBe(true)
 
+    expect(mockGetNamedWalletId).toHaveBeenCalledWith('myWallet', 'bchtest')
     expect(mockTestNetWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0')
     expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
     expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'chipnet')
   })
 
-  it('opens the first wallet of the new network when the active one is not there', async () => {
+  it('does not create a new wallet when it does not exist on the target network', async () => {
     localStorageMock.setItem('network', 'mainnet')
-    mockGetAllWalletsWithNetworkInfo.mockResolvedValue([
-      { name: 'myWallet', hasMainnet: true, hasChipnet: false },
-      { name: 'devWallet', hasMainnet: false, hasChipnet: true },
-    ])
-
-    const store = useStore()
-    await store.setWallet(mockMainnetWallet as never)
-    store.activeWalletName = 'myWallet'
-
-    expect(await store.changeNetwork('chipnet')).toBe('devWallet')
-
-    expect(mockGetNamedWalletId).toHaveBeenCalledWith('devWallet', 'bchtest')
-    expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
-    expect(store.activeWalletName).toBe('devWallet')
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('activeWalletName', 'devWallet')
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'chipnet')
-  })
-
-  it('opens nothing and creates nothing when the new network has no wallet', async () => {
-    localStorageMock.setItem('network', 'mainnet')
-    mockGetAllWalletsWithNetworkInfo.mockResolvedValue([{ name: 'myWallet', hasMainnet: true, hasChipnet: false }])
-
-    const store = useStore()
-    await store.setWallet(mockMainnetWallet as never)
-    store.activeWalletName = 'myWallet'
-    const originalWalletRef = store._wallet
-
-    expect(await store.changeNetwork('chipnet')).toBeUndefined()
-
-    // .named() would silently create a new wallet with a fresh seed
-    expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
-    expect(mockWalletNamed).not.toHaveBeenCalled()
-    // current wallet state and configured network are left untouched
-    expect(store._wallet).toBe(originalWalletRef)
-    expect(store.activeWalletName).toBe('myWallet')
-    expect(localStorageMock.setItem).not.toHaveBeenCalledWith('network', 'chipnet')
-  })
-
-  it('leaves the current wallet when loading the one of the new network fails', async () => {
-    localStorageMock.setItem('network', 'mainnet')
-    mockGetAllWalletsWithNetworkInfo.mockResolvedValue([{ name: 'myWallet', hasMainnet: true, hasChipnet: true }])
     mockGetNamedWalletId.mockResolvedValueOnce(undefined)
 
     const store = useStore()
@@ -350,10 +309,14 @@ describe('changeNetwork', () => {
     store.activeWalletName = 'myWallet'
     const originalWalletRef = store._wallet
 
-    expect(await store.changeNetwork('chipnet')).toBeUndefined()
+    expect(await store.changeNetwork('chipnet')).toBe(false)
 
+    // .named() would silently create a new wallet with a fresh seed
     expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+    expect(mockWalletNamed).not.toHaveBeenCalled()
+    // current wallet state and configured network are left untouched
     expect(store._wallet).toBe(originalWalletRef)
+    expect(store.activeWalletName).toBe('myWallet')
     expect(localStorageMock.setItem).not.toHaveBeenCalledWith('network', 'chipnet')
   })
 })
@@ -503,7 +466,6 @@ describe('removeChipnetCopy', () => {
   })
 
   it('leaves the chipnet copy in use for mainnet first, and removes nothing when that fails', async () => {
-    mockGetAllWalletsWithNetworkInfo.mockResolvedValue([{ name: 'myWallet', hasMainnet: true, hasChipnet: true }])
     const store = useStore()
     await store.setWallet(mockChipnetWallet as never)
     store.activeWalletName = 'myWallet'

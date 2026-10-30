@@ -36,8 +36,9 @@ chipnet HD wallet rediscover its addresses. `utils/wallet/networks.ts` maps betw
 ## One network per wallet
 
 A wallet is created or imported on one network: mainnet by default, chipnet from the developer
-settings ("Add chipnet wallet"). Switching network in the developer settings opens the active
-wallet when it exists on that network, or else the first wallet of that network. A wallet name
+settings ("Add chipnet wallet"). The network follows the wallet: opening a chipnet wallet from the
+wallet list switches to chipnet, and there is no network switch of its own. Only a tied wallet
+(below) can be opened on its other network, from the developer settings. A wallet name
 belongs to one wallet across all networks, since the wallet type, backup status and other settings
 are keyed by the name alone.
 

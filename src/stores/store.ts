@@ -1043,33 +1043,23 @@ export const useStore = defineStore('store', () => {
     changeView(1);
   }
 
-  // Switching networks resets all wallet state and opens a wallet on the new network: the active
-  // one when it has a copy there (older wallets exist on both), else the first wallet
-  // of that network. Returns the wallet opened, or undefined when the network has none.
+  // Opens the active wallet on the other network, which only older wallets have a copy on; resets
+  // all wallet state. Returns whether it did: a wallet that is not there is left as it is.
   async function changeNetwork(
     newNetwork: AppNetwork,
     awaitWalletInitialization: boolean = false
-  ): Promise<string | undefined> {
-    await refreshAvailableWallets();
-    const onNetwork = (walletInfo: WalletInfo) => newNetwork === 'mainnet' ? walletInfo.hasMainnet : walletInfo.hasChipnet;
-    const activeInfo = availableWallets.value.find(w => w.name === activeWalletName.value);
-    let walletName = availableWallets.value.find(onNetwork)?.name;
-    if (activeInfo && onNetwork(activeInfo)) walletName = activeInfo.name;
-    if (!walletName) return undefined;
-
-    // Load the wallet on the new network first: if that fails, the current wallet state is left
-    // untouched
+  ): Promise<boolean> {
+    // Load the wallet on the new network first: if it does not exist there, this throws and the
+    // current wallet state is left untouched
     let newWallet: WalletType;
     try {
-      newWallet = await loadExistingWallet(walletName, newNetwork);
+      newWallet = await loadExistingWallet(activeWalletName.value, newNetwork);
     } catch (error) {
       displayAndLogError(error);
-      return undefined;
+      return false;
     }
-    activeWalletName.value = walletName;
-    localStorage.setItem('activeWalletName', walletName);
     await activateWallet(newWallet, newNetwork, awaitWalletInitialization);
-    return walletName;
+    return true;
   }
 
   interface SwitchWalletResult {
@@ -1149,7 +1139,7 @@ export const useStore = defineStore('store', () => {
     // the copy in use is left first, so the wallet open is never a deleted row
     if (walletName === activeWalletName.value && network.value === 'chipnet') {
       const opened = await changeNetwork('mainnet', true);
-      if (opened !== walletName) {
+      if (!opened) {
         throw new Error(t('store.errors.chipnetCopyChanged', { name: walletName }));
       }
     }
