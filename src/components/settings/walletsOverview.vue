@@ -255,6 +255,8 @@ body.dark .wallet-item {
 }
 .wallet-network {
   display: block;
+  /* lines up with the wallet name's text, inside its padding (.wallet-name-styled) */
+  padding-left: 8px;
   font-size: 12px;
   color: #888;
 }
