@@ -932,8 +932,8 @@ export const useStore = defineStore('store', () => {
     maxAmountToSend.value = undefined;
     walletUtxos.value = undefined;
     heldOutpoints.clear();
-    storedReservations.value = {}; // setWallet loads the incoming wallet's own sets
-    frozenAddresses.value = [];
+    // The reservations and frozen addresses stay: a wallet switch replaces them in setWallet, and an
+    // electrum server change keeps the same wallet, which would otherwise be left spending them
     pendingTokenSearch.value = undefined;
     pendingHistorySearch.value = undefined;
     tokenList.value = null;

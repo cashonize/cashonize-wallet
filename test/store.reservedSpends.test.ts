@@ -156,6 +156,19 @@ describe('a reserved coin is never an input of a store spend', () => {
     expect(built.map(spentOutpoints)).toEqual([[outpointOf(spendable)], [outpointOf(spendable)]])
   })
 
+  it('a reserved coin stays out of a spend after an electrum server change', async () => {
+    const reserved = coin('11', 100_000n)
+    const spendable = coin('22', 50_000n)
+    const store = await storeHolding([reserved, spendable], [reserved])
+
+    // what the settings menu does on a server change: the same wallet, no setWallet
+    await store.resetWalletState({ resetDappConnections: false })
+    store.walletUtxos = [reserved, spendable]
+    await store.spend.sendMax(address)
+
+    expect(built.map(spentOutpoints)).toEqual([[outpointOf(spendable)]])
+  })
+
   it('getMaxAmountToSend counts only the coins a spend may use', async () => {
     const store = await storeHolding([coin('11', 100_000n), coin('22', 50_000n)], [coin('11', 100_000n)])
 
