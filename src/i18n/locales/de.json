@@ -92,6 +92,8 @@
       "broadcastAgainSent": "Transaktion {txId} wurde gesendet"
     },
     "errors": {
+      "chipnetCopyChanged": "Die Chipnet-Kopie von {name} hat sich seit der Prüfung geändert, daher wurde nichts entfernt.",
+      "chipnetCopyUsed": "Die Chipnet-Kopie von {name} hat einen Chipnet-Verlauf, daher wurde nichts entfernt.",
       "cannotDeleteActiveWallet": "Das aktive Wallet kann nicht gelöscht werden",
       "cachedKeysNotCleared": "Die Wallet wurde gelöscht, aber die von ihr zwischengespeicherten Schlüssel konnten nicht entfernt werden.",
       "walletNotFoundOnNetwork": "Wallet \"{name}\" existiert nicht auf {network}",
@@ -625,6 +627,7 @@
   },
   "addWallet": {
     "title": "Wallet hinzufügen",
+    "onNetwork": "Diese Wallet wird nur auf {network} erstellt.",
     "walletName": {
       "label": "Wallet-Name:",
       "placeholder": "Wallet-Name eingeben",
@@ -650,8 +653,7 @@
     "currentWallet": "Aktuelles Wallet:",
     "yourWallets": "Deine Wallets ({count}):",
     "current": "(aktuell)",
-    "mainnetOnly": "(nur mainnet)",
-    "chipnetOnly": "(nur chipnet)",
+    "networkLabel": "Netzwerk: {network}",
     "walletTypeLabel": "Typ: ",
     "walletTypeHD": "HD Wallet",
     "walletTypeSingle": "Einzeladresse",
@@ -1507,7 +1509,22 @@
       "showPrivateKeyWif": "WIF-Schlüssel auf der Backup-Seite anzeigen",
       "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu.",
       "nonTokenIdentities": "Erstellen von Identitäten ohne Token aktivieren",
-      "nonTokenIdentitiesHint": "Zeigt Neue hinzufügen auf der Identitäten-Seite, das aus einem beliebigen UTXO dieses Wallets statt aus einem Token eine Identität macht. Identitäten von Personen, Organisationen und Verträgen sind neu, und wenige Werkzeuge lesen sie bisher."
+      "nonTokenIdentitiesHint": "Zeigt Neue hinzufügen auf der Identitäten-Seite, das aus einem beliebigen UTXO dieses Wallets statt aus einem Token eine Identität macht. Identitäten von Personen, Organisationen und Verträgen sind neu, und wenige Werkzeuge lesen sie bisher.",
+      "noWalletOnNetwork": "Es gibt noch keine {network}-Wallet. Füge unten eine hinzu.",
+      "openedWalletOnNetwork": "{name} geöffnet, eine {network}-Wallet.",
+      "addChipnetWallet": "Chipnet-Wallet hinzufügen",
+      "addChipnetWalletHint": "Erstellt oder importiert eine Wallet nur auf Chipnet.",
+      "chipnetCopy": "Chipnet-Kopie",
+      "chipnetCopyHint": "Diese Wallet wurde erstellt, als Cashonize jede Wallet auch auf Chipnet speicherte, mit denselben Schlüsseln. Ohne die Chipnet-Kopie bleibt sie nur auf Mainnet.",
+      "removeChipnetCopy": "Chipnet-Kopie entfernen",
+      "removeChipnetCopyTitle": "Chipnet-Kopie entfernen?",
+      "removeChipnetCopyUnused": "Die Chipnet-Kopie von {name} hat keinen Chipnet-Verlauf. Danach bleibt {name} nur auf Mainnet.",
+      "chipnetCopyUsed": "Die Chipnet-Kopie von {name} hat einen Chipnet-Verlauf und bleibt daher. Nur eine unbenutzte Kopie wird entfernt.",
+      "chipnetCopyRemoved": "Chipnet-Kopie von {name} entfernt.",
+      "checkChipnetCopy": "Chipnet-Verlauf prüfen",
+      "checkingChipnetCopy": "Verlauf der Chipnet-Kopie wird geprüft…",
+      "chipnetCopyUnused": "Die Chipnet-Kopie von {name} hat keinen Chipnet-Verlauf und kann entfernt werden.",
+      "chipnetCopyCheckFailed": "Der Chipnet-Verlauf konnte nicht gelesen werden. Prüfe den Chipnet-Server und versuche es erneut."
     },
     "madeWith": "Erstellt mit {heart} von Mathieu G."
   },

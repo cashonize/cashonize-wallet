@@ -92,6 +92,8 @@
       "broadcastAgainSent": "La transaction {txId} a été diffusée"
     },
     "errors": {
+      "chipnetCopyChanged": "La copie chipnet de {name} a changé depuis la vérification, rien n'a donc été retiré.",
+      "chipnetCopyUsed": "La copie chipnet de {name} a un historique sur chipnet, rien n'a donc été retiré.",
       "cannotDeleteActiveWallet": "Impossible de supprimer le portefeuille actuellement actif",
       "cachedKeysNotCleared": "Le portefeuille a été supprimé, mais les clés qu'il avait mises en cache n'ont pas pu être retirées.",
       "walletNotFoundOnNetwork": "Le portefeuille \"{name}\" n'existe pas sur {network}",
@@ -625,6 +627,7 @@
   },
   "addWallet": {
     "title": "Ajouter un portefeuille",
+    "onNetwork": "Ce portefeuille est créé sur {network} uniquement.",
     "walletName": {
       "label": "Nom du portefeuille :",
       "placeholder": "Entrez le nom du portefeuille",
@@ -650,8 +653,7 @@
     "currentWallet": "Portefeuille actuel :",
     "yourWallets": "Vos portefeuilles ({count}) :",
     "current": "(actuel)",
-    "mainnetOnly": "(mainnet uniquement)",
-    "chipnetOnly": "(chipnet uniquement)",
+    "networkLabel": "Réseau : {network}",
     "walletTypeLabel": "Type : ",
     "walletTypeHD": "Portefeuille HD",
     "walletTypeSingle": "adresse unique",
@@ -1507,7 +1509,22 @@
       "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
       "nonTokenIdentities": "Activer la création d'identités sans token",
-      "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore."
+      "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore.",
+      "noWalletOnNetwork": "Il n'y a pas encore de portefeuille {network}. Ajoutez-en un ci-dessous.",
+      "openedWalletOnNetwork": "{name} ouvert, un portefeuille {network}.",
+      "addChipnetWallet": "Ajouter un portefeuille chipnet",
+      "addChipnetWalletHint": "Crée ou importe un portefeuille sur chipnet uniquement.",
+      "chipnetCopy": "Copie chipnet",
+      "chipnetCopyHint": "Ce portefeuille a été créé quand Cashonize enregistrait aussi chaque portefeuille sur chipnet, avec les mêmes clés. Retirer la copie chipnet le laisse sur mainnet uniquement.",
+      "removeChipnetCopy": "Retirer la copie chipnet",
+      "removeChipnetCopyTitle": "Retirer la copie chipnet ?",
+      "removeChipnetCopyUnused": "La copie chipnet de {name} n'a pas d'historique sur chipnet. La retirer laisse {name} sur mainnet uniquement.",
+      "chipnetCopyUsed": "La copie chipnet de {name} a un historique sur chipnet, elle est donc conservée. Seule une copie inutilisée est retirée.",
+      "chipnetCopyRemoved": "Copie chipnet de {name} retirée.",
+      "checkChipnetCopy": "Vérifier l'historique chipnet",
+      "checkingChipnetCopy": "Vérification de l'historique de la copie chipnet…",
+      "chipnetCopyUnused": "La copie chipnet de {name} n'a pas d'historique sur chipnet, elle peut donc être retirée.",
+      "chipnetCopyCheckFailed": "Impossible de lire l'historique chipnet. Vérifiez le serveur chipnet et réessayez."
     },
     "madeWith": "Fait avec {heart} par Mathieu G."
   },

@@ -2,8 +2,7 @@
   import { ref, computed, onMounted, onDeactivated } from "vue"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
-  import { namedWalletExists } from '@cashonize/bch-wallet-lib'
-  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, suggestNextWalletName } from 'src/utils/wallet/walletUtils'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, suggestNextWalletName, walletNameTaken } from 'src/utils/wallet/walletUtils'
   import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
   import seedPhraseInput from '../general/seedPhraseInput.vue'
   import derivationPathSelect from '../general/derivationPathSelect.vue'
@@ -32,6 +31,7 @@
   // wallet later in the session comes back to the import step with it still on screen
   onDeactivated(() => {
     step.value = 1;
+    store.addWalletNetwork = 'mainnet';
     seedPhrase.value = '';
     seedPhraseValid.value = false;
   });
@@ -51,10 +51,7 @@
       });
       return;
     }
-    // Check if wallet already exists
-    const existsMainnet = await namedWalletExists(name, "bitcoincash");
-    const existsChipnet = await namedWalletExists(name, "bchtest");
-    if (existsMainnet || existsChipnet) {
+    if (await walletNameTaken(name)) {
       $q.notify({
         message: t('addWallet.walletName.existsError', { name }),
         icon: 'warning',
@@ -74,7 +71,7 @@
     isCreating.value = true;
     try {
       const createFn = walletType.value === 'hd' ? createNewHDWallet : createWallet;
-      const result = await createFn(walletName.value);
+      const result = await createFn(walletName.value, store.addWalletNetwork);
       if (result.success) {
         store.changeView(1);
       } else {
@@ -98,7 +95,8 @@
         name: walletName.value,
         seedPhrase: seedPhrase.value,
         seedPhraseValid: seedPhraseValid.value,
-        derivationPath: selectedDerivationPath.value
+        derivationPath: selectedDerivationPath.value,
+        network: store.addWalletNetwork
       });
       if (result.success) {
         // Clear seed phrase from memory (defense in depth)
@@ -120,6 +118,9 @@
 <template>
   <fieldset class="item">
     <legend>{{ t('addWallet.title') }}</legend>
+    <div v-if="store.addWalletNetwork !== 'mainnet'" style="margin-bottom: 15px; color: grey;">
+      {{ t('addWallet.onNetwork', { network: store.addWalletNetwork }) }}
+    </div>
 
     <div v-if="step === 1">
       <div style="margin-bottom: 20px;">

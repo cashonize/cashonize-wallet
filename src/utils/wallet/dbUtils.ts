@@ -1,5 +1,6 @@
 import { pruneWalletCaches } from "@cashonize/bch-wallet-lib"
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
+import { walletDbName } from "src/utils/wallet/networks"
 
 export interface WalletInfo {
   name: string;
@@ -15,8 +16,8 @@ export interface WalletInfo {
 // The library has no wallet listing above the storage provider, so this uses its getWallets().
 export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
   // Get wallets from both networks
-  const mainnetDb = new IndexedDBProvider("bitcoincash");
-  const chipnetDb = new IndexedDBProvider("bchtest");
+  const mainnetDb = new IndexedDBProvider(walletDbName('mainnet'));
+  const chipnetDb = new IndexedDBProvider(walletDbName('chipnet'));
 
   await Promise.all([mainnetDb.init(), chipnetDb.init()]);
 
@@ -51,8 +52,8 @@ export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
 // keys still belong to a wallet. Each database is read once, since getWallets already returns the
 // stored id next to the name.
 async function getAllStoredWalletIds(): Promise<string[]> {
-  const mainnetDb = new IndexedDBProvider("bitcoincash");
-  const chipnetDb = new IndexedDBProvider("bchtest");
+  const mainnetDb = new IndexedDBProvider(walletDbName('mainnet'));
+  const chipnetDb = new IndexedDBProvider(walletDbName('chipnet'));
   await Promise.all([mainnetDb.init(), chipnetDb.init()]);
 
   try {

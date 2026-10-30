@@ -38,7 +38,7 @@ Reservations split the set into what the wallet may spend and what it holds back
 - **identitiesStore.ts**: the identities the wallet follows and everything resolved about them; reads the wallet and its coins from store.ts, which keeps the reservations that hold an authhead back.
 
 ### Multi-Wallet Support
-- Wallets stored in IndexedDB via the library's `IndexedDBProvider` from `bch-wallet-lib/indexeddb` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet); by default each wallet is stored in both databases
+- Wallets stored in IndexedDB via the library's `IndexedDBProvider` from `bch-wallet-lib/indexeddb` (databases: "bitcoincash" for mainnet, "bchtest" for chipnet, whose wallet ids say `testnet`). Each wallet lives on one network; older wallets also have a tied chipnet copy with the same keys. The library can hold more networks, but every feature still branches on mainnet versus chipnet. See `docs/indexeddb.md`
 - `activeWalletName` persisted in localStorage
 
 ### Concurrency

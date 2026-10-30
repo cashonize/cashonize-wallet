@@ -92,6 +92,8 @@
       "broadcastAgainSent": "La transacción {txId} fue transmitida"
     },
     "errors": {
+      "chipnetCopyChanged": "La copia de chipnet de {name} cambió desde que se comprobó, así que no se quitó nada.",
+      "chipnetCopyUsed": "La copia de chipnet de {name} tiene historial en chipnet, así que no se quitó nada.",
       "cannotDeleteActiveWallet": "No se puede eliminar la billetera actualmente activa",
       "cachedKeysNotCleared": "La cartera fue eliminada, pero no se pudieron eliminar las claves que tenía en caché.",
       "walletNotFoundOnNetwork": "La billetera \"{name}\" no existe en {network}",
@@ -625,6 +627,7 @@
   },
   "addWallet": {
     "title": "Agregar billetera",
+    "onNetwork": "Esta billetera se crea solo en {network}.",
     "walletName": {
       "label": "Nombre de billetera:",
       "placeholder": "Ingresa el nombre de la billetera",
@@ -650,8 +653,7 @@
     "currentWallet": "Billetera actual:",
     "yourWallets": "Tus billeteras ({count}):",
     "current": "(actual)",
-    "mainnetOnly": "(solo mainnet)",
-    "chipnetOnly": "(solo chipnet)",
+    "networkLabel": "Red: {network}",
     "walletTypeLabel": "Tipo: ",
     "walletTypeHD": "Billetera HD",
     "walletTypeSingle": "dirección única",
@@ -1507,7 +1509,22 @@
       "showPrivateKeyWif": "Mostrar la clave privada WIF en la página de respaldo",
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única.",
       "nonTokenIdentities": "Habilitar crear identidades sin token",
-      "nonTokenIdentitiesHint": "Muestra Añadir nueva en la página de identidades, que crea una identidad a partir de cualquier UTXO de esta billetera en lugar de un token. Las identidades de personas, organizaciones y contratos son nuevas, y pocas herramientas las leen todavía."
+      "nonTokenIdentitiesHint": "Muestra Añadir nueva en la página de identidades, que crea una identidad a partir de cualquier UTXO de esta billetera en lugar de un token. Las identidades de personas, organizaciones y contratos son nuevas, y pocas herramientas las leen todavía.",
+      "noWalletOnNetwork": "Aún no hay una billetera de {network}. Añade una abajo.",
+      "openedWalletOnNetwork": "Se abrió {name}, una billetera de {network}.",
+      "addChipnetWallet": "Añadir billetera de chipnet",
+      "addChipnetWalletHint": "Crea o importa una billetera solo en chipnet.",
+      "chipnetCopy": "Copia de chipnet",
+      "chipnetCopyHint": "Esta billetera se creó cuando Cashonize también guardaba cada billetera en chipnet, con las mismas claves. Quitar la copia de chipnet la deja solo en mainnet.",
+      "removeChipnetCopy": "Quitar copia de chipnet",
+      "removeChipnetCopyTitle": "¿Quitar la copia de chipnet?",
+      "removeChipnetCopyUnused": "La copia de chipnet de {name} no tiene historial en chipnet. Quitarla deja {name} solo en mainnet.",
+      "chipnetCopyUsed": "La copia de chipnet de {name} tiene historial en chipnet, así que se queda. Solo se quita una copia sin usar.",
+      "chipnetCopyRemoved": "Se quitó la copia de chipnet de {name}.",
+      "checkChipnetCopy": "Comprobar historial de chipnet",
+      "checkingChipnetCopy": "Comprobando el historial de la copia de chipnet…",
+      "chipnetCopyUnused": "La copia de chipnet de {name} no tiene historial en chipnet, así que se puede quitar.",
+      "chipnetCopyCheckFailed": "No se pudo leer el historial de chipnet. Revisa el servidor de chipnet e inténtalo de nuevo."
     },
     "madeWith": "Hecho con {heart} por Mathieu G."
   },

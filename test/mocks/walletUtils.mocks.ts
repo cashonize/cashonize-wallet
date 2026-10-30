@@ -11,10 +11,15 @@ import { vi } from 'vitest'
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
 export const mockHDWalletNamed = vi.fn()
+export const mockTestNetWalletNamed = vi.fn()
+export const mockTestNetHDWalletNamed = vi.fn()
 // Stores a wallet id under a name without constructing the wallet
 export const mockSaveNamedWallet = vi.fn()
 // The history the derivation path scan asks the mainnet provider for, per address
 export const mockGetHistory = vi.fn()
+// The stored id of a named wallet, per database
+export const mockGetNamedWalletId = vi.fn()
+export const mockDeleteNamedWallet = vi.fn()
 
 // Mock functions for dependencies
 export const mockNamedWalletExists = vi.fn()
@@ -62,16 +67,25 @@ vi.mock('src/utils/wallet/dbUtils', () => ({}))
 // The derivation helpers are the real ones: the scan's addresses are checked against libauth's
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   NetworkType: (await importOriginal<typeof BchWalletLib>()).NetworkType,
+  networkConfig: (await importOriginal<typeof BchWalletLib>()).networkConfig,
   getXPubKey: (await importOriginal<typeof BchWalletLib>()).getXPubKey,
   getAddrsByXpubKey: (await importOriginal<typeof BchWalletLib>()).getAddrsByXpubKey,
   getNetworkProvider: vi.fn(() => ({ getHistory: mockGetHistory })),
   namedWalletExists: mockNamedWalletExists,
+  getNamedWalletId: mockGetNamedWalletId,
+  deleteNamedWallet: mockDeleteNamedWallet,
   saveNamedWallet: mockSaveNamedWallet,
   Wallet: {
     named: mockWalletNamed,
   },
   HDWallet: {
     named: mockHDWalletNamed,
+  },
+  TestNetWallet: {
+    named: mockTestNetWalletNamed,
+  },
+  TestNetHDWallet: {
+    named: mockTestNetHDWalletNamed,
   },
   Config: {
     DefaultParentDerivationPath: '',

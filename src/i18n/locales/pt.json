@@ -92,6 +92,8 @@
       "broadcastAgainSent": "A transação {txId} foi transmitida"
     },
     "errors": {
+      "chipnetCopyChanged": "A cópia de chipnet de {name} mudou desde a verificação, então nada foi removido.",
+      "chipnetCopyUsed": "A cópia de chipnet de {name} tem histórico na chipnet, então nada foi removido.",
       "cannotDeleteActiveWallet": "Não é possível excluir a carteira ativa",
       "cachedKeysNotCleared": "A carteira foi eliminada, mas as chaves que tinha em cache não puderam ser removidas.",
       "walletNotFoundOnNetwork": "A carteira \"{name}\" não existe em {network}",
@@ -625,6 +627,7 @@
   },
   "addWallet": {
     "title": "Adicionar Carteira",
+    "onNetwork": "Esta carteira é criada apenas na {network}.",
     "walletName": {
       "label": "Nome da carteira:",
       "placeholder": "Insira o nome da carteira",
@@ -650,8 +653,7 @@
     "currentWallet": "Carteira atual:",
     "yourWallets": "Suas carteiras ({count}):",
     "current": "(atual)",
-    "mainnetOnly": "(apenas mainnet)",
-    "chipnetOnly": "(apenas chipnet)",
+    "networkLabel": "Rede: {network}",
     "walletTypeLabel": "Tipo: ",
     "walletTypeHD": "Carteira HD",
     "walletTypeSingle": "endereço único",
@@ -1507,7 +1509,22 @@
       "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",
       "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único.",
       "nonTokenIdentities": "Habilitar criação de identidades sem token",
-      "nonTokenIdentitiesHint": "Mostra Adicionar nova na página das identidades, que cria uma identidade a partir de qualquer UTXO desta carteira em vez de um token. As identidades de pessoas, organizações e contratos são novas, e poucas ferramentas as leem ainda."
+      "nonTokenIdentitiesHint": "Mostra Adicionar nova na página das identidades, que cria uma identidade a partir de qualquer UTXO desta carteira em vez de um token. As identidades de pessoas, organizações e contratos são novas, e poucas ferramentas as leem ainda.",
+      "noWalletOnNetwork": "Ainda não há uma carteira de {network}. Adicione uma abaixo.",
+      "openedWalletOnNetwork": "{name} aberta, uma carteira de {network}.",
+      "addChipnetWallet": "Adicionar carteira de chipnet",
+      "addChipnetWalletHint": "Cria ou importa uma carteira apenas na chipnet.",
+      "chipnetCopy": "Cópia de chipnet",
+      "chipnetCopyHint": "Esta carteira foi criada quando o Cashonize também guardava cada carteira na chipnet, com as mesmas chaves. Remover a cópia de chipnet a deixa apenas na mainnet.",
+      "removeChipnetCopy": "Remover cópia de chipnet",
+      "removeChipnetCopyTitle": "Remover a cópia de chipnet?",
+      "removeChipnetCopyUnused": "A cópia de chipnet de {name} não tem histórico na chipnet. Removê-la deixa {name} apenas na mainnet.",
+      "chipnetCopyUsed": "A cópia de chipnet de {name} tem histórico na chipnet, então ela fica. Só uma cópia não usada é removida.",
+      "chipnetCopyRemoved": "Cópia de chipnet de {name} removida.",
+      "checkChipnetCopy": "Verificar histórico na chipnet",
+      "checkingChipnetCopy": "Verificando o histórico da cópia de chipnet…",
+      "chipnetCopyUnused": "A cópia de chipnet de {name} não tem histórico na chipnet, então pode ser removida.",
+      "chipnetCopyCheckFailed": "Não foi possível ler o histórico da chipnet. Verifique o servidor de chipnet e tente de novo."
     },
     "madeWith": "Feito com {heart} por Mathieu G."
   },

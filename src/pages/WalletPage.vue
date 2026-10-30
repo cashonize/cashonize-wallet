@@ -27,6 +27,7 @@
   import { preloadIcons } from 'src/utils/icons/preloadIcons'
   import { namedWalletExists } from '@cashonize/bch-wallet-lib'
   import { getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
+  import { walletDbName } from 'src/utils/wallet/networks'
   import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
@@ -126,8 +127,8 @@
   // check if named wallet already exists in indexedDB
   // we use a dbUtil and avoid 'WalletClass.namedExists' which instantiates a wallet + provider
   let walletToLoad = store.activeWalletName;
-  let walletHasMainnet = await namedWalletExists(walletToLoad, "bitcoincash");
-  let walletHasChipnet = await namedWalletExists(walletToLoad, "bchtest");
+  let walletHasMainnet = await namedWalletExists(walletToLoad, walletDbName('mainnet'));
+  let walletHasChipnet = await namedWalletExists(walletToLoad, walletDbName('chipnet'));
   let walletExists = walletHasMainnet || walletHasChipnet;
 
   // If active wallet doesn't exist somehow, try to fall back to any existing wallet

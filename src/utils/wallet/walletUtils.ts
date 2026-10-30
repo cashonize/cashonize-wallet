@@ -1,6 +1,8 @@
 import {
   Wallet,
   HDWallet,
+  TestNetWallet,
+  TestNetHDWallet,
   Config,
   NetworkType,
   getAddrsByXpubKey,
@@ -8,6 +10,7 @@ import {
   getXPubKey,
   namedWalletExists,
   saveNamedWallet,
+  type ElectrumNetworkProvider,
 } from "@cashonize/bch-wallet-lib"
 import { deriveSeedFromBip39Mnemonic } from "@bitauth/libauth"
 import { Notify } from "quasar"
@@ -16,6 +19,7 @@ import { useSettingsStore } from 'src/stores/settingsStore'
 import { getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
 import { isQuotaExceededError } from 'src/utils/errorHandling'
 import { isValidBip39Mnemonic, normalizeSeedPhrase } from 'src/utils/utils'
+import { appNetworks, libraryNetwork, walletDbName, type AppNetwork } from 'src/utils/wallet/networks'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -51,9 +55,23 @@ export interface DerivationPathScanResult {
 }
 
 // BIP44 address discovery stops after this many consecutive unused addresses
-const GAP_LIMIT = 20;
+export const GAP_LIMIT = 20;
 // Address history queries are pipelined over the same electrum connection in batches
 const SCAN_BATCH_SIZE = 10;
+
+// Whether any of the addresses has history, asked in order and in batches, so that a batch with
+// activity ends the scan
+export async function anyAddressHasActivity(provider: ElectrumNetworkProvider, addresses: string[]): Promise<boolean> {
+  for (let i = 0; i < addresses.length; i += SCAN_BATCH_SIZE) {
+    const batch = addresses.slice(i, i + SCAN_BATCH_SIZE);
+    const batchResults = await Promise.all(batch.map(async (address) => {
+      const history = await provider.getHistory(address);
+      return history.length > 0;
+    }));
+    if (batchResults.includes(true)) return true;
+  }
+  return false;
+}
 
 /**
  * Scans which supported derivation path a seed phrase has on-chain activity on,
@@ -73,11 +91,6 @@ export async function scanDerivationPaths(seedPhrase: string): Promise<Derivatio
   // the receive and change chains are unhardened, so the parent's xpub derives every address
   const xpubOf = (pathType: DerivationPathType) => getXPubKey(seed, DERIVATION_PATHS[pathType].parent, "mainnet");
 
-  async function addressHasActivity(address: string): Promise<boolean> {
-    const history = await provider.getHistory(address);
-    return history.length > 0;
-  }
-
   // Receive and change chains are interleaved by index so the addresses most
   // likely to be used are checked first, letting the scan end early on the
   // first batch with activity
@@ -85,17 +98,12 @@ export async function scanDerivationPaths(seedPhrase: string): Promise<Derivatio
     const receiveAddresses = getAddrsByXpubKey(xpub, "0/1", GAP_LIMIT);
     const changeAddresses = getAddrsByXpubKey(xpub, "1/0", GAP_LIMIT);
     const addresses = receiveAddresses.flatMap((receiveAddress, index) => [receiveAddress, changeAddresses[index]!]);
-    for (let i = 0; i < addresses.length; i += SCAN_BATCH_SIZE) {
-      const batch = addresses.slice(i, i + SCAN_BATCH_SIZE);
-      const batchResults = await Promise.all(batch.map(addressHasActivity));
-      if (batchResults.includes(true)) return true;
-    }
-    return false;
+    return anyAddressHasActivity(provider, addresses);
   }
 
   const xpubs = SCANNED_PATH_TYPES.map(xpubOf);
   const pathHasActivity = await Promise.all(
-    xpubs.map((xpub) => addressHasActivity(getAddrsByXpubKey(xpub, "0/0", 1)[0]!))
+    xpubs.map((xpub) => anyAddressHasActivity(provider, getAddrsByXpubKey(xpub, "0/0", 1)))
   );
   const usedPaths = SCANNED_PATH_TYPES.filter((_pathType, index) => pathHasActivity[index]);
 
@@ -149,6 +157,15 @@ export function validateWalletName(name: string): WalletError | null {
 // Suggest a name for the user's next wallet, continuing the "wallet <number>" convention.
 // Counts past the highest number in use instead of filling gaps, so a deleted wallet's
 // name (and any leftover localStorage data keyed on it) is never reused.
+// A name belongs to one wallet across all networks: wallet type, backup status and the other
+// settings are keyed by the name alone
+export async function walletNameTaken(name: string): Promise<boolean> {
+  for (const network of appNetworks) {
+    if (await namedWalletExists(name, walletDbName(network))) return true;
+  }
+  return false;
+}
+
 export async function suggestNextWalletName(): Promise<string> {
   const existingWallets = await getAllWalletsWithNetworkInfo();
   let highestNumber = 0;
@@ -163,19 +180,15 @@ export async function suggestNextWalletName(): Promise<string> {
 }
 
 /**
- * Creates a new wallet with the given name.
- * Handles mainnet and testnet wallet creation, store updates, and metadata.
+ * Creates a new wallet with the given name, on the given network only.
  */
-export async function createNewWallet(name: string): Promise<WalletOperationResult> {
+export async function createNewWallet(name: string, network: AppNetwork = 'mainnet'): Promise<WalletOperationResult> {
   const validationError = validateWalletName(name);
   if (validationError) return validationError;
   const trimmedName = name.trim();
 
   try {
-    // Check if wallet already exists in either network DB
-    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
-    if (existsMainnet || existsChipnet) {
+    if (await walletNameTaken(trimmedName)) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
 
@@ -187,17 +200,16 @@ export async function createNewWallet(name: string): Promise<WalletOperationResu
     Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
     // .named() deliberately creates the new wallet here (non-existence checked above),
     // elsewhere wallets should be loaded through store.loadExistingWallet
-    const mainnetWallet = await Wallet.named(trimmedName);
-    const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
-    // stored without constructing it, so the chipnet copy opens no subscription
-    await saveNamedWallet(trimmedName, walletId, "bchtest");
+    const WalletClass = network === 'mainnet' ? Wallet : TestNetWallet;
+    const newWallet = await WalletClass.named(trimmedName);
 
     // Update store state
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
+    localStorage.setItem('network', network);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    await store.setWallet(mainnetWallet);
+    await store.setWallet(newWallet);
 
     // Refresh available wallets list
     await store.refreshAvailableWallets();
@@ -225,14 +237,14 @@ export interface ImportWalletParams {
   seedPhrase: string;
   seedPhraseValid: boolean;
   derivationPath: DerivationPathType;
+  network?: AppNetwork;
 }
 
 /**
- * Imports a wallet from a seed phrase.
- * Handles mainnet and testnet wallet creation, store updates, and metadata.
+ * Imports a wallet from a seed phrase, on the given network only.
  */
 export async function importWallet(params: ImportWalletParams): Promise<WalletOperationResult> {
-  const { seedPhrase, seedPhraseValid, derivationPath } = params;
+  const { seedPhrase, seedPhraseValid, derivationPath, network = 'mainnet' } = params;
   const normalizedSeedPhrase = normalizeSeedPhrase(seedPhrase);
 
   const validationError = validateWalletName(params.name);
@@ -252,10 +264,7 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
   }
 
   try {
-    // Check if wallet already exists in either network DB
-    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
-    if (existsMainnet || existsChipnet) {
+    if (await walletNameTaken(trimmedName)) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
 
@@ -264,21 +273,20 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
 
     const fullDerivationPath = DERIVATION_PATHS[derivationPath].full;
 
-    // stored without constructing them; the mainnet one is loaded by name below
-    const walletId = `seed:mainnet:${normalizedSeedPhrase}:${fullDerivationPath}`;
-    await saveNamedWallet(trimmedName, walletId, "bitcoincash");
+    // stored without constructing it, then loaded by name below
+    const walletId = `seed:${libraryNetwork(network)}:${normalizedSeedPhrase}:${fullDerivationPath}`;
+    await saveNamedWallet(trimmedName, walletId, walletDbName(network));
 
-    const walletIdTestnet = `seed:testnet:${normalizedSeedPhrase}:${fullDerivationPath}`;
-    await saveNamedWallet(trimmedName, walletIdTestnet, "bchtest");
-
-    const mainnetWallet = await Wallet.named(trimmedName);
+    const WalletClass = network === 'mainnet' ? Wallet : TestNetWallet;
+    const importedWallet = await WalletClass.named(trimmedName);
 
     // Update store state
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
+    localStorage.setItem('network', network);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    await store.setWallet(mainnetWallet);
+    await store.setWallet(importedWallet);
 
     // Refresh available wallets list
     await store.refreshAvailableWallets();
@@ -303,18 +311,16 @@ export async function importWallet(params: ImportWalletParams): Promise<WalletOp
 }
 
 /**
- * Creates a new HD wallet with the given name.
+ * Creates a new HD wallet with the given name, on the given network only.
  * HD wallets support multiple addresses (BIP44) with automatic address discovery.
  */
-export async function createNewHDWallet(name: string): Promise<WalletOperationResult> {
+export async function createNewHDWallet(name: string, network: AppNetwork = 'mainnet'): Promise<WalletOperationResult> {
   const validationError = validateWalletName(name);
   if (validationError) return validationError;
   const trimmedName = name.trim();
 
   try {
-    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
-    if (existsMainnet || existsChipnet) {
+    if (await walletNameTaken(trimmedName)) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
 
@@ -324,16 +330,15 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
     Config.DefaultParentDerivationPath = DERIVATION_PATHS.standard.parent;
     // .named() deliberately creates the new wallet here (non-existence checked above),
     // elsewhere wallets should be loaded through store.loadExistingWallet
-    const mainnetWallet = await HDWallet.named(trimmedName);
-    const walletId = mainnetWallet.toDbString().replace("mainnet", "testnet");
-    // stored without constructing it, so the chipnet copy starts no discovery
-    await saveNamedWallet(trimmedName, walletId, "bchtest");
+    const WalletClass = network === 'mainnet' ? HDWallet : TestNetHDWallet;
+    const newWallet = await WalletClass.named(trimmedName);
 
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
+    localStorage.setItem('network', network);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    await store.setWallet(mainnetWallet);
+    await store.setWallet(newWallet);
 
     settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)
@@ -353,11 +358,11 @@ export async function createNewHDWallet(name: string): Promise<WalletOperationRe
 }
 
 /**
- * Imports an HD wallet from a seed phrase.
+ * Imports an HD wallet from a seed phrase, on the given network only.
  * HD wallets support multiple addresses (BIP44) with automatic address discovery.
  */
 export async function importHDWallet(params: ImportWalletParams): Promise<WalletOperationResult> {
-  const { seedPhrase, seedPhraseValid, derivationPath } = params;
+  const { seedPhrase, seedPhraseValid, derivationPath, network = 'mainnet' } = params;
   const normalizedSeedPhrase = normalizeSeedPhrase(seedPhrase);
 
   const validationError = validateWalletName(params.name);
@@ -377,9 +382,7 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
   }
 
   try {
-    const existsMainnet = await namedWalletExists(trimmedName, "bitcoincash");
-    const existsChipnet = await namedWalletExists(trimmedName, "bchtest");
-    if (existsMainnet || existsChipnet) {
+    if (await walletNameTaken(trimmedName)) {
       return makeError(t('walletUtils.errors.walletAlreadyExists', { name: trimmedName }), true);
     }
 
@@ -388,20 +391,19 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
 
     const parentDerivationPath = DERIVATION_PATHS[derivationPath].parent;
 
-    // stored without constructing them; the mainnet one is loaded by name below
-    const walletId = `hd:mainnet:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
-    await saveNamedWallet(trimmedName, walletId, "bitcoincash");
+    // stored without constructing it, then loaded by name below
+    const walletId = `hd:${libraryNetwork(network)}:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
+    await saveNamedWallet(trimmedName, walletId, walletDbName(network));
 
-    const walletIdTestnet = `hd:testnet:${normalizedSeedPhrase}:${parentDerivationPath}:0:0`;
-    await saveNamedWallet(trimmedName, walletIdTestnet, "bchtest");
-
-    const mainnetWallet = await HDWallet.named(trimmedName);
+    const WalletClass = network === 'mainnet' ? HDWallet : TestNetHDWallet;
+    const importedWallet = await WalletClass.named(trimmedName);
 
     store.activeWalletName = trimmedName;
     localStorage.setItem('activeWalletName', trimmedName);
+    localStorage.setItem('network', network);
     // Clear previous wallet's state and dapp sessions before setting the new wallet (mirrors switchWallet)
     await store.resetWalletState();
-    await store.setWallet(mainnetWallet);
+    await store.setWallet(importedWallet);
 
     settingsStore.clearWalletSettings(trimmedName);
     // Set wallet type BEFORE initializeWallet (which validates type matches)

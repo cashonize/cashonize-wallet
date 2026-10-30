@@ -92,6 +92,8 @@
       "broadcastAgainSent": "Transaction {txId} was broadcast"
     },
     "errors": {
+      "chipnetCopyChanged": "The chipnet copy of {name} changed since it was checked, so nothing was removed.",
+      "chipnetCopyUsed": "The chipnet copy of {name} has chipnet history, so nothing was removed.",
       "cannotDeleteActiveWallet": "Cannot delete the currently active wallet",
       "cachedKeysNotCleared": "The wallet was deleted, but the keys it had cached could not be removed.",
       "walletNotFoundOnNetwork": "Wallet \"{name}\" does not exist on {network}",
@@ -625,6 +627,7 @@
   },
   "addWallet": {
     "title": "Add Wallet",
+    "onNetwork": "This wallet is made on {network} only.",
     "walletName": {
       "label": "Wallet name:",
       "placeholder": "Enter wallet name",
@@ -650,8 +653,7 @@
     "currentWallet": "Current wallet:",
     "yourWallets": "Your wallets ({count}):",
     "current": "(current)",
-    "mainnetOnly": "(mainnet only)",
-    "chipnetOnly": "(chipnet only)",
+    "networkLabel": "Network: {network}",
     "walletTypeLabel": "Type: ",
     "walletTypeHD": "HD Wallet",
     "walletTypeSingle": "single address",
@@ -1507,7 +1509,22 @@
       "showPrivateKeyWif": "Show WIF private key on backup page",
       "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets.",
       "nonTokenIdentities": "Enable creating non-token identities",
-      "nonTokenIdentitiesHint": "Shows Add new on the identities page, which makes an identity from any UTXO of this wallet rather than from a token. Identities of people, organizations and contracts are new, and few tools read them yet."
+      "nonTokenIdentitiesHint": "Shows Add new on the identities page, which makes an identity from any UTXO of this wallet rather than from a token. Identities of people, organizations and contracts are new, and few tools read them yet.",
+      "noWalletOnNetwork": "There is no {network} wallet yet. Add one below.",
+      "openedWalletOnNetwork": "Opened {name}, a {network} wallet.",
+      "addChipnetWallet": "Add chipnet wallet",
+      "addChipnetWalletHint": "Creates or imports a wallet on chipnet only.",
+      "chipnetCopy": "Chipnet copy",
+      "chipnetCopyHint": "This wallet was made when Cashonize also stored every wallet on chipnet, with the same keys. Removing the chipnet copy leaves it on mainnet only.",
+      "removeChipnetCopy": "Remove chipnet copy",
+      "removeChipnetCopyTitle": "Remove the chipnet copy?",
+      "removeChipnetCopyUnused": "The chipnet copy of {name} has no chipnet history. Removing it leaves {name} on mainnet only.",
+      "chipnetCopyUsed": "The chipnet copy of {name} has chipnet history, so it stays. Only an unused copy is removed.",
+      "chipnetCopyRemoved": "Removed the chipnet copy of {name}.",
+      "checkChipnetCopy": "Check chipnet history",
+      "checkingChipnetCopy": "Checking the chipnet copy's history…",
+      "chipnetCopyUnused": "The chipnet copy of {name} has no chipnet history, so it can be removed.",
+      "chipnetCopyCheckFailed": "Could not read the chipnet history. Check the chipnet server and try again."
     },
     "madeWith": "Made with {heart} by Mathieu G."
   },
