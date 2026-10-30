@@ -31,7 +31,7 @@ const storage = vi.hoisted(() => {
 })
 vi.stubGlobal('localStorage', storage)
 
-// The provider the wallets run on: the store makes the one createProvider returns the global
+// The provider the wallets run on: the store makes the one createFailoverProvider returns the global
 // provider of mainnet, where a wallet is constructed
 const { fakeProvider } = vi.hoisted(() => ({
   fakeProvider: {
@@ -48,12 +48,14 @@ const { fakeProvider } = vi.hoisted(() => ({
 }))
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   ...await importOriginal<typeof BchWalletLib>(),
-  createProvider: vi.fn().mockResolvedValue(fakeProvider),
+  createFailoverProvider: vi.fn().mockResolvedValue(fakeProvider),
 }))
 vi.mock('src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
     electrumServerMainnet: 'electrum.imaginary.cash',
     electrumServerChipnet: 'chipnet.bch.ninja',
+    electrumModeMainnet: 'single',
+    electrumModeChipnet: 'single',
     featuredTokens: [],
     getWalletType: vi.fn().mockReturnValue('single'),
   })),
@@ -154,6 +156,19 @@ describe('a reserved coin is never an input of a store spend', () => {
     await store.spend.sendMax(address)
 
     expect(built.map(spentOutpoints)).toEqual([[outpointOf(spendable)], [outpointOf(spendable)]])
+  })
+
+  it('a reserved coin stays out of a spend after an electrum server change', async () => {
+    const reserved = coin('11', 100_000n)
+    const spendable = coin('22', 50_000n)
+    const store = await storeHolding([reserved, spendable], [reserved])
+
+    // what the settings menu does on a server change: the same wallet, no setWallet
+    await store.resetWalletState({ resetDappConnections: false })
+    store.walletUtxos = [reserved, spendable]
+    await store.spend.sendMax(address)
+
+    expect(built.map(spentOutpoints)).toEqual([[outpointOf(spendable)]])
   })
 
   it('getMaxAmountToSend counts only the coins a spend may use', async () => {

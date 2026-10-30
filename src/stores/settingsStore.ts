@@ -6,13 +6,14 @@ import { BitpayRatesSchema, CoinGeckoRatesSchema, CoinbaseRatesSchema } from "sr
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
 import { defaultWalletName } from "./constants";
+import { storedElectrumMode, type ElectrumNetwork, type ElectrumServerMode } from "src/utils/wallet/electrumServers";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
 const defaultExplorerMainnet = "https://blockchair.com/bitcoin-cash/transaction";
 const defaultExplorerChipnet = "https://chipnet.chaingraph.cash/tx";
 const defaultElectrumMainnet = "electrum.imaginary.cash"
-const defaultElectrumChipnet = "chipnet.bch.ninja"
+const defaultElectrumChipnet = "chipnet.imaginary.cash"
 // One Chaingraph instance per network: some instances index several chains behind one endpoint
 // and some serve one chain each, so the setting names an endpoint per network. No public
 // instance serves chipnet reliably yet.
@@ -43,7 +44,7 @@ export const settingsMenuKeys = [
   // their way back to the setting
   "currency", "dateFormat",
   // advanced settings
-  "electrum-mainnet", "electrum-chipnet", "chaingraph-mainnet", "chaingraph-chipnet", "cauldronIndexer",
+  "electrum-mainnet", "electrum-chipnet", "electrumMode-mainnet", "electrumMode-chipnet", "chaingraph-mainnet", "chaingraph-chipnet", "cauldronIndexer",
   "bcmrIndexerMainnet", "bcmrIndexerChipnet", "ipfsGateway", "exchangeRateProvider",
   // developer settings
   "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
@@ -68,6 +69,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const explorerChipnet = ref(defaultExplorerChipnet);
   const electrumServerMainnet = ref(defaultElectrumMainnet);
   const electrumServerChipnet = ref(defaultElectrumChipnet);
+  const electrumModeMainnet = ref<ElectrumServerMode>(storedElectrumMode("mainnet"));
+  const electrumModeChipnet = ref<ElectrumServerMode>(storedElectrumMode("chipnet"));
   const chaingraphMainnet = ref(defaultChaingraphMainnet);
   const chaingraphChipnet = ref(defaultChaingraphChipnet);
   const cauldronIndexer = ref(defaultCauldronIndexer);
@@ -264,6 +267,18 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readElectrumChipnet = localStorage.getItem("electrum-chipnet") ?? "";
   if(readElectrumChipnet) electrumServerChipnet.value = readElectrumChipnet
+
+  function setElectrumMode(network: ElectrumNetwork, mode: ElectrumServerMode) {
+    if (network === "mainnet") electrumModeMainnet.value = mode;
+    else electrumModeChipnet.value = mode;
+    localStorage.setItem(`electrumMode-${network}`, mode);
+  }
+  // The server the preferred and single modes start from; automatic ignores it
+  function chooseElectrumServer(network: ElectrumNetwork, server: string) {
+    if (network === "mainnet") electrumServerMainnet.value = server;
+    else electrumServerChipnet.value = server;
+    localStorage.setItem(`electrum-${network}`, server);
+  }
 
   // the setting was one URL for both networks; that key becomes the mainnet one. Written back
   // under the new key before the old one goes: nothing else persists this setting on its own, so
@@ -541,6 +556,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     explorerChipnet,
     electrumServerMainnet,
     electrumServerChipnet,
+    electrumModeMainnet,
+    electrumModeChipnet,
+    setElectrumMode,
+    chooseElectrumServer,
     chaingraphMainnet,
     chaingraphChipnet,
     cauldronIndexer,
