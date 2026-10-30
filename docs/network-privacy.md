@@ -19,6 +19,13 @@ exchange rate provider are selectable in the advanced settings, from predefined 
 most, a custom URL. Each one sees the requests made of it: an electrum server learns every
 address the wallet subscribes to, the indexers the tokens it looks up.
 
+**Electrum can move to a second server.** Under the automatic and preferred modes, the default,
+a server that stays unreachable is replaced by the next one from a short predefined list, which
+then learns the wallet's addresses too. The wallet stays on one server at a time and only moves
+when the one in use is lost or stops following the chain; the other servers on the list are
+contacted, without addresses, only to check their block height before a move. The "this server
+only" mode never contacts another server.
+
 **A few hosts are fixed:**
 - the desktop app checks GitHub's releases API for a newer version;
 - the chipnet Cauldron indexer has no alternative to choose from;
