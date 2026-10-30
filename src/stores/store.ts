@@ -1071,15 +1071,13 @@ export const useStore = defineStore('store', () => {
     // Get the current network from localStorage (default to mainnet)
     const currentNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
 
-    // If the wallet doesn't exist on the current network, target a network where it does
-    // (availableWallets may be stale, loadExistingWallet below re-checks IndexedDB)
+    // The network follows the wallet: a wallet opens on mainnet when it has a mainnet row, so an
+    // older wallet's chipnet copy opens only from the developer settings (availableWallets may be
+    // stale, loadExistingWallet below re-checks IndexedDB)
     let targetNetwork = currentNetwork;
     const walletInfo = availableWallets.value.find(w => w.name === walletName);
     if (walletInfo) {
-      const networkSelector = currentNetwork === 'mainnet' ? 'hasMainnet' : 'hasChipnet';
-      if (!walletInfo[networkSelector]) {
-        targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
-      }
+      targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
     }
 
     const newWallet = await loadExistingWallet(walletName, targetNetwork);

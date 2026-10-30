@@ -36,9 +36,11 @@ chipnet HD wallet rediscover its addresses. `utils/wallet/networks.ts` maps betw
 ## One network per wallet
 
 A wallet is created or imported on one network: mainnet by default, chipnet from the developer
-settings ("Add chipnet wallet"). The network follows the wallet: opening a chipnet wallet from the
-wallet list switches to chipnet, and there is no network switch of its own. Only a tied wallet
-(below) can be opened on its other network, from the developer settings. A wallet name
+settings ("Add chipnet wallet"). The network follows the wallet: the wallet list opens a wallet on
+mainnet when it has a mainnet row and on chipnet otherwise, and there is no network switch of its
+own. A name with rows on both networks (a tied wallet, below, or a chipnet wallet of another seed
+that early versions made under the same name) can be opened on chipnet from the developer
+settings. A wallet name
 belongs to one wallet across all networks, since the wallet type, backup status and other settings
 are keyed by the name alone.
 
@@ -67,9 +69,11 @@ A developer can untie the open wallet in the developer settings
    single-address wallet, or the first 20 receive and change addresses of an HD wallet.
 3. Only a copy with no history is offered for removal, behind a confirmation. A used copy is kept,
    and so is one whose history could not be read.
-4. Right before deleting, every check runs again: the chipnet row is still the copy that was
-   checked, the mainnet row still holds the same keys, and the copy still has no history. Anything
-   else deletes nothing.
+4. On removal the history is read again, and then, immediately before the delete, both rows: the
+   chipnet row must still be the copy that was checked and the mainnet row must still hold the
+   same keys. Reading the rows last catches a change during the slow history read, such as
+   another tab deleting the wallet and making a new one of that name. Anything else deletes
+   nothing, and the developer settings take no other action while a removal runs.
 
 Removing the copy deletes the chipnet row only; its keys stay in the mainnet row. The copy's
 chipnet data in localStorage (notes, labels and the like) is kept: no other wallet can take the

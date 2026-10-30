@@ -1158,6 +1158,20 @@ describe('scanDerivationPaths', () => {
   })
 })
 
+describe('scanDerivationPaths on chipnet', () => {
+  beforeEach(() => {
+    mockGetHistory.mockReset()
+    mockGetHistory.mockResolvedValue([])
+  })
+
+  it('asks for chipnet addresses when importing a chipnet wallet', async () => {
+    await scanDerivationPaths('abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about', 'chipnet')
+    const asked = mockGetHistory.mock.calls.map(([address]) => address as string)
+    expect(asked.length).toBeGreaterThan(0)
+    expect(asked.every(address => address.startsWith('bchtest:'))).toBe(true)
+  })
+})
+
 describe('suggestNextWalletName', () => {
   const wallets = (...entries: [string, boolean, boolean][]) =>
     mockGetAllWalletsWithNetworkInfo.mockResolvedValue(entries.map(([name, hasMainnet, hasChipnet]) => ({ name, hasMainnet, hasChipnet })))

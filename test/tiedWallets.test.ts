@@ -103,6 +103,17 @@ describe('removeUnusedChipnetCopy', () => {
     expect(mockDeleteNamedWallet).not.toHaveBeenCalled()
   })
 
+  it('reads the rows again after the history, so a row changed during the read is not deleted', async () => {
+    // another tab deletes the wallet and makes a new chipnet wallet of that name while the history
+    // is read
+    mockGetHistory.mockImplementation(() => {
+      storedIds({ bitcoincash: undefined, bchtest: chipnetHd.replace('about', 'abandon') })
+      return Promise.resolve([])
+    })
+    await expect(removeUnusedChipnetCopy('w', chipnetHd)).rejects.toThrow()
+    expect(mockDeleteNamedWallet).not.toHaveBeenCalled()
+  })
+
   it('deletes nothing when the copy has history, or its history cannot be read', async () => {
     mockGetHistory.mockResolvedValue([{ tx_hash: 'aa', height: 1 }])
     await expect(removeUnusedChipnetCopy('w', chipnetHd)).rejects.toThrow()

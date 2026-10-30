@@ -161,11 +161,11 @@
     <div v-if="canAddMoreWallets" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(9)">
       {{ t('walletsOverview.addNewWallet') }}
     </div>
-    <div v-if="canAddMoreWallets && hasDevWallets" style="margin-bottom: 15px; cursor: pointer;" @click="addChipnetWallet()">
-      {{ t('settings.developer.addChipnetWallet') }}
-    </div>
     <div v-else style="margin-bottom: 15px; color: #888;">
       {{ t('walletsOverview.walletLimitReached', { max: maxWallets }) }}
+    </div>
+    <div v-if="canAddMoreWallets && hasDevWallets" style="margin-bottom: 15px; cursor: pointer;" @click="addChipnetWallet()">
+      {{ t('settings.developer.addChipnetWallet') }}
     </div>
   </div>
 </template>

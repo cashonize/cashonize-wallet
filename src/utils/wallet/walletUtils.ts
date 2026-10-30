@@ -4,12 +4,12 @@ import {
   TestNetWallet,
   TestNetHDWallet,
   Config,
-  NetworkType,
   getAddrsByXpubKey,
   getNetworkProvider,
   getXPubKey,
   namedWalletExists,
   saveNamedWallet,
+  networkConfig,
   type ElectrumNetworkProvider,
 } from "@cashonize/bch-wallet-lib"
 import { deriveSeedFromBip39Mnemonic } from "@bitauth/libauth"
@@ -82,14 +82,15 @@ export async function anyAddressHasActivity(provider: ElectrumNetworkProvider, a
  * beyond the first receive address means the seed phrase was used as an HD
  * wallet, so a single address import would miss funds.
  * The addresses are derived from each path's xpub and their history asked of the
- * mainnet provider directly: a wallet built per address would subscribe to it.
+ * network's provider directly: a wallet built per address would subscribe to it.
  */
-export async function scanDerivationPaths(seedPhrase: string): Promise<DerivationPathScanResult> {
+export async function scanDerivationPaths(seedPhrase: string, network: AppNetwork = 'mainnet'): Promise<DerivationPathScanResult> {
   const seed = deriveSeedFromBip39Mnemonic(normalizeSeedPhrase(seedPhrase));
-  // the global provider a mainnet wallet is constructed on, made from the selected server
-  const provider = getNetworkProvider(NetworkType.Mainnet);
+  // the global provider a wallet of the network is constructed on, made from the selected server
+  const provider = getNetworkProvider(libraryNetwork(network));
   // the receive and change chains are unhardened, so the parent's xpub derives every address
-  const xpubOf = (pathType: DerivationPathType) => getXPubKey(seed, DERIVATION_PATHS[pathType].parent, "mainnet");
+  const keyVersion = networkConfig(libraryNetwork(network)).keyVersion;
+  const xpubOf = (pathType: DerivationPathType) => getXPubKey(seed, DERIVATION_PATHS[pathType].parent, keyVersion);
 
   // Receive and change chains are interleaved by index so the addresses most
   // likely to be used are checked first, letting the scan end early on the

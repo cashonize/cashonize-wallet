@@ -50,16 +50,17 @@ export async function chipnetCopyHasHistory(chipnetId: string): Promise<boolean>
   return anyAddressHasActivity(getNetworkProvider(NetworkType.Testnet), addresses);
 }
 
-// Deletes the chipnet copy, checking right before the delete that the chipnet row is still the copy
-// the user checked, that the mainnet row still holds the same keys, and that the copy is still
-// unused. Throws, having deleted nothing, when any of that fails or cannot be told.
+// Deletes the chipnet copy the user checked, once it is still unused and, read immediately before
+// the delete, still that copy of the mainnet row: the slow history read comes first, so a row
+// changed meanwhile (another tab deleting the wallet and making a new one of that name) is caught.
+// Throws, having deleted nothing, when any of that fails or cannot be told.
 export async function removeUnusedChipnetCopy(walletName: string, checkedChipnetId: string): Promise<void> {
+  if (await chipnetCopyHasHistory(checkedChipnetId)) {
+    throw new Error(t('store.errors.chipnetCopyUsed', { name: walletName }));
+  }
   const chipnetId = await tiedChipnetCopy(walletName);
   if (chipnetId === undefined || chipnetId !== checkedChipnetId) {
     throw new Error(t('store.errors.chipnetCopyChanged', { name: walletName }));
-  }
-  if (await chipnetCopyHasHistory(chipnetId)) {
-    throw new Error(t('store.errors.chipnetCopyUsed', { name: walletName }));
   }
   await deleteNamedWallet(walletName, walletDbName('chipnet'));
 }

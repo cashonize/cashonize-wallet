@@ -202,7 +202,7 @@
       <div style="margin-bottom: 15px;">
         <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
         <div style="margin-top: 15px;">
-          <derivationPathSelect v-model="selectedDerivationPath" :seed-phrase="seedPhrase" :seed-phrase-valid="seedPhraseValid" :wallet-type="walletType" />
+          <derivationPathSelect v-model="selectedDerivationPath" :seed-phrase="seedPhrase" :seed-phrase-valid="seedPhraseValid" :wallet-type="walletType" :network="store.addWalletNetwork" />
         </div>
         <input
           @click="importWallet()"
