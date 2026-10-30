@@ -36,11 +36,22 @@
     return isImported ? t('walletsOverview.dateLabels.importDate') + ' ' : t('walletsOverview.dateLabels.creationDate') + ' ';
   }
 
-  // A dev network wallet shows its network where the date would be. A mainnet wallet shows its
-  // date, older ones with a chipnet copy too: the copy is the developer settings' business.
-  function networkLabel(wallet: WalletInfo): string | undefined {
-    if (!wallet.hasMainnet) return t('walletsOverview.networkLabel', { network: 'chipnet' });
-    return undefined;
+  // Wallets on a development network get a list of their own, once there are any. An older wallet
+  // that also has its chipnet copy is a mainnet wallet: the copy is the developer settings' business.
+  const walletGroups = computed(() => {
+    const mainnetWallets = store.availableWallets.filter(wallet => wallet.hasMainnet);
+    const devWallets = store.availableWallets.filter(wallet => !wallet.hasMainnet);
+    if (devWallets.length === 0) {
+      return [{ title: t('walletsOverview.yourWallets', { count: mainnetWallets.length }), wallets: mainnetWallets, dev: false }];
+    }
+    return [
+      { title: t('walletsOverview.mainnetWallets', { count: mainnetWallets.length }), wallets: mainnetWallets, dev: false },
+      { title: t('walletsOverview.devWallets', { count: devWallets.length }), wallets: devWallets, dev: true },
+    ].filter(group => group.wallets.length > 0);
+  });
+  // the network of a development wallet, shown under its name
+  function devNetwork(wallet: WalletInfo): string {
+    return wallet.hasChipnet ? 'chipnet' : '';
   }
   function getBackupStatusLabel(walletName: string): string {
     const status = settingsStore.getBackupStatus(walletName);
@@ -94,10 +105,10 @@
       {{ t('walletsOverview.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
     </div>
 
-    <div v-if="store.availableWallets.length > 0" style="margin-bottom: 20px;">
-      <div style="margin-bottom: 10px;">{{ t('walletsOverview.yourWallets', { count: store.availableWallets.length }) }}</div>
+    <div v-for="group in walletGroups" :key="group.title" style="margin-bottom: 20px;">
+      <div style="margin-bottom: 10px;">{{ group.title }}</div>
       <div
-        v-for="wallet in store.availableWallets"
+        v-for="wallet in group.wallets"
         :key="wallet.name"
         class="wallet-item"
         :class="{ active: wallet.name === store.activeWalletName, clickable: wallet.name !== store.activeWalletName }"
@@ -110,12 +121,12 @@
           <span class="wallet-section-left">
             <span class="wallet-name-styled">{{ wallet.name }}</span>
             <span v-if="wallet.name === store.activeWalletName" class="active-badge">{{ t('walletsOverview.current') }}</span>
+            <span v-if="group.dev" class="wallet-network">{{ devNetwork(wallet) }}</span>
           </span>
           <span class="wallet-section-center show-desktop-only">
             <span class="wallet-type-col">{{ t('walletsOverview.walletTypeLabel') }}{{ getWalletTypeLabel(wallet.name) }}</span>
             <span class="date-separator">|</span>
-            <span v-if="networkLabel(wallet)" class="date-col">{{ networkLabel(wallet) }}</span>
-            <span v-else class="date-col">{{ getDateLabel(wallet.name) }}{{ formatCreationDate(wallet.name) || t('walletsOverview.dateLabels.unknown') }}</span>
+            <span class="date-col">{{ getDateLabel(wallet.name) }}{{ formatCreationDate(wallet.name) || t('walletsOverview.dateLabels.unknown') }}</span>
           </span>
           <span class="wallet-section-right">
             <span class="backup-status-badge" :class="settingsStore.getBackupStatus(wallet.name) === 'none' ? 'none' : 'text-verified'">
@@ -134,8 +145,7 @@
         <div class="wallet-row-mobile show-mobile-only">
           <span>{{ t('walletsOverview.walletTypeLabel') }}{{ getWalletTypeLabel(wallet.name) }}</span>
           <span class="date-separator">|</span>
-          <span v-if="networkLabel(wallet)">{{ networkLabel(wallet) }}</span>
-          <span v-else>{{ getDateLabel(wallet.name, true) }}{{ formatCreationDate(wallet.name, true) || t('walletsOverview.dateLabels.unknown') }}</span>
+          <span>{{ getDateLabel(wallet.name, true) }}{{ formatCreationDate(wallet.name, true) || t('walletsOverview.dateLabels.unknown') }}</span>
         </div>
       </div>
     </div>
@@ -242,6 +252,11 @@ body.dark .wallet-item {
 .date-separator {
   color: #ccc;
   margin: 0 12px;
+}
+.wallet-network {
+  display: block;
+  font-size: 12px;
+  color: #888;
 }
 .delete-wallet-btn {
   background: none;

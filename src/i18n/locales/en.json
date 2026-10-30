@@ -652,8 +652,9 @@
   "walletsOverview": {
     "currentWallet": "Current wallet:",
     "yourWallets": "Your wallets ({count}):",
+    "mainnetWallets": "Mainnet wallets ({count}):",
+    "devWallets": "Development wallets ({count}):",
     "current": "(current)",
-    "networkLabel": "Network: {network}",
     "walletTypeLabel": "Type: ",
     "walletTypeHD": "HD Wallet",
     "walletTypeSingle": "single address",

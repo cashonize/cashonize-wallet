@@ -652,8 +652,9 @@
   "walletsOverview": {
     "currentWallet": "Billetera actual:",
     "yourWallets": "Tus billeteras ({count}):",
+    "mainnetWallets": "Billeteras de mainnet ({count}):",
+    "devWallets": "Billeteras de desarrollo ({count}):",
     "current": "(actual)",
-    "networkLabel": "Red: {network}",
     "walletTypeLabel": "Tipo: ",
     "walletTypeHD": "Billetera HD",
     "walletTypeSingle": "dirección única",

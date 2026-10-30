@@ -652,8 +652,9 @@
   "walletsOverview": {
     "currentWallet": "Carteira atual:",
     "yourWallets": "Suas carteiras ({count}):",
+    "mainnetWallets": "Carteiras de mainnet ({count}):",
+    "devWallets": "Carteiras de desenvolvimento ({count}):",
     "current": "(atual)",
-    "networkLabel": "Rede: {network}",
     "walletTypeLabel": "Tipo: ",
     "walletTypeHD": "Carteira HD",
     "walletTypeSingle": "endereço único",
