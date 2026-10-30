@@ -37,6 +37,13 @@ if (!knownNetworks().some(config => config.name === 'testnet4')) {
   });
 }
 
+// WalletConnect and CashConnect name a test network by its address prefix (bch:bchtest) and
+// WizardConnect only by its xpub version, so a dApp cannot tell testnet4 from chipnet: a
+// testnet4 wallet makes no dApp connections, rather than one with a dApp on another chain
+export function dappsAvailableOn(network: AppNetwork): boolean {
+  return network !== 'testnet4';
+}
+
 export function libraryNetwork(network: AppNetwork): string {
   return libraryNetworks[network];
 }

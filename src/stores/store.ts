@@ -1659,6 +1659,7 @@ export const useStore = defineStore('store', () => {
   }, { deep: true });
 
   async function fetchTokenInfo(categoryId: string) {
+    if (!tokenMetadataIndexer.value) throw new Error(t('store.errors.noTokenMetadataIndexer', { network: network.value }));
     const res = await cachedFetch(`${tokenMetadataIndexer.value}/tokens/${categoryId}/`);
     if (!res.ok) throw new Error(`Failed to fetch token info: ${res.status}`);
     // the helper logs why a reply was unusable, so the throw only has to say that it was

@@ -42,6 +42,7 @@ import {
   walletTemplateToCompilerBch,
 } from "@bitauth/libauth";
 import { outputOfRawTransaction } from "src/utils/dapp/sourceOutput";
+import { dappsAvailableOn } from "src/utils/wallet/networks";
 
 export const useCashconnectStore = defineStore("cashconnectStore", () => {
   // Accesses the wallet reactively via cross-store ref (mainStore.wallet) inside defineStore setup,
@@ -116,6 +117,9 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     sessions.value = updatedSessions;
   }
   async function onSessionProposal(proposal: SessionProposalResponse): Promise<SessionCreateRequest> {
+    if (!dappsAvailableOn(mainStore.network)) {
+      throw new Error(t('dapp.unavailableOnNetwork', { network: mainStore.network }));
+    }
     // Check the network and prompt user to switch if incorrect.
     // NOTE: The walletClass.network property appears to return quirky values (e.g. undefined).
     //       So we use the networkPrefix property to determine which chain we are currently on.

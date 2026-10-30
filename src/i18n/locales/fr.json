@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "La copie chipnet de {name} a changé depuis la vérification, rien n'a donc été retiré.",
+      "noTokenMetadataIndexer": "Il n'y a pas d'indexeur de métadonnées de jetons pour {network}.",
       "chipnetCopyRemovalRunning": "Une copie chipnet est en cours de retrait. Réessayez une fois terminé.",
       "chipnetCopyHoldsCoins": "La copie chipnet de {name} contient des pièces chipnet, rien n'a donc été retiré.",
       "cannotDeleteActiveWallet": "Impossible de supprimer le portefeuille actuellement actif",
@@ -455,6 +456,7 @@
   },
   "dapp": {
     "title": "Connecter à une dApp",
+    "unavailableOnNetwork": "Les connexions aux dApps ne sont pas disponibles sur {network} : une dApp ne désigne un réseau de test que par son préfixe d'adresse bchtest, qu'il partage avec chipnet.",
     "connectText": "Connectez-vous aux dApps BCH avec les méthodes de connexion prises en charge.",
     "supportedMethods": "WalletConnect, CashConnect et WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect et CashConnect",
@@ -1926,7 +1928,7 @@
       "since": "Depuis {year}"
     },
     "openCheckFailed": "Impossible de consulter les identités de ce portefeuille : {reason} Une identité qu'il détient n'est peut-être pas encore retenue. Rechargez, ou vérifiez le serveur Chaingraph dans les réglages.",
-    "chaingraphNotConfigured": "Aucun serveur Chaingraph n'est défini pour chipnet, les identités sont donc recherchées via electrum, une étape par maillon de la chaîne, ce qui prend plus de temps pour une longue chaîne. Un serveur peut être défini dans les paramètres avancés.",
+    "chaingraphNotConfigured": "Aucun serveur Chaingraph n'est défini pour {network}, les identités sont donc recherchées via electrum, une étape par maillon de la chaîne, ce qui prend plus de temps pour une longue chaîne. Un serveur peut être défini dans les paramètres avancés.",
     "electrum": {
       "transactionNotFound": "Le serveur electrum n'a aucune transaction avec cet id.",
       "unsupportedScript": "Le script de la sortie d'identité n'est pas une adresse, electrum ne peut donc pas dire si elle a été dépensée.",

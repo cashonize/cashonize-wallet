@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "La copia de chipnet de {name} cambió desde que se comprobó, así que no se quitó nada.",
+      "noTokenMetadataIndexer": "No hay un indexador de metadatos de tokens para {network}.",
       "chipnetCopyRemovalRunning": "Se está quitando una copia de chipnet. Inténtalo de nuevo cuando termine.",
       "chipnetCopyHoldsCoins": "La copia de chipnet de {name} tiene monedas de chipnet, así que no se quitó nada.",
       "cannotDeleteActiveWallet": "No se puede eliminar la billetera actualmente activa",
@@ -455,6 +456,7 @@
   },
   "dapp": {
     "title": "Conectar a dApp",
+    "unavailableOnNetwork": "Las conexiones con dApps no están disponibles en {network}: una dApp identifica una red de prueba solo por su prefijo de dirección bchtest, que comparte con chipnet.",
     "connectText": "Conéctate a dApps de BCH mediante los métodos de conexión compatibles.",
     "supportedMethods": "WalletConnect, CashConnect y WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect y CashConnect",
@@ -1926,7 +1928,7 @@
       "since": "Desde {year}"
     },
     "openCheckFailed": "No se pudieron consultar las identidades de esta billetera: {reason} Una identidad que tiene puede no estar retenida todavía. Recarga, o revisa el servidor Chaingraph en los ajustes.",
-    "chaingraphNotConfigured": "No hay un servidor Chaingraph configurado para chipnet, así que las identidades se consultan por electrum, un paso por eslabón de la cadena, lo que tarda más en una cadena larga. Se puede configurar un servidor en los ajustes avanzados.",
+    "chaingraphNotConfigured": "No hay un servidor Chaingraph configurado para {network}, así que las identidades se consultan por electrum, un paso por eslabón de la cadena, lo que tarda más en una cadena larga. Se puede configurar un servidor en los ajustes avanzados.",
     "electrum": {
       "transactionNotFound": "El servidor electrum no tiene ninguna transacción con ese id.",
       "unsupportedScript": "El script de la salida de identidad no es una dirección, así que electrum no puede decir si fue gastada.",

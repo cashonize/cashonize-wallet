@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "A cópia de chipnet de {name} mudou desde a verificação, então nada foi removido.",
+      "noTokenMetadataIndexer": "Não há indexador de metadados de tokens para a {network}.",
       "chipnetCopyRemovalRunning": "Uma cópia de chipnet está sendo removida. Tente de novo quando terminar.",
       "chipnetCopyHoldsCoins": "A cópia de chipnet de {name} tem moedas de chipnet, então nada foi removido.",
       "cannotDeleteActiveWallet": "Não é possível excluir a carteira ativa",
@@ -455,6 +456,7 @@
   },
   "dapp": {
     "title": "Conectar a dApp",
+    "unavailableOnNetwork": "Conexões com dApps não estão disponíveis na {network}: um dApp identifica uma rede de teste apenas pelo prefixo de endereço bchtest, que ela compartilha com a chipnet.",
     "connectText": "Conecte-se a dApps BCH com os métodos de conexão suportados.",
     "supportedMethods": "WalletConnect, CashConnect e WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect e CashConnect",
@@ -1926,7 +1928,7 @@
       "since": "Desde {year}"
     },
     "openCheckFailed": "Não foi possível consultar as identidades desta carteira: {reason} Uma identidade que tem pode ainda não estar retida. Recarregue, ou verifique o servidor Chaingraph nas definições.",
-    "chaingraphNotConfigured": "Nenhum servidor Chaingraph está definido para a chipnet, então as identidades são consultadas por electrum, um passo por elo da cadeia, o que demora mais numa cadeia longa. Um servidor pode ser definido nas configurações avançadas.",
+    "chaingraphNotConfigured": "Nenhum servidor Chaingraph está definido para a {network}, então as identidades são consultadas por electrum, um passo por elo da cadeia, o que demora mais numa cadeia longa. Um servidor pode ser definido nas configurações avançadas.",
     "electrum": {
       "transactionNotFound": "O servidor electrum não tem nenhuma transação com esse id.",
       "unsupportedScript": "O script da saída de identidade não é um endereço, então o electrum não pode dizer se foi gasta.",

@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "The chipnet copy of {name} changed since it was checked, so nothing was removed.",
+      "noTokenMetadataIndexer": "There is no token metadata indexer for {network}.",
       "chipnetCopyRemovalRunning": "A chipnet copy is being removed. Try again once it is done.",
       "chipnetCopyHoldsCoins": "The chipnet copy of {name} holds chipnet coins, so nothing was removed.",
       "cannotDeleteActiveWallet": "Cannot delete the currently active wallet",
@@ -455,6 +456,7 @@
   },
   "dapp": {
     "title": "Connect to dApp",
+    "unavailableOnNetwork": "dApp connections are not available on {network}: a dApp names a test network only by its bchtest address prefix, which it shares with chipnet.",
     "connectText": "Connect to BCH dApps with supported connection methods.",
     "supportedMethods": "WalletConnect, CashConnect and WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect and CashConnect",
@@ -1926,7 +1928,7 @@
       "since": "Established {year}"
     },
     "openCheckFailed": "Could not look up this wallet's identities: {reason} An identity it holds may not be held back yet. Reload, or check the Chaingraph server in the settings.",
-    "chaingraphNotConfigured": "No Chaingraph server is set for chipnet, so identities are looked up over electrum, one step per link of the chain, which takes longer for a long chain. A server can be set in the advanced settings.",
+    "chaingraphNotConfigured": "No Chaingraph server is set for {network}, so identities are looked up over electrum, one step per link of the chain, which takes longer for a long chain. A server can be set in the advanced settings.",
     "electrum": {
       "transactionNotFound": "The electrum server has no transaction with that id.",
       "unsupportedScript": "The identity output's script is not an address, so electrum cannot say whether it was spent.",

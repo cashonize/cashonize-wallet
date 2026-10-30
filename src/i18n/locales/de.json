@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "Die Chipnet-Kopie von {name} hat sich seit der Prüfung geändert, daher wurde nichts entfernt.",
+      "noTokenMetadataIndexer": "Für {network} gibt es keinen Token-Metadaten-Indexer.",
       "chipnetCopyRemovalRunning": "Eine Chipnet-Kopie wird gerade entfernt. Versuche es erneut, sobald das erledigt ist.",
       "chipnetCopyHoldsCoins": "Die Chipnet-Kopie von {name} hat Chipnet-Guthaben, daher wurde nichts entfernt.",
       "cannotDeleteActiveWallet": "Das aktive Wallet kann nicht gelöscht werden",
@@ -455,6 +456,7 @@
   },
   "dapp": {
     "title": "Mit dApp verbinden",
+    "unavailableOnNetwork": "dApp-Verbindungen sind auf {network} nicht verfügbar: Eine dApp benennt ein Testnetzwerk nur über das Adresspräfix bchtest, das es mit Chipnet teilt.",
     "connectText": "Verbinde dich mit BCH-dApps über die unterstützten Verbindungsmethoden.",
     "supportedMethods": "WalletConnect, CashConnect und WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect und CashConnect",
@@ -1926,7 +1928,7 @@
       "since": "Seit {year}"
     },
     "openCheckFailed": "Die Identitäten dieses Wallets konnten nicht nachgeschlagen werden: {reason} Eine Identität, die es hält, ist womöglich noch nicht zurückgehalten. Lade neu, oder prüfe den Chaingraph-Server in den Einstellungen.",
-    "chaingraphNotConfigured": "Für Chipnet ist kein Chaingraph-Server eingestellt, daher werden Identitäten über Electrum nachgeschlagen, ein Schritt pro Glied der Kette, was bei einer langen Kette länger dauert. Ein Server kann in den erweiterten Einstellungen gesetzt werden.",
+    "chaingraphNotConfigured": "Für {network} ist kein Chaingraph-Server eingestellt, daher werden Identitäten über Electrum nachgeschlagen, ein Schritt pro Glied der Kette, was bei einer langen Kette länger dauert. Ein Server kann in den erweiterten Einstellungen gesetzt werden.",
     "electrum": {
       "transactionNotFound": "Der Electrum-Server hat keine Transaktion mit dieser ID.",
       "unsupportedScript": "Das Skript des Identitäts-Outputs ist keine Adresse, daher kann Electrum nicht sagen, ob er ausgegeben wurde.",

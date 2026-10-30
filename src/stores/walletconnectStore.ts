@@ -4,7 +4,7 @@ import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
 import { BroadcastTimeoutError, HDWallet, SignedMessage } from "@cashonize/bch-wallet-lib";
-import { appNetworkOf } from "src/utils/wallet/networks";
+import { appNetworkOf, dappsAvailableOn } from "src/utils/wallet/networks";
 import { useStore } from "./store"
 import { useIdentitiesStore } from "./identitiesStore"
 import {
@@ -161,6 +161,14 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         message: t('walletConnect.errors.unsupportedBlockchain', { chains: Object.keys(namespaces).join(", ") }),
         icon: 'warning',
         color: "red"
+      })
+      return;
+    }
+    if (!dappsAvailableOn(mainStore.network)) {
+      Dialog.create({
+        message: t('dapp.unavailableOnNetwork', { network: mainStore.network }),
+        ok: { label: 'OK', color: 'primary', unelevated: true },
+        class: 'flex justify-center',
       })
       return;
     }

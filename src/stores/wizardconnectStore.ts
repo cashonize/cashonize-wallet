@@ -44,6 +44,7 @@ import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRe
 import WizPairingDialog from "src/components/wizardconnect/WizPairingDialog.vue";
 import { notifyDappActivity } from "src/utils/dapp/notifyDappActivity";
 import { i18n } from "src/boot/i18n";
+import { dappsAvailableOn } from "src/utils/wallet/networks";
 const { t } = i18n.global;
 const settingsStore = useSettingsStore();
 
@@ -168,6 +169,9 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   }
 
   async function pair(wizUri: string) {
+    if (!dappsAvailableOn(mainStore.network)) {
+      throw new Error(t('dapp.unavailableOnNetwork', { network: mainStore.network }));
+    }
     if (!manager) {
       if (!(mainStore.wallet instanceof HDWallet)) throw new Error(t('wizardConnect.errors.hdWalletRequired'));
       throw new Error(t('wizardConnect.errors.notInitialized'));
