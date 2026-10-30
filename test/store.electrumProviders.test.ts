@@ -89,10 +89,11 @@ describe('the electrum providers of the selected servers', () => {
     expect(setGlobalProvider).toHaveBeenCalledWith('testnet', madeFor('wss://b.example:50004'))
     expect(setGlobalProvider).toHaveBeenCalledWith('testnet4', madeFor('wss://t4.example:50004'))
 
+    const madeAtStartup = vi.mocked(createFailoverProvider).mock.calls.length
     const provider = madeFor('wss://a.example:50004')
     await store.setWallet(walletOn(provider) as never)
     await store.setWallet(walletOn(provider) as never)
-    expect(createFailoverProvider).toHaveBeenCalledTimes(3)
+    expect(createFailoverProvider).toHaveBeenCalledTimes(madeAtStartup)
   })
 
   it('replaces the provider on a server change, and disconnects the old one once the wallet is off it', async () => {
@@ -124,8 +125,7 @@ describe('the electrum providers of the selected servers', () => {
     await flush()
 
     await expect(store.selectElectrumProvider(NetworkType.Mainnet)).resolves.toBeUndefined()
-    // one per network at startup, the mainnet one failed, and made again
-    expect(createFailoverProvider).toHaveBeenCalledTimes(4)
+    expect(vi.mocked(createFailoverProvider).mock.calls.filter(([network]) => network === 'mainnet')).toHaveLength(2)
   })
 
   it('disconnects a replaced provider no wallet is on at once', async () => {

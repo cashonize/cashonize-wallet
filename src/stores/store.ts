@@ -929,7 +929,7 @@ export const useStore = defineStore('store', () => {
     cancelWatchBlocks = await wallet.value.watchBlocks(header => {
       if (initialization !== currentInitialization) return;
       currentBlockHeight.value = header.height;
-      // chipnet's hashrate is too erratic for a gap between blocks to say anything about the server
+      // a test network's hashrate is too erratic for a gap between blocks to say anything about the server
       if (network.value === 'mainnet') warnIfServerTipStale(header);
     }, false);
   }

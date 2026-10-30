@@ -14,7 +14,9 @@ IndexedDB belongs to the libraries; the app keeps its own data in localStorage (
 - **`bchtest4`**: the testnet4 wallets, the same way. Testnet4 is not built into the library: the
   app registers it as `utils/wallet/networks.ts` loads, which has to come before any testnet4
   wallet loads and before `pruneWalletCaches`, which drops the cached keys of a network it does
-  not know.
+  not know. A version from before testnet4 knows nothing of this database: its "delete all
+  wallets" leaves the testnet4 wallets here, and it can give a mainnet wallet a testnet4 wallet's
+  name.
 - **`ElectrumNetworkProviderCache`**: raw transactions and block headers read from electrum.
 - **`WalletCache`**: each HD wallet's derived addresses with their private keys, status and history.
 - WalletConnect's session state, and `cashconnect-*` databases.

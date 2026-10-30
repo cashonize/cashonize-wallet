@@ -44,9 +44,15 @@ export const mockWalletNamed = vi.fn()
 export const mockTestNetWalletNamed = vi.fn()
 export const mockHDWalletNamed = vi.fn()
 export const mockTestNetHDWalletNamed = vi.fn()
-export const mockWalletFromId = vi.fn().mockResolvedValue(mockMainnetWallet)
+// the wallet of the network a stored id is loaded with, as the library's fromId gives
+function walletOfNetwork(_walletId: string, options?: { network?: string }) {
+  if (options?.network === 'testnet') return Promise.resolve(mockChipnetWallet)
+  if (options?.network === 'testnet4') return Promise.resolve({ ...mockChipnetWallet, network: 'testnet4' })
+  return Promise.resolve(mockMainnetWallet)
+}
+export const mockWalletFromId = vi.fn(walletOfNetwork)
 export const mockTestNetWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
-export const mockHDWalletFromId = vi.fn().mockResolvedValue(mockMainnetWallet)
+export const mockHDWalletFromId = vi.fn(walletOfNetwork)
 export const mockTestNetHDWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
 
 // Mock localStorage
@@ -132,12 +138,10 @@ export const mockPruneDeletedWalletCaches = vi.fn().mockResolvedValue(undefined)
 export const mockNamedWalletExistsInDb = vi.fn().mockResolvedValue(true)
 function defaultGetNamedWalletId(
   _name: string,
-  dbName: 'bitcoincash' | 'bchtest'
+  dbName: 'bitcoincash' | 'bchtest' | 'bchtest4'
 ): Promise<string | undefined> {
-  const walletId = dbName === 'bitcoincash'
-    ? 'seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0'
-    : 'seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0'
-  return Promise.resolve(walletId)
+  const network = { bitcoincash: 'mainnet', bchtest: 'testnet', bchtest4: 'testnet4' }[dbName]
+  return Promise.resolve(`seed:${network}:test mnemonic:m/44'/145'/0'/0/0`)
 }
 export const mockGetNamedWalletId = vi.fn(defaultGetNamedWalletId)
 
@@ -178,17 +182,19 @@ vi.mock('src/stores/walletconnectStore', () => ({
 }))
 
 // Mock cashconnectStore
+export const mockCashconnectStart = vi.fn().mockResolvedValue(undefined)
 vi.mock('src/stores/cashconnectStore', () => ({
   useCashconnectStore: vi.fn(() => ({
-    start: vi.fn().mockResolvedValue(undefined),
+    start: mockCashconnectStart,
     stop: vi.fn().mockResolvedValue(undefined),
   })),
 }))
 
 // Mock wizardconnectStore
+export const mockWizardconnectStart = vi.fn().mockResolvedValue(undefined)
 vi.mock('src/stores/wizardconnectStore', () => ({
   useWizardconnectStore: vi.fn(() => ({
-    start: vi.fn().mockResolvedValue(undefined),
+    start: mockWizardconnectStart,
     stop: vi.fn().mockResolvedValue(undefined),
   })),
 }))
@@ -234,11 +240,9 @@ vi.mock('src/utils/utils', async (importOriginal) => ({
   getBalanceFromUtxos: vi.fn().mockReturnValue(0),
   getTokenUtxos: vi.fn().mockReturnValue([]),
   walletTypeFromWalletId: vi.fn((walletId: string) => walletId.startsWith('hd:') ? 'hd' : 'single'),
-  loadWalletFromId: vi.fn((walletId: string, network: 'mainnet' | 'chipnet') => {
-    const isHD = walletId.startsWith('hd:')
-    if (network === 'mainnet') return isHD ? mockHDWalletFromId(walletId) : mockWalletFromId(walletId)
-    return isHD ? mockTestNetHDWalletFromId(walletId) : mockTestNetWalletFromId(walletId)
-  }),
+  // the real one, on the mocked wallet classes: which class and network a stored id loads with is
+  // what the network tests check
+  loadWalletFromId: (await importOriginal<typeof Utils>()).loadWalletFromId,
   convertElectrumTokenData: vi.fn(),
   STALE_TIP_SECONDS: (await importOriginal<typeof Utils>()).STALE_TIP_SECONDS,
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),

@@ -113,6 +113,14 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     });
     walletKit.on('session_request', (event) => {
       console.debug("Session request received:", event);
+      // Sessions are not per wallet: one paired on chipnet stays, and names its chain bch:bchtest,
+      // which testnet4 shares. A wallet on a network without dApp connections serves none of them.
+      if (!dappsAvailableOn(mainStore.network)) {
+        const message = t('dapp.unavailableOnNetwork', { network: mainStore.network });
+        const response = { id: event.id, jsonrpc: '2.0', error: { message, code: 5100 } };
+        walletKit.respondSessionRequest({ topic: event.topic, response }).catch(console.error);
+        return;
+      }
       const sessionAddresses = getSessionAddresses(event.topic);
       const walletAddress = sessionAddresses[0] ?? mainStore.wallet.getDepositAddress();
       wcRequest(event, walletAddress, sessionAddresses).catch(console.error);

@@ -7,9 +7,8 @@ import { setActivePinia, createPinia } from 'pinia'
 // Import mocks FIRST
 import {
   mockWalletNamed,
-  mockTestNetWalletNamed,
+  mockHDWalletNamed,
   mockWalletFromId,
-  mockTestNetWalletFromId,
   mockMainnetWallet,
   mockChipnetWallet,
   localStorageMock,
@@ -18,6 +17,8 @@ import {
   mockPruneDeletedWalletCaches,
   mockClearWalletSettings,
   mockGetNamedWalletId,
+  mockCashconnectStart,
+  mockWizardconnectStart,
 } from './mocks/store.mocks'
 
 const mockRemoveEmptyChipnetCopy = vi.hoisted(() => vi.fn())
@@ -47,9 +48,9 @@ describe('switchWallet', () => {
       await store.switchWallet('newWallet')
 
       expect(mockGetNamedWalletId).toHaveBeenCalledWith('newWallet', 'bitcoincash')
-      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0', { network: 'mainnet' })
       expect(mockWalletNamed).not.toHaveBeenCalled()
-      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+      expect(mockHDWalletNamed).not.toHaveBeenCalled()
     })
 
     it('loads chipnet wallet when network is chipnet', async () => {
@@ -61,8 +62,8 @@ describe('switchWallet', () => {
       await store.switchWallet('newWallet')
 
       expect(mockGetNamedWalletId).toHaveBeenCalledWith('newWallet', 'bchtest')
-      expect(mockTestNetWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0')
-      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0', { network: 'testnet' })
+      expect(mockHDWalletNamed).not.toHaveBeenCalled()
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
 
@@ -74,7 +75,7 @@ describe('switchWallet', () => {
 
       await store.switchWallet('newWallet')
 
-      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0', { network: 'mainnet' })
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
   })
@@ -143,10 +144,10 @@ describe('switchWallet', () => {
       expect(store.activeWalletName).toBe('mainnetOnlyWallet')
       expect(localStorageMock.setItem).toHaveBeenCalledWith('activeWalletName', 'mainnetOnlyWallet')
       // Should NOT have called TestNetWallet.named (we're switching away from chipnet)
-      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+      expect(mockHDWalletNamed).not.toHaveBeenCalled()
       // Verify network was changed and correct wallet loader was called
       expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'mainnet')
-      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0', { network: 'mainnet' })
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
 
@@ -169,8 +170,8 @@ describe('switchWallet', () => {
       expect(mockWalletNamed).not.toHaveBeenCalled()
       // Verify network was changed and correct wallet loader was called
       expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'chipnet')
-      expect(mockTestNetWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0')
-      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0', { network: 'testnet' })
+      expect(mockHDWalletNamed).not.toHaveBeenCalled()
     })
 
     it('opens a wallet with a mainnet row on mainnet, even when the stored network is chipnet', async () => {
@@ -186,7 +187,7 @@ describe('switchWallet', () => {
 
       expect(result.networkChanged).toBe('mainnet')
       expect(mockGetNamedWalletId).toHaveBeenCalledWith('bothNetworks', 'bitcoincash')
-      expect(mockTestNetWalletFromId).not.toHaveBeenCalled()
+      expect(mockWalletFromId).not.toHaveBeenCalledWith(expect.anything(), { network: 'testnet' })
       expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'mainnet')
     })
 
@@ -203,7 +204,7 @@ describe('switchWallet', () => {
 
       expect(result.success).toBe(true)
       expect(result.networkChanged).toBeUndefined()
-      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0', { network: 'mainnet' })
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
 
@@ -218,7 +219,7 @@ describe('switchWallet', () => {
       expect(result.success).toBe(true)
       expect(result.networkChanged).toBeUndefined()
       expect(mockGetNamedWalletId).toHaveBeenCalledWith('unknownWallet', 'bitcoincash')
-      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+      expect(mockWalletFromId).toHaveBeenCalledWith('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0', { network: 'mainnet' })
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
   })
@@ -234,7 +235,7 @@ describe('switchWallet', () => {
       await expect(store.switchWallet('ghostWallet')).rejects.toThrowError()
       // .named() would silently create a new wallet with a fresh seed
       expect(mockWalletNamed).not.toHaveBeenCalled()
-      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+      expect(mockHDWalletNamed).not.toHaveBeenCalled()
     })
 
     it('does not mutate state when a stale availableWallets entry points to a missing wallet', async () => {
@@ -252,7 +253,7 @@ describe('switchWallet', () => {
 
       await expect(store.switchWallet('staleWallet')).rejects.toThrowError()
 
-      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+      expect(mockHDWalletNamed).not.toHaveBeenCalled()
       expect(store.activeWalletName).toBe('originalWallet')
       expect(localStorageMock.setItem).not.toHaveBeenCalledWith('activeWalletName', 'staleWallet')
       expect(localStorageMock.setItem).not.toHaveBeenCalledWith('network', 'chipnet')
@@ -312,8 +313,8 @@ describe('changeNetwork', () => {
     expect(await store.changeNetwork('chipnet')).toBe(true)
 
     expect(mockGetNamedWalletId).toHaveBeenCalledWith('myWallet', 'bchtest')
-    expect(mockTestNetWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0')
-    expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+    expect(mockWalletFromId).toHaveBeenCalledWith('seed:testnet:test mnemonic:m/44\'/145\'/0\'/0/0', { network: 'testnet' })
+    expect(mockHDWalletNamed).not.toHaveBeenCalled()
     expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'chipnet')
   })
 
@@ -329,7 +330,7 @@ describe('changeNetwork', () => {
     expect(await store.changeNetwork('chipnet')).toBe(false)
 
     // .named() would silently create a new wallet with a fresh seed
-    expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+    expect(mockHDWalletNamed).not.toHaveBeenCalled()
     expect(mockWalletNamed).not.toHaveBeenCalled()
     // current wallet state and configured network are left untouched
     expect(store._wallet).toBe(originalWalletRef)
@@ -410,7 +411,7 @@ describe('deleteWallet', () => {
     await expect(store.deleteWallet('otherWallet')).resolves.toBeUndefined()
 
     expect(mockClearWalletSettings).toHaveBeenCalledWith('otherWallet')
-    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(3)
+    expect(mockDeleteNamedWallet).toHaveBeenCalledWith('otherWallet', 'bitcoincash')
   })
 
   it('does not prune the key cache when the delete is refused', async () => {
@@ -513,7 +514,7 @@ describe('removeChipnetCopy', () => {
     expect(store.removingChipnetCopy).toBe(true)
 
     expect(await store.changeNetwork('chipnet')).toBe(false)
-    expect(mockTestNetWalletFromId).not.toHaveBeenCalled()
+    expect(mockWalletFromId).not.toHaveBeenCalledWith(expect.anything(), { network: 'testnet' })
     expect(store.network).toBe('mainnet')
 
     finishRemoval()
@@ -542,5 +543,40 @@ describe('removeChipnetCopy', () => {
     expect(mockRemoveEmptyChipnetCopy).toHaveBeenCalledTimes(1)
     expect(store.network).toBe('mainnet')
     expect(store.removingChipnetCopy).toBe(false)
+  })
+})
+
+// A test network a dApp cannot tell from chipnet: no CashConnect or WizardConnect starts on it,
+// which would bring back the sessions the same seed paired on another network
+describe('a testnet4 wallet', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorageMock.clear()
+    setActivePinia(createPinia())
+  })
+
+  it('loads from the testnet4 database, on testnet4', async () => {
+    mockGetAllWalletsWithNetworkInfo.mockResolvedValue([{ name: 'dev', networks: ['testnet4'] }])
+    const store = useStore()
+    await store.setWallet(mockMainnetWallet as never)
+    store.availableWallets = [{ name: 'dev', networks: ['testnet4'] }]
+
+    const result = await store.switchWallet('dev')
+
+    expect(result.networkChanged).toBe('testnet4')
+    expect(mockGetNamedWalletId).toHaveBeenCalledWith('dev', 'bchtest4')
+    expect(mockWalletFromId).toHaveBeenCalledWith('seed:testnet4:test mnemonic:m/44\'/145\'/0\'/0/0', { network: 'testnet4' })
+  })
+
+  it('starts no CashConnect or WizardConnect, where a chipnet wallet does', async () => {
+    const store = useStore()
+    await store.setWallet({ ...mockChipnetWallet, network: 'testnet4' } as never)
+    await store.initializeWallet()
+    expect(mockCashconnectStart).not.toHaveBeenCalled()
+    expect(mockWizardconnectStart).not.toHaveBeenCalled()
+
+    await store.setWallet(mockChipnetWallet as never)
+    await store.initializeWallet()
+    expect(mockCashconnectStart).toHaveBeenCalled()
   })
 })

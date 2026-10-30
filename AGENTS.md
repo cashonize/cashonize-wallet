@@ -50,8 +50,7 @@ Regardless of app instances, the same wallet can be live elsewhere (other device
 
 The wallet functionality is powered by `bch-wallet-lib`, continued from mainnet-js 4 (`next`) with Cashonize as its first user, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers. It keeps mainnet-js 3.1.7's storage format, so existing wallets load unchanged.
 
-- Single-address wallets: `Wallet` for mainnet, `TestNetWallet` for chipnet
-- HD wallets: `HDWallet` for mainnet, `TestNetHDWallet` for chipnet; address/key management goes through a `walletCache`
+- Single-address wallets: `Wallet`, HD wallets: `HDWallet`, made for a test network with the network passed (`{ network }`), as the library's `TestNetWallet`/`TestNetHDWallet` are fixed to chipnet; HD address/key management goes through a `walletCache`
 - The wallet type (`WalletType`) is a union of all four classes
 - `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
 - Named wallets persist to IndexedDB (see Multi-Wallet Support)
@@ -123,7 +122,7 @@ An identity can keep its authhead in an AuthGuard covenant instead of in a walle
 An AuthKey's category is its own: the standard's genesis spends the identity's authbase and the AuthKey's in one transaction, so the two chains merge there and share every link after. A chain resolved from an AuthKey therefore ends at the identity's authhead, and the wallet lists the identity, never the AuthKey's category. An AuthKey is held back the way an identity UTXO is; the covenant's own spends belong to the tools that build them.
 
 ### Cauldron DEX
-Fungible token values come from the indexer of Cauldron, the main AMM DEX in the CashTokens ecosystem (`utils/defi/cauldronApi.ts`, one per network). It runs Riften Labs' indexer (https://gitlab.com/riftenlabs/riftenlabs-indexer), whose source is the reference for its endpoints and answers. The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
+Fungible token values come from the indexer of Cauldron, the main AMM DEX in the CashTokens ecosystem (`utils/defi/cauldronApi.ts`, one each for mainnet and chipnet, none for testnet4). It runs Riften Labs' indexer (https://gitlab.com/riftenlabs/riftenlabs-indexer), whose source is the reference for its endpoints and answers. The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
 
 ### Portfolio Integrations
 The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, ParyonUSD loans and staking, TapSwap listings, and hodl timelocks. It is valuation only; acting on a position belongs in the dApps. For now every dApp needs its own custom integration: a `utils/defi/` module paired with a row component. How positions are found and valued differs per protocol (electrum contract lookups, data on held NFTs, or OP_RETURN protocol markers read off the wallet's electrum history) and is documented in each module's header comment; why the history is the source, and what each protocol announces: `docs/contract-asset-discovery.md`.

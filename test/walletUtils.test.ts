@@ -188,7 +188,6 @@ describe('createNewWallet', () => {
       await createNewWallet('newWallet')
 
       expect(mockSaveNamedWallet).not.toHaveBeenCalled()
-      expect(mockWalletNamed).not.toHaveBeenCalledWith(expect.anything(), { network: 'testnet' })
       expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'mainnet')
     })
 
@@ -660,7 +659,6 @@ describe('createNewHDWallet', () => {
       await createNewHDWallet('newHDWallet')
 
       expect(mockSaveNamedWallet).not.toHaveBeenCalled()
-      expect(mockHDWalletNamed).not.toHaveBeenCalledWith(expect.anything(), { network: 'testnet' })
     })
 
     it('creates a chipnet HD wallet only, when asked for one', async () => {

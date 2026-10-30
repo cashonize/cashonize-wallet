@@ -22,5 +22,8 @@ describe('the app networks', () => {
     const header = '00000020dd4d488b15505869869b92f040ecacbdd63354f0dbc0d4d123247501000000003add46d53f982a57269eb3028046235a27adce112b26f9142d123f98a8df0e05c1233567977e281ca18dda27'
     expect(testnet4.chain?.checkpoint?.height).toBe(227000)
     expect(await getTransactionHash(header)).toBe(testnet4.chain?.checkpoint?.hash)
+    // what keeps a chipnet server from being taken for testnet4: chipnet's block there differs
+    expect(networkConfig('testnet').chain?.checkpoint?.height).toBe(227000)
+    expect(networkConfig('testnet').chain?.checkpoint?.hash).not.toBe(testnet4.chain?.checkpoint?.hash)
   })
 })

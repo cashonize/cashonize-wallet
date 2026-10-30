@@ -92,10 +92,16 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     //       And the `start()` call thinks that the existing instance still exists.
     const cashConnectPrevInstance = cashConnectWallet.value;
     cashConnectWallet.value = undefined;
+    // the sessions are the stopped wallet's, and a wallet that starts no CashConnect (testnet4)
+    // must not list them
+    sessions.value = {};
     // Stop the CashConnect Wallet service.
     await cashConnectPrevInstance.stop();
   }
   async function pair(wcUri: string) {
+    if (!dappsAvailableOn(mainStore.network)) {
+      throw new Error(t('dapp.unavailableOnNetwork', { network: mainStore.network }));
+    }
     if(!cashConnectWallet.value) {
       throw new Error(t('cashConnect.notifications.notStarted'));
     }

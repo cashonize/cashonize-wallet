@@ -95,6 +95,7 @@ describe('the per-network settings', () => {
     storage.setItem('explorerChipnet', 'https://chipnet-explorer.example/tx')
     storage.setItem('electrum-chipnet', 'chipnet.example')
     storage.setItem('electrumMode-chipnet', 'preferred')
+    storage.setItem('bcmrIndexerMainnet', 'https://mainnet-indexer.example/api')
     storage.setItem('bcmrIndexerChipnet', 'https://indexer.example/api')
     storage.setItem('chaingraph-mainnet', 'https://chaingraph.example/v1/graphql')
     // a chipnet Chaingraph set to none stays none, rather than taking a default
@@ -106,20 +107,26 @@ describe('the per-network settings', () => {
     expect(settingsStore.explorer.chipnet).toBe('https://chipnet-explorer.example/tx')
     expect(settingsStore.electrumServer.chipnet).toBe('chipnet.example')
     expect(settingsStore.electrumMode.chipnet).toBe('preferred')
+    expect(settingsStore.tokenMetadataIndexer.mainnet).toBe('https://mainnet-indexer.example/api')
     expect(settingsStore.tokenMetadataIndexer.chipnet).toBe('https://indexer.example/api')
     expect(settingsStore.chaingraph.mainnet).toBe('https://chaingraph.example/v1/graphql')
     expect(settingsStore.chaingraph.chipnet).toBe('')
   })
 
-  it('give testnet4 its own, with no token metadata indexer by default', () => {
-    storage.setItem('explorerChipnet', 'https://chipnet-explorer.example/tx')
+  it('give testnet4 its own, whose writes leave the chipnet ones alone', () => {
     setActivePinia(createPinia())
     const settingsStore = useSettingsStore()
+    const chipnetKeys = ['explorerChipnet', 'electrum-chipnet', 'electrumMode-chipnet', 'chaingraph-chipnet', 'bcmrIndexerChipnet']
+    for (const key of chipnetKeys) storage.setItem(key, 'chipnet value')
 
-    expect(settingsStore.explorer.testnet4).toBe('https://tbch4.loping.net/tx')
-    expect(settingsStore.tokenMetadataIndexer.testnet4).toBe('')
     settingsStore.setExplorer('testnet4', 'https://testnet4.imaginary.cash/tx')
+    settingsStore.chooseElectrumServer('testnet4', 'blackie.c3-soft.com:62004')
+    settingsStore.setElectrumMode('testnet4', 'single')
+    settingsStore.setChaingraph('testnet4', 'https://chaingraph.example/v1/graphql')
+    settingsStore.setTokenMetadataIndexer('testnet4', 'https://indexer.example/api')
+
+    for (const key of chipnetKeys) expect(storage.getItem(key)).toBe('chipnet value')
     expect(storage.getItem('explorer-testnet4')).toBe('https://testnet4.imaginary.cash/tx')
-    expect(storage.getItem('explorerChipnet')).toBe('https://chipnet-explorer.example/tx')
+    expect(storage.getItem('bcmrIndexer-testnet4')).toBe('https://indexer.example/api')
   })
 })

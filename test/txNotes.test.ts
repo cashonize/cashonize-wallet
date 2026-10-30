@@ -58,10 +58,12 @@ describe('txNotes', () => {
   it('should remove notes for both networks on wallet deletion', () => {
     saveTxNote('mainnet', 'mywallet', 'txid1', 'note');
     saveTxNote('chipnet', 'mywallet', 'txid2', 'note');
+    saveTxNote('testnet4', 'mywallet', 'txid4', 'note');
     saveTxNote('mainnet', 'otherwallet', 'txid3', 'kept');
     removeTxNotes('mywallet');
     expect(loadTxNotes('mainnet', 'mywallet')).toEqual({});
     expect(loadTxNotes('chipnet', 'mywallet')).toEqual({});
+    expect(loadTxNotes('testnet4', 'mywallet')).toEqual({});
     expect(loadTxNotes('mainnet', 'otherwallet')).toEqual({ txid3: 'kept' });
   });
 });
