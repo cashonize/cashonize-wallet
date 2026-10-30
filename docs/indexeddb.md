@@ -11,6 +11,10 @@ IndexedDB belongs to the libraries; the app keeps its own data in localStorage (
 - **`bitcoincash`**: the mainnet wallets, one row per wallet name holding its wallet id, which
   holds the seed phrase.
 - **`bchtest`**: the chipnet wallets, the same way.
+- **`bchtest4`**: the testnet4 wallets, the same way. Testnet4 is not built into the library: the
+  app registers it as `utils/wallet/networks.ts` loads, which has to come before any testnet4
+  wallet loads and before `pruneWalletCaches`, which drops the cached keys of a network it does
+  not know.
 - **`ElectrumNetworkProviderCache`**: raw transactions and block headers read from electrum.
 - **`WalletCache`**: each HD wallet's derived addresses with their private keys, status and history.
 - WalletConnect's session state, and `cashconnect-*` databases.
@@ -35,20 +39,22 @@ chipnet HD wallet rediscover its addresses. `utils/wallet/networks.ts` maps betw
 
 ## One network per wallet
 
-A wallet is created or imported on one network: mainnet by default, chipnet from the developer
-settings ("Add chipnet wallet"). The network follows the wallet: the wallet list opens a wallet on
-mainnet when it has a mainnet row and on chipnet otherwise, and there is no network switch of its
-own. A name with rows on both networks (a tied wallet, below, or a chipnet wallet of another seed
-that early versions made under the same name) can be opened on chipnet from the developer
-settings. A wallet name
-belongs to one wallet across all networks, since the wallet type, backup status and other settings
-are keyed by the name alone.
+A wallet is created or imported on one network: mainnet by default, or a test network, chipnet
+or testnet4, from the developer settings ("Add development wallet"). The network follows the
+wallet: the wallet list opens a wallet on its own network, mainnet for a name with rows on both
+mainnet and chipnet (a tied wallet, below, or a chipnet wallet of another seed that early versions
+made under the same name), whose chipnet side opens from the developer settings. There is no
+network switch of its own. A wallet name belongs to one wallet across all networks, since the
+wallet type, backup status and other settings are keyed by the name alone.
 
-The library can hold more networks (`registerNetwork`, each with its own database), but the app
-supports mainnet and chipnet only. Adding testnet4, scalenet or regtest means gating each feature
-on the network first: the electrum settings, explorer, token metadata indexer, Chaingraph,
-Cauldron, WalletConnect's chain and the per-network localStorage keys still branch on mainnet
-versus chipnet (#368).
+Everything per network goes over `appNetworks`: the wallet list, cache pruning, deletion and the
+per-wallet localStorage keys, the electrum providers, and the per-network settings (electrum
+server and mode, explorer, Chaingraph, token metadata indexer), which settingsStore keeps as one
+entry per network under the keys mainnet and chipnet always had. A network gets what it has a
+backend for: testnet4 has electrum servers and explorers, but no token metadata indexer, Cauldron
+or CashTokens Studio, so those are off there, and no Chaingraph instance by default. It also
+makes no dApp connections: WalletConnect and CashConnect name a test network only by its bchtest
+prefix and WizardConnect only by its xpub version, so a dApp could not tell it from chipnet.
 
 ## Tied wallets
 
