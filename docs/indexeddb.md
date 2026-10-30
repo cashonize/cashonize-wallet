@@ -65,13 +65,16 @@ A developer can untie the open wallet in the developer settings
 (`utils/wallet/tiedWallets.ts`):
 
 1. The section shows only when the chipnet row is exactly the mainnet id with its network replaced.
-2. "Check chipnet history" reads the copy's addresses on chipnet: the one address of a
-   single-address wallet, or the first 20 receive and change addresses of an HD wallet.
-3. Only a copy with no history is offered for removal, behind a confirmation. A used copy is kept,
-   and so is one whose history could not be read.
-4. On removal the history is read again, and then, immediately before the delete, both rows: the
+2. "Check if removable" reads what the copy holds on chipnet: the one address of a
+   single-address wallet, or an HD wallet's receive and change chains, each followed until 20
+   addresses in a row are unused, with the unspent coins of every used address.
+3. A copy that holds no coins, never used or used and emptied, is offered for removal, behind a
+   confirmation: nothing is lost, as its keys are in the mainnet row and its history stays on the
+   chain. A copy holding BCH or tokens is kept, and so is one whose coins could not be read; the
+   developer can send the coins to another chipnet wallet and check again.
+4. On removal the coins are read again, and then, immediately before the delete, both rows: the
    chipnet row must still be the copy that was checked and the mainnet row must still hold the
-   same keys. Reading the rows last catches a change during the slow history read, such as
+   same keys. Reading the rows last catches a change during the slow chipnet reads, such as
    another tab deleting the wallet and making a new one of that name. Anything else deletes
    nothing. While a removal runs, the store opens no wallet on another network, so the copy
    being removed cannot become the open wallet.

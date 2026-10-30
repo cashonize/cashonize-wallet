@@ -1,13 +1,13 @@
 import { deleteNamedWallet, getAddrsByXpubKey, getNamedWalletId, getNetworkProvider, getXPubKey, NetworkType } from "@cashonize/bch-wallet-lib"
 import { deriveSeedFromBip39Mnemonic } from "@bitauth/libauth"
-import { anyAddressHasActivity, GAP_LIMIT } from "src/utils/wallet/walletUtils"
+import { GAP_LIMIT } from "src/utils/wallet/walletUtils"
 import { walletDbName } from "src/utils/wallet/networks"
 import { i18n } from "src/boot/i18n"
 const { t } = i18n.global
 
 // Older versions stored a chipnet copy of every wallet created or imported: the mainnet id
 // with its network replaced, so the same keys on both networks (docs/indexeddb.md). These find
-// such a copy and remove an unused one, for the developer setting that unties a wallet.
+// such a copy and remove one that holds no coins, for the developer setting that unties a wallet.
 
 // The stored id of the wallet's chipnet copy, when the chipnet row is exactly that
 export async function tiedChipnetCopy(walletName: string): Promise<string | undefined> {
@@ -21,16 +21,25 @@ export async function tiedChipnetCopy(walletName: string): Promise<string | unde
   return chipnetId;
 }
 
-// The chipnet addresses of a stored seed or HD id that hold its history, if any: the one address
-// of a single-address wallet, or the first GAP_LIMIT receive and change addresses of an HD wallet
-// (BIP44 wallets fill addresses from index 0). Undefined for an id of another form.
-function chipnetAddressesOf(walletId: string): string[] | undefined {
+// What the chipnet copy holds on chipnet: 'unused' (no history), 'empty' (history, but no coins)
+// or 'holdsCoins' (BCH or tokens). Removing a copy that holds no coins loses nothing: its keys are
+// in the mainnet row, its history stays on the chain. An id of another form, or an HD copy used
+// past the scan limit, counts as holding coins.
+export type ChipnetCopyState = 'unused' | 'empty' | 'holdsCoins';
+
+// How far an HD copy's chains are followed at most, an HD wallet used this far being implausible
+const MAX_SCANNED_PER_CHAIN = 1000;
+// Address lookups are pipelined over the one electrum connection in batches
+const SCAN_BATCH_SIZE = 10;
+
+// The account xpub and how to walk a stored seed or HD id's addresses: an HD wallet's receive and
+// change chains, or the one address of a single-address wallet. Undefined for an id of another form.
+function chipnetAddressSource(walletId: string): { xpub: string; chains: string[]; single: boolean } | undefined {
   const [kind, , mnemonic, path] = walletId.split(':');
   if (!mnemonic || !path) return undefined;
   const seed = deriveSeedFromBip39Mnemonic(mnemonic);
   if (kind === 'hd') {
-    const xpub = getXPubKey(seed, path, NetworkType.Testnet);
-    return [...getAddrsByXpubKey(xpub, "0/0", GAP_LIMIT), ...getAddrsByXpubKey(xpub, "1/0", GAP_LIMIT)];
+    return { xpub: getXPubKey(seed, path, NetworkType.Testnet), chains: ['0', '1'], single: false };
   }
   if (kind === 'seed') {
     // the full path of the one address: the account's xpub, then its unhardened branch and index
@@ -38,25 +47,53 @@ function chipnetAddressesOf(walletId: string): string[] | undefined {
     const relative = components.slice(-2);
     if (components.length < 3 || relative.some(component => component.endsWith("'"))) return undefined;
     const xpub = getXPubKey(seed, components.slice(0, -2).join('/'), NetworkType.Testnet);
-    return getAddrsByXpubKey(xpub, relative.join('/'), 1);
+    return { xpub, chains: [relative.join('/')], single: true };
   }
   return undefined;
 }
 
-// Whether the chipnet copy was used on chipnet; true when that cannot be told from its id
-export async function chipnetCopyHasHistory(chipnetId: string): Promise<boolean> {
-  const addresses = chipnetAddressesOf(chipnetId);
-  if (!addresses) return true;
-  return anyAddressHasActivity(getNetworkProvider(NetworkType.Testnet), addresses);
+export async function chipnetCopyState(chipnetId: string): Promise<ChipnetCopyState> {
+  const source = chipnetAddressSource(chipnetId);
+  if (!source) return 'holdsCoins';
+  const provider = getNetworkProvider(NetworkType.Testnet);
+  const usedAddresses: string[] = [];
+  for (const chain of source.chains) {
+    if (source.single) {
+      const address = getAddrsByXpubKey(source.xpub, chain, 1)[0]!;
+      if ((await provider.getHistory(address)).length > 0) usedAddresses.push(address);
+      continue;
+    }
+    // follow the chain until GAP_LIMIT addresses in a row are unused, as discovery does
+    let index = 0;
+    let unusedInARow = 0;
+    while (unusedInARow < GAP_LIMIT) {
+      if (index >= MAX_SCANNED_PER_CHAIN) return 'holdsCoins';
+      const batch = getAddrsByXpubKey(source.xpub, `${chain}/${index}`, SCAN_BATCH_SIZE);
+      const histories = await Promise.all(batch.map(address => provider.getHistory(address)));
+      histories.forEach((history, position) => {
+        if (history.length > 0) {
+          usedAddresses.push(batch[position]!);
+          unusedInARow = 0;
+        } else {
+          unusedInARow++;
+        }
+      });
+      index += SCAN_BATCH_SIZE;
+    }
+  }
+  if (usedAddresses.length === 0) return 'unused';
+  const utxos = await Promise.all(usedAddresses.map(address => provider.getUtxos(address)));
+  if (utxos.some(addressUtxos => addressUtxos.length > 0)) return 'holdsCoins';
+  return 'empty';
 }
 
-// Deletes the chipnet copy the user checked, once it is still unused and, read immediately before
-// the delete, still that copy of the mainnet row: the slow history read comes first, so a row
-// changed meanwhile (another tab deleting the wallet and making a new one of that name) is caught.
-// Throws, having deleted nothing, when any of that fails or cannot be told.
-export async function removeUnusedChipnetCopy(walletName: string, checkedChipnetId: string): Promise<void> {
-  if (await chipnetCopyHasHistory(checkedChipnetId)) {
-    throw new Error(t('store.errors.chipnetCopyUsed', { name: walletName }));
+// Deletes the chipnet copy the user checked, once it still holds no coins and, read immediately
+// before the delete, is still that copy of the mainnet row: the slow chipnet reads come first, so a
+// row changed meanwhile (another tab deleting the wallet and making a new one of that name) is
+// caught. Throws, having deleted nothing, when any of that fails or cannot be told.
+export async function removeEmptyChipnetCopy(walletName: string, checkedChipnetId: string): Promise<void> {
+  if (await chipnetCopyState(checkedChipnetId) === 'holdsCoins') {
+    throw new Error(t('store.errors.chipnetCopyHoldsCoins', { name: walletName }));
   }
   const chipnetId = await tiedChipnetCopy(walletName);
   if (chipnetId === undefined || chipnetId !== checkedChipnetId) {

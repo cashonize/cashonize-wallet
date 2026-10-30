@@ -94,7 +94,7 @@
     "errors": {
       "chipnetCopyChanged": "La copia de chipnet de {name} cambió desde que se comprobó, así que no se quitó nada.",
       "chipnetCopyRemovalRunning": "Se está quitando una copia de chipnet. Inténtalo de nuevo cuando termine.",
-      "chipnetCopyUsed": "La copia de chipnet de {name} tiene historial en chipnet, así que no se quitó nada.",
+      "chipnetCopyHoldsCoins": "La copia de chipnet de {name} tiene monedas de chipnet, así que no se quitó nada.",
       "cannotDeleteActiveWallet": "No se puede eliminar la billetera actualmente activa",
       "cachedKeysNotCleared": "La cartera fue eliminada, pero no se pudieron eliminar las claves que tenía en caché.",
       "walletNotFoundOnNetwork": "La billetera \"{name}\" no existe en {network}",
@@ -1521,13 +1521,14 @@
       "openOnNetwork": "Abrir en {network}",
       "removeChipnetCopy": "Quitar copia de chipnet",
       "removeChipnetCopyTitle": "¿Quitar la copia de chipnet?",
-      "removeChipnetCopyUnused": "La copia de chipnet de {name} no tiene historial en chipnet. Quitarla deja {name} solo en mainnet.",
-      "chipnetCopyUsed": "La copia de chipnet de {name} tiene historial en chipnet, así que se queda. Para probar con claves propias, añade una billetera de chipnet y envía allí las monedas de prueba.",
+      "removeChipnetCopyConfirm": "Quitar la copia de chipnet de {name} deja {name} solo en mainnet. Sus claves siguen en la billetera de mainnet.",
+      "chipnetCopyHoldsCoins": "La copia de chipnet de {name} tiene monedas de chipnet, así que se queda. Para quitarla, envíalas a otra billetera de chipnet y comprueba de nuevo.",
       "chipnetCopyRemoved": "Se quitó la copia de chipnet de {name}.",
       "checkChipnetCopy": "Comprobar si se puede quitar",
       "checkingChipnetCopy": "Comprobando historial de chipnet…",
-      "chipnetCopyUnused": "La copia de chipnet de {name} no tiene historial en chipnet, así que se puede quitar.",
-      "chipnetCopyCheckFailed": "No se pudo leer el historial de chipnet. Revisa el servidor de chipnet e inténtalo de nuevo."
+      "chipnetCopyUnused": "La copia de chipnet de {name} nunca se usó, así que se puede quitar.",
+      "chipnetCopyEmpty": "La copia de chipnet de {name} se usó pero no tiene monedas, así que se puede quitar. Su historial de chipnet queda en la cadena.",
+      "chipnetCopyCheckFailed": "No se pudieron leer las monedas de la copia de chipnet. Revisa el servidor de chipnet e inténtalo de nuevo."
     },
     "madeWith": "Hecho con {heart} por Mathieu G."
   },

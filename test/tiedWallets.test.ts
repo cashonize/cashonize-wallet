@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { mockDeleteNamedWallet, mockGetHistory, mockGetNamedWalletId, mockGetNetworkProvider } from './mocks/walletUtils.mocks'
-import { chipnetCopyHasHistory, removeUnusedChipnetCopy, tiedChipnetCopy } from '../src/utils/wallet/tiedWallets'
+import { mockDeleteNamedWallet, mockGetHistory, mockGetNamedWalletId, mockGetNetworkProvider, mockGetUtxos } from './mocks/walletUtils.mocks'
+import { chipnetCopyState, removeEmptyChipnetCopy, tiedChipnetCopy } from '../src/utils/wallet/tiedWallets'
 import { getAddrsByXpubKey, getXPubKey } from '@cashonize/bch-wallet-lib'
 import { deriveSeedFromBip39Mnemonic } from '@bitauth/libauth'
 
@@ -9,9 +9,18 @@ const mainnetHd = `hd:mainnet:${mnemonic}:m/44'/145'/0':0:0`
 const chipnetHd = `hd:testnet:${mnemonic}:m/44'/145'/0':0:0`
 // the first receive address of that seed on the path, on chipnet
 const firstChipnetAddress = 'bchtest:qqyx49mu0kkn9ftfj6hje6g2wfer34yfnqseeszx8x'
+const xpub = getXPubKey(deriveSeedFromBip39Mnemonic(mnemonic), "m/44'/145'/0'", 'testnet')
+const chipnetAddress = (chain: number, index: number) => getAddrsByXpubKey(xpub, `${chain}/${index}`, 1)[0]!
+const someHistory = [{ tx_hash: 'aa', height: 1 }]
+const someUtxo = { txid: 'aa', vout: 0, satoshis: 1000n }
 
 function storedIds(ids: Record<string, string | undefined>) {
   mockGetNamedWalletId.mockImplementation((_name: string, dbName: string) => Promise.resolve(ids[dbName]))
+}
+// history on the given addresses only, and coins on the given ones only
+function chipnetChain({ used = [] as string[], funded = [] as string[] }) {
+  mockGetHistory.mockImplementation((address: string) => Promise.resolve(used.includes(address) ? someHistory : []))
+  mockGetUtxos.mockImplementation((address: string) => Promise.resolve(funded.includes(address) ? [someUtxo] : []))
 }
 
 describe('tiedChipnetCopy', () => {
@@ -38,89 +47,102 @@ describe('tiedChipnetCopy', () => {
   })
 })
 
-describe('chipnetCopyHasHistory', () => {
+describe('chipnetCopyState', () => {
   beforeEach(() => {
     mockGetHistory.mockReset()
-    mockGetHistory.mockResolvedValue([])
+    mockGetUtxos.mockReset()
+    mockGetNetworkProvider.mockClear()
+    chipnetChain({})
   })
 
-  it('reads the receive and change addresses of an HD copy on chipnet', async () => {
-    mockGetNetworkProvider.mockClear()
-    expect(await chipnetCopyHasHistory(chipnetHd)).toBe(false)
+  it('reads an unused HD copy on chipnet, 20 addresses deep on each chain', async () => {
+    expect(await chipnetCopyState(chipnetHd)).toBe('unused')
     expect(mockGetNetworkProvider.mock.calls).toEqual([['testnet']])
     const asked = mockGetHistory.mock.calls.map(([address]) => address as string)
     expect(asked).toHaveLength(40)
     expect(asked).toContain(firstChipnetAddress)
     expect(asked.every(address => address.startsWith('bchtest:'))).toBe(true)
+    expect(mockGetUtxos).not.toHaveBeenCalled()
   })
 
-  it('tells a used HD copy by the history of its last change address read', async () => {
-    const xpub = getXPubKey(deriveSeedFromBip39Mnemonic(mnemonic), "m/44'/145'/0'", 'testnet')
-    const lastChange = getAddrsByXpubKey(xpub, '1/19', 1)[0]
-    mockGetHistory.mockImplementation((address: string) =>
-      Promise.resolve(address === lastChange ? [{ tx_hash: 'aa', height: 1 }] : []))
-    expect(await chipnetCopyHasHistory(chipnetHd)).toBe(true)
+  it('tells a used copy without coins from one holding coins', async () => {
+    chipnetChain({ used: [chipnetAddress(0, 0), chipnetAddress(1, 3)] })
+    expect(await chipnetCopyState(chipnetHd)).toBe('empty')
+    chipnetChain({ used: [chipnetAddress(0, 0), chipnetAddress(1, 3)], funded: [chipnetAddress(1, 3)] })
+    expect(await chipnetCopyState(chipnetHd)).toBe('holdsCoins')
+  })
+
+  it('follows a chain past its last used address, so coins far along it are found', async () => {
+    // used up to index 25, beyond the first 20 a fixed window would read
+    const used = Array.from({ length: 26 }, (_, index) => chipnetAddress(0, index))
+    chipnetChain({ used, funded: [chipnetAddress(0, 25)] })
+    expect(await chipnetCopyState(chipnetHd)).toBe('holdsCoins')
   })
 
   it('reads the one address of a single-address copy', async () => {
-    expect(await chipnetCopyHasHistory(`seed:testnet:${mnemonic}:m/44'/145'/0'/0/0`)).toBe(false)
+    expect(await chipnetCopyState(`seed:testnet:${mnemonic}:m/44'/145'/0'/0/0`)).toBe('unused')
     expect(mockGetHistory.mock.calls).toEqual([[firstChipnetAddress]])
+    chipnetChain({ used: [firstChipnetAddress], funded: [firstChipnetAddress] })
+    expect(await chipnetCopyState(`seed:testnet:${mnemonic}:m/44'/145'/0'/0/0`)).toBe('holdsCoins')
   })
 
-  it('counts a copy it cannot read as used, and lets a failed lookup through', async () => {
-    expect(await chipnetCopyHasHistory('wif:testnet:cPS12C2bpGHtKjS5NXNyWyTGGRMPk7D7pjp5JfgxRKWyFnWoDyZg')).toBe(true)
-    expect(await chipnetCopyHasHistory(`seed:testnet:${mnemonic}:m/44'/145'/0'/0'/0`)).toBe(true)
+  it('counts a copy it cannot read as holding coins, and lets a failed lookup through', async () => {
+    expect(await chipnetCopyState('wif:testnet:cPS12C2bpGHtKjS5NXNyWyTGGRMPk7D7pjp5JfgxRKWyFnWoDyZg')).toBe('holdsCoins')
+    expect(await chipnetCopyState(`seed:testnet:${mnemonic}:m/44'/145'/0'/0'/0`)).toBe('holdsCoins')
     mockGetHistory.mockRejectedValue(new Error('server lost'))
-    await expect(chipnetCopyHasHistory(chipnetHd)).rejects.toThrow('server lost')
+    await expect(chipnetCopyState(chipnetHd)).rejects.toThrow('server lost')
   })
 })
 
-describe('removeUnusedChipnetCopy', () => {
+describe('removeEmptyChipnetCopy', () => {
   beforeEach(() => {
     mockGetNamedWalletId.mockReset()
     mockDeleteNamedWallet.mockReset()
     mockGetHistory.mockReset()
-    mockGetHistory.mockResolvedValue([])
+    mockGetUtxos.mockReset()
+    chipnetChain({})
     storedIds({ bitcoincash: mainnetHd, bchtest: chipnetHd })
   })
 
-  it('deletes the chipnet row only, once every check passes', async () => {
-    await removeUnusedChipnetCopy('w', chipnetHd)
-    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(1)
+  it('deletes the chipnet row only, for an unused copy and for a used one holding no coins', async () => {
+    await removeEmptyChipnetCopy('w', chipnetHd)
+    chipnetChain({ used: [firstChipnetAddress] })
+    await removeEmptyChipnetCopy('w', chipnetHd)
+    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(2)
     expect(mockDeleteNamedWallet).toHaveBeenCalledWith('w', 'bchtest')
   })
 
   it('deletes nothing when the chipnet row is not the copy that was checked', async () => {
-    await expect(removeUnusedChipnetCopy('w', chipnetHd.replace('about', 'abandon'))).rejects.toThrow()
+    await expect(removeEmptyChipnetCopy('w', chipnetHd.replace('about', 'abandon'))).rejects.toThrow()
     storedIds({ bitcoincash: mainnetHd, bchtest: chipnetHd.replace('about', 'abandon') })
-    await expect(removeUnusedChipnetCopy('w', chipnetHd)).rejects.toThrow()
+    await expect(removeEmptyChipnetCopy('w', chipnetHd)).rejects.toThrow()
     expect(mockDeleteNamedWallet).not.toHaveBeenCalled()
   })
 
   it('deletes nothing when the mainnet row is gone or holds other keys', async () => {
     storedIds({ bitcoincash: undefined, bchtest: chipnetHd })
-    await expect(removeUnusedChipnetCopy('w', chipnetHd)).rejects.toThrow()
+    await expect(removeEmptyChipnetCopy('w', chipnetHd)).rejects.toThrow()
     storedIds({ bitcoincash: mainnetHd.replace('about', 'abandon'), bchtest: chipnetHd })
-    await expect(removeUnusedChipnetCopy('w', chipnetHd)).rejects.toThrow()
+    await expect(removeEmptyChipnetCopy('w', chipnetHd)).rejects.toThrow()
     expect(mockDeleteNamedWallet).not.toHaveBeenCalled()
   })
 
-  it('reads the rows again after the history, so a row changed during the read is not deleted', async () => {
-    // another tab deletes the wallet and makes a new chipnet wallet of that name while the history
-    // is read
+  it('reads the rows again after the chipnet reads, so a row changed meanwhile is not deleted', async () => {
+    // another tab deletes the wallet and makes a new chipnet wallet of that name during the reads
     mockGetHistory.mockImplementation(() => {
       storedIds({ bitcoincash: undefined, bchtest: chipnetHd.replace('about', 'abandon') })
       return Promise.resolve([])
     })
-    await expect(removeUnusedChipnetCopy('w', chipnetHd)).rejects.toThrow()
+    await expect(removeEmptyChipnetCopy('w', chipnetHd)).rejects.toThrow()
     expect(mockDeleteNamedWallet).not.toHaveBeenCalled()
   })
 
-  it('deletes nothing when the copy has history, or its history cannot be read', async () => {
-    mockGetHistory.mockResolvedValue([{ tx_hash: 'aa', height: 1 }])
-    await expect(removeUnusedChipnetCopy('w', chipnetHd)).rejects.toThrow()
-    mockGetHistory.mockRejectedValue(new Error('server lost'))
-    await expect(removeUnusedChipnetCopy('w', chipnetHd)).rejects.toThrow('server lost')
+  it('deletes nothing when the copy holds coins, or its coins cannot be read', async () => {
+    chipnetChain({ used: [firstChipnetAddress], funded: [firstChipnetAddress] })
+    await expect(removeEmptyChipnetCopy('w', chipnetHd)).rejects.toThrow()
+    chipnetChain({ used: [firstChipnetAddress] })
+    mockGetUtxos.mockRejectedValue(new Error('server lost'))
+    await expect(removeEmptyChipnetCopy('w', chipnetHd)).rejects.toThrow('server lost')
     expect(mockDeleteNamedWallet).not.toHaveBeenCalled()
   })
 })

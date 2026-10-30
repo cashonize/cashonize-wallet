@@ -20,7 +20,7 @@
   import { curatedElectrumServers, type ElectrumNetwork } from 'src/utils/wallet/electrumServers'
   import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
-  import { chipnetCopyHasHistory, tiedChipnetCopy } from 'src/utils/wallet/tiedWallets'
+  import { chipnetCopyState, tiedChipnetCopy, type ChipnetCopyState } from 'src/utils/wallet/tiedWallets'
   import { maxWallets } from 'src/utils/wallet/walletUtils'
   import { Notify } from 'quasar'
   const store = useStore()
@@ -128,7 +128,8 @@
   // The active wallet's chipnet copy, when it is from the time every wallet got one, and what
   // checking its chipnet history found
   const tiedCopyId = ref<string | undefined>();
-  const tiedCopyCheck = ref<'unchecked' | 'checking' | 'unused' | 'used' | 'failed'>('unchecked');
+  const tiedCopyCheck = ref<'unchecked' | 'checking' | ChipnetCopyState | 'failed'>('unchecked');
+  const tiedCopyRemovable = computed(() => tiedCopyCheck.value === 'unused' || tiedCopyCheck.value === 'empty');
   // Whether the active wallet's name also has a row on the other network: an older wallet's copy,
   // or a chipnet wallet of another seed that early versions made under the same name
   const activeOnBothNetworks = computed(() => {
@@ -533,9 +534,9 @@
     const chipnetId = tiedCopyId.value;
     if (!chipnetId || store.removingChipnetCopy) return;
     tiedCopyCheck.value = 'checking';
-    let result: 'used' | 'unused' | 'failed';
+    let result: ChipnetCopyState | 'failed';
     try {
-      result = await chipnetCopyHasHistory(chipnetId) ? 'used' : 'unused';
+      result = await chipnetCopyState(chipnetId);
     } catch (error) {
       console.error(error);
       result = 'failed';
@@ -546,10 +547,10 @@
   async function removeChipnetCopy(){
     const walletName = store.activeWalletName;
     const chipnetId = tiedCopyId.value;
-    if (!chipnetId || tiedCopyCheck.value !== 'unused') return;
+    if (!chipnetId || !tiedCopyRemovable.value) return;
     const confirmed = await confirmDialog(
       t('settings.developer.removeChipnetCopyTitle'),
-      t('settings.developer.removeChipnetCopyUnused', { name: walletName }),
+      t('settings.developer.removeChipnetCopyConfirm', { name: walletName }),
       t('settings.developer.removeChipnetCopy')
     );
     if (!confirmed || store.removingChipnetCopy) return;
@@ -1003,16 +1004,16 @@
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
           <input @click="openOtherSide()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.openOnNetwork', { network: otherNetwork })" class="button">
           <!-- the row's gap spaces the buttons, not chota's margin on a following button -->
-          <input v-if="tiedCopyId && tiedCopyCheck !== 'unused'" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking' || store.removingChipnetCopy" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="margin-left: 0;">
+          <input v-if="tiedCopyId && !tiedCopyRemovable" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking' || store.removingChipnetCopy" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="margin-left: 0;">
         </div>
         <template v-if="tiedCopyId">
           <div v-if="tiedCopyCheck === 'checking'" style="margin-top: 8px;">{{ t('settings.developer.checkingChipnetCopy') }}</div>
-          <div v-else-if="tiedCopyCheck === 'used'" style="margin-top: 8px;">
-            <i18n-t keypath="settings.developer.chipnetCopyUsed" tag="span"><template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template></i18n-t>
+          <div v-else-if="tiedCopyCheck === 'holdsCoins'" style="margin-top: 8px;">
+            <i18n-t keypath="settings.developer.chipnetCopyHoldsCoins" tag="span"><template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template></i18n-t>
           </div>
           <div v-else-if="tiedCopyCheck === 'failed'" style="margin-top: 8px; color: red;">{{ t('settings.developer.chipnetCopyCheckFailed') }}</div>
-          <div v-else-if="tiedCopyCheck === 'unused'" style="margin-top: 8px;">
-            <i18n-t keypath="settings.developer.chipnetCopyUnused" tag="span"><template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template></i18n-t>
+          <div v-else-if="tiedCopyRemovable" style="margin-top: 8px;">
+            <i18n-t :keypath="tiedCopyCheck === 'unused' ? 'settings.developer.chipnetCopyUnused' : 'settings.developer.chipnetCopyEmpty'" tag="span"><template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template></i18n-t>
             <input @click="removeChipnetCopy()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.removeChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
           </div>
         </template>

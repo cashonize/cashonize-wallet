@@ -61,7 +61,7 @@ const SCAN_BATCH_SIZE = 10;
 
 // Whether any of the addresses has history, asked in order and in batches, so that a batch with
 // activity ends the scan
-export async function anyAddressHasActivity(provider: ElectrumNetworkProvider, addresses: string[]): Promise<boolean> {
+async function anyAddressHasActivity(provider: ElectrumNetworkProvider, addresses: string[]): Promise<boolean> {
   for (let i = 0; i < addresses.length; i += SCAN_BATCH_SIZE) {
     const batch = addresses.slice(i, i + SCAN_BATCH_SIZE);
     const batchResults = await Promise.all(batch.map(async (address) => {

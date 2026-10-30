@@ -60,7 +60,7 @@ import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { appNetworkOf, appNetworks, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
-import { removeUnusedChipnetCopy } from "src/utils/wallet/tiedWallets"
+import { removeEmptyChipnetCopy } from "src/utils/wallet/tiedWallets"
 import { sharedRun } from "src/utils/concurrency"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
 import {
@@ -1136,7 +1136,7 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Removes the unused chipnet copy of an older wallet (removeUnusedChipnetCopy checks it again
+  // Removes the chipnet copy of an older wallet that holds no coins (removeEmptyChipnetCopy checks it again
   // before deleting), leaving the wallet on mainnet only. Returns false, having removed nothing,
   // when the copy in use could not be left (changeNetwork said why). The copy's chipnet notes,
   // labels and the like stay in localStorage: no other wallet can take the name while the mainnet
@@ -1149,7 +1149,7 @@ export const useStore = defineStore('store', () => {
     }
     removingChipnetCopy.value = true;
     try {
-      await removeUnusedChipnetCopy(walletName, checkedChipnetId);
+      await removeEmptyChipnetCopy(walletName, checkedChipnetId);
     } finally {
       removingChipnetCopy.value = false;
       await refreshAvailableWallets();

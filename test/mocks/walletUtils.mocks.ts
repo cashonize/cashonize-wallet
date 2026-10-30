@@ -18,7 +18,9 @@ export const mockSaveNamedWallet = vi.fn()
 // The history the derivation path scan asks the mainnet provider for, per address
 export const mockGetHistory = vi.fn()
 // The network's provider, which scans read history from; the tests check which network was asked
-export const mockGetNetworkProvider = vi.fn<(network: string) => { getHistory: typeof mockGetHistory }>(() => ({ getHistory: mockGetHistory }))
+// The unspent coins the untie check asks the chipnet provider for, per address
+export const mockGetUtxos = vi.fn()
+export const mockGetNetworkProvider = vi.fn<(network: string) => { getHistory: typeof mockGetHistory, getUtxos: typeof mockGetUtxos }>(() => ({ getHistory: mockGetHistory, getUtxos: mockGetUtxos }))
 // The stored id of a named wallet, per database
 export const mockGetNamedWalletId = vi.fn()
 export const mockDeleteNamedWallet = vi.fn()
