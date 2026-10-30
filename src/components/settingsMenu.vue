@@ -996,8 +996,9 @@
       <div v-if="activeOnBothNetworks" style="margin-top:15px">
         <label>{{ t('settings.developer.alsoOnNetwork', { network: otherNetwork }) }}</label>
         <div style="font-size: smaller; color: grey;">
-          <template v-if="tiedCopyId">{{ t('settings.developer.sameKeysHint', { name: store.activeWalletName }) }}</template>
-          <template v-else>{{ t('settings.developer.otherKeysHint', { name: store.activeWalletName }) }}</template>
+          <i18n-t :keypath="tiedCopyId ? 'settings.developer.sameKeysHint' : 'settings.developer.otherKeysHint'" tag="span">
+            <template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template>
+          </i18n-t>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
           <input @click="openOtherSide()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.openOnNetwork', { network: otherNetwork })" class="button">
@@ -1006,10 +1007,12 @@
         </div>
         <template v-if="tiedCopyId">
           <div v-if="tiedCopyCheck === 'checking'" style="margin-top: 8px;">{{ t('settings.developer.checkingChipnetCopy') }}</div>
-          <div v-else-if="tiedCopyCheck === 'used'" style="margin-top: 8px;">{{ t('settings.developer.chipnetCopyUsed', { name: store.activeWalletName }) }}</div>
+          <div v-else-if="tiedCopyCheck === 'used'" style="margin-top: 8px;">
+            <i18n-t keypath="settings.developer.chipnetCopyUsed" tag="span"><template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template></i18n-t>
+          </div>
           <div v-else-if="tiedCopyCheck === 'failed'" style="margin-top: 8px; color: red;">{{ t('settings.developer.chipnetCopyCheckFailed') }}</div>
           <div v-else-if="tiedCopyCheck === 'unused'" style="margin-top: 8px;">
-            {{ t('settings.developer.chipnetCopyUnused', { name: store.activeWalletName }) }}
+            <i18n-t keypath="settings.developer.chipnetCopyUnused" tag="span"><template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template></i18n-t>
             <input @click="removeChipnetCopy()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.removeChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
           </div>
         </template>
