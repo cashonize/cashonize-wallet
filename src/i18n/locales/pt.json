@@ -1512,7 +1512,7 @@
       "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único.",
       "nonTokenIdentities": "Habilitar criação de identidades sem token",
       "nonTokenIdentitiesHint": "Mostra Adicionar nova na página das identidades, que cria uma identidade a partir de qualquer UTXO desta carteira em vez de um token. As identidades de pessoas, organizações e contratos são novas, e poucas ferramentas as leem ainda.",
-      "addChipnetWallet": "Adicionar carteira de chipnet",
+      "addChipnetWallet": "→ Adicionar carteira de chipnet",
       "addChipnetWalletHint": "Cria ou importa uma carteira apenas na chipnet.",
       "chipnetCopy": "Cópia de chipnet",
       "chipnetCopyHint": "Esta carteira foi criada quando o Cashonize também guardava cada carteira na chipnet, com as mesmas chaves. Remover a cópia de chipnet a deixa apenas na mainnet.",

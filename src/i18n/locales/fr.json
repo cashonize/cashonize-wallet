@@ -1512,7 +1512,7 @@
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
       "nonTokenIdentities": "Activer la création d'identités sans token",
       "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore.",
-      "addChipnetWallet": "Ajouter un portefeuille chipnet",
+      "addChipnetWallet": "→ Ajouter un portefeuille chipnet",
       "addChipnetWalletHint": "Crée ou importe un portefeuille sur chipnet uniquement.",
       "chipnetCopy": "Copie chipnet",
       "chipnetCopyHint": "Ce portefeuille a été créé quand Cashonize enregistrait aussi chaque portefeuille sur chipnet, avec les mêmes clés. Retirer la copie chipnet le laisse sur mainnet uniquement.",

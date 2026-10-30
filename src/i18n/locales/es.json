@@ -1512,7 +1512,7 @@
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única.",
       "nonTokenIdentities": "Habilitar crear identidades sin token",
       "nonTokenIdentitiesHint": "Muestra Añadir nueva en la página de identidades, que crea una identidad a partir de cualquier UTXO de esta billetera en lugar de un token. Las identidades de personas, organizaciones y contratos son nuevas, y pocas herramientas las leen todavía.",
-      "addChipnetWallet": "Añadir billetera de chipnet",
+      "addChipnetWallet": "→ Agregar billetera de chipnet",
       "addChipnetWalletHint": "Crea o importa una billetera solo en chipnet.",
       "chipnetCopy": "Copia de chipnet",
       "chipnetCopyHint": "Esta billetera se creó cuando Cashonize también guardaba cada billetera en chipnet, con las mismas claves. Quitar la copia de chipnet la deja solo en mainnet.",

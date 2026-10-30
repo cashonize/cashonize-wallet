@@ -49,6 +49,13 @@
       { title: t('walletsOverview.devWallets', { count: devWallets.length }), wallets: devWallets, dev: true },
     ].filter(group => group.wallets.length > 0);
   });
+  // once there are development wallets, another one can be added from here too, not only from the
+  // developer settings
+  const hasDevWallets = computed(() => store.availableWallets.some(wallet => !wallet.hasMainnet));
+  function addChipnetWallet() {
+    store.addWalletNetwork = 'chipnet';
+    store.changeView(9);
+  }
   // the network of a development wallet, shown under its name
   function devNetwork(wallet: WalletInfo): string {
     return wallet.hasChipnet ? 'chipnet' : '';
@@ -153,6 +160,9 @@
 
     <div v-if="canAddMoreWallets" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(9)">
       {{ t('walletsOverview.addNewWallet') }}
+    </div>
+    <div v-if="canAddMoreWallets && hasDevWallets" style="margin-bottom: 15px; cursor: pointer;" @click="addChipnetWallet()">
+      {{ t('settings.developer.addChipnetWallet') }}
     </div>
     <div v-else style="margin-bottom: 15px; color: #888;">
       {{ t('walletsOverview.walletLimitReached', { max: maxWallets }) }}

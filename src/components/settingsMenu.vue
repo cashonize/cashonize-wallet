@@ -969,7 +969,7 @@
     </div>
     <div v-else-if="settingsSection == 4">
       <div>
-        <input @click="addChipnetWallet()" type="button" :value="t('settings.developer.addChipnetWallet')" class="button" style="display: block;">
+        <div style="cursor: pointer;" @click="addChipnetWallet()">{{ t('settings.developer.addChipnetWallet') }}</div>
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.addChipnetWalletHint') }}
         </div>

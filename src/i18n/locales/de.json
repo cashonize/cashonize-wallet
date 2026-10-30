@@ -1512,7 +1512,7 @@
       "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu.",
       "nonTokenIdentities": "Erstellen von Identitäten ohne Token aktivieren",
       "nonTokenIdentitiesHint": "Zeigt Neue hinzufügen auf der Identitäten-Seite, das aus einem beliebigen UTXO dieses Wallets statt aus einem Token eine Identität macht. Identitäten von Personen, Organisationen und Verträgen sind neu, und wenige Werkzeuge lesen sie bisher.",
-      "addChipnetWallet": "Chipnet-Wallet hinzufügen",
+      "addChipnetWallet": "→ Chipnet-Wallet hinzufügen",
       "addChipnetWalletHint": "Erstellt oder importiert eine Wallet nur auf Chipnet.",
       "chipnetCopy": "Chipnet-Kopie",
       "chipnetCopyHint": "Diese Wallet wurde erstellt, als Cashonize jede Wallet auch auf Chipnet speicherte, mit denselben Schlüsseln. Ohne die Chipnet-Kopie bleibt sie nur auf Mainnet.",
