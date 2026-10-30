@@ -575,6 +575,9 @@
       "showButton": "Mostrar seed phrase",
       "hideButton": "Ocultar seed phrase",
       "verifyButton": "Verificar seu backup",
+      "dismissButton": "Dispensar lembrete de backup",
+      "dismissHint": "Esta é uma carteira de {network}, sem fundos reais: o lembrete de backup pode ser desativado.",
+      "dismissed": "Lembrete de backup desativado: esta é uma carteira de {network}.",
       "copyButton": "Copiar Seed Phrase",
       "copyTitle": "Copiar Seed Phrase",
       "copyMessage": "Copiar sua seed phrase para a área de transferência não é recomendado por motivos de segurança, mas é permitido por conveniência.\nVocê pode limpar a área de transferência depois copiando outra coisa.",
@@ -670,6 +673,7 @@
     "backupLabels": {
       "notBackedUp": "sem backup",
       "imported": "importada",
+      "dismissed": "backup dispensado",
       "backedUp": "backup realizado"
     },
     "deleteWallet": {

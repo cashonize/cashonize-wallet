@@ -51,6 +51,8 @@ export const settingsMenuKeys = [
 ] as const;
 
 // The app reloads afterwards: the servers are applied before the first wallet is constructed
+export type BackupStatus = 'verified' | 'imported' | 'dismissed' | 'none';
+
 export function removeSettingsMenuKeys() {
   for (const key of settingsMenuKeys) localStorage.removeItem(key);
 }
@@ -126,9 +128,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // other remembered state
   const hasPlayedAnimation = ref(false as boolean)
   const hasInstalledPWA = ref(false as boolean);
-  // Per-wallet backup status: 'verified' (passed backup test), 'imported' (restored via seed), 'none' (needs backup)
+  // Per-wallet backup status: 'verified' (passed backup test), 'imported' (restored via seed),
+  // 'dismissed' (a development wallet's reminder turned off: it holds no real funds), 'none' (needs backup)
   // Stored in localStorage as JSON: { "walletName": "verified", ... }
-  const walletBackupStatus = ref<Record<string, 'verified' | 'imported' | 'none'>>({})
+  const walletBackupStatus = ref<Record<string, BackupStatus>>({})
 
   // Per-wallet metadata (creation date, etc.)
   // Stored in localStorage as JSON: { "walletName": { createdAt: "2025-01-16T..." }, ... }
@@ -485,11 +488,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   removeOldCacheData();
 
   // Helper functions for per-wallet backup status
-  function getBackupStatus(walletName: string): 'verified' | 'imported' | 'none' {
+  function getBackupStatus(walletName: string): BackupStatus {
     return walletBackupStatus.value[walletName] || 'none';
   }
 
-  function setBackupStatus(walletName: string, status: 'verified' | 'imported' | 'none') {
+  function setBackupStatus(walletName: string, status: BackupStatus) {
     if (status === 'none') {
       delete walletBackupStatus.value[walletName];
     } else {

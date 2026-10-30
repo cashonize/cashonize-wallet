@@ -575,6 +575,9 @@
       "showButton": "Show seed phrase",
       "hideButton": "Hide seed phrase",
       "verifyButton": "Verify your backup",
+      "dismissButton": "Dismiss backup reminder",
+      "dismissHint": "This is a {network} wallet, which holds no real funds: the backup reminder can be turned off.",
+      "dismissed": "Backup reminder turned off: this is a {network} wallet.",
       "copyButton": "Copy Seed Phrase",
       "copyTitle": "Copy Seed Phrase",
       "copyMessage": "Copying your seed phrase to the clipboard is not recommended for security reasons, but allowed for convenience.\nYou can clear your clipboard afterwards by copying something else.",
@@ -670,6 +673,7 @@
     "backupLabels": {
       "notBackedUp": "not backed up",
       "imported": "imported",
+      "dismissed": "backup dismissed",
       "backedUp": "backed up"
     },
     "deleteWallet": {

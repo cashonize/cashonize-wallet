@@ -575,6 +575,9 @@
       "showButton": "Mostrar frase semilla",
       "hideButton": "Ocultar frase semilla",
       "verifyButton": "Verificar tu respaldo",
+      "dismissButton": "Descartar recordatorio de copia",
+      "dismissHint": "Esta es una billetera de {network}, sin fondos reales: el recordatorio de copia de seguridad se puede desactivar.",
+      "dismissed": "Recordatorio de copia desactivado: esta es una billetera de {network}.",
       "copyButton": "Copiar frase semilla",
       "copyTitle": "Copiar frase semilla",
       "copyMessage": "Copiar tu frase semilla al portapapeles no se recomienda por razones de seguridad, pero se permite por conveniencia.\nPuedes limpiar tu portapapeles después copiando otra cosa.",
@@ -670,6 +673,7 @@
     "backupLabels": {
       "notBackedUp": "sin respaldo",
       "imported": "importada",
+      "dismissed": "respaldo descartado",
       "backedUp": "respaldada"
     },
     "deleteWallet": {

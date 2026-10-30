@@ -57,6 +57,7 @@
     const status = settingsStore.getBackupStatus(walletName);
     if (status === 'none') return t('walletsOverview.backupLabels.notBackedUp');
     if (status === 'imported') return t('walletsOverview.backupLabels.imported');
+    if (status === 'dismissed') return t('walletsOverview.backupLabels.dismissed');
     return t('walletsOverview.backupLabels.backedUp');
   }
 

@@ -575,6 +575,9 @@
       "showButton": "Seed phrase anzeigen",
       "hideButton": "Seed phrase verbergen",
       "verifyButton": "Backup überprüfen",
+      "dismissButton": "Backup-Erinnerung ausblenden",
+      "dismissHint": "Dies ist eine {network}-Wallet ohne echtes Guthaben: die Backup-Erinnerung kann ausgeschaltet werden.",
+      "dismissed": "Backup-Erinnerung ausgeschaltet: dies ist eine {network}-Wallet.",
       "copyButton": "Seed Phrase kopieren",
       "copyTitle": "Seed Phrase kopieren",
       "copyMessage": "Deine seed phrase in die Zwischenablage zu kopieren wird aus Sicherheitsgründen nicht empfohlen, ist aber der Einfachheit halber erlaubt.\nDu kannst deine Zwischenablage danach leeren, indem du etwas anderes kopierst.",
@@ -670,6 +673,7 @@
     "backupLabels": {
       "notBackedUp": "nicht gesichert",
       "imported": "importiert",
+      "dismissed": "Backup verworfen",
       "backedUp": "gesichert"
     },
     "deleteWallet": {

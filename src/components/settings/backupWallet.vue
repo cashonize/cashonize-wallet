@@ -71,6 +71,15 @@
   // Computed property to check if current wallet's seed has been backed up
   const backupStatus = computed(() => settingsStore.getBackupStatus(store.activeWalletName));
   const hasSeedBackedUp = computed(() => backupStatus.value === 'verified' || backupStatus.value === 'imported');
+  // A development wallet holds no real funds, so its backup reminder can be turned off. Not an older
+  // wallet's chipnet copy: it has the keys of the mainnet wallet.
+  const isDevWallet = computed(() => {
+    const walletInfo = store.availableWallets.find(w => w.name === store.activeWalletName);
+    return store.network !== 'mainnet' && walletInfo !== undefined && !walletInfo.hasMainnet;
+  });
+  function dismissBackupReminder() {
+    settingsStore.setBackupStatus(store.activeWalletName, 'dismissed');
+  }
 
   // Private key (WIF) export — developer option, single-address wallets only.
   // Gate on the actual wallet class (not the localStorage metadata)
@@ -205,6 +214,13 @@
           :value="displaySeedphrase ? t('backupWallet.seedPhrase.hideButton') : t('backupWallet.seedPhrase.showButton')"
         >
         <input v-if="!hasSeedBackedUp" @click="toggleBackupVerification()" class="button" type="button" :value="t('backupWallet.seedPhrase.verifyButton')">
+        <input v-if="isDevWallet && backupStatus === 'none'" @click="dismissBackupReminder()" class="button" type="button" :value="t('backupWallet.seedPhrase.dismissButton')">
+      </div>
+      <div v-if="isDevWallet && backupStatus === 'none'" style="font-size: smaller; color: grey; margin-top: 5px;">
+        {{ t('backupWallet.seedPhrase.dismissHint', { network: store.network }) }}
+      </div>
+      <div v-if="backupStatus === 'dismissed'" style="font-size: smaller; color: grey; margin-top: 5px;">
+        {{ t('backupWallet.seedPhrase.dismissed', { network: store.network }) }}
       </div>
     </div>
     <div v-if="displaySeedphrase" class="seedphrase-container">

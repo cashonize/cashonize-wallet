@@ -575,6 +575,9 @@
       "showButton": "Afficher la phrase de récupération",
       "hideButton": "Masquer la phrase de récupération",
       "verifyButton": "Vérifier votre sauvegarde",
+      "dismissButton": "Ignorer le rappel de sauvegarde",
+      "dismissHint": "Ceci est un portefeuille {network}, sans fonds réels : le rappel de sauvegarde peut être désactivé.",
+      "dismissed": "Rappel de sauvegarde désactivé : ceci est un portefeuille {network}.",
       "copyButton": "Copier la phrase de récupération",
       "copyTitle": "Copier la phrase de récupération",
       "copyMessage": "Copier votre phrase de récupération dans le presse-papiers n'est pas recommandé pour des raisons de sécurité, mais est autorisé par commodité.\nVous pouvez vider votre presse-papiers ensuite en copiant autre chose.",
@@ -670,6 +673,7 @@
     "backupLabels": {
       "notBackedUp": "non sauvegardé",
       "imported": "importé",
+      "dismissed": "sauvegarde ignorée",
       "backedUp": "sauvegardé"
     },
     "deleteWallet": {
