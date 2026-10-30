@@ -1261,7 +1261,8 @@
     "notifications": {
       "sessionApproved": "Session approved",
       "successfullySignedTransaction": "Successfully signed transaction",
-      "networkMismatch": "This dApp needs a wallet on {network}. Open a {network} wallet to use this dApp: a wallet that also has an older chipnet copy opens on chipnet from the developer settings.",
+      "networkMismatch": "This dApp needs a wallet on {network}. Open a {network} wallet to use this dApp.",
+      "networkMismatchChipnet": "This dApp needs a wallet on {network}. Open a {network} wallet to use this dApp: a wallet that also has an older chipnet copy opens on chipnet from the developer settings.",
       "notStarted": "CashConnect is not started.",
       "privateKeyNotFound": "Private key could not be found for address: {address}",
       "failedToConvertCashAddr": "Failed to convert CashAddr to Locking Bytecode",

@@ -169,7 +169,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const currentNetwork = appNetworkOf(mainStore.wallet.network)
     if (currentNetwork != dappTargetNetwork) {
       Dialog.create({
-        message: t('cashConnect.notifications.networkMismatch', { network: dappTargetNetwork }),
+        message: t(dappTargetNetwork === 'chipnet' ? 'cashConnect.notifications.networkMismatchChipnet' : 'cashConnect.notifications.networkMismatch', { network: dappTargetNetwork }),
         ok: { label: 'OK', color: 'primary', unelevated: true },
         class: 'flex justify-center',
       })

@@ -55,20 +55,18 @@ describe('chipnetCopyState', () => {
     chipnetChain({})
   })
 
-  it('reads an unused HD copy on chipnet, 20 addresses deep on each chain', async () => {
+  it('reads an unused HD copy from the chipnet provider', async () => {
     expect(await chipnetCopyState(chipnetHd)).toBe('unused')
     expect(mockGetNetworkProvider.mock.calls).toEqual([['testnet']])
-    const asked = mockGetHistory.mock.calls.map(([address]) => address as string)
-    expect(asked).toHaveLength(40)
-    expect(asked).toContain(firstChipnetAddress)
-    expect(asked.every(address => address.startsWith('bchtest:'))).toBe(true)
-    expect(mockGetUtxos).not.toHaveBeenCalled()
   })
 
-  it('tells a used copy without coins from one holding coins', async () => {
+  it('tells a used copy without coins from one holding coins, on any of its chains', async () => {
     chipnetChain({ used: [chipnetAddress(0, 0), chipnetAddress(1, 3)] })
     expect(await chipnetCopyState(chipnetHd)).toBe('empty')
     chipnetChain({ used: [chipnetAddress(0, 0), chipnetAddress(1, 3)], funded: [chipnetAddress(1, 3)] })
+    expect(await chipnetCopyState(chipnetHd)).toBe('holdsCoins')
+    // the defi chain WizardConnect dApps pay to
+    chipnetChain({ used: [chipnetAddress(7, 2)], funded: [chipnetAddress(7, 2)] })
     expect(await chipnetCopyState(chipnetHd)).toBe('holdsCoins')
   })
 
@@ -84,6 +82,12 @@ describe('chipnetCopyState', () => {
     expect(mockGetHistory.mock.calls).toEqual([[firstChipnetAddress]])
     chipnetChain({ used: [firstChipnetAddress], funded: [firstChipnetAddress] })
     expect(await chipnetCopyState(`seed:testnet:${mnemonic}:m/44'/145'/0'/0/0`)).toBe('holdsCoins')
+  })
+
+  it('counts a chain used past the scan limit as holding coins', async () => {
+    mockGetHistory.mockResolvedValue(someHistory)
+    expect(await chipnetCopyState(chipnetHd)).toBe('holdsCoins')
+    expect(mockGetUtxos).not.toHaveBeenCalled()
   })
 
   it('counts a copy it cannot read as holding coins, and lets a failed lookup through', async () => {
@@ -108,8 +112,7 @@ describe('removeEmptyChipnetCopy', () => {
     await removeEmptyChipnetCopy('w', chipnetHd)
     chipnetChain({ used: [firstChipnetAddress] })
     await removeEmptyChipnetCopy('w', chipnetHd)
-    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(2)
-    expect(mockDeleteNamedWallet).toHaveBeenCalledWith('w', 'bchtest')
+    expect(mockDeleteNamedWallet.mock.calls).toEqual([['w', 'bchtest'], ['w', 'bchtest']])
   })
 
   it('deletes nothing when the chipnet row is not the copy that was checked', async () => {

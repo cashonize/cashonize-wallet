@@ -16,6 +16,8 @@ export async function tiedChipnetCopy(walletName: string): Promise<string | unde
   if (!mainnetId || !chipnetId) return undefined;
   const [mainnetKind, mainnetNetwork, ...mainnetRest] = mainnetId.split(':');
   const [chipnetKind, chipnetNetwork, ...chipnetRest] = chipnetId.split(':');
+  // the copies were only ever made of seed phrase wallets
+  if (mainnetKind !== 'hd' && mainnetKind !== 'seed') return undefined;
   if (mainnetKind !== chipnetKind || mainnetNetwork !== 'mainnet' || chipnetNetwork !== 'testnet') return undefined;
   if (mainnetRest.join(':') !== chipnetRest.join(':')) return undefined;
   return chipnetId;
@@ -33,13 +35,14 @@ const MAX_SCANNED_PER_CHAIN = 1000;
 const SCAN_BATCH_SIZE = 10;
 
 // The account xpub and how to walk a stored seed or HD id's addresses: an HD wallet's receive and
-// change chains, or the one address of a single-address wallet. Undefined for an id of another form.
+// change chains and the defi chain WizardConnect dApps use (7), or the one address of a
+// single-address wallet. Undefined for an id of another form.
 function chipnetAddressSource(walletId: string): { xpub: string; chains: string[]; single: boolean } | undefined {
   const [kind, , mnemonic, path] = walletId.split(':');
   if (!mnemonic || !path) return undefined;
   const seed = deriveSeedFromBip39Mnemonic(mnemonic);
   if (kind === 'hd') {
-    return { xpub: getXPubKey(seed, path, NetworkType.Testnet), chains: ['0', '1'], single: false };
+    return { xpub: getXPubKey(seed, path, NetworkType.Testnet), chains: ['0', '1', '7'], single: false };
   }
   if (kind === 'seed') {
     // the full path of the one address: the account's xpub, then its unhardened branch and index
@@ -82,8 +85,11 @@ export async function chipnetCopyState(chipnetId: string): Promise<ChipnetCopySt
     }
   }
   if (usedAddresses.length === 0) return 'unused';
-  const utxos = await Promise.all(usedAddresses.map(address => provider.getUtxos(address)));
-  if (utxos.some(addressUtxos => addressUtxos.length > 0)) return 'holdsCoins';
+  for (let i = 0; i < usedAddresses.length; i += SCAN_BATCH_SIZE) {
+    const batch = usedAddresses.slice(i, i + SCAN_BATCH_SIZE);
+    const utxos = await Promise.all(batch.map(address => provider.getUtxos(address)));
+    if (utxos.some(addressUtxos => addressUtxos.length > 0)) return 'holdsCoins';
+  }
   return 'empty';
 }
 

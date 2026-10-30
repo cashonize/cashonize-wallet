@@ -1261,7 +1261,8 @@
     "notifications": {
       "sessionApproved": "Session approuvée",
       "successfullySignedTransaction": "Transaction signée avec succès",
-      "networkMismatch": "Cette dApp nécessite un portefeuille sur {network}. Ouvrez un portefeuille {network} pour utiliser cette dApp : un portefeuille qui a aussi une ancienne copie chipnet s'ouvre sur chipnet depuis les paramètres développeur.",
+      "networkMismatch": "Cette dApp nécessite un portefeuille sur {network}. Ouvrez un portefeuille {network} pour utiliser cette dApp.",
+      "networkMismatchChipnet": "Cette dApp nécessite un portefeuille sur {network}. Ouvrez un portefeuille {network} pour utiliser cette dApp : un portefeuille qui a aussi une ancienne copie chipnet s'ouvre sur chipnet depuis les paramètres développeur.",
       "notStarted": "CashConnect n'est pas démarré.",
       "privateKeyNotFound": "La clé privée est introuvable pour l'adresse : {address}",
       "failedToConvertCashAddr": "Échec de la conversion de CashAddr en Locking Bytecode",

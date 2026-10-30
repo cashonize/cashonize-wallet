@@ -475,11 +475,13 @@ describe('removeChipnetCopy', () => {
     const store = useStore()
     await store.setWallet(mockMainnetWallet as never)
     store.activeWalletName = 'myWallet'
+    vi.clearAllMocks()
 
-    await store.removeChipnetCopy('myWallet', 'checked-id')
+    expect(await store.removeChipnetCopy('myWallet', 'checked-id')).toBe(true)
 
     expect(mockRemoveEmptyChipnetCopy).toHaveBeenCalledWith('myWallet', 'checked-id')
-    expect(mockGetAllWalletsWithNetworkInfo).toHaveBeenCalled()
+    expect(mockGetNamedWalletId).not.toHaveBeenCalled()
+    expect(store.network).toBe('mainnet')
   })
 
   it('leaves the chipnet copy in use for mainnet first, and removes nothing when that fails', async () => {
@@ -517,13 +519,26 @@ describe('removeChipnetCopy', () => {
     expect(store.removingChipnetCopy).toBe(false)
   })
 
-  it('refreshes the wallet list when the removal refuses', async () => {
-    mockRemoveEmptyChipnetCopy.mockRejectedValue(new Error('used'))
+  it('holds the guard from the first step, while the open copy is left for mainnet', async () => {
+    let finishLoad = () => {}
     const store = useStore()
-    await store.setWallet(mockMainnetWallet as never)
+    await store.setWallet(mockChipnetWallet as never)
     store.activeWalletName = 'myWallet'
+    // the mainnet row of the copy being left loads slowly
+    mockGetNamedWalletId.mockImplementationOnce(() => new Promise(resolve => {
+      finishLoad = () => resolve('seed:mainnet:test mnemonic:m/44\'/145\'/0\'/0/0')
+    }))
 
-    await expect(store.removeChipnetCopy('myWallet', 'checked-id')).rejects.toThrow('used')
-    expect(mockGetAllWalletsWithNetworkInfo).toHaveBeenCalled()
+    const removal = store.removeChipnetCopy('myWallet', 'checked-id')
+    expect(store.removingChipnetCopy).toBe(true)
+    // neither opening the copy again nor a second removal gets in meanwhile
+    expect(await store.changeNetwork('chipnet')).toBe(false)
+    expect(await store.removeChipnetCopy('myWallet', 'checked-id')).toBe(false)
+
+    finishLoad()
+    expect(await removal).toBe(true)
+    expect(mockRemoveEmptyChipnetCopy).toHaveBeenCalledTimes(1)
+    expect(store.network).toBe('mainnet')
+    expect(store.removingChipnetCopy).toBe(false)
   })
 })

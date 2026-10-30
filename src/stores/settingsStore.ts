@@ -50,9 +50,9 @@ export const settingsMenuKeys = [
   "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
 ] as const;
 
-// The app reloads afterwards: the servers are applied before the first wallet is constructed
 export type BackupStatus = 'verified' | 'imported' | 'dismissed' | 'none';
 
+// The app reloads afterwards: the servers are applied before the first wallet is constructed
 export function removeSettingsMenuKeys() {
   for (const key of settingsMenuKeys) localStorage.removeItem(key);
 }

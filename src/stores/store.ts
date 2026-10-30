@@ -1047,7 +1047,8 @@ export const useStore = defineStore('store', () => {
   }
 
   // Opens the active wallet on the other network, which only older wallets have a copy on; resets
-  // all wallet state. Returns whether it did: a wallet that is not there is left as it is.
+  // all wallet state. Returns whether it did: a wallet that is not there is left as it is, and no
+  // wallet changes network while a chipnet copy is being removed.
   async function changeNetwork(
     newNetwork: AppNetwork,
     awaitWalletInitialization: boolean = false
@@ -1056,6 +1057,10 @@ export const useStore = defineStore('store', () => {
       displayAndLogError(new Error(t('store.errors.chipnetCopyRemovalRunning')));
       return false;
     }
+    return openActiveWalletOn(newNetwork, awaitWalletInitialization);
+  }
+
+  async function openActiveWalletOn(newNetwork: AppNetwork, awaitWalletInitialization: boolean): Promise<boolean> {
     // Load the wallet on the new network first: if it does not exist there, this throws and the
     // current wallet state is left untouched
     let newWallet: WalletType;
@@ -1136,19 +1141,20 @@ export const useStore = defineStore('store', () => {
     }
   }
 
-  // Removes the chipnet copy of an older wallet that holds no coins (removeEmptyChipnetCopy checks it again
-  // before deleting), leaving the wallet on mainnet only. Returns false, having removed nothing,
-  // when the copy in use could not be left (changeNetwork said why). The copy's chipnet notes,
-  // labels and the like stay in localStorage: no other wallet can take the name while the mainnet
-  // one has it, and deleteWallet removes them with it.
+  // Removes the chipnet copy of an older wallet that holds no coins (removeEmptyChipnetCopy checks
+  // it again before deleting), leaving the wallet on mainnet only. Returns false, having removed
+  // nothing, when another removal is running or the copy in use could not be left (which shows
+  // why). The guard is set before anything else, so no wallet changes network from the first step
+  // on. The copy's chipnet notes, labels and the like stay in localStorage: no other wallet can
+  // take the name while the mainnet one has it, and deleteWallet removes them with it.
   async function removeChipnetCopy(walletName: string, checkedChipnetId: string): Promise<boolean> {
     if (removingChipnetCopy.value) return false;
-    // the copy in use is left first, so the wallet open is never a deleted row
-    if (walletName === activeWalletName.value && network.value === 'chipnet') {
-      if (!await changeNetwork('mainnet', true)) return false;
-    }
     removingChipnetCopy.value = true;
     try {
+      // the copy in use is left first, so the wallet open is never a deleted row
+      if (walletName === activeWalletName.value && network.value === 'chipnet') {
+        if (!await openActiveWalletOn('mainnet', true)) return false;
+      }
       await removeEmptyChipnetCopy(walletName, checkedChipnetId);
     } finally {
       removingChipnetCopy.value = false;

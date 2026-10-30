@@ -64,10 +64,16 @@ touches the copy, and nothing is migrated automatically.
 A developer can untie the open wallet in the developer settings
 (`utils/wallet/tiedWallets.ts`):
 
-1. The section shows only when the chipnet row is exactly the mainnet id with its network replaced.
+1. The "Wallet also on chipnet" section shows for any name with rows on both networks; checking
+   and removing are offered only when the chipnet row is exactly the mainnet id with its network
+   replaced.
 2. "Check if removable" reads what the copy holds on chipnet: the one address of a
-   single-address wallet, or an HD wallet's receive and change chains, each followed until 20
-   addresses in a row are unused, with the unspent coins of every used address.
+   single-address wallet, or an HD wallet's receive, change and WizardConnect defi chains, each
+   followed until 20 addresses in a row are unused, with the unspent coins of every used address.
+   Coins past a longer gap are not found, as the wallet's own discovery would not find them
+   either. Electrum looks addresses up by script hash, which is the same on mainnet and chipnet, so
+   the check shows the chipnet server the script hashes of the mainnet wallet's first addresses,
+   as opening the copy always did.
 3. A copy that holds no coins, never used or used and emptied, is offered for removal, behind a
    confirmation: nothing is lost, as its keys are in the mainnet row and its history stays on the
    chain. A copy holding BCH or tokens is kept, and so is one whose coins could not be read; the

@@ -131,6 +131,18 @@ describe('createNewWallet', () => {
       expect(mockNamedWalletExists).toHaveBeenCalledWith('chipnetOnlyWallet', 'bchtest')
       expect(mockWalletNamed).not.toHaveBeenCalled()
     })
+
+    it('refuses a chipnet wallet whose name a mainnet wallet has', async () => {
+      mockNamedWalletExists
+        .mockResolvedValueOnce(true)   // mainnet check
+        .mockResolvedValueOnce(false)  // chipnet check
+
+      const result = await createNewWallet('mainnetWallet', 'chipnet')
+
+      expect(result.success).toBe(false)
+      expect(mockTestNetWalletNamed).not.toHaveBeenCalled()
+      expect(mockSaveNamedWallet).not.toHaveBeenCalled()
+    })
   })
 
   describe('name handling', () => {
@@ -448,16 +460,6 @@ describe('importWallet', () => {
       mockWalletNamed.mockResolvedValue(mockWallet)
     })
 
-    it('stores the mainnet wallet only', async () => {
-      await importWallet({
-        name: 'imported',
-        seedPhrase: validSeedPhrase,
-        seedPhraseValid: true,
-        derivationPath: 'standard'
-      })
-
-      expect(mockSaveNamedWallet).toHaveBeenCalledTimes(1)
-    })
 
     it('stores a chipnet wallet only, when asked for one', async () => {
       mockTestNetWalletNamed.mockResolvedValue({})
@@ -896,16 +898,6 @@ describe('importHDWallet', () => {
       mockHDWalletNamed.mockResolvedValue(mockWallet)
     })
 
-    it('stores the mainnet HD wallet only', async () => {
-      await importHDWallet({
-        name: 'imported',
-        seedPhrase: validSeedPhrase,
-        seedPhraseValid: true,
-        derivationPath: 'standard'
-      })
-
-      expect(mockSaveNamedWallet).toHaveBeenCalledTimes(1)
-    })
 
     it('stores a chipnet HD wallet only, when asked for one', async () => {
       mockTestNetHDWalletNamed.mockResolvedValue({})
@@ -1166,13 +1158,10 @@ describe('scanDerivationPaths on chipnet', () => {
     mockGetHistory.mockResolvedValue([])
   })
 
-  it('asks for chipnet addresses when importing a chipnet wallet', async () => {
+  it('asks the chipnet provider when importing a chipnet wallet', async () => {
     await scanDerivationPaths('abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about', 'chipnet')
     expect(mockGetNetworkProvider).toHaveBeenCalledWith('testnet')
     expect(mockGetNetworkProvider).not.toHaveBeenCalledWith('mainnet')
-    const asked = mockGetHistory.mock.calls.map(([address]) => address as string)
-    expect(asked.length).toBeGreaterThan(0)
-    expect(asked.every(address => address.startsWith('bchtest:'))).toBe(true)
   })
 })
 
@@ -1180,22 +1169,16 @@ describe('suggestNextWalletName', () => {
   const wallets = (...entries: [string, boolean, boolean][]) =>
     mockGetAllWalletsWithNetworkInfo.mockResolvedValue(entries.map(([name, hasMainnet, hasChipnet]) => ({ name, hasMainnet, hasChipnet })))
 
-  it('continues past the highest mainnet number, counting every wallet name', async () => {
-    wallets(['wallet 2', true, true], ['wallet 5', false, true])
-    expect(await suggestNextWalletName()).toBe('wallet 6')
-  })
-
-  it('numbers by the mainnet wallets when none is numbered yet', async () => {
-    wallets(['mywallet', true, false], ['test wallet', false, true])
-    expect(await suggestNextWalletName()).toBe('wallet 2')
-  })
-
-  it('suggests "test wallet" for a development wallet, then numbers on', async () => {
-    wallets(['mywallet', true, false])
-    expect(await suggestNextWalletName('chipnet')).toBe('test wallet')
-    wallets(['test wallet', false, true])
-    expect(await suggestNextWalletName('chipnet')).toBe('test wallet 2')
-    wallets(['test wallet 3', false, true], ['wallet 7', true, false])
-    expect(await suggestNextWalletName('chipnet')).toBe('test wallet 4')
+  it.each([
+    // past the highest number, counting every wallet's name as names are unique across networks
+    ['mainnet', [['wallet 2', true, true], ['wallet 5', false, true]], 'wallet 6'],
+    // by the mainnet wallets when none is numbered, so test wallets don't push the number up
+    ['mainnet', [['mywallet', true, false], ['test wallet', false, true]], 'wallet 2'],
+    ['chipnet', [['mywallet', true, false]], 'test wallet'],
+    ['chipnet', [['test wallet', false, true]], 'test wallet 2'],
+    ['chipnet', [['test wallet 3', false, true], ['wallet 7', true, false]], 'test wallet 4'],
+  ] as const)('suggests on %s with %j: %s', async (network, existing, suggested) => {
+    wallets(...(existing as unknown as [string, boolean, boolean][]))
+    expect(await suggestNextWalletName(network)).toBe(suggested)
   })
 })

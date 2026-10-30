@@ -1261,7 +1261,8 @@
     "notifications": {
       "sessionApproved": "Sessão aprovada",
       "successfullySignedTransaction": "Transação assinada com sucesso",
-      "networkMismatch": "Este dApp precisa de uma carteira na {network}. Abra uma carteira de {network} para usar este dApp: uma carteira que também tem uma cópia antiga de chipnet abre na chipnet pelas configurações de desenvolvedor.",
+      "networkMismatch": "Este dApp precisa de uma carteira na {network}. Abra uma carteira de {network} para usar este dApp.",
+      "networkMismatchChipnet": "Este dApp precisa de uma carteira na {network}. Abra uma carteira de {network} para usar este dApp: uma carteira que também tem uma cópia antiga de chipnet abre na chipnet pelas configurações de desenvolvedor.",
       "notStarted": "CashConnect não foi iniciado.",
       "privateKeyNotFound": "Chave privada não encontrada para o endereço: {address}",
       "failedToConvertCashAddr": "Falha ao converter CashAddr para Locking Bytecode",

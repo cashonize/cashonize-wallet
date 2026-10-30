@@ -137,12 +137,23 @@
     return walletInfo !== undefined && walletInfo.hasMainnet && walletInfo.hasChipnet;
   });
   const otherNetwork = computed(() => store.network === 'mainnet' ? 'chipnet' : 'mainnet');
+  // whether the lookup for the open wallet has answered, so the hint never guesses "other keys"
+  const tiedCopyLoaded = ref(false);
   async function loadTiedCopy() {
     const walletName = store.activeWalletName;
     tiedCopyCheck.value = 'unchecked';
-    const chipnetId = await tiedChipnetCopy(walletName);
+    tiedCopyLoaded.value = false;
+    let chipnetId: string | undefined;
+    try {
+      chipnetId = await tiedChipnetCopy(walletName);
+    } catch (error) {
+      console.error(error);
+      return;
+    }
     // a lookup for a wallet switched away from meanwhile is dropped
-    if (store.activeWalletName === walletName) tiedCopyId.value = chipnetId;
+    if (store.activeWalletName !== walletName) return;
+    tiedCopyId.value = chipnetId;
+    tiedCopyLoaded.value = true;
   }
   watch([settingsSection, () => store.activeWalletName], ([section]) => {
     if (section === 4) void loadTiedCopy();
@@ -996,7 +1007,7 @@
 
       <div v-if="activeOnBothNetworks" style="margin-top:15px">
         <label>{{ t('settings.developer.alsoOnNetwork', { network: otherNetwork }) }}</label>
-        <div style="font-size: smaller; color: grey;">
+        <div v-if="tiedCopyLoaded" style="font-size: smaller; color: grey;">
           <i18n-t :keypath="tiedCopyId ? 'settings.developer.sameKeysHint' : 'settings.developer.otherKeysHint'" tag="span">
             <template #name><span class="wallet-name-styled">{{ store.activeWalletName }}</span></template>
           </i18n-t>
