@@ -19,7 +19,7 @@ exchange rate provider are selectable in the advanced settings, from predefined 
 most, a custom URL. Each one sees the requests made of it: an electrum server learns every
 address the wallet subscribes to, the indexers the tokens it looks up.
 
-**Electrum can move to a second server.** Under the automatic and preferred modes, the default,
+**Electrum can move to a second server.** Under the automatic mode (the default) and the preferred one,
 a server that stays unreachable is replaced by the next one from a short predefined list, which
 then learns the wallet's addresses too. The wallet stays on one server at a time and only moves
 when the one in use is lost or stops following the chain; the other servers on the list are
