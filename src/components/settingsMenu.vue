@@ -994,26 +994,22 @@
       </div>
 
       <div v-if="activeOnBothNetworks" style="margin-top:15px">
-        <label>{{ t('settings.developer.otherNetwork') }}</label>
+        <label>{{ t('settings.developer.alsoOnNetwork', { network: otherNetwork }) }}</label>
         <div style="font-size: smaller; color: grey;">
-          {{ t('settings.developer.otherNetworkHint', { name: store.activeWalletName, network: otherNetwork }) }}
+          <template v-if="tiedCopyId">{{ t('settings.developer.sameKeysHint', { name: store.activeWalletName }) }}</template>
+          <template v-else>{{ t('settings.developer.otherKeysHint', { name: store.activeWalletName }) }}</template>
         </div>
         <input @click="openOtherSide()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.openOnNetwork', { network: otherNetwork })" class="button" style="display: block; margin-top: 8px;">
-      </div>
-
-      <div v-if="tiedCopyId" style="margin-top:15px">
-        <label>{{ t('settings.developer.chipnetCopy') }}</label>
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.developer.chipnetCopyHint') }}
-        </div>
-        <input v-if="tiedCopyCheck !== 'unused'" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking' || store.removingChipnetCopy" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
-        <div v-if="tiedCopyCheck === 'checking'" style="margin-top: 8px;">{{ t('settings.developer.checkingChipnetCopy') }}</div>
-        <div v-else-if="tiedCopyCheck === 'used'" style="margin-top: 8px;">{{ t('settings.developer.chipnetCopyUsed', { name: store.activeWalletName }) }}</div>
-        <div v-else-if="tiedCopyCheck === 'failed'" style="margin-top: 8px; color: red;">{{ t('settings.developer.chipnetCopyCheckFailed') }}</div>
-        <div v-else-if="tiedCopyCheck === 'unused'" style="margin-top: 8px;">
-          {{ t('settings.developer.chipnetCopyUnused', { name: store.activeWalletName }) }}
-          <input @click="removeChipnetCopy()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.removeChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
-        </div>
+        <template v-if="tiedCopyId">
+          <input v-if="tiedCopyCheck !== 'unused'" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking' || store.removingChipnetCopy" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
+          <div v-if="tiedCopyCheck === 'checking'" style="margin-top: 8px;">{{ t('settings.developer.checkingChipnetCopy') }}</div>
+          <div v-else-if="tiedCopyCheck === 'used'" style="margin-top: 8px;">{{ t('settings.developer.chipnetCopyUsed', { name: store.activeWalletName }) }}</div>
+          <div v-else-if="tiedCopyCheck === 'failed'" style="margin-top: 8px; color: red;">{{ t('settings.developer.chipnetCopyCheckFailed') }}</div>
+          <div v-else-if="tiedCopyCheck === 'unused'" style="margin-top: 8px;">
+            {{ t('settings.developer.chipnetCopyUnused', { name: store.activeWalletName }) }}
+            <input @click="removeChipnetCopy()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.removeChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
+          </div>
+        </template>
       </div>
 
       <div style="margin-top:15px">
