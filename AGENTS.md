@@ -13,7 +13,7 @@ Uses pnpm (v11). Config (overrides, supply-chain hardening, build-script allowli
 ```bash
 pnpm dev                   # Start development server (opens browser)
 pnpm build                 # Production build (generates dist/stats.html bundle analysis)
-pnpm lint                  # ESLint check
+pnpm lint                  # oxlint, type-aware (.oxlintrc.json)
 pnpm test                  # Run vitest tests
 pnpm test:coverage         # Run vitest once with coverage of src/*.ts
 pnpm check:i18n            # Locale files: duplicate keys, key parity, placeholders
