@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "La copia de chipnet de {name} cambió desde que se comprobó, así que no se quitó nada.",
+      "chipnetCopyRemovalRunning": "Se está quitando una copia de chipnet. Inténtalo de nuevo cuando termine.",
       "chipnetCopyUsed": "La copia de chipnet de {name} tiene historial en chipnet, así que no se quitó nada.",
       "cannotDeleteActiveWallet": "No se puede eliminar la billetera actualmente activa",
       "cachedKeysNotCleared": "La cartera fue eliminada, pero no se pudieron eliminar las claves que tenía en caché.",
@@ -1260,7 +1261,7 @@
     "notifications": {
       "sessionApproved": "Sesión aprobada",
       "successfullySignedTransaction": "Transacción firmada exitosamente",
-      "networkMismatch": "Esta dApp necesita una billetera en {network}. Abre una billetera de {network} desde tus billeteras para usar esta dApp.",
+      "networkMismatch": "Esta dApp necesita una billetera en {network}. Abre una billetera de {network} para usar esta dApp: una billetera que también tiene una copia antigua de chipnet se abre en chipnet desde los ajustes de desarrollador.",
       "notStarted": "CashConnect no está iniciado.",
       "privateKeyNotFound": "No se pudo encontrar la clave privada para la dirección: {address}",
       "failedToConvertCashAddr": "Error al convertir CashAddr a Locking Bytecode",

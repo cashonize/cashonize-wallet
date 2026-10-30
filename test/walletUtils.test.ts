@@ -11,6 +11,7 @@ import {
   mockTestNetWalletNamed,
   mockTestNetHDWalletNamed,
   mockGetAllWalletsWithNetworkInfo,
+  mockGetNetworkProvider,
   mockNamedWalletExists,
   mockSetWallet,
   mockResetWalletState,
@@ -1160,12 +1161,15 @@ describe('scanDerivationPaths', () => {
 
 describe('scanDerivationPaths on chipnet', () => {
   beforeEach(() => {
+    mockGetNetworkProvider.mockClear()
     mockGetHistory.mockReset()
     mockGetHistory.mockResolvedValue([])
   })
 
   it('asks for chipnet addresses when importing a chipnet wallet', async () => {
     await scanDerivationPaths('abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about', 'chipnet')
+    expect(mockGetNetworkProvider).toHaveBeenCalledWith('testnet')
+    expect(mockGetNetworkProvider).not.toHaveBeenCalledWith('mainnet')
     const asked = mockGetHistory.mock.calls.map(([address]) => address as string)
     expect(asked.length).toBeGreaterThan(0)
     expect(asked.every(address => address.startsWith('bchtest:'))).toBe(true)

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { mockDeleteNamedWallet, mockGetHistory, mockGetNamedWalletId } from './mocks/walletUtils.mocks'
+import { mockDeleteNamedWallet, mockGetHistory, mockGetNamedWalletId, mockGetNetworkProvider } from './mocks/walletUtils.mocks'
 import { chipnetCopyHasHistory, removeUnusedChipnetCopy, tiedChipnetCopy } from '../src/utils/wallet/tiedWallets'
 import { getAddrsByXpubKey, getXPubKey } from '@cashonize/bch-wallet-lib'
 import { deriveSeedFromBip39Mnemonic } from '@bitauth/libauth'
@@ -45,7 +45,9 @@ describe('chipnetCopyHasHistory', () => {
   })
 
   it('reads the receive and change addresses of an HD copy on chipnet', async () => {
+    mockGetNetworkProvider.mockClear()
     expect(await chipnetCopyHasHistory(chipnetHd)).toBe(false)
+    expect(mockGetNetworkProvider.mock.calls).toEqual([['testnet']])
     const asked = mockGetHistory.mock.calls.map(([address]) => address as string)
     expect(asked).toHaveLength(40)
     expect(asked).toContain(firstChipnetAddress)

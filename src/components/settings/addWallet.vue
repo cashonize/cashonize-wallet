@@ -25,7 +25,10 @@
   // don't have to invent one. Suggested each time the view opens: the network may differ, and the
   // last suggestion may since have been taken.
   onActivated(async () => {
-    walletName.value = await suggestNextWalletName(store.addWalletNetwork);
+    const shownName = walletName.value;
+    const suggestedName = await suggestNextWalletName(store.addWalletNetwork);
+    // a name typed while the suggestion was being worked out is kept
+    if (walletName.value === shownName) walletName.value = suggestedName;
   });
 
   // This view is kept alive, so leaving it is what has to clear the seed phrase: reopening Add

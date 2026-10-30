@@ -488,13 +488,33 @@ describe('removeChipnetCopy', () => {
     store.activeWalletName = 'myWallet'
 
     mockGetNamedWalletId.mockResolvedValueOnce(undefined)
-    await expect(store.removeChipnetCopy('myWallet', 'checked-id')).rejects.toThrow()
+    expect(await store.removeChipnetCopy('myWallet', 'checked-id')).toBe(false)
     expect(mockRemoveUnusedChipnetCopy).not.toHaveBeenCalled()
 
-    await store.removeChipnetCopy('myWallet', 'checked-id')
+    expect(await store.removeChipnetCopy('myWallet', 'checked-id')).toBe(true)
     expect(mockWalletFromId).toHaveBeenCalled()
     expect(store.network).toBe('mainnet')
     expect(mockRemoveUnusedChipnetCopy).toHaveBeenCalledWith('myWallet', 'checked-id')
+  })
+
+  it('opens no wallet on another network while the removal runs', async () => {
+    let finishRemoval = () => {}
+    mockRemoveUnusedChipnetCopy.mockImplementation(() => new Promise<void>(resolve => { finishRemoval = resolve }))
+    const store = useStore()
+    await store.setWallet(mockMainnetWallet as never)
+    store.activeWalletName = 'myWallet'
+
+    const removal = store.removeChipnetCopy('myWallet', 'checked-id')
+    await vi.waitFor(() => expect(mockRemoveUnusedChipnetCopy).toHaveBeenCalled())
+    expect(store.removingChipnetCopy).toBe(true)
+
+    expect(await store.changeNetwork('chipnet')).toBe(false)
+    expect(mockTestNetWalletFromId).not.toHaveBeenCalled()
+    expect(store.network).toBe('mainnet')
+
+    finishRemoval()
+    expect(await removal).toBe(true)
+    expect(store.removingChipnetCopy).toBe(false)
   })
 
   it('refreshes the wallet list when the removal refuses', async () => {

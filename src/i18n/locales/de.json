@@ -93,6 +93,7 @@
     },
     "errors": {
       "chipnetCopyChanged": "Die Chipnet-Kopie von {name} hat sich seit der Prüfung geändert, daher wurde nichts entfernt.",
+      "chipnetCopyRemovalRunning": "Eine Chipnet-Kopie wird gerade entfernt. Versuche es erneut, sobald das erledigt ist.",
       "chipnetCopyUsed": "Die Chipnet-Kopie von {name} hat einen Chipnet-Verlauf, daher wurde nichts entfernt.",
       "cannotDeleteActiveWallet": "Das aktive Wallet kann nicht gelöscht werden",
       "cachedKeysNotCleared": "Die Wallet wurde gelöscht, aber die von ihr zwischengespeicherten Schlüssel konnten nicht entfernt werden.",
@@ -1260,7 +1261,7 @@
     "notifications": {
       "sessionApproved": "Sitzung genehmigt",
       "successfullySignedTransaction": "Transaktion erfolgreich signiert",
-      "networkMismatch": "Diese dApp benötigt eine Wallet auf {network}. Öffne eine {network}-Wallet aus deinen Wallets, um diese dApp zu verwenden.",
+      "networkMismatch": "Diese dApp benötigt eine Wallet auf {network}. Öffne eine {network}-Wallet, um diese dApp zu verwenden: Eine Wallet mit einer älteren Chipnet-Kopie öffnet sich auf Chipnet über die Entwicklereinstellungen.",
       "notStarted": "CashConnect ist nicht gestartet.",
       "privateKeyNotFound": "Privater Schlüssel konnte für Adresse nicht gefunden werden: {address}",
       "failedToConvertCashAddr": "CashAddr konnte nicht in Locking Bytecode umgewandelt werden",

@@ -17,6 +17,8 @@ export const mockTestNetHDWalletNamed = vi.fn()
 export const mockSaveNamedWallet = vi.fn()
 // The history the derivation path scan asks the mainnet provider for, per address
 export const mockGetHistory = vi.fn()
+// The network's provider, which scans read history from; the tests check which network was asked
+export const mockGetNetworkProvider = vi.fn<(network: string) => { getHistory: typeof mockGetHistory }>(() => ({ getHistory: mockGetHistory }))
 // The stored id of a named wallet, per database
 export const mockGetNamedWalletId = vi.fn()
 export const mockDeleteNamedWallet = vi.fn()
@@ -73,7 +75,7 @@ vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   networkConfig: (await importOriginal<typeof BchWalletLib>()).networkConfig,
   getXPubKey: (await importOriginal<typeof BchWalletLib>()).getXPubKey,
   getAddrsByXpubKey: (await importOriginal<typeof BchWalletLib>()).getAddrsByXpubKey,
-  getNetworkProvider: vi.fn(() => ({ getHistory: mockGetHistory })),
+  getNetworkProvider: mockGetNetworkProvider,
   namedWalletExists: mockNamedWalletExists,
   getNamedWalletId: mockGetNamedWalletId,
   deleteNamedWallet: mockDeleteNamedWallet,

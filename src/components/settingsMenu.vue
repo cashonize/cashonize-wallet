@@ -21,6 +21,7 @@
   import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { chipnetCopyHasHistory, tiedChipnetCopy } from 'src/utils/wallet/tiedWallets'
+  import { maxWallets } from 'src/utils/wallet/walletUtils'
   import { Notify } from 'quasar'
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
@@ -128,8 +129,6 @@
   // checking its chipnet history found
   const tiedCopyId = ref<string | undefined>();
   const tiedCopyCheck = ref<'unchecked' | 'checking' | 'unused' | 'used' | 'failed'>('unchecked');
-  // while a removal runs, nothing else here may open or check a wallet
-  const removingCopy = ref(false);
   // Whether the active wallet's name also has a row on the other network: an older wallet's copy,
   // or a chipnet wallet of another seed that early versions made under the same name
   const activeOnBothNetworks = computed(() => {
@@ -138,8 +137,11 @@
   });
   const otherNetwork = computed(() => store.network === 'mainnet' ? 'chipnet' : 'mainnet');
   async function loadTiedCopy() {
+    const walletName = store.activeWalletName;
     tiedCopyCheck.value = 'unchecked';
-    tiedCopyId.value = await tiedChipnetCopy(store.activeWalletName);
+    const chipnetId = await tiedChipnetCopy(walletName);
+    // a lookup for a wallet switched away from meanwhile is dropped
+    if (store.activeWalletName === walletName) tiedCopyId.value = chipnetId;
   }
   watch([settingsSection, () => store.activeWalletName], ([section]) => {
     if (section === 4) void loadTiedCopy();
@@ -515,17 +517,21 @@
   // A wallet name with rows on both networks opens on mainnet from the wallet list; this opens the
   // other one. Any other wallet is on one network, reached by opening it from the wallet list.
   async function openOtherSide(){
-    if (removingCopy.value) return;
+    if (store.removingChipnetCopy) return;
     settingsStore.hasPlayedAnimation = false;
     await store.changeNetwork(otherNetwork.value);
   }
   function addChipnetWallet(){
+    if (store.availableWallets.length >= maxWallets) {
+      Notify.create({ message: t('walletsOverview.walletLimitReached', { max: maxWallets }), icon: 'info', color: "grey-6" });
+      return;
+    }
     store.addWalletNetwork = 'chipnet';
     store.changeView(9);
   }
   async function checkChipnetCopy(){
     const chipnetId = tiedCopyId.value;
-    if (!chipnetId || removingCopy.value) return;
+    if (!chipnetId || store.removingChipnetCopy) return;
     tiedCopyCheck.value = 'checking';
     let result: 'used' | 'unused' | 'failed';
     try {
@@ -546,18 +552,17 @@
       t('settings.developer.removeChipnetCopyUnused', { name: walletName }),
       t('settings.developer.removeChipnetCopy')
     );
-    if (!confirmed || removingCopy.value) return;
-    removingCopy.value = true;
+    if (!confirmed || store.removingChipnetCopy) return;
+    let removed: boolean;
     try {
-      await store.removeChipnetCopy(walletName, chipnetId);
+      removed = await store.removeChipnetCopy(walletName, chipnetId);
     } catch (error) {
       displayAndLogError(error);
       await loadTiedCopy();
       return;
-    } finally {
-      removingCopy.value = false;
     }
     await loadTiedCopy();
+    if (!removed) return;
     Notify.create({ message: t('settings.developer.chipnetCopyRemoved', { name: walletName }), icon: 'info', color: "grey-6" });
   }
   function changeMintNfts(){
@@ -993,7 +998,7 @@
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.otherNetworkHint', { name: store.activeWalletName, network: otherNetwork }) }}
         </div>
-        <input @click="openOtherSide()" :disabled="removingCopy" type="button" :value="t('settings.developer.openOnNetwork', { network: otherNetwork })" class="button" style="display: block; margin-top: 8px;">
+        <input @click="openOtherSide()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.openOnNetwork', { network: otherNetwork })" class="button" style="display: block; margin-top: 8px;">
       </div>
 
       <div v-if="tiedCopyId" style="margin-top:15px">
@@ -1001,13 +1006,13 @@
         <div style="font-size: smaller; color: grey;">
           {{ t('settings.developer.chipnetCopyHint') }}
         </div>
-        <input v-if="tiedCopyCheck !== 'unused'" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking' || removingCopy" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
+        <input v-if="tiedCopyCheck !== 'unused'" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking' || store.removingChipnetCopy" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
         <div v-if="tiedCopyCheck === 'checking'" style="margin-top: 8px;">{{ t('settings.developer.checkingChipnetCopy') }}</div>
         <div v-else-if="tiedCopyCheck === 'used'" style="margin-top: 8px;">{{ t('settings.developer.chipnetCopyUsed', { name: store.activeWalletName }) }}</div>
         <div v-else-if="tiedCopyCheck === 'failed'" style="margin-top: 8px; color: red;">{{ t('settings.developer.chipnetCopyCheckFailed') }}</div>
         <div v-else-if="tiedCopyCheck === 'unused'" style="margin-top: 8px;">
           {{ t('settings.developer.chipnetCopyUnused', { name: store.activeWalletName }) }}
-          <input @click="removeChipnetCopy()" :disabled="removingCopy" type="button" :value="t('settings.developer.removeChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
+          <input @click="removeChipnetCopy()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.removeChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
         </div>
       </div>
 

@@ -73,7 +73,8 @@ A developer can untie the open wallet in the developer settings
    chipnet row must still be the copy that was checked and the mainnet row must still hold the
    same keys. Reading the rows last catches a change during the slow history read, such as
    another tab deleting the wallet and making a new one of that name. Anything else deletes
-   nothing, and the developer settings take no other action while a removal runs.
+   nothing. While a removal runs, the store opens no wallet on another network, so the copy
+   being removed cannot become the open wallet.
 
 Removing the copy deletes the chipnet row only; its keys stay in the mainnet row. The copy's
 chipnet data in localStorage (notes, labels and the like) is kept: no other wallet can take the
