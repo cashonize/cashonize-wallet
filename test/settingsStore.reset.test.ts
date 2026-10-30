@@ -80,3 +80,46 @@ describe('resetting the settings', () => {
     expect(settingsStore.hiddenTokens).toEqual(['category1'])
   })
 })
+
+// The per-network settings moved into one entry per network; what users stored before must load
+describe('the per-network settings', () => {
+  beforeEach(() => {
+    storage.clear()
+    vi.stubGlobal('localStorage', storage)
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: false }), addEventListener: () => {} })
+    vi.stubGlobal('document', { body: { classList: { add: () => {} } } })
+  })
+
+  it('read the keys mainnet and chipnet always had', () => {
+    storage.setItem('explorerMainnet', 'https://explorer.example/tx')
+    storage.setItem('explorerChipnet', 'https://chipnet-explorer.example/tx')
+    storage.setItem('electrum-chipnet', 'chipnet.example')
+    storage.setItem('electrumMode-chipnet', 'preferred')
+    storage.setItem('bcmrIndexerChipnet', 'https://indexer.example/api')
+    storage.setItem('chaingraph-mainnet', 'https://chaingraph.example/v1/graphql')
+    // a chipnet Chaingraph set to none stays none, rather than taking a default
+    storage.setItem('chaingraph-chipnet', '')
+    setActivePinia(createPinia())
+    const settingsStore = useSettingsStore()
+
+    expect(settingsStore.explorer.mainnet).toBe('https://explorer.example/tx')
+    expect(settingsStore.explorer.chipnet).toBe('https://chipnet-explorer.example/tx')
+    expect(settingsStore.electrumServer.chipnet).toBe('chipnet.example')
+    expect(settingsStore.electrumMode.chipnet).toBe('preferred')
+    expect(settingsStore.tokenMetadataIndexer.chipnet).toBe('https://indexer.example/api')
+    expect(settingsStore.chaingraph.mainnet).toBe('https://chaingraph.example/v1/graphql')
+    expect(settingsStore.chaingraph.chipnet).toBe('')
+  })
+
+  it('give testnet4 its own, with no token metadata indexer by default', () => {
+    storage.setItem('explorerChipnet', 'https://chipnet-explorer.example/tx')
+    setActivePinia(createPinia())
+    const settingsStore = useSettingsStore()
+
+    expect(settingsStore.explorer.testnet4).toBe('https://tbch4.loping.net/tx')
+    expect(settingsStore.tokenMetadataIndexer.testnet4).toBe('')
+    settingsStore.setExplorer('testnet4', 'https://testnet4.imaginary.cash/tx')
+    expect(storage.getItem('explorer-testnet4')).toBe('https://testnet4.imaginary.cash/tx')
+    expect(storage.getItem('explorerChipnet')).toBe('https://chipnet-explorer.example/tx')
+  })
+})

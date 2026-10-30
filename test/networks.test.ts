@@ -14,7 +14,7 @@ describe('the app networks', () => {
     expect(appNetworks.map(walletDbName)).toEqual(['bitcoincash', 'bchtest', 'bchtest4'])
   })
 
-  it('register testnet4 with the block after chipnet split off as its checkpoint', async () => {
+  it('register testnet4 with a block after chipnet split off as its checkpoint', async () => {
     const testnet4 = networkConfig('testnet4')
     expect(testnet4.addressPrefix).toBe('bchtest')
     expect(testnet4.keyVersion).toBe('testnet')

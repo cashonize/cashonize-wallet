@@ -456,7 +456,7 @@
   },
   "dapp": {
     "title": "Connecter à une dApp",
-    "unavailableOnNetwork": "Les connexions aux dApps ne sont pas disponibles sur {network} : une dApp ne désigne un réseau de test que par son préfixe d'adresse bchtest, qu'il partage avec chipnet.",
+    "unavailableOnNetwork": "Les connexions aux dApps ne sont pas disponibles sur {network} : les dApps ne désignent un réseau de test que par son préfixe d'adresse bchtest ou sa version de xpub, qu'il partage avec chipnet.",
     "connectText": "Connectez-vous aux dApps BCH avec les méthodes de connexion prises en charge.",
     "supportedMethods": "WalletConnect, CashConnect et WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect et CashConnect",

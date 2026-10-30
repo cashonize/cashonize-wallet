@@ -32,7 +32,7 @@
         <b>{{ t(`createTokens.home.cardLeads.${line}`) }}</b> {{ t(`createTokens.home.walletLines.${line}`) }}
       </div>
     </div>
-    <div class="home-card" :class="{ selected: selectedHome === 'studio' }" @click="selectedHome = 'studio'">
+    <div v-if="CASHTOKENS_STUDIO_URL[store.network]" class="home-card" :class="{ selected: selectedHome === 'studio' }" @click="selectedHome = 'studio'">
       <div class="home-card-title">
         <span class="home-radio"></span>
         <b>{{ t('createTokens.home.studio') }}</b>
@@ -65,7 +65,7 @@
         <div>{{ t('createTokens.home.studioBox') }}</div>
       </div>
       <div class="studio-actions">
-        <a v-if="CASHTOKENS_STUDIO_URL[store.network]" :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" class="button primaryButton studio-button">
+        <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" class="button primaryButton studio-button">
           {{ t('createTokens.home.openStudio') }}
           <img src="images/external-link-white.svg">
         </a>

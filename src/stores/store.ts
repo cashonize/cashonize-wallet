@@ -59,7 +59,7 @@ import { ActionableError, displayAndLogError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
-import { appNetworkOf, appNetworks, libraryNetwork, storedAppNetwork, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
+import { appNetworkOf, appNetworks, dappsAvailableOn, libraryNetwork, storedAppNetwork, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
 import { removeEmptyChipnetCopy } from "src/utils/wallet/tiedWallets"
 import { sharedRun } from "src/utils/concurrency"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
@@ -1192,6 +1192,12 @@ export const useStore = defineStore('store', () => {
   }
 
   async function initializeCashConnect() {
+    // CashConnect keeps its sessions per seed, not per network: started on a network without dApp
+    // connections, it would bring back the sessions the same seed has on another network
+    if (!dappsAvailableOn(network.value)) {
+      isCcInitDone.value = true;
+      return;
+    }
     try{
       // Initialize CashConnect.
       const cashconnectWallet = useCashconnectStore();
@@ -1235,6 +1241,10 @@ export const useStore = defineStore('store', () => {
   }
 
   function initializeWizardConnect() {
+    if (!dappsAvailableOn(network.value)) {
+      isWizInitDone.value = true;
+      return;
+    }
     try {
       const wizardconnectStore = useWizardconnectStore();
 

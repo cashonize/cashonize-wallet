@@ -138,7 +138,7 @@ describe('createNewWallet', () => {
       const result = await createNewWallet('mainnetWallet', 'chipnet')
 
       expect(result.success).toBe(false)
-      expect(mockWalletNamed).not.toHaveBeenCalledWith(expect.anything(), { network: 'testnet' })
+      expect(mockWalletNamed).not.toHaveBeenCalled()
       expect(mockSaveNamedWallet).not.toHaveBeenCalled()
     })
   })
@@ -1142,6 +1142,30 @@ describe('scanDerivationPaths', () => {
 
     expect(result.multipleAddressesUsed).toBe(true)
     expect(scannedPaths()).toHaveLength(3 + 10)
+  })
+})
+
+// The library's TestNet classes are fixed to chipnet, so a testnet4 wallet made through them would
+// be stored as a chipnet wallet: its id has to say testnet4 and land in testnet4's own database
+describe('testnet4 wallets', () => {
+  const seedPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+
+  beforeEach(() => {
+    mockNamedWalletExists.mockResolvedValue(false)
+    mockSaveNamedWallet.mockResolvedValue(undefined)
+    mockWalletNamed.mockResolvedValue({})
+    mockHDWalletNamed.mockResolvedValue({})
+  })
+
+  it('are created on testnet4', async () => {
+    expect((await createNewHDWallet('dev', 'testnet4')).success).toBe(true)
+    expect(mockHDWalletNamed).toHaveBeenCalledWith('dev', { network: 'testnet4' })
+  })
+
+  it('are imported into the testnet4 database with a testnet4 id', async () => {
+    await importHDWallet({ name: 'dev', seedPhrase, seedPhraseValid: true, derivationPath: 'standard', network: 'testnet4' })
+    expect(mockSaveNamedWallet.mock.calls).toEqual([['dev', `hd:testnet4:${seedPhrase}:m/44'/145'/0':0:0`, 'bchtest4']])
+    expect(mockHDWalletNamed).toHaveBeenCalledWith('dev', { network: 'testnet4' })
   })
 })
 
