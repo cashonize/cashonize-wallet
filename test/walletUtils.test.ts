@@ -10,6 +10,7 @@ import {
   mockHDWalletNamed,
   mockTestNetWalletNamed,
   mockTestNetHDWalletNamed,
+  mockGetAllWalletsWithNetworkInfo,
   mockNamedWalletExists,
   mockSetWallet,
   mockResetWalletState,
@@ -23,7 +24,7 @@ import {
 } from './mocks/walletUtils.mocks'
 
 // Import module under test after mocks
-import { createNewWallet, importWallet, createNewHDWallet, importHDWallet, validateWalletName, scanDerivationPaths } from '../src/utils/wallet/walletUtils'
+import { createNewWallet, importWallet, createNewHDWallet, importHDWallet, validateWalletName, scanDerivationPaths, suggestNextWalletName } from '../src/utils/wallet/walletUtils'
 import {
   deriveHdPath,
   deriveHdPrivateNodeFromSeed,
@@ -1154,5 +1155,29 @@ describe('scanDerivationPaths', () => {
 
     expect(result.multipleAddressesUsed).toBe(true)
     expect(scannedPaths()).toHaveLength(3 + 10)
+  })
+})
+
+describe('suggestNextWalletName', () => {
+  const wallets = (...entries: [string, boolean, boolean][]) =>
+    mockGetAllWalletsWithNetworkInfo.mockResolvedValue(entries.map(([name, hasMainnet, hasChipnet]) => ({ name, hasMainnet, hasChipnet })))
+
+  it('continues past the highest mainnet number, counting every wallet name', async () => {
+    wallets(['wallet 2', true, true], ['wallet 5', false, true])
+    expect(await suggestNextWalletName()).toBe('wallet 6')
+  })
+
+  it('numbers by the mainnet wallets when none is numbered yet', async () => {
+    wallets(['mywallet', true, false], ['test wallet', false, true])
+    expect(await suggestNextWalletName()).toBe('wallet 2')
+  })
+
+  it('suggests "test wallet" for a development wallet, then numbers on', async () => {
+    wallets(['mywallet', true, false])
+    expect(await suggestNextWalletName('chipnet')).toBe('test wallet')
+    wallets(['test wallet', false, true])
+    expect(await suggestNextWalletName('chipnet')).toBe('test wallet 2')
+    wallets(['test wallet 3', false, true], ['wallet 7', true, false])
+    expect(await suggestNextWalletName('chipnet')).toBe('test wallet 4')
   })
 })

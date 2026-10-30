@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted, onDeactivated } from "vue"
+  import { ref, computed, onActivated, onDeactivated } from "vue"
   import { useQuasar } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, suggestNextWalletName, walletNameTaken } from 'src/utils/wallet/walletUtils'
@@ -21,10 +21,11 @@
 
   const effectiveWalletName = computed(() => walletName.value.trim());
 
-  // Prefill a suggested name like "wallet 2" so users don't have to invent one
-  onMounted(async () => {
-    const suggestedName = await suggestNextWalletName();
-    if (!walletName.value) walletName.value = suggestedName;
+  // Prefill a suggested name like "wallet 2", or "test wallet" for a development wallet, so users
+  // don't have to invent one. Suggested each time the view opens: the network may differ, and the
+  // last suggestion may since have been taken.
+  onActivated(async () => {
+    walletName.value = await suggestNextWalletName(store.addWalletNetwork);
   });
 
   // This view is kept alive, so leaving it is what has to clear the seed phrase: reopening Add

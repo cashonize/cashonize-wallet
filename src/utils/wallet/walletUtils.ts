@@ -154,9 +154,6 @@ export function validateWalletName(name: string): WalletError | null {
   return null;
 }
 
-// Suggest a name for the user's next wallet, continuing the "wallet <number>" convention.
-// Counts past the highest number in use instead of filling gaps, so a deleted wallet's
-// name (and any leftover localStorage data keyed on it) is never reused.
 // A name belongs to one wallet across all networks: wallet type, backup status and the other
 // settings are keyed by the name alone
 export async function walletNameTaken(name: string): Promise<boolean> {
@@ -166,16 +163,31 @@ export async function walletNameTaken(name: string): Promise<boolean> {
   return false;
 }
 
-export async function suggestNextWalletName(): Promise<string> {
+// Suggest a name for the user's next wallet, continuing the "wallet <number>" convention, or for a
+// development wallet "test wallet", then "test wallet 2" and so on. Counts past the highest number
+// in use instead of filling gaps, so a deleted wallet's name (and any leftover localStorage data
+// keyed on it) is never reused. Names are unique across networks, so every wallet's name counts.
+export async function suggestNextWalletName(network: AppNetwork = 'mainnet'): Promise<string> {
   const existingWallets = await getAllWalletsWithNetworkInfo();
+  if (network !== 'mainnet') {
+    let highestTestNumber = 0;
+    for (const walletInfo of existingWallets) {
+      if (walletInfo.name === 'test wallet') highestTestNumber = Math.max(highestTestNumber, 1);
+      const match = walletInfo.name.match(/^test wallet (\d+)$/);
+      if (match) highestTestNumber = Math.max(highestTestNumber, Number(match[1]));
+    }
+    if (!highestTestNumber) return 'test wallet';
+    return `test wallet ${highestTestNumber + 1}`;
+  }
   let highestNumber = 0;
   for (const walletInfo of existingWallets) {
     const match = walletInfo.name.match(/^wallet (\d+)$/);
     if (match) highestNumber = Math.max(highestNumber, Number(match[1]));
   }
-  // No numbered names yet (e.g. only "mywallet"): number by wallet count, so the
+  // No numbered names yet (e.g. only "mywallet"): number by the mainnet wallets, so the
   // second wallet is suggested as "wallet 2"
-  const nextNumber = highestNumber ? highestNumber + 1 : existingWallets.length + 1;
+  const mainnetWalletCount = existingWallets.filter(walletInfo => walletInfo.hasMainnet).length;
+  const nextNumber = highestNumber ? highestNumber + 1 : mainnetWalletCount + 1;
   return `wallet ${nextNumber}`;
 }
 

@@ -62,7 +62,10 @@ vi.mock('src/stores/settingsStore', () => ({
   }))
 }))
 
-vi.mock('src/utils/wallet/dbUtils', () => ({}))
+export const mockGetAllWalletsWithNetworkInfo = vi.fn()
+vi.mock('src/utils/wallet/dbUtils', () => ({
+  getAllWalletsWithNetworkInfo: mockGetAllWalletsWithNetworkInfo,
+}))
 
 // The derivation helpers are the real ones: the scan's addresses are checked against libauth's
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
