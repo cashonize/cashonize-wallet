@@ -615,7 +615,7 @@
           {{ t('identities.transfer.action') }}
         </span>
       </template>
-      <template v-if="identity.status === 'heldViaKey'">
+      <template v-if="identity.status === 'heldViaKey' && CASHTOKENS_STUDIO_URL[store.network]">
         <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" style="white-space: nowrap;">
           <!-- a material glyph is padded inside its 24 unit box, so it needs the larger size to
                draw level with the Feather icons beside it -->

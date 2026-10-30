@@ -29,7 +29,7 @@ export const mockMainnetWallet = {
 
 export const mockChipnetWallet = {
   name: 'testWallet',
-  network: 'chipnet',
+  network: 'testnet', // the library's name for chipnet
   cashaddr: 'bchtest:qtest',
   tokenaddr: 'bchtest:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
@@ -78,6 +78,8 @@ class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static from
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   OpReturnData: (await importOriginal<typeof BchWalletLib>()).OpReturnData,
   networkConfig: (await importOriginal<typeof BchWalletLib>()).networkConfig,
+  knownNetworks: (await importOriginal<typeof BchWalletLib>()).knownNetworks,
+  registerNetwork: (await importOriginal<typeof BchWalletLib>()).registerNetwork,
   MAX_OP_RETURN_BYTES: (await importOriginal<typeof BchWalletLib>()).MAX_OP_RETURN_BYTES,
   InsufficientFundsError: (await importOriginal<typeof BchWalletLib>()).InsufficientFundsError,
   UtxoNotAvailableError: (await importOriginal<typeof BchWalletLib>()).UtxoNotAvailableError,

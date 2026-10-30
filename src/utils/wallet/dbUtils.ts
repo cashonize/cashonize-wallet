@@ -1,11 +1,13 @@
 import { pruneWalletCaches } from "@cashonize/bch-wallet-lib"
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
-import { walletDbName } from "src/utils/wallet/networks"
+import type { WalletDbEntryI } from "@cashonize/bch-wallet-lib"
+import { appNetworks, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
 
 export interface WalletInfo {
   name: string;
-  hasMainnet: boolean;
-  hasChipnet: boolean;
+  // the networks the name has a stored wallet on, in appNetworks order: one, except for an older
+  // wallet that also has its chipnet copy (docs/indexeddb.md)
+  networks: AppNetwork[];
 }
 
 // IndexedDBProvider is the library's own class, so the database name, its version and the shape
@@ -13,62 +15,40 @@ export interface WalletInfo {
 // Checking a wallet exists, reading its id and deleting it go through the library's
 // namedWalletExists, getNamedWalletId and deleteNamedWallet instead.
 
-// The library has no wallet listing above the storage provider, so this uses its getWallets().
-export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
-  // Get wallets from both networks
-  const mainnetDb = new IndexedDBProvider(walletDbName('mainnet'));
-  const chipnetDb = new IndexedDBProvider(walletDbName('chipnet'));
-
-  await Promise.all([mainnetDb.init(), chipnetDb.init()]);
-
+// Every network's stored wallets, read once per database. The library has no wallet listing above
+// the storage provider, so this uses its getWallets().
+async function storedWalletsPerNetwork(): Promise<{ network: AppNetwork; wallets: WalletDbEntryI[] }[]> {
+  const databases = appNetworks.map(network => ({ network, db: new IndexedDBProvider(walletDbName(network)) }));
+  await Promise.all(databases.map(({ db }) => db.init()));
   try {
-    const [mainnetWallets, chipnetWallets] = await Promise.all([
-      mainnetDb.getWallets(),
-      chipnetDb.getWallets()
-    ]);
-
-    const mainnetNames = new Set(mainnetWallets.map(w => w.name));
-    const chipnetNames = new Set(chipnetWallets.map(w => w.name));
-
-    // Combine all unique wallet names
-    const allNames = new Set([...mainnetNames, ...chipnetNames]);
-
-    const walletInfos: WalletInfo[] = [];
-    for (const name of allNames) {
-      walletInfos.push({
-        name,
-        hasMainnet: mainnetNames.has(name),
-        hasChipnet: chipnetNames.has(name)
-      });
-    }
-
-    return walletInfos;
+    return await Promise.all(databases.map(async ({ network, db }) => ({ network, wallets: await db.getWallets() })));
   } finally {
-    await Promise.all([mainnetDb.close(), chipnetDb.close()]);
+    await Promise.all(databases.map(({ db }) => db.close()));
   }
 }
 
-// Every wallet's stored id, from both databases. The prune needs these to work out which cached
-// keys still belong to a wallet. Each database is read once, since getWallets already returns the
-// stored id next to the name.
-async function getAllStoredWalletIds(): Promise<string[]> {
-  const mainnetDb = new IndexedDBProvider(walletDbName('mainnet'));
-  const chipnetDb = new IndexedDBProvider(walletDbName('chipnet'));
-  await Promise.all([mainnetDb.init(), chipnetDb.init()]);
+export async function getAllWalletsWithNetworkInfo(): Promise<WalletInfo[]> {
+  const walletInfos = new Map<string, WalletInfo>();
+  for (const { network, wallets } of await storedWalletsPerNetwork()) {
+    for (const walletEntry of wallets) {
+      const walletInfo = walletInfos.get(walletEntry.name) ?? { name: walletEntry.name, networks: [] };
+      walletInfo.networks.push(network);
+      walletInfos.set(walletEntry.name, walletInfo);
+    }
+  }
+  return [...walletInfos.values()];
+}
 
-  try {
-    const [mainnetWallets, chipnetWallets] = await Promise.all([
-      mainnetDb.getWallets(),
-      chipnetDb.getWallets()
-    ]);
-    const storedIds: string[] = [];
-    for (const walletEntry of [...mainnetWallets, ...chipnetWallets]) {
+// Every wallet's stored id, from every network's database. The prune needs these to work out which
+// cached keys still belong to a wallet: an id missing here has its cached keys deleted.
+async function getAllStoredWalletIds(): Promise<string[]> {
+  const storedIds: string[] = [];
+  for (const { wallets } of await storedWalletsPerNetwork()) {
+    for (const walletEntry of wallets) {
       if (walletEntry.wallet) storedIds.push(walletEntry.wallet);
     }
-    return storedIds;
-  } finally {
-    await Promise.all([mainnetDb.close(), chipnetDb.close()]);
   }
+  return storedIds;
 }
 
 // Deletes the cached keys of every wallet that is no longer in the databases. An HD wallet keeps

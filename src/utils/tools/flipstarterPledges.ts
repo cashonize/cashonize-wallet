@@ -2,7 +2,8 @@
 // outpoint of the coin backing each one. The signed pledge is kept so the user can copy it again
 // after closing the page; none of this leaves the device.
 
-type Network = 'mainnet' | 'chipnet';
+import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
+type Network = AppNetwork;
 
 export interface FlipstarterPledge {
   satoshis: string; // bigint, which JSON.stringify throws on
@@ -61,7 +62,7 @@ export function deletePledge(network: Network, walletName: string, outpoint: str
 
 // A future wallet created under the same name must not inherit the old wallet's pledges
 export function removePledges(walletName: string) {
-  for (const network of ['mainnet', 'chipnet'] as const) {
+  for (const network of appNetworks) {
     localStorage.removeItem(pledgesKey(network, walletName));
   }
 }

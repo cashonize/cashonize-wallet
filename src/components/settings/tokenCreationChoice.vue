@@ -65,7 +65,7 @@
         <div>{{ t('createTokens.home.studioBox') }}</div>
       </div>
       <div class="studio-actions">
-        <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" class="button primaryButton studio-button">
+        <a v-if="CASHTOKENS_STUDIO_URL[store.network]" :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank" class="button primaryButton studio-button">
           {{ t('createTokens.home.openStudio') }}
           <img src="images/external-link-white.svg">
         </a>

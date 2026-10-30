@@ -1,6 +1,7 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import { Wallet, TestNetWallet, HDWallet, TestNetHDWallet, convert, decodeHeader, type HexHeaderI, type Utxo, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib"
+import { Wallet, HDWallet, convert, decodeHeader, type HexHeaderI, type Utxo, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib"
+import { libraryNetwork, type AppNetwork } from "src/utils/wallet/networks"
 import type { BcmrTokenMetadata, ElectrumTokenData, TokenList, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
@@ -49,13 +50,12 @@ export function walletTypeFromWalletId(walletId: string): 'single' | 'hd' {
   return walletId.startsWith('hd:') ? 'hd' : 'single';
 }
 
-export async function loadWalletFromId(walletId: string, network: 'mainnet' | 'chipnet'): Promise<WalletType> {
+// A wallet of a test network comes from the mainnet classes with the network passed: the library's
+// TestNet classes are fixed to chipnet ("testnet")
+export async function loadWalletFromId(walletId: string, network: AppNetwork): Promise<WalletType> {
   const isHD = walletTypeFromWalletId(walletId) === 'hd';
-  if (network === 'mainnet') {
-    const wallet = isHD ? await HDWallet.fromId(walletId) : await Wallet.fromId(walletId);
-    return wallet;
-  }
-  const wallet = isHD ? await TestNetHDWallet.fromId(walletId) : await TestNetWallet.fromId(walletId);
+  const options = { network: libraryNetwork(network) };
+  const wallet = isHD ? await HDWallet.fromId(walletId, options) : await Wallet.fromId(walletId, options);
   return wallet;
 }
 

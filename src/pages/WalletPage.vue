@@ -27,7 +27,7 @@
   import { preloadIcons } from 'src/utils/icons/preloadIcons'
   import { namedWalletExists } from '@cashonize/bch-wallet-lib'
   import { getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
-  import { walletDbName } from 'src/utils/wallet/networks'
+  import { appNetworks, storedAppNetwork, walletDbName, type AppNetwork } from 'src/utils/wallet/networks'
   import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
@@ -127,9 +127,11 @@
   // check if named wallet already exists in indexedDB
   // we use a dbUtil and avoid 'WalletClass.namedExists' which instantiates a wallet + provider
   let walletToLoad = store.activeWalletName;
-  let walletHasMainnet = await namedWalletExists(walletToLoad, walletDbName('mainnet'));
-  let walletHasChipnet = await namedWalletExists(walletToLoad, walletDbName('chipnet'));
-  let walletExists = walletHasMainnet || walletHasChipnet;
+  let walletNetworks: AppNetwork[] = [];
+  for (const network of appNetworks) {
+    if (await namedWalletExists(walletToLoad, walletDbName(network))) walletNetworks.push(network);
+  }
+  let walletExists = walletNetworks.length > 0;
 
   // If active wallet doesn't exist somehow, try to fall back to any existing wallet
   if (!walletExists) {
@@ -137,8 +139,7 @@
     const fallbackWallet = allWallets[0];
     if (fallbackWallet) {
       walletToLoad = fallbackWallet.name;
-      walletHasMainnet = fallbackWallet.hasMainnet;
-      walletHasChipnet = fallbackWallet.hasChipnet;
+      walletNetworks = fallbackWallet.networks;
       walletExists = true;
       // Update stored active wallet name
       store.activeWalletName = walletToLoad;
@@ -148,12 +149,11 @@
 
   if(walletExists){
     // initialise wallet on configured network
-    let readNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
-    // if the wallet only exists on the other network (legacy single-network wallet or
-    // fallback wallet), correct the configured network instead of loading a missing wallet
-    const walletExistsOnNetwork = readNetwork === 'mainnet' ? walletHasMainnet : walletHasChipnet;
-    if (!walletExistsOnNetwork) {
-      readNetwork = walletHasMainnet ? 'mainnet' : 'chipnet';
+    let readNetwork = storedAppNetwork();
+    // if the wallet is not on the stored network (a wallet on one network, or the fallback
+    // wallet), correct the stored network instead of loading a missing wallet
+    if (!walletNetworks.includes(readNetwork)) {
+      readNetwork = walletNetworks[0]!;
       localStorage.setItem('network', readNetwork);
     }
     const initWallet = await store.loadExistingWallet(walletToLoad, readNetwork);

@@ -20,10 +20,9 @@ import {
 import { resolveAuthHeadsElectrum, queryAuthchainLinksElectrum, ELECTRUM_WALK_LIMIT } from "src/utils/tools/electrumAuthchain";
 import { guardsOpenedByHeldAuthKeys, isAuthGuardOf, isAuthKey } from "src/utils/tools/authGuard";
 import { publishedFormOf } from "src/utils/tools/registryFile";
+import type { AppNetwork } from "src/utils/wallet/networks";
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
-
-type Network = 'mainnet' | 'chipnet';
 
 // 'held' is an authhead this wallet holds directly and keeps out of coin selection. 'heldViaKey'
 // is an authhead locked in an AuthGuard covenant whose AuthKey this wallet holds, which is
@@ -72,8 +71,9 @@ export function identityBehindAuthKey(resolved: IdentityState): string | undefin
   return carried && carried !== resolved.category ? carried : undefined;
 }
 
-// where a guarded identity is managed, one instance per network
-export const CASHTOKENS_STUDIO_URL: Record<Network, string> = {
+// where a guarded identity is managed, one instance per network that has one (testnet4 has none,
+// so its links are left out)
+export const CASHTOKENS_STUDIO_URL: Partial<Record<AppNetwork, string>> = {
   mainnet: "https://cashtokens.studio/",
   chipnet: "https://chipnet.cashtokens.studio/",
 };

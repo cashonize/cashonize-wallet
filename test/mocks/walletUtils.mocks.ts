@@ -11,8 +11,6 @@ import { vi } from 'vitest'
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
 export const mockHDWalletNamed = vi.fn()
-export const mockTestNetWalletNamed = vi.fn()
-export const mockTestNetHDWalletNamed = vi.fn()
 // Stores a wallet id under a name without constructing the wallet
 export const mockSaveNamedWallet = vi.fn()
 // The history the derivation path scan and the untie check ask the network's provider for, per address
@@ -75,6 +73,8 @@ vi.mock('src/utils/wallet/dbUtils', () => ({
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   NetworkType: (await importOriginal<typeof BchWalletLib>()).NetworkType,
   networkConfig: (await importOriginal<typeof BchWalletLib>()).networkConfig,
+  knownNetworks: (await importOriginal<typeof BchWalletLib>()).knownNetworks,
+  registerNetwork: (await importOriginal<typeof BchWalletLib>()).registerNetwork,
   getXPubKey: (await importOriginal<typeof BchWalletLib>()).getXPubKey,
   getAddrsByXpubKey: (await importOriginal<typeof BchWalletLib>()).getAddrsByXpubKey,
   getNetworkProvider: mockGetNetworkProvider,
@@ -88,12 +88,7 @@ vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   HDWallet: {
     named: mockHDWalletNamed,
   },
-  TestNetWallet: {
-    named: mockTestNetWalletNamed,
-  },
-  TestNetHDWallet: {
-    named: mockTestNetHDWalletNamed,
-  },
+
   Config: {
     DefaultParentDerivationPath: '',
   }

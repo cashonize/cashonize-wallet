@@ -284,7 +284,7 @@
             <a :href="BCMR_DOCS_URL" target="_blank">{{ t('identities.learn.registriesLink') }}</a>
           </template>
           <template #studio>
-            <a :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank">CashTokens Studio</a>
+            <a v-if="CASHTOKENS_STUDIO_URL[store.network]" :href="CASHTOKENS_STUDIO_URL[store.network]" target="_blank">CashTokens Studio</a><span v-else>CashTokens Studio</span>
           </template>
         </i18n-t>
       </div>

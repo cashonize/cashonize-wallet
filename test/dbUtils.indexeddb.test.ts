@@ -30,7 +30,7 @@ beforeEach(() => {
   globalThis.indexedDB = new IDBFactory();
 });
 
-async function addWallet(dbName: "bitcoincash" | "bchtest", name: string, storedWalletId: string) {
+async function addWallet(dbName: "bitcoincash" | "bchtest" | "bchtest4", name: string, storedWalletId: string) {
   const db = new IndexedDBProvider(dbName);
   await db.init();
   await db.addWallet(name, storedWalletId);
@@ -137,6 +137,18 @@ describe('pruneDeletedWalletCaches', () => {
     await pruneDeletedWalletCaches();
 
     expect(await cacheKeys()).toEqual([liveMainnet]);
+  });
+
+  // testnet4 is registered by the app, not built into the library: a prune that does not read its
+  // database, or runs before it is registered, deletes every testnet4 HD wallet's cached keys
+  it('keeps the entry of a testnet4 wallet', async () => {
+    await addWallet("bchtest4", "test wallet", hdWalletId(otherMnemonic, "testnet4"));
+    const liveTestnet4 = cacheKeyOf(otherMnemonic, "testnet4");
+    await seedCache([[liveTestnet4, { a: 1 }]]);
+
+    await pruneDeletedWalletCaches();
+
+    expect(await cacheKeys()).toEqual([liveTestnet4]);
   });
 
   it('removes every entry once the last wallet is deleted', async () => {
@@ -362,7 +374,7 @@ describe('saveNamedWallet', () => {
       open.onerror = () => reject(new Error("Failed to open bchtest"));
     });
     expect(row).toEqual({ name: "saved", wallet: hdWalletId(mnemonic, "testnet") });
-    expect(await getAllWalletsWithNetworkInfo()).toEqual([{ name: "saved", hasMainnet: false, hasChipnet: true }]);
+    expect(await getAllWalletsWithNetworkInfo()).toEqual([{ name: "saved", networks: ['chipnet'] }]);
   });
 });
 
@@ -379,11 +391,16 @@ describe('getAllWalletsWithNetworkInfo', () => {
 
     expect(wallets).toHaveLength(3);
     expect(wallets.find((wallet) => wallet.name === "mainnetOnly"))
-      .toEqual({ name: "mainnetOnly", hasMainnet: true, hasChipnet: false });
+      .toEqual({ name: "mainnetOnly", networks: ['mainnet'] });
     expect(wallets.find((wallet) => wallet.name === "chipnetOnly"))
-      .toEqual({ name: "chipnetOnly", hasMainnet: false, hasChipnet: true });
+      .toEqual({ name: "chipnetOnly", networks: ['chipnet'] });
     expect(wallets.find((wallet) => wallet.name === "both"))
-      .toEqual({ name: "both", hasMainnet: true, hasChipnet: true });
+      .toEqual({ name: "both", networks: ['mainnet', 'chipnet'] });
+  });
+
+  it('lists a testnet4 wallet from its own database', async () => {
+    await addWallet("bchtest4", "test wallet", hdWalletId(otherMnemonic, "testnet4"));
+    expect(await getAllWalletsWithNetworkInfo()).toEqual([{ name: "test wallet", networks: ['testnet4'] }]);
   });
 
   it('returns nothing before any wallet exists', async () => {

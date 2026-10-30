@@ -134,7 +134,7 @@
   // or a chipnet wallet of another seed that early versions made under the same name
   const activeOnBothNetworks = computed(() => {
     const walletInfo = store.availableWallets.find(w => w.name === store.activeWalletName);
-    return walletInfo !== undefined && walletInfo.hasMainnet && walletInfo.hasChipnet;
+    return walletInfo !== undefined && walletInfo.networks.includes('mainnet') && walletInfo.networks.includes('chipnet');
   });
   const otherNetwork = computed(() => store.network === 'mainnet' ? 'chipnet' : 'mainnet');
   // whether the lookup for the open wallet has answered, so the hint never guesses "other keys"

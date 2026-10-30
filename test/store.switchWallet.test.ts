@@ -121,7 +121,7 @@ describe('switchWallet', () => {
       await store.switchWallet('newWallet')
 
       // Verify chipnet wallet was set by checking its properties
-      expect(store._wallet?.network).toBe('chipnet')
+      expect(store._wallet?.network).toBe('testnet')
       expect(store._wallet?.getDepositAddress()).toBe(mockChipnetWallet.cashaddr)
     })
   })
@@ -133,7 +133,7 @@ describe('switchWallet', () => {
       await store.setWallet(mockChipnetWallet as never)
       // Set up availableWallets with a mainnet-only wallet
       store.availableWallets = [
-        { name: 'mainnetOnlyWallet', hasMainnet: true, hasChipnet: false }
+        { name: 'mainnetOnlyWallet', networks: ['mainnet'] }
       ]
 
       const result = await store.switchWallet('mainnetOnlyWallet')
@@ -156,7 +156,7 @@ describe('switchWallet', () => {
       await store.setWallet(mockMainnetWallet as never)
       // Set up availableWallets with a chipnet-only wallet
       store.availableWallets = [
-        { name: 'chipnetOnlyWallet', hasMainnet: false, hasChipnet: true }
+        { name: 'chipnetOnlyWallet', networks: ['chipnet'] }
       ]
 
       const result = await store.switchWallet('chipnetOnlyWallet')
@@ -179,7 +179,7 @@ describe('switchWallet', () => {
       await store.setWallet(mockChipnetWallet as never)
       // an older wallet with its chipnet copy, listed under the mainnet wallets
       store.availableWallets = [
-        { name: 'bothNetworks', hasMainnet: true, hasChipnet: true }
+        { name: 'bothNetworks', networks: ['mainnet', 'chipnet'] }
       ]
 
       const result = await store.switchWallet('bothNetworks')
@@ -196,7 +196,7 @@ describe('switchWallet', () => {
       await store.setWallet(mockMainnetWallet as never)
       // Wallet exists on both networks
       store.availableWallets = [
-        { name: 'bothNetworks', hasMainnet: true, hasChipnet: true }
+        { name: 'bothNetworks', networks: ['mainnet', 'chipnet'] }
       ]
 
       const result = await store.switchWallet('bothNetworks')
@@ -247,7 +247,7 @@ describe('switchWallet', () => {
       store.activeWalletName = 'originalWallet'
       // Stale list claims the wallet exists on chipnet, but IndexedDB disagrees
       store.availableWallets = [
-        { name: 'staleWallet', hasMainnet: false, hasChipnet: true }
+        { name: 'staleWallet', networks: ['chipnet'] }
       ]
 
       await expect(store.switchWallet('staleWallet')).rejects.toThrowError()
@@ -367,15 +367,17 @@ describe('deleteWallet', () => {
     expect(mockDeleteNamedWallet).not.toHaveBeenCalled()
   })
 
-  it('deletes wallet from both mainnet and testnet databases', async () => {
+  it('deletes the wallet from every network database', async () => {
     const store = useStore()
     await store.setWallet(mockMainnetWallet as never)
 
     await store.deleteWallet('otherWallet')
 
-    expect(mockDeleteNamedWallet).toHaveBeenCalledWith('otherWallet', 'bitcoincash')
-    expect(mockDeleteNamedWallet).toHaveBeenCalledWith('otherWallet', 'bchtest')
-    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(2)
+    expect(mockDeleteNamedWallet.mock.calls).toEqual([
+      ['otherWallet', 'bitcoincash'],
+      ['otherWallet', 'bchtest'],
+      ['otherWallet', 'bchtest4'],
+    ])
   })
 
   // The seed is deleted above, but the library caches a private key per address for HD wallets
@@ -408,7 +410,7 @@ describe('deleteWallet', () => {
     await expect(store.deleteWallet('otherWallet')).resolves.toBeUndefined()
 
     expect(mockClearWalletSettings).toHaveBeenCalledWith('otherWallet')
-    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(2)
+    expect(mockDeleteNamedWallet).toHaveBeenCalledTimes(3)
   })
 
   it('does not prune the key cache when the delete is refused', async () => {

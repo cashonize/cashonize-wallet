@@ -198,7 +198,7 @@ describe('the electrum providers of the selected servers', () => {
     const mainnetProvider = madeFor('wss://a.example:50004')
     await store.setWallet(walletOn(mainnetProvider) as never)
 
-    await store.setWallet({ ...walletOn(madeFor('wss://b.example:50004')), network: 'chipnet' } as never)
+    await store.setWallet({ ...walletOn(madeFor('wss://b.example:50004')), network: 'testnet' } as never)
     await flush()
     expect(mainnetProvider.disconnect).toHaveBeenCalledOnce()
     // a fresh one for the same server takes its place, to connect once mainnet is used again
@@ -249,7 +249,7 @@ describe('the electrum providers of the selected servers', () => {
 
     // the next open starts at the pick again
     await store.setWallet(walletOn(made[0]!) as never)
-    await store.setWallet({ ...walletOn(made[1]!), network: 'chipnet' } as never)
+    await store.setWallet({ ...walletOn(made[1]!), network: 'testnet' } as never)
     await flush()
     expect(made.at(-1)!.server.split(',')[0]).toBe('wss://cashnode.bch.ninja:50004')
   })

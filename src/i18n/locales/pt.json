@@ -1057,7 +1057,7 @@
     "qrErrors": {
       "notWif": "Não é um QR code com chave privada no formato WIF",
       "notMainnetWif": "Não é um QR code com chave privada Mainnet no formato WIF",
-      "notChipnetWif": "Não é um QR code com chave privada Chipnet no formato WIF"
+      "notTestnetWif": "Não é um QR code com chave privada {network} no formato WIF"
     }
   },
   "transferAllAssets": {

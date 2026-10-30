@@ -2,10 +2,11 @@
 // network as an outpoint-keyed map. A reservation is local and advisory: it keeps a coin out of
 // the pool this app spends from, it does not protect the coin on chain.
 
+import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
 import type { Utxo } from "@cashonize/bch-wallet-lib";
 import { binToHex } from "@bitauth/libauth";
 
-type Network = 'mainnet' | 'chipnet';
+type Network = AppNetwork;
 
 // 'manual' is the user freezing a coin themselves and is theirs to undo; 'pledge' and 'auth' are
 // held by a feature, and are released through that feature rather than by unfreezing them here:
@@ -81,7 +82,7 @@ export function deleteReservedOutpoint(
 
 // A future wallet created under the same name must not inherit the old wallet's reservations
 export function removeReservedUtxos(walletName: string) {
-  for (const network of ['mainnet', 'chipnet'] as const) {
+  for (const network of appNetworks) {
     localStorage.removeItem(reservedUtxosKey(network, walletName));
   }
 }

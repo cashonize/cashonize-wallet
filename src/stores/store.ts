@@ -59,7 +59,7 @@ import { ActionableError, displayAndLogError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
-import { appNetworkOf, appNetworks, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
+import { appNetworkOf, appNetworks, storedAppNetwork, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
 import { removeEmptyChipnetCopy } from "src/utils/wallet/tiedWallets"
 import { sharedRun } from "src/utils/concurrency"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
@@ -1014,7 +1014,7 @@ export const useStore = defineStore('store', () => {
 
   // Avoid WalletClass.named() here: it creates a fresh random wallet if the name is missing.
   // Loading must reconstruct from the saved walletId; .named() is only for creation flows.
-  async function loadExistingWallet(walletName: string, network: 'mainnet' | 'chipnet'): Promise<WalletType> {
+  async function loadExistingWallet(walletName: string, network: AppNetwork): Promise<WalletType> {
     const walletId = await getNamedWalletId(walletName, walletDbName(network));
     if (!walletId) {
       throw new Error(t('store.errors.walletNotFoundOnNetwork', { name: walletName, network }));
@@ -1031,7 +1031,7 @@ export const useStore = defineStore('store', () => {
   // Resets all wallet state and makes the given (already loaded) wallet the active one
   async function activateWallet(
     newWallet: WalletType,
-    network: 'mainnet' | 'chipnet',
+    network: AppNetwork,
     awaitWalletInitialization: boolean = false
   ){
     await resetWalletState();
@@ -1076,20 +1076,20 @@ export const useStore = defineStore('store', () => {
 
   interface SwitchWalletResult {
     success: true;
-    networkChanged?: 'mainnet' | 'chipnet'; // Set if network was changed to accommodate wallet
+    networkChanged?: AppNetwork; // Set if network was changed to accommodate wallet
   }
 
   async function switchWallet(walletName: string): Promise<SwitchWalletResult> {
     // Get the current network from localStorage (default to mainnet)
-    const currentNetwork = (localStorage.getItem('network') ?? 'mainnet') as 'mainnet' | 'chipnet';
+    const currentNetwork = storedAppNetwork();
 
-    // The network follows the wallet: a wallet opens on mainnet when it has a mainnet row, so an
-    // older wallet's chipnet copy opens only from the developer settings (availableWallets may be
-    // stale, loadExistingWallet below re-checks IndexedDB)
+    // The network follows the wallet: it opens on its own network, mainnet for an older wallet
+    // that also has its chipnet copy, which opens only from the developer settings
+    // (availableWallets may be stale, loadExistingWallet below re-checks IndexedDB)
     let targetNetwork = currentNetwork;
     const walletInfo = availableWallets.value.find(w => w.name === walletName);
-    if (walletInfo) {
-      targetNetwork = walletInfo.hasMainnet ? 'mainnet' : 'chipnet';
+    if (walletInfo?.networks[0]) {
+      targetNetwork = walletInfo.networks[0];
     }
 
     const newWallet = await loadExistingWallet(walletName, targetNetwork);
