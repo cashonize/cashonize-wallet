@@ -634,6 +634,7 @@
   "addWallet": {
     "title": "Agregar billetera",
     "onNetwork": "Esta billetera se crea solo en {network}.",
+    "networkLabel": "Red:",
     "walletName": {
       "label": "Nombre de billetera:",
       "placeholder": "Ingresa el nombre de la billetera",
@@ -1516,8 +1517,8 @@
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única.",
       "nonTokenIdentities": "Habilitar crear identidades sin token",
       "nonTokenIdentitiesHint": "Muestra Añadir nueva en la página de identidades, que crea una identidad a partir de cualquier UTXO de esta billetera en lugar de un token. Las identidades de personas, organizaciones y contratos son nuevas, y pocas herramientas las leen todavía.",
-      "addChipnetWallet": "→ Agregar billetera de chipnet",
-      "addChipnetWalletHint": "Crea o importa una billetera solo en chipnet.",
+      "addDevWallet": "→ Agregar billetera de desarrollo",
+      "addDevWalletHint": "Crea o importa una billetera en una red de prueba, chipnet o testnet4, y solo allí.",
       "alsoOnNetwork": "Billetera también en {network}",
       "sameKeysHint": "{name} tiene una copia en la otra red con las mismas claves, de cuando Cashonize guardaba cada billetera en mainnet y chipnet. Desde la lista de billeteras, {name} se abre en mainnet.",
       "otherKeysHint": "{name} también existe en la otra red, con otras claves. Desde la lista de billeteras, {name} se abre en mainnet.",

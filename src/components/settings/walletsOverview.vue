@@ -52,7 +52,7 @@
   // once there are development wallets, another one can be added from here too, not only from the
   // developer settings
   const hasDevWallets = computed(() => store.availableWallets.some(wallet => !wallet.networks.includes('mainnet')));
-  function addChipnetWallet() {
+  function addDevWallet() {
     store.addWalletNetwork = 'chipnet';
     store.changeView(9);
   }
@@ -164,8 +164,8 @@
     <div v-else style="margin-bottom: 15px; color: #888;">
       {{ t('walletsOverview.walletLimitReached', { max: maxWallets }) }}
     </div>
-    <div v-if="canAddMoreWallets && hasDevWallets" style="margin-bottom: 15px; cursor: pointer;" @click="addChipnetWallet()">
-      {{ t('settings.developer.addChipnetWallet') }}
+    <div v-if="canAddMoreWallets && hasDevWallets" style="margin-bottom: 15px; cursor: pointer;" @click="addDevWallet()">
+      {{ t('settings.developer.addDevWallet') }}
     </div>
   </div>
 </template>

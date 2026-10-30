@@ -527,7 +527,7 @@
     settingsStore.hasPlayedAnimation = false;
     await store.changeNetwork(otherNetwork.value);
   }
-  function addChipnetWallet(){
+  function addDevWallet(){
     if (store.availableWallets.length >= maxWallets) {
       Notify.create({ message: t('walletsOverview.walletLimitReached', { max: maxWallets }), icon: 'info', color: "grey-6" });
       return;
@@ -904,9 +904,9 @@
     </div>
     <div v-else-if="settingsSection == 4">
       <div>
-        <div style="cursor: pointer;" @click="addChipnetWallet()">{{ t('settings.developer.addChipnetWallet') }}</div>
+        <div style="cursor: pointer;" @click="addDevWallet()">{{ t('settings.developer.addDevWallet') }}</div>
         <div style="font-size: smaller; color: grey;">
-          {{ t('settings.developer.addChipnetWalletHint') }}
+          {{ t('settings.developer.addDevWalletHint') }}
         </div>
       </div>
 

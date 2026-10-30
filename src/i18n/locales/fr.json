@@ -634,6 +634,7 @@
   "addWallet": {
     "title": "Ajouter un portefeuille",
     "onNetwork": "Ce portefeuille est créé sur {network} uniquement.",
+    "networkLabel": "Réseau :",
     "walletName": {
       "label": "Nom du portefeuille :",
       "placeholder": "Entrez le nom du portefeuille",
@@ -1516,8 +1517,8 @@
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
       "nonTokenIdentities": "Activer la création d'identités sans token",
       "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore.",
-      "addChipnetWallet": "→ Ajouter un portefeuille chipnet",
-      "addChipnetWalletHint": "Crée ou importe un portefeuille sur chipnet uniquement.",
+      "addDevWallet": "→ Ajouter un portefeuille de développement",
+      "addDevWalletHint": "Crée ou importe un portefeuille sur un réseau de test, chipnet ou testnet4, et uniquement là.",
       "alsoOnNetwork": "Portefeuille aussi sur {network}",
       "sameKeysHint": "{name} a une copie sur l'autre réseau avec les mêmes clés, de l'époque où Cashonize enregistrait chaque portefeuille sur mainnet et chipnet. Depuis la liste des portefeuilles, {name} s'ouvre sur mainnet.",
       "otherKeysHint": "{name} existe aussi sur l'autre réseau, avec d'autres clés. Depuis la liste des portefeuilles, {name} s'ouvre sur mainnet.",
