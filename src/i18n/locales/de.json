@@ -1524,8 +1524,8 @@
       "removeChipnetCopyUnused": "Die Chipnet-Kopie von {name} hat keinen Chipnet-Verlauf. Danach bleibt {name} nur auf Mainnet.",
       "chipnetCopyUsed": "Die Chipnet-Kopie von {name} hat einen Chipnet-Verlauf und bleibt daher. Um mit eigenen Schlüsseln zu testen, füge eine Chipnet-Wallet hinzu und sende die Test-Coins dorthin.",
       "chipnetCopyRemoved": "Chipnet-Kopie von {name} entfernt.",
-      "checkChipnetCopy": "Chipnet-Verlauf prüfen",
-      "checkingChipnetCopy": "Verlauf der Chipnet-Kopie wird geprüft…",
+      "checkChipnetCopy": "Entfernbarkeit prüfen",
+      "checkingChipnetCopy": "Chipnet-Verlauf wird geprüft…",
       "chipnetCopyUnused": "Die Chipnet-Kopie von {name} hat keinen Chipnet-Verlauf und kann entfernt werden.",
       "chipnetCopyCheckFailed": "Der Chipnet-Verlauf konnte nicht gelesen werden. Prüfe den Chipnet-Server und versuche es erneut."
     },

@@ -1524,8 +1524,8 @@
       "removeChipnetCopyUnused": "La copia de chipnet de {name} no tiene historial en chipnet. Quitarla deja {name} solo en mainnet.",
       "chipnetCopyUsed": "La copia de chipnet de {name} tiene historial en chipnet, así que se queda. Para probar con claves propias, añade una billetera de chipnet y envía allí las monedas de prueba.",
       "chipnetCopyRemoved": "Se quitó la copia de chipnet de {name}.",
-      "checkChipnetCopy": "Comprobar historial de chipnet",
-      "checkingChipnetCopy": "Comprobando el historial de la copia de chipnet…",
+      "checkChipnetCopy": "Comprobar si se puede quitar",
+      "checkingChipnetCopy": "Comprobando historial de chipnet…",
       "chipnetCopyUnused": "La copia de chipnet de {name} no tiene historial en chipnet, así que se puede quitar.",
       "chipnetCopyCheckFailed": "No se pudo leer el historial de chipnet. Revisa el servidor de chipnet e inténtalo de nuevo."
     },

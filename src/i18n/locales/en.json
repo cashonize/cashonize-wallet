@@ -1524,8 +1524,8 @@
       "removeChipnetCopyUnused": "The chipnet copy of {name} has no chipnet history. Removing it leaves {name} on mainnet only.",
       "chipnetCopyUsed": "The chipnet copy of {name} has chipnet history, so it stays. To test with keys of its own, add a chipnet wallet and send the test coins there.",
       "chipnetCopyRemoved": "Removed the chipnet copy of {name}.",
-      "checkChipnetCopy": "Check chipnet history",
-      "checkingChipnetCopy": "Checking the chipnet copy's history…",
+      "checkChipnetCopy": "Check if removable",
+      "checkingChipnetCopy": "Checking chipnet history…",
       "chipnetCopyUnused": "The chipnet copy of {name} has no chipnet history, so it can be removed.",
       "chipnetCopyCheckFailed": "Could not read the chipnet history. Check the chipnet server and try again."
     },

@@ -999,9 +999,12 @@
           <template v-if="tiedCopyId">{{ t('settings.developer.sameKeysHint', { name: store.activeWalletName }) }}</template>
           <template v-else>{{ t('settings.developer.otherKeysHint', { name: store.activeWalletName }) }}</template>
         </div>
-        <input @click="openOtherSide()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.openOnNetwork', { network: otherNetwork })" class="button" style="display: block; margin-top: 8px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
+          <input @click="openOtherSide()" :disabled="store.removingChipnetCopy" type="button" :value="t('settings.developer.openOnNetwork', { network: otherNetwork })" class="button">
+          <!-- the row's gap spaces the buttons, not chota's margin on a following button -->
+          <input v-if="tiedCopyId && tiedCopyCheck !== 'unused'" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking' || store.removingChipnetCopy" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="margin-left: 0;">
+        </div>
         <template v-if="tiedCopyId">
-          <input v-if="tiedCopyCheck !== 'unused'" @click="checkChipnetCopy()" :disabled="tiedCopyCheck === 'checking' || store.removingChipnetCopy" type="button" :value="t('settings.developer.checkChipnetCopy')" class="button" style="display: block; margin-top: 8px;">
           <div v-if="tiedCopyCheck === 'checking'" style="margin-top: 8px;">{{ t('settings.developer.checkingChipnetCopy') }}</div>
           <div v-else-if="tiedCopyCheck === 'used'" style="margin-top: 8px;">{{ t('settings.developer.chipnetCopyUsed', { name: store.activeWalletName }) }}</div>
           <div v-else-if="tiedCopyCheck === 'failed'" style="margin-top: 8px; color: red;">{{ t('settings.developer.chipnetCopyCheckFailed') }}</div>

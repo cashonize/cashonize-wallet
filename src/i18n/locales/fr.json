@@ -1524,8 +1524,8 @@
       "removeChipnetCopyUnused": "La copie chipnet de {name} n'a pas d'historique sur chipnet. La retirer laisse {name} sur mainnet uniquement.",
       "chipnetCopyUsed": "La copie chipnet de {name} a un historique sur chipnet, elle est donc conservée. Pour tester avec des clés propres, ajoutez un portefeuille chipnet et envoyez-y les pièces de test.",
       "chipnetCopyRemoved": "Copie chipnet de {name} retirée.",
-      "checkChipnetCopy": "Vérifier l'historique chipnet",
-      "checkingChipnetCopy": "Vérification de l'historique de la copie chipnet…",
+      "checkChipnetCopy": "Vérifier si retirable",
+      "checkingChipnetCopy": "Vérification de l'historique chipnet…",
       "chipnetCopyUnused": "La copie chipnet de {name} n'a pas d'historique sur chipnet, elle peut donc être retirée.",
       "chipnetCopyCheckFailed": "Impossible de lire l'historique chipnet. Vérifiez le serveur chipnet et réessayez."
     },
