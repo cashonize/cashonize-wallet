@@ -11,4 +11,4 @@ allowBuilds:
 
 # a release taken before pnpm's one-day minimum age, for its Chromium security fixes
 minimumReleaseAgeExclude:
-  - 'electron@45.1.0'
+  - 'electron@45.2.1'
