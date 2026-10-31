@@ -1423,7 +1423,8 @@
     "localization": {
       "language": "Langue :",
       "currency": "Devise :",
-      "dateFormat": "Format de date :"
+      "dateFormat": "Format de date :",
+      "languageLoadFailed": "Impossible de charger cette langue. Vérifiez votre connexion et réessayez."
     },
     "userOptions": {
       "darkMode": "Mode sombre",

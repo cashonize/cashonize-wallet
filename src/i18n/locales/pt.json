@@ -1423,7 +1423,8 @@
     "localization": {
       "language": "Idioma:",
       "currency": "Moeda:",
-      "dateFormat": "Formato de data:"
+      "dateFormat": "Formato de data:",
+      "languageLoadFailed": "Não foi possível carregar este idioma. Verifique sua conexão e tente novamente."
     },
     "userOptions": {
       "darkMode": "Modo escuro",
