@@ -19,6 +19,7 @@ import {
   mockGetNamedWalletId,
   mockCashconnectStart,
   mockWizardconnectStart,
+  mockRemoveWizardConnectSessions,
 } from './mocks/store.mocks'
 
 const mockRemoveEmptyChipnetCopy = vi.hoisted(() => vi.fn())
@@ -399,6 +400,16 @@ describe('deleteWallet', () => {
     await store.deleteWallet('otherWallet')
 
     expect(mockClearWalletSettings).toHaveBeenCalledWith('otherWallet')
+  })
+
+  // a new wallet created under the same name would otherwise reconnect them and share its xpubs
+  it('forgets the WizardConnect sessions of the deleted wallet', async () => {
+    const store = useStore()
+    await store.setWallet(mockMainnetWallet as never)
+
+    await store.deleteWallet('otherWallet')
+
+    expect(mockRemoveWizardConnectSessions).toHaveBeenCalledWith('otherWallet')
   })
 
   // The wallet is already gone when the prune runs, so its failure is reported on its own rather

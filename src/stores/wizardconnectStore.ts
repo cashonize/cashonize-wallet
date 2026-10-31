@@ -44,7 +44,7 @@ import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRe
 import WizPairingDialog from "src/components/wizardconnect/WizPairingDialog.vue";
 import { notifyDappActivity } from "src/utils/dapp/notifyDappActivity";
 import { i18n } from "src/boot/i18n";
-import { dappsAvailableOn } from "src/utils/wallet/networks";
+import { appNetworks, dappsAvailableOn } from "src/utils/wallet/networks";
 const { t } = i18n.global;
 const settingsStore = useSettingsStore();
 
@@ -78,6 +78,55 @@ interface WizHdNodes {
   xpubNetwork: "mainnet" | "testnet";
 }
 
+function readAllSavedUris(): Record<string, string[]> {
+  try {
+    const rawJson = localStorage.getItem(WIZ_URIS_STORAGE_KEY);
+    if (!rawJson) return {};
+    const parsed: unknown = JSON.parse(rawJson);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
+    const validated: Record<string, string[]> = {};
+    for (const [key, value] of Object.entries(parsed)) {
+      if (Array.isArray(value)) validated[key] = value.filter((uri): uri is string => typeof uri === "string");
+    }
+    return validated;
+  } catch (error) {
+    console.error("Failed to read persisted WizardConnect sessions:", error);
+    return {};
+  }
+}
+
+function readSavedDappInfo(): Record<string, DappInfo> {
+  try {
+    const rawJson = localStorage.getItem(WIZ_DAPP_INFO_STORAGE_KEY);
+    if (!rawJson) return {};
+    const parsed: unknown = JSON.parse(rawJson);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
+    const validated: Record<string, DappInfo> = {};
+    for (const [wizUri, value] of Object.entries(parsed)) {
+      const { name, icon } = (value ?? {}) as Partial<DappInfo>;
+      if (typeof name !== "string") continue;
+      validated[wizUri] = { name, icon: typeof icon === "string" ? icon : null };
+    }
+    return validated;
+  } catch (error) {
+    console.error("Failed to read saved WizardConnect dapp info:", error);
+    return {};
+  }
+}
+
+// Forgets the saved sessions of a deleted wallet on every network, so a new wallet created under
+// the same name doesn't reconnect them and share its xpubs with a dapp it never paired
+export function removeWizardConnectSessions(walletName: string) {
+  const allUris = readAllSavedUris();
+  const allDappInfo = readSavedDappInfo();
+  for (const network of appNetworks) {
+    for (const wizUri of allUris[`${network}:${walletName}`] ?? []) delete allDappInfo[wizUri];
+    delete allUris[`${network}:${walletName}`];
+  }
+  localStorage.setItem(WIZ_URIS_STORAGE_KEY, JSON.stringify(allUris));
+  localStorage.setItem(WIZ_DAPP_INFO_STORAGE_KEY, JSON.stringify(allDappInfo));
+}
+
 export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   // Accesses the wallet reactively via cross-store ref (mainStore.wallet) inside defineStore setup,
   // which Pinia resolves lazily — so the circular import with store.ts is safe.
@@ -96,6 +145,9 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   // Sign requests cancelled by the dapp; also guards against a sign_cancel arriving
   // before its sign_transaction_request (relay delivery order is not guaranteed)
   const cancelledRequests = new Set<string>();
+  // The wallet and network the running sessions belong to: a switch changes activeWalletName
+  // before stop() runs, so stop() must not look the saved URIs up under the current wallet
+  let sessionStorageKey: string | undefined;
 
   function start() {
     // Make sure we don't start more than once, otherwise we'd register multiple
@@ -120,6 +172,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     newManager.on("signCancelled", handleSignCancelled);
     newManager.on("remoteDisconnect", handleRemoteDisconnect);
     manager = newManager;
+    sessionStorageKey = `${mainStore.network}:${mainStore.activeWalletName}`;
     // Restore persisted sessions: reconnecting with the same URI re-derives the same
     // relay identity, so the dapp recognizes the wallet after an app reload
     for (const wizUri of getSavedUris()) {
@@ -149,6 +202,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     for (const conn of Object.values(prevManager.getConnections())) {
       removeSavedUri(conn.uri);
     }
+    sessionStorageKey = undefined;
     // Remove listeners before disconnecting so the deferred cleanup events
     // (sent after the courtesy disconnect message settles) don't mutate fresh state
     prevManager.removeAllListeners();
@@ -546,24 +600,9 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   // Session persistence
   //-----------------------------------------------------------------------------
   function storageSubKey() {
-    return `${mainStore.network}:${mainStore.activeWalletName}`;
-  }
-
-  function readAllSavedUris(): Record<string, string[]> {
-    try {
-      const rawJson = localStorage.getItem(WIZ_URIS_STORAGE_KEY);
-      if (!rawJson) return {};
-      const parsed: unknown = JSON.parse(rawJson);
-      if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
-      const validated: Record<string, string[]> = {};
-      for (const [key, value] of Object.entries(parsed)) {
-        if (Array.isArray(value)) validated[key] = value.filter((uri): uri is string => typeof uri === "string");
-      }
-      return validated;
-    } catch (error) {
-      console.error("Failed to read persisted WizardConnect sessions:", error);
-      return {};
-    }
+    // falling back to the active wallet would be the switch bug again: every caller runs while started
+    if (!sessionStorageKey) throw new Error("WizardConnect is not started");
+    return sessionStorageKey;
   }
 
   function getSavedUris(): string[] {
@@ -588,25 +627,6 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     }
     localStorage.setItem(WIZ_URIS_STORAGE_KEY, JSON.stringify(allUris));
     forgetDappInfo(wizUri);
-  }
-
-  function readSavedDappInfo(): Record<string, DappInfo> {
-    try {
-      const rawJson = localStorage.getItem(WIZ_DAPP_INFO_STORAGE_KEY);
-      if (!rawJson) return {};
-      const parsed: unknown = JSON.parse(rawJson);
-      if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
-      const validated: Record<string, DappInfo> = {};
-      for (const [wizUri, value] of Object.entries(parsed)) {
-        const { name, icon } = (value ?? {}) as Partial<DappInfo>;
-        if (typeof name !== "string") continue;
-        validated[wizUri] = { name, icon: typeof icon === "string" ? icon : null };
-      }
-      return validated;
-    } catch (error) {
-      console.error("Failed to read saved WizardConnect dapp info:", error);
-      return {};
-    }
   }
 
   function saveDappInfo(wizUri: string, dappInfo: DappInfo) {

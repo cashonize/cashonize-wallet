@@ -204,11 +204,13 @@ vi.mock('src/stores/cashconnectStore', () => ({
 
 // Mock wizardconnectStore
 export const mockWizardconnectStart = vi.fn().mockResolvedValue(undefined)
+export const mockRemoveWizardConnectSessions = vi.fn()
 vi.mock('src/stores/wizardconnectStore', () => ({
   useWizardconnectStore: vi.fn(() => ({
     start: mockWizardconnectStart,
     stop: vi.fn().mockResolvedValue(undefined),
   })),
+  removeWizardConnectSessions: mockRemoveWizardConnectSessions,
 }))
 
 // Mock quasar

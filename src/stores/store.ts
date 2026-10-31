@@ -55,7 +55,7 @@ import { useSettingsStore } from './settingsStore'
 import { useIdentitiesStore } from "./identitiesStore"
 import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
-import { useWizardconnectStore } from "./wizardconnectStore"
+import { useWizardconnectStore, removeWizardConnectSessions } from "./wizardconnectStore"
 import { ActionableError, displayAndLogError, isQuotaExceededError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
@@ -1096,6 +1096,7 @@ export const useStore = defineStore('store', () => {
     removeUtxoLabels(walletName);
     removePledges(walletName);
     removeIdentityData(walletName);
+    removeWizardConnectSessions(walletName);
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
