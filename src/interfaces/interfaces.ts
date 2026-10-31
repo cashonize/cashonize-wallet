@@ -1,4 +1,4 @@
-import type { Utxo, ElectrumRawTransaction, Wallet, HDWallet } from "@cashonize/bch-wallet-lib"
+import type { Utxo, Wallet, HDWallet } from "@cashonize/bch-wallet-lib"
 
 export type WalletType = Wallet | HDWallet;
 
@@ -133,6 +133,3 @@ export type BcmrExtensions = {
     | { [key: string]: string }
     | { [keyA: string]: { [keyB: string]: string } };
 }
-
-export type ElectrumRawTransactionVout = ElectrumRawTransaction["vout"][number]
-export type ElectrumTokenData = ElectrumRawTransactionVout["tokenData"]
