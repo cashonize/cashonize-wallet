@@ -13,6 +13,7 @@
     },
     "errors": {
       "somethingWentWrong": "Etwas ist schiefgelaufen",
+      "commaInAmount": "Verwende einen Punkt (.) für Dezimalstellen, ohne Tausendertrennzeichen",
       "needToInitializeWallet": "Zuerst muss ein Wallet initialisiert werden",
       "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, dApp-Anfrage wird abgelehnt",
       "nothingToTransfer": "Keine BCH oder Tokens mehr zum Übertragen",
@@ -782,7 +783,7 @@
       "note": "Die Reserve bleibt auf dem UTXO der Identität; gib sie später von der Identitäten-Seite aus."
     },
     "errors": {
-      "invalidAmount": "Gib Beträge in Tokens ein, mit nicht mehr Dezimalstellen, als der Token hat.",
+      "invalidAmount": "Gib Beträge als Anzahl Tokens ein, z. B. 1000 oder 0.5.",
       "overMaxSupply": "Das ist mehr, als ein Token fassen kann. Höchstens {max}.",
       "overSupply": "Das ist mehr als der Gesamtvorrat.",
       "invalidDecimals": "Dezimalstellen müssen eine ganze Zahl von 0 bis 18 sein.",

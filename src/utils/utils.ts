@@ -180,8 +180,10 @@ export function formatTimestamp(timestamp: number | undefined, dateFormat: DateF
   return short ? dateStr : `${dateStr} ${time}`;
 }
 
+// A typed amount takes a dot as its only separator, in every language: a comma is refused rather than
+// dropped, since a decimal comma read as grouping turns "0,5" into 5. Machine formats are dot anyway.
 function validateTokenAmountString(tokenAmount: string, decimals: number){
-  // Validate the amount format (no separating commas allowed here).
+  if (tokenAmount.includes(',')) throw new Error(t('common.errors.commaInAmount'));
   if (!/^\d*\.?\d*$/.test(tokenAmount)) throw new Error(t('tokenItem.errors.invalidNumberFormat'));
 
   // Validate if the input can be converted to a number
@@ -200,7 +202,7 @@ function validateTokenAmountString(tokenAmount: string, decimals: number){
 // Throws a localized error on invalid input; uses string math instead of
 // float multiplication so large amounts don't lose precision.
 export function parseTokenAmountToBigInt(input: string, decimals: number): bigint {
-  const sanitizedInput = input.replace(/,/g, '');
+  const sanitizedInput = input.trim();
   validateTokenAmountString(sanitizedInput, decimals);
   const [integerPart = '', fractionalPart = ''] = sanitizedInput.split('.');
   return BigInt(integerPart + fractionalPart.padEnd(decimals, '0'));

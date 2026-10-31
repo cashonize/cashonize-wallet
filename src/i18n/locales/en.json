@@ -13,6 +13,7 @@
     },
     "errors": {
       "somethingWentWrong": "Something went wrong",
+      "commaInAmount": "Use a dot (.) for decimals, without thousands separators",
       "needToInitializeWallet": "Need to initialize a wallet first",
       "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dApp request",
       "nothingToTransfer": "No BCH or tokens left to transfer",
@@ -782,7 +783,7 @@
       "note": "The reserve stays on the identity's UTXO; issue it later from the identities page."
     },
     "errors": {
-      "invalidAmount": "Enter amounts in tokens, with no more decimal places than the token has.",
+      "invalidAmount": "Enter amounts as a number of tokens, like 1000 or 0.5.",
       "overMaxSupply": "That is more than a token can hold. The most is {max}.",
       "overSupply": "That is more than the total supply.",
       "invalidDecimals": "Decimals must be a whole number from 0 to 18.",

@@ -82,8 +82,25 @@ describe('test formatTokenAmountFromBigInt', () => {
     expect(formatTokenAmountFromBigInt(-50n, 2)).toBe("-0.5");
   })
   it('should round-trip with parseTokenAmountToBigInt', () => {
-    const baseUnits = 123_456_789_012_345_678n;
-    expect(parseTokenAmountToBigInt(formatTokenAmountFromBigInt(baseUnits, 8), 8)).toBe(baseUnits);
+    for (const decimals of [0, 8, 18]) {
+      const baseUnits = 123_456_789_012_345_678n;
+      expect(parseTokenAmountToBigInt(formatTokenAmountFromBigInt(baseUnits, decimals), decimals)).toBe(baseUnits);
+    }
+  })
+})
+
+// A typed amount takes a dot as its only separator, in every language
+describe('parseTokenAmountToBigInt', () => {
+  it('reads a dot as the decimal separator', () => {
+    expect(parseTokenAmountToBigInt('0.5', 8)).toBe(50_000_000n);
+    expect(parseTokenAmountToBigInt('.5', 2)).toBe(50n);
+    expect(parseTokenAmountToBigInt(' 12 ', 0)).toBe(12n);
+  })
+  // dropping the comma read "0,5" as 5 whole tokens
+  it('refuses a comma instead of dropping it, as decimal or as grouping', () => {
+    for (const input of ['0,5', '1,5', '1,000', '1,234.5']) {
+      expect(() => parseTokenAmountToBigInt(input, 8)).toThrow('Use a dot');
+    }
   })
 })
 
