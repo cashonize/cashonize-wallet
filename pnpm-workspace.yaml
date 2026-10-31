@@ -63,3 +63,10 @@ overrides:
 # (src-electron has its own allowBuilds for electron's binary download.)
 allowBuilds:
   '@parcel/watcher': true
+
+# sign-client sends the result of every request to the relay as a TVF "transaction hash",
+# outside the encrypted payload, when it is a string, so a bch_signMessage signature reached
+# Reown's relay in plaintext. The patch returns no hashes for methods outside its own list
+# of transaction methods, the same guard as the upstream fix. Remove once fixed upstream.
+patchedDependencies:
+  '@walletconnect/sign-client@2.25.0': patches/@walletconnect__sign-client@2.25.0.patch

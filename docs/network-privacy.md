@@ -42,10 +42,13 @@ when, and how much is sent, though not the encrypted content:
   links naming another relay are refused.
 - **WizardConnect** uses Nostr relays from the dApp's pairing link or the library's defaults.
 
-**A WalletConnect message signature reaches Reown's relay unencrypted.** sign-client sends the
-result of every request, outside the encrypted payload, as a "transaction hash" when it is a
-string, which a `bch_signMessage` signature is. A signature over a known message reveals the
-signing address. Tracked in #399.
+**WalletConnect responses carry some metadata outside the encryption.** sign-client attaches
+"TVF" metadata to every response it sends to Reown's relay: the request's method name (such as
+`bch_signMessage`) and chain id (such as `bch:bitcoincash`), which tell the relay that a BCH wallet
+signed something. It also sends a string result as a "transaction hash", which would leak a
+`bch_signMessage` signature, and a signature over a known message reveals the signing address.
+The app patches sign-client to send hashes only for its own list of transaction methods, which
+has no BCH methods, so a signature stays inside the encrypted payload.
 
 ## Token images and registries
 

@@ -22,6 +22,9 @@ overrides:
   '@wizardconnect/core': 0.2.5
   '@noble/curves@1': 1.9.7
 
+patchedDependencies:
+  '@walletconnect/sign-client@2.25.0': dfe714eb0ce9f0d582c3a481e18285607eef829ef9cb9758b080507c11aabd14
+
 importers:
 
   .:
@@ -2789,7 +2792,7 @@ snapshots:
       '@walletconnect/jsonrpc-provider': 1.0.14
       '@walletconnect/jsonrpc-utils': 1.0.8
       '@walletconnect/logger': 3.0.2
-      '@walletconnect/sign-client': 2.25.0(typescript@6.0.3)(zod@4.6.7)
+      '@walletconnect/sign-client': 2.25.0(patch_hash=dfe714eb0ce9f0d582c3a481e18285607eef829ef9cb9758b080507c11aabd14)(typescript@6.0.3)(zod@4.6.7)
       '@walletconnect/types': 2.25.0
       '@walletconnect/utils': 2.25.0(typescript@6.0.3)(zod@4.6.7)
     transitivePeerDependencies:
@@ -3305,7 +3308,7 @@ snapshots:
     dependencies:
       tslib: 1.14.1
 
-  '@walletconnect/sign-client@2.25.0(typescript@6.0.3)(zod@4.6.7)':
+  '@walletconnect/sign-client@2.25.0(patch_hash=dfe714eb0ce9f0d582c3a481e18285607eef829ef9cb9758b080507c11aabd14)(typescript@6.0.3)(zod@4.6.7)':
     dependencies:
       '@walletconnect/core': 2.25.0(typescript@6.0.3)(zod@4.6.7)
       '@walletconnect/jsonrpc-utils': 1.0.8
