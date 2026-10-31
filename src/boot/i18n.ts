@@ -27,8 +27,14 @@ let requestedLocale = defaultLocale;
 export async function switchLocale(locale: string): Promise<boolean> {
   requestedLocale = locale;
   if (!i18n.global.availableLocales.includes(locale)) {
-    const messages = await loadLocaleMessages(locale);
-    i18n.global.setLocaleMessage(locale, messages);
+    try {
+      const messages = await loadLocaleMessages(locale);
+      i18n.global.setLocaleMessage(locale, messages);
+    } catch (error) {
+      // a pick the user already left fails quietly
+      if (requestedLocale !== locale) return false;
+      throw error;
+    }
   }
   if (requestedLocale !== locale) return false;
   i18n.global.locale.value = locale;

@@ -1424,7 +1424,7 @@
       "language": "Sprache:",
       "currency": "Währung:",
       "dateFormat": "Datumsformat:",
-      "languageLoadFailed": "Diese Sprache konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut."
+      "languageLoadFailed": "Diese Sprache konnte nicht geladen werden. Prüfe deine Verbindung oder lade die Seite neu."
     },
     "userOptions": {
       "darkMode": "Dark Mode",
