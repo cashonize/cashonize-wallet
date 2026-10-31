@@ -99,6 +99,12 @@
         // the cap in the unit the field is typed in: the on-chain number is not one the user can type here
         return t('createTokens.errors.overMaxSupply', { max: formatTokenAmount(maxTokenSupply, decimals.value) });
       }
+      // the same wording as the token's send fields
+      if (amounts.value === 'commaInAmount') return t('common.errors.commaInAmount');
+      if (amounts.value === 'tooManyDecimals') {
+        if (!decimals.value) return t('tokenItem.errors.noDecimalsAllowed');
+        return t('tokenItem.errors.maxDecimalsAllowed', { decimals: decimals.value });
+      }
       return t(`createTokens.errors.${amounts.value}`);
     }
     // a token output carrying neither an amount nor an NFT is invalid, so without a minting NFT

@@ -8,7 +8,7 @@ describe('genesisAmounts', () => {
   // the supply is typed in tokens and the decimals do the zeroes, since the on-chain number is
   // permanent and the arithmetic was the mistake three walkthroughs made
   it('turns tokens into base units by the chosen decimals', () => {
-    expect(genesisAmounts('500,000', '200000', '2')).toEqual({
+    expect(genesisAmounts('500000', '200000', '2')).toEqual({
       supply: 50_000_000n, circulating: 20_000_000n, reserve: 30_000_000n,
     })
     expect(genesisAmounts('100.5', '0', '1')).toEqual({ supply: 1005n, circulating: 0n, reserve: 1005n })
@@ -21,8 +21,12 @@ describe('genesisAmounts', () => {
   it('names what the genesis would refuse', () => {
     expect(genesisAmounts('100', '0', '19')).toBe('invalidDecimals')
     expect(genesisAmounts('100', '0', '-1')).toBe('invalidDecimals')
-    expect(genesisAmounts('1.5', '0', '0')).toBe('invalidAmount')
+    expect(genesisAmounts('1.5', '0', '0')).toBe('tooManyDecimals')
+    expect(genesisAmounts('1.123', '0', '2')).toBe('tooManyDecimals')
     expect(genesisAmounts('abc', '0', '0')).toBe('invalidAmount')
+    // a comma is refused, not dropped: dropping it read a decimal comma as a far larger supply
+    expect(genesisAmounts('0,5', '0', '2')).toBe('commaInAmount')
+    expect(genesisAmounts('500,000', '0', '2')).toBe('commaInAmount')
     expect(genesisAmounts('9223372036854775808', '0', '0')).toBe('overMaxSupply')
     expect(genesisAmounts('100', '101', '0')).toBe('overSupply')
   })

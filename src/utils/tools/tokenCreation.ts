@@ -17,7 +17,7 @@ export interface GenesisAmounts {
   circulating: bigint;
   reserve: bigint;
 }
-export type AmountProblem = 'invalidDecimals' | 'invalidAmount' | 'overMaxSupply' | 'overSupply';
+export type AmountProblem = 'invalidDecimals' | 'invalidAmount' | 'commaInAmount' | 'tooManyDecimals' | 'overMaxSupply' | 'overSupply';
 
 export function parseDecimals(text: string): number | undefined {
   if (!/^\d+$/.test(text.trim())) return undefined;
@@ -27,12 +27,14 @@ export function parseDecimals(text: string): number | undefined {
 
 // Tokens typed with up to the chosen decimals, as base units. String math, since these numbers
 // outgrow a float; an empty field is zero, so the split can be read while the other is typed.
-function toBaseUnits(text: string, decimals: number): bigint | undefined {
-  const cleaned = text.trim().replace(/,/g, '');
+// A dot is the only separator, as for every typed amount (see parseTokenAmountToBigInt).
+function toBaseUnits(text: string, decimals: number): bigint | AmountProblem {
+  const cleaned = text.trim();
   if (!cleaned) return 0n;
-  if (!/^(\d+\.?\d*|\.\d+)$/.test(cleaned)) return undefined;
+  if (cleaned.includes(',')) return 'commaInAmount';
+  if (!/^(\d+\.?\d*|\.\d+)$/.test(cleaned)) return 'invalidAmount';
   const [whole = '', fraction = ''] = cleaned.split('.');
-  if (fraction.length > decimals) return undefined;
+  if (fraction.length > decimals) return 'tooManyDecimals';
   return BigInt((whole || '0') + fraction.padEnd(decimals, '0'));
 }
 
@@ -42,7 +44,8 @@ export function genesisAmounts(supplyText: string, circulatingText: string, deci
   if (decimals === undefined) return 'invalidDecimals';
   const supply = toBaseUnits(supplyText, decimals);
   const circulating = toBaseUnits(circulatingText, decimals);
-  if (supply === undefined || circulating === undefined) return 'invalidAmount';
+  if (typeof supply === 'string') return supply;
+  if (typeof circulating === 'string') return circulating;
   if (supply > maxTokenSupply) return 'overMaxSupply';
   if (circulating > supply) return 'overSupply';
   return { supply, circulating, reserve: supply - circulating };

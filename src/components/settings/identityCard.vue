@@ -525,7 +525,7 @@
     <div v-if="genesisSupplyLine">
       {{ genesisSupplyLine }}
       <InfoPopup v-if="identity.genesisSupply === maxTokenSupply">
-        <div style="max-width: 300px;">{{ t('identities.reserve.openEndedHelp', { max: maxTokenSupply.toLocaleString() }) }}</div>
+        <div style="max-width: 300px;">{{ t('identities.reserve.openEndedHelp', { max: maxTokenSupply.toLocaleString('en-US') }) }}</div>
       </InfoPopup>
     </div>
     <div

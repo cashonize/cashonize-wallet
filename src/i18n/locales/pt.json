@@ -13,6 +13,7 @@
     },
     "errors": {
       "somethingWentWrong": "Algo deu errado",
+      "commaInAmount": "Use um ponto (.) para as casas decimais, sem separadores de milhares",
       "needToInitializeWallet": "É necessário inicializar uma carteira primeiro",
       "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dApp",
       "nothingToTransfer": "Não resta BCH nem tokens para transferir",
@@ -782,7 +783,7 @@
       "note": "A reserva fica no UTXO da identidade; emita-a depois a partir da página de identidades."
     },
     "errors": {
-      "invalidAmount": "Escreva montantes em tokens, sem mais casas decimais do que o token tem.",
+      "invalidAmount": "Escreva os montantes como número de tokens, p. ex. 1000 ou 0.5.",
       "overMaxSupply": "Isso é mais do que um token pode conter. O máximo é {max}.",
       "overSupply": "Isso é mais do que a oferta total.",
       "invalidDecimals": "As decimais têm de ser um número inteiro de 0 a 18.",
