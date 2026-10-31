@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { toRefs } from 'vue'
-  import { binToHex, decodeTransactionUnsafe, encodeTransaction, hexToBin, lockingBytecodeToCashAddress, type Output } from "@bitauth/libauth"
+  import { binToHex, decodeTransactionUnsafe, hexToBin, type Output } from "@bitauth/libauth"
   import { useDialogPluginComponent } from 'quasar'
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
@@ -11,6 +11,7 @@
   import { type DappMetadata } from "src/interfaces/interfaces"
   import { type WcSignTransactionRequest } from "@bch-wc2/interfaces"
   import { excessiveFeeRate, minRelayFeeRate } from 'src/utils/history/txFeeRate';
+  import { scriptDisplay, summarizeDappTransaction } from 'src/utils/dapp/txSummary';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
   const store = useStore()
@@ -56,75 +57,21 @@
   };
 
   const isWalletOutput = (lockingBytecode: Uint8Array) =>
-    props.walletOwns?.(lockingBytecode) || store.walletHasAddress(toCashaddr(lockingBytecode));
+    props.walletOwns?.(lockingBytecode) || store.ownsLockingBytecode(lockingBytecode);
 
-  const toCashaddr = (lockingBytecode:Uint8Array) => {
-    const prefix = store.network == "mainnet" ? "bitcoincash" : "bchtest";
-    // check for opreturn
-    if(binToHex(lockingBytecode).startsWith("6a")) return "opreturn:" +  binToHex(lockingBytecode)
-    const result = lockingBytecodeToCashAddress({bytecode:lockingBytecode, prefix});
-    if (typeof result == "string") throw new Error(result);
-    return result.address;
-  }
+  const displayScript = (lockingBytecode: Uint8Array) =>
+    scriptDisplay(lockingBytecode, store.network == "mainnet" ? "bitcoincash" : "bchtest");
 
-  const bchSpentInputs:bigint = sourceOutputs.reduce((total:bigint, sourceOutput) =>
-    isWalletOutput(sourceOutput.lockingBytecode) ? total + sourceOutput.valueSatoshis : total, 0n
-  );
-  const bchReceivedOutputs:bigint = txDetails.outputs.reduce((total:bigint, outputs) =>
-    isWalletOutput(outputs.lockingBytecode) ? total + outputs.valueSatoshis : total, 0n
-  );
-  const bchBalanceChange = bchReceivedOutputs - bchSpentInputs;
+  const { bchBalanceChange, fee: transactionFee, signedSize: transactionSize, ftNetChanges, nftsSpent, nftsReceived } =
+    summarizeDappTransaction(txDetails, sourceOutputs, isWalletOutput);
   const currencyBalanceChange = convertToCurrency(bchBalanceChange, exchangeRate.value);
 
-  // The fee is what all the inputs pay over all the outputs, third party ones included
-  const totalInputValue = sourceOutputs.reduce((total:bigint, sourceOutput) => total + sourceOutput.valueSatoshis, 0n);
-  const totalOutputValue = txDetails.outputs.reduce((total:bigint, output) => total + output.valueSatoshis, 0n);
-  const transactionFee = totalInputValue - totalOutputValue;
-
-  // The request holds an unsigned transaction, so its length is short by the signatures
-  // the wallet still has to add: for each of its own inputs that arrives empty, a 65 byte
-  // schnorr signature and a 33 byte public key, each behind a single byte push opcode.
-  const signedInputSize = 100;
-  const inputsAwaitingSignature = sourceOutputs.filter(sourceOutput =>
-    !sourceOutput.unlockingBytecode?.length && isWalletOutput(sourceOutput.lockingBytecode)
-  ).length;
-  const transactionSize = encodeTransaction(txDetails).length + (inputsAwaitingSignature * signedInputSize);
   const transactionFeeRate = Number(transactionFee) / transactionSize;
   const paysBelowRelayFee = transactionFee < BigInt(transactionSize * minRelayFeeRate);
   const paysExcessiveFee = transactionFee > BigInt(transactionSize * excessiveFeeRate);
   // below the relay fee the exact rate is what matters, and a single decimal would round
   // a rate like 0.96 up to a reassuring 1.0
   const feeRateText = transactionFeeRate < minRelayFeeRate ? transactionFeeRate.toFixed(2) : transactionFeeRate.toFixed(1);
-
-  // Track net fungible token changes and separate NFT changes
-  const ftNetChanges: Record<string, bigint> = {};
-  const nftsSpent: NonNullable<Output['token']>[] = [];
-  const nftsReceived: NonNullable<Output['token']>[] = [];
-
-  for (const input of sourceOutputs) {
-    const walletOrigin = isWalletOutput(input.lockingBytecode);
-    if(input.token && walletOrigin){
-      const tokenCategory = binToHex(input.token.category);
-      if(input.token.nft){
-        nftsSpent.push(input.token);
-      }
-      if(input.token.amount) {
-        ftNetChanges[tokenCategory] = (ftNetChanges[tokenCategory] ?? 0n) - input.token.amount;
-      }
-    }
-  }
-  for (const output of txDetails.outputs) {
-    const walletDestination = isWalletOutput(output.lockingBytecode);
-    if(output.token && walletDestination) {
-      const tokenCategory = binToHex(output.token.category);
-      if(output.token.nft) {
-        nftsReceived.push(output.token);
-      }
-      if(output.token.amount) {
-        ftNetChanges[tokenCategory] = (ftNetChanges[tokenCategory] ?? 0n) + output.token.amount;
-      }
-    }
-  }
 
   // Fetch metadata for all tokens in the transaction (stored locally, not in global store),
   // including tokens on third-party inputs/outputs which only show in the full transaction details
@@ -281,7 +228,7 @@
                 <tr>
                   <td>{{ inputIndex }}</td>
                   <td>
-                    {{ toCashaddr(input.lockingBytecode).slice(0,25)  + '...' }}
+                    {{ displayScript(input.lockingBytecode).slice(0,25)  + '...' }}
                     <span v-if="isWalletOutput(input.lockingBytecode)" class="thisWalletTag">
                       {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
@@ -327,7 +274,7 @@
                 <tr>
                   <td>{{ outputIndex }}</td>
                   <td>
-                    {{ toCashaddr(output.lockingBytecode).slice(0,25)  + '...' }}
+                    {{ displayScript(output.lockingBytecode).slice(0,25)  + '...' }}
                     <span v-if="isWalletOutput(output.lockingBytecode)" class="thisWalletTag">
                       {{ t('walletConnect.transactionRequest.thisWallet') }}
                     </span>
