@@ -20,7 +20,7 @@ view and on the history shown asks, not mounting) or the token picker opens, beh
 already shown; the count reads "100+" and "Loading full history" shows until it is in. A CSV
 export loads it first and refuses to write a partial one.
 
-**A send or receive refreshes only the newest page**, its two or three refreshes sharing one
+**A send or receive refreshes only the newest page**, its one or two refreshes sharing one
 load. Once the full history is loaded the page is merged into it: the page replaces the items
 it holds, so their confirmations update, puts new ones in front, and an item the wallet's
 history no longer has, a replaced unconfirmed transaction, is dropped. The older items stay

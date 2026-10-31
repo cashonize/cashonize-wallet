@@ -267,7 +267,8 @@ export const useStore = defineStore('store', () => {
   // call, this one is tracked, so callers re-run when the cache advances.
   function walletHasAddress(address: string) {
     // The read is the subscription, without it reactive callers never re-run. walletUtxos stands
-    // in for the cache because the store assigns it right after the getUtxos() calls that grow it.
+    // in for the cache because the store assigns it after every read of the coins (the coin
+    // watch's and updateWalletUtxos).
     void walletUtxos.value;
     return wallet.value.hasAddress(address);
   }
@@ -741,20 +742,20 @@ export const useStore = defineStore('store', () => {
         walletInitFailed.value = true;
         return;
       }
-      // The coin watch's first read sets the wallet's coins, balance and token list. For HD wallets
-      // it also awaits address discovery, which primes per-address utxos and history, and rejects
-      // if a subscription or first fetch of it failed.
+      // The coin watch's first read sets the wallet's coins, balance and token list, and rejects if
+      // a subscription or first fetch failed. For HD wallets it first awaits address discovery,
+      // which primes per-address utxos and history.
       console.time('fetch wallet utxos & set up subscriptions');
       await setUpWalletSubscriptions();
       console.timeEnd('fetch wallet utxos & set up subscriptions');
       if (initialization !== currentInitialization) return;
       // getMaxAmountToSend makes no server request of its own: it uses the coins the library holds
-      // (waiting for a read already under way), the pinned relay fee and a local fee estimate
-      console.time('fetch max amount to send');
-      const resultMaxAmountToSend = await wallet.value.getMaxAmountToSend(spendExclusions());
-      console.timeEnd('fetch max amount to send');
+      // (waiting for a read already under way), the pinned relay fee and a local fee estimate. A
+      // failure leaves the max empty rather than failing an open whose coins are already shown
+      console.time('compute max amount to send');
+      await refreshMaxAmountToSend();
+      console.timeEnd('compute max amount to send');
       if (initialization !== currentInitialization) return;
-      maxAmountToSend.value = resultMaxAmountToSend
       if(!tokenList.value) return // should never happen
       // From here the coin watch updates state; the metadata and history still loading are
       // enrichment an update can run alongside
@@ -800,13 +801,13 @@ export const useStore = defineStore('store', () => {
   });
 
   // Show the received-BCH toast; failures (fiat-rate fetch) must never affect wallet state
-  async function showReceivedBchNotification(balanceDifferenceSats: bigint){
+  async function showReceivedBchNotification(receivedSats: bigint){
     try {
-      let amountInUnit = Number(balanceDifferenceSats) / 100_000_000;
+      let amountInUnit = Number(receivedSats) / 100_000_000;
       let unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH';
       let maxFractionDigits = 8;
       if(settingsStore.bchUnit === 'sat'){
-        amountInUnit = Number(balanceDifferenceSats);
+        amountInUnit = Number(receivedSats);
         unitString = network.value == 'mainnet' ? 'sats' : 'tsats';
         maxFractionDigits = 0;
       }
@@ -849,9 +850,8 @@ export const useStore = defineStore('store', () => {
         baseline = false;
         return;
       }
-      // on every change, confirmations and reconnects included, as the balance watch it replaces
-      // did; only when coins were added or removed is the alternative, if confirmations should stop
-      // reaching the dApps
+      // CashConnect re-reads the coins on every change after the first, confirmations and reconnects
+      // included; notifying only when coins were added or removed would stop confirmations reaching dApps
       notifyCashConnectOfCoins();
       if (added.length || removed.length) void refreshMaxAmountToSend();
       // a change without coins added or removed is a confirmation or a reconnect, which the history shows
@@ -1264,7 +1264,7 @@ export const useStore = defineStore('store', () => {
   // a BCMR record aren't re-queried on every history refresh (cachedFetch only caches successful lookups)
   let queriedHistoryCategories: string[] = [];
   // Without a count, a refresh of what is loaded: the newest page, merged into the full history once
-  // that is loaded; the refreshes of a send or receive, two or three per event, share one load
+  // that is loaded; the refreshes of a send or receive, one or two per event, share one load
   // Resolves to the history items fetched, also when a newer load replaced them in walletHistory
   function updateWalletHistory({ count }: { count?: number } = {}) {
     if (count === undefined) return historyLoad.run({ again: true });
@@ -1769,9 +1769,13 @@ export const useStore = defineStore('store', () => {
 
   // maxAmountToSend is fetched, not derived, so it does not follow the spendable pool on its own
   async function refreshMaxAmountToSend() {
+    const initialization = currentInitialization;
     try {
-      maxAmountToSend.value = await spend.getMaxAmountToSend();
+      const max = await spend.getMaxAmountToSend();
+      if (initialization !== currentInitialization) return;
+      maxAmountToSend.value = max;
     } catch (error) {
+      if (initialization !== currentInitialization) return;
       maxAmountToSend.value = undefined;
       console.error("Failed to update maxAmountToSend:", error);
     }
