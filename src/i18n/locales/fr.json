@@ -104,6 +104,7 @@
       "errorInitializingWizardConnect": "Erreur lors de l'initialisation de WizardConnect",
       "errorFetchingUtxos": "Erreur lors de la récupération des UTXOs du portefeuille",
       "walletRefreshFailed": "Impossible d'actualiser le portefeuille depuis le serveur, le solde affiché n'est donc peut-être pas à jour",
+      "storageFullNotHeld": "Le stockage est plein, cela n'a donc pas pu être retenu. Effacer le cache des métadonnées de tokens dans les paramètres libère de l'espace ; réessayez ensuite.",
       "errorFetchingHistory": "Erreur lors de la récupération de l'historique du portefeuille",
       "unableToConnectElectrum": "Impossible de se connecter au serveur Electrum '{server}'",
       "staleElectrumServer": "Le serveur Electrum '{server}' semble ne pas être à jour : son bloc le plus récent date de {hours} heures, votre solde et votre historique peuvent donc manquer des transactions récentes. Vous pouvez changer de serveur dans les paramètres avancés.",

@@ -1,4 +1,5 @@
 import { binToHex, sha256, utf8ToBin } from '@bitauth/libauth';
+import { isQuotaExceededError } from 'src/utils/errorHandling';
 
 const CACHE_TTL_DAYS = 7;
 const CACHE_TTL_MS = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000;
@@ -93,16 +94,42 @@ interface LocalStorageCacheResponse {
   timestamp: number
 }
 
+const CACHED_FETCH_PREFIX = 'cachedFetch-';
+
+// A corrupt entry reads as a miss, so it is fetched again and overwritten
+function readCacheEntry(key: string): LocalStorageCacheResponse | undefined {
+  const stored = localStorage.getItem(key);
+  if (!stored) return undefined;
+  try {
+    return JSON.parse(stored) as LocalStorageCacheResponse;
+  } catch {
+    return undefined;
+  }
+}
+
+// Expiry is only checked on read, so entries nobody asks for again stay until the store is full.
+// The ttl a caller passed is not stored with the entry, so the default one decides what is expired.
+function removeExpiredCacheEntries(now: number) {
+  const keys: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.startsWith(CACHED_FETCH_PREFIX)) keys.push(key);
+  }
+  for (const key of keys) {
+    const timestamp = readCacheEntry(key)?.timestamp;
+    if (typeof timestamp !== 'number' || now - timestamp >= CACHE_TTL_MS) localStorage.removeItem(key);
+  }
+}
+
 export async function cachedFetch(input: string, ttlMs: number = CACHE_TTL_MS): Promise<Response> {
   const now = Date.now();
-  const key = 'cachedFetch-' + binToHex(sha256.hash(utf8ToBin(input.toString())));
+  const key = CACHED_FETCH_PREFIX + binToHex(sha256.hash(utf8ToBin(input.toString())));
 
-  const { simpleResponse, timestamp }: LocalStorageCacheResponse = JSON.parse(
-    localStorage.getItem(key) || '{ "timestamp": 0, "simpleResponse": {} }'
-  );
+  const cached = readCacheEntry(key);
 
   // If item exists in localStorage and is still valid, return it
-  if ((now - timestamp < ttlMs) && simpleResponse.status) {
+  if (cached?.simpleResponse?.status && now - cached.timestamp < ttlMs) {
+    const { simpleResponse } = cached;
     // create a new Response object from the cached data
     const resp = new Response(simpleResponse.responseText, {
       status: simpleResponse.status,
@@ -140,16 +167,29 @@ export async function cachedFetch(input: string, ttlMs: number = CACHE_TTL_MS): 
   }
   if(!shouldCache) return response
 
-  localStorage.setItem(`${key}`, JSON.stringify(
-    {
-      timestamp: now,
-      simpleResponse: {
-        responseText: JSON.stringify(responseData),
-        status: response.status,
-        url: response.url
-      }
+  const entry = JSON.stringify({
+    timestamp: now,
+    simpleResponse: {
+      responseText: JSON.stringify(responseData),
+      status: response.status,
+      url: response.url
     }
-  ));
+  });
+  // A full localStorage loses the cache entry, not the response
+  try {
+    localStorage.setItem(key, entry);
+  } catch (error) {
+    if (!isQuotaExceededError(error)) {
+      console.error("Failed to cache fetch response:", error);
+      return response;
+    }
+    removeExpiredCacheEntries(now);
+    try {
+      localStorage.setItem(key, entry);
+    } catch (retryError) {
+      console.error("Failed to cache fetch response, storage is full:", retryError);
+    }
+  }
 
   return response;
 }
