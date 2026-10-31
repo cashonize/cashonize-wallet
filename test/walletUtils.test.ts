@@ -1143,8 +1143,8 @@ describe('scanDerivationPaths', () => {
   })
 })
 
-// The library's TestNet classes are fixed to chipnet, so a testnet4 wallet made through them would
-// be stored as a chipnet wallet: its id has to say testnet4 and land in testnet4's own database
+// A testnet4 wallet is no chipnet wallet: its id has to say testnet4 and land in testnet4's own
+// database
 describe('testnet4 wallets', () => {
   const seedPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 

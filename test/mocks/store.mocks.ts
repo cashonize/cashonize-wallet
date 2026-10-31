@@ -17,7 +17,6 @@ export const mockMainnetWallet = {
   name: 'testWallet',
   network: 'mainnet',
   cashaddr: 'bitcoincash:qtest',
-  tokenaddr: 'bitcoincash:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
   // deliberately not a decodable address: the portfolio lookups root at the wallet's public key
   // hashes, and an address that decodes would make every wallet initialization in the tests fetch
@@ -31,7 +30,6 @@ export const mockChipnetWallet = {
   name: 'testWallet',
   network: 'testnet', // the library's name for chipnet
   cashaddr: 'bchtest:qtest',
-  tokenaddr: 'bchtest:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
   getDepositAddress: () => 'bchtest:qtest',
   getTokenDepositAddress: () => 'bchtest:ztest',
@@ -41,9 +39,7 @@ export const mockChipnetWallet = {
 
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
-export const mockTestNetWalletNamed = vi.fn()
 export const mockHDWalletNamed = vi.fn()
-export const mockTestNetHDWalletNamed = vi.fn()
 // the wallet of the network a stored id is loaded with, as the library's fromId gives
 function walletOfNetwork(_walletId: string, options?: { network?: string }) {
   if (options?.network === 'testnet') return Promise.resolve(mockChipnetWallet)
@@ -51,9 +47,7 @@ function walletOfNetwork(_walletId: string, options?: { network?: string }) {
   return Promise.resolve(mockMainnetWallet)
 }
 export const mockWalletFromId = vi.fn(walletOfNetwork)
-export const mockTestNetWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
 export const mockHDWalletFromId = vi.fn(walletOfNetwork)
-export const mockTestNetHDWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
 
 // Mock localStorage
 export const localStorageMock = {
@@ -65,18 +59,38 @@ export const localStorageMock = {
 }
 vi.stubGlobal('localStorage', localStorageMock)
 
+type UtxoChange = { utxos: BchWalletLib.Utxo[], added: BchWalletLib.Utxo[], removed: BchWalletLib.Utxo[] }
+// The library's watchUtxos for a fake wallet: the first callback with the coins of the wallet's own
+// getUtxos, as the library reads them, and each later change handed in by the test, resolving once
+// the store's handler has finished with it
+export function utxoWatch() {
+  let handler: ((change: UtxoChange) => unknown) | undefined
+  let onError: ((error: unknown) => unknown) | undefined
+  const watchUtxos = vi.fn(async function (
+    this: { getUtxos(): Promise<BchWalletLib.Utxo[]> },
+    callback: (change: UtxoChange) => unknown,
+    options: { onError?: (error: unknown) => unknown } = {},
+  ) {
+    const utxos = await this.getUtxos()
+    handler = callback
+    onError = options.onError
+    void callback({ utxos, added: [], removed: [] })
+    return async () => {}
+  })
+  const change = async (change: UtxoChange) => { await handler!(change) }
+  // a read after the first that failed, as the library hands it on
+  const fail = (error: unknown) => { onError?.(error) }
+  return { watchUtxos, change, fail }
+}
+
 // The provider the store makes for the selected server; the wallets' setProvider takes it
 export const mockProvider = {
-  connect: vi.fn().mockResolvedValue(undefined),
   disconnect: vi.fn().mockResolvedValue(true),
-  getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
 }
 
 // Mock wallet classes (must be real classes so instanceof checks work)
 class MockWallet { static named = mockWalletNamed; static fromId = mockWalletFromId }
-class MockTestNetWallet { static named = mockTestNetWalletNamed; static fromId = mockTestNetWalletFromId }
 class MockHDWallet { static named = mockHDWalletNamed; static fromId = mockHDWalletFromId }
-class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static fromId = mockTestNetHDWalletFromId }
 
 // Mock bch-wallet-lib. The publication output parser is the real one: a publication is bytes on the
 // chain, and the tests that name an identity from one hand the store real bytecode. The error
@@ -97,9 +111,7 @@ vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   CHANGE_BRANCH: (await importOriginal<typeof BchWalletLib>()).CHANGE_BRANCH,
   GAP_SIZE: (await importOriginal<typeof BchWalletLib>()).GAP_SIZE,
   Wallet: MockWallet,
-  TestNetWallet: MockTestNetWallet,
   HDWallet: MockHDWallet,
-  TestNetHDWallet: MockTestNetHDWallet,
   Config: {
     EnforceCashTokenReceiptAddresses: true,
     UseIndexedDBCache: true,
@@ -243,7 +255,7 @@ vi.mock('src/utils/utils', async (importOriginal) => ({
   // the real one, on the mocked wallet classes: which class and network a stored id loads with is
   // what the network tests check
   loadWalletFromId: (await importOriginal<typeof Utils>()).loadWalletFromId,
-  convertElectrumTokenData: vi.fn(),
+  newTokenItems: (await importOriginal<typeof Utils>()).newTokenItems,
   STALE_TIP_SECONDS: (await importOriginal<typeof Utils>()).STALE_TIP_SECONDS,
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),
 }))

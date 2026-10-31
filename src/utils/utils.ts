@@ -1,8 +1,8 @@
 import { decodeBip39Mnemonic, hexToBin } from "@bitauth/libauth"
 import { Notify } from "quasar";
-import { Wallet, HDWallet, convert, decodeHeader, type HexHeaderI, type Utxo, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib"
+import { Wallet, HDWallet, convert, decodeHeader, type HexHeaderI, type TokenI, type Utxo, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib"
 import { libraryNetwork, type AppNetwork } from "src/utils/wallet/networks"
-import type { BcmrTokenMetadata, ElectrumTokenData, TokenList, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
+import type { BcmrTokenMetadata, TokenList, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -50,8 +50,6 @@ export function walletTypeFromWalletId(walletId: string): 'single' | 'hd' {
   return walletId.startsWith('hd:') ? 'hd' : 'single';
 }
 
-// A wallet of a test network comes from the mainnet classes with the network passed: the library's
-// TestNet classes are fixed to chipnet ("testnet")
 export async function loadWalletFromId(walletId: string, network: AppNetwork): Promise<WalletType> {
   const isHD = walletTypeFromWalletId(walletId) === 'hd';
   const options = { network: libraryNetwork(network) };
@@ -416,23 +414,44 @@ export function parseExtendedJson(jsonString: string){
   })
 }
 
-export function convertElectrumTokenData(electrumTokenData: ElectrumTokenData | undefined){
-  if(!electrumTokenData) return
-  if(electrumTokenData.amount && BigInt(electrumTokenData.amount)){
+// What new coins bring that the wallet has no metadata for: a category it did not hold, or an NFT
+// commitment without metadata yet
+export function newTokenItems(
+  added: Utxo[],
+  heldTokens: TokenList | null,
+  registries: Record<string, BcmrTokenMetadata> | undefined
+): TokenList {
+  const newTokens: TokenList = [];
+  for (const utxo of added) {
+    if (!utxo.token) continue;
+    const { category, nft } = utxo.token;
+    const isKnownCategory = heldTokens?.some(token => token.category === category) ?? false;
+    if (isKnownCategory) {
+      if (!nft) continue;
+      if (registries?.[category]?.nfts?.[nft.commitment] !== undefined) continue;
+    }
+    newTokens.push(tokenItemFromToken(utxo.token));
+  }
+  return newTokens;
+}
+
+// A token coin's data as a token list item, enough to look up its metadata
+export function tokenItemFromToken(token: TokenI){
+  if(token.amount > 0n){
     const tokenDataFT: TokenDataFT = {
-      amount: BigInt(electrumTokenData.amount),
-      category: electrumTokenData.category,
+      amount: token.amount,
+      category: token.category,
     }
     return tokenDataFT
   }
   const tokenDataNFT = {
-    category: electrumTokenData.category,
+    category: token.category,
     nfts: [
       {
         token: {
           nft: {
-            capability: electrumTokenData.nft?.capability,
-            commitment: electrumTokenData.nft?.commitment
+            capability: token.nft?.capability,
+            commitment: token.nft?.commitment
           }
         }
       }

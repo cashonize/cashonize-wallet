@@ -27,7 +27,7 @@
     "@bitauth/libauth": "3.1.0-next.8",
     "@cashconnect-js/core": "1.0.0-alpha.31",
     "@cashconnect-js/nostr": "1.0.0-alpha.31",
-    "@cashonize/bch-wallet-lib": "0.2.2",
+    "@cashonize/bch-wallet-lib": "0.3.1",
     "@noble/ciphers": "2.4.0",
     "@noble/hashes": "2.4.0",
     "@quasar/extras": "^2.1.0",

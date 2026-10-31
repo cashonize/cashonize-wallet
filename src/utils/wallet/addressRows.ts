@@ -1,7 +1,7 @@
 // Shared row model for the HD address list views: the settings page overview and the
 // WalletConnect address selector both render addresses from the wallet cache this way.
 
-import { GAP_SIZE, type HDWallet, type TestNetHDWallet, type Utxo } from '@cashonize/bch-wallet-lib';
+import { GAP_SIZE, type HDWallet, type Utxo } from '@cashonize/bch-wallet-lib';
 import { reservedFromUtxos, type ReservedUtxos } from './reservedUtxos';
 
 export interface AddressRow {
@@ -21,7 +21,7 @@ function getAddressBalance(utxos: Utxo[]): bigint {
 
 // The branch's addresses up to its gap window, DEPOSIT_BRANCH or CHANGE_BRANCH
 export function buildAddressRows(
-  hdWallet: HDWallet | TestNetHDWallet, branch: number, reservedUtxos: ReservedUtxos
+  hdWallet: HDWallet, branch: number, reservedUtxos: ReservedUtxos
 ): AddressRow[] {
   const cache = hdWallet.walletCache;
   const index = hdWallet.indices.get(branch) ?? 0;

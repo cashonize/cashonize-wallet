@@ -1,4 +1,4 @@
-import { OpReturnData, type InOutput, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
+import { OpReturnData, type InOutput, type TransactionHistoryItem, type Utxo } from "@cashonize/bch-wallet-lib";
 import { hexToBin } from "@bitauth/libauth";
 
 export type TxDirection = 'received' | 'sent' | 'combined';
@@ -22,6 +22,45 @@ export function isCombined(transaction: TransactionHistoryItem): boolean {
 export function txDirection(transaction: TransactionHistoryItem): TxDirection {
   if (isCombined(transaction)) return 'combined';
   return txHasOutgoing(transaction) ? 'sent' : 'received';
+}
+
+// What a transaction paid the wallet from coins not its own, for the received notices. With an
+// input of the wallet, what comes back to it is change, also of a send made elsewhere on the same
+// keys. The satoshis are those of its BCH-only outputs: an NFT's dust is not BCH received.
+export function receivedFromOthers(
+  transaction: TransactionHistoryItem,
+  hasWalletAddress: (address: string) => boolean
+): { satoshis: bigint, tokenType: 'NFT' | 'tokens' | undefined } | undefined {
+  if (transaction.inputs.some(input => hasWalletAddress(input.address))) return undefined;
+  let satoshis = 0n;
+  for (const output of transaction.outputs) {
+    if (!output.token && hasWalletAddress(output.address)) satoshis += BigInt(output.value);
+  }
+  let tokenType: 'NFT' | 'tokens' | undefined;
+  if (transaction.tokenAmountChanges.some(change => change.amount > 0n)) tokenType = 'tokens';
+  if (transaction.tokenAmountChanges.some(change => change.nftAmount > 0n)) tokenType = 'NFT';
+  return { satoshis, tokenType };
+}
+
+// One notice per transaction that brought new coins and paid the wallet from coins not its own,
+// read from the refreshed history. A transaction's sats and its tokens each get one notice, not one
+// per output. Adds what it looked at to announced, as an HD wallet's debounce can split one
+// transaction's coins over two changes
+export function receiptsToAnnounce(
+  history: TransactionHistoryItem[],
+  added: Utxo[],
+  announced: Set<string>,
+  hasWalletAddress: (address: string) => boolean
+) {
+  const newTxids = new Set(added.map(utxo => utxo.txid));
+  const receipts: NonNullable<ReturnType<typeof receivedFromOthers>>[] = [];
+  for (const transaction of history) {
+    if (!newTxids.has(transaction.hash) || announced.has(transaction.hash)) continue;
+    announced.add(transaction.hash);
+    const received = receivedFromOthers(transaction, hasWalletAddress);
+    if (received) receipts.push(received);
+  }
+  return receipts;
 }
 
 // A send that only moves coins between the wallet's own addresses, like a consolidation, costs

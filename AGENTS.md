@@ -50,8 +50,8 @@ Regardless of app instances, the same wallet can be live elsewhere (other device
 
 The wallet functionality is powered by `bch-wallet-lib`, continued from mainnet-js 4 (`next`) with Cashonize as its first user, built on `@bitauth/libauth` for cryptographic primitives and transaction building, and `@electrum-cash/network` for blockchain data fetching from Electrum servers. It keeps mainnet-js 3.1.7's storage format, so existing wallets load unchanged.
 
-- Single-address wallets: `Wallet`, HD wallets: `HDWallet`, made for a test network with the network passed (`{ network }`), as the library's `TestNetWallet`/`TestNetHDWallet` are fixed to chipnet; HD address/key management goes through a `walletCache`
-- The wallet type (`WalletType`) is a union of all four classes
+- Single-address wallets: `Wallet`, HD wallets: `HDWallet`, made for a test network with the network passed (`{ network }`); HD address/key management goes through a `walletCache`
+- The wallet type (`WalletType`) is the union of the two classes
 - `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
 - Named wallets persist to IndexedDB (see Multi-Wallet Support)
 - The library builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. dApp-supplied transactions are the exception: a shortcoming of the WalletConnect/WizardConnect protocols is that the dApp builds the transaction and the wallet only signs it, against libauth directly in `utils/dapp/wcSigning.ts` / `wizSigning.ts`.

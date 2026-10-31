@@ -1,5 +1,5 @@
-import { txDirection, isCombined, isDappInteraction, isSelfSend } from "../src/utils/history/txDirection";
-import type { TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
+import { txDirection, isCombined, isDappInteraction, isSelfSend, receiptsToAnnounce } from "../src/utils/history/txDirection";
+import type { TransactionHistoryItem, Utxo } from "@cashonize/bch-wallet-lib";
 
 const category = "aabbccdd".repeat(8);
 
@@ -123,5 +123,38 @@ describe('isSelfSend', () => {
   it('should not count a token burn', () => {
     const tx = makeTx({ ...consolidation, tokenAmountChanges: [{ category, amount: -100n, nftAmount: 0n }] });
     expect(isSelfSend(tx, isOwn)).toBe(false);
+  });
+});
+
+describe('receiptsToAnnounce', () => {
+  const own = 'bitcoincash:qown';
+  const isOwn = (address: string) => address === own;
+  const io = (address: string, value: number, token?: TransactionHistoryItem["outputs"][number]["token"]) =>
+    ({ address, value, ...(token ? { token } : {}) } as TransactionHistoryItem["outputs"][number]);
+  const coin = (hash: string) => ({ txid: hash } as Utxo);
+  const nft = { category, amount: 0n, nft: { capability: 'none' as const, commitment: '01' } };
+
+  it('announces a payment once per transaction, also when its coins come over two calls', () => {
+    const payment = makeTx({ hash: 'bb', inputs: [io('bitcoincash:qother', 9000)], outputs: [io(own, 4000), io(own, 3000)] });
+    const announced = new Set<string>();
+    expect(receiptsToAnnounce([payment], [coin('bb')], announced, isOwn)).toEqual([{ satoshis: 7000n, tokenType: undefined }]);
+    expect(receiptsToAnnounce([payment], [coin('bb')], announced, isOwn)).toEqual([]);
+  });
+
+  it('announces an NFT without its dust as received BCH', () => {
+    const tx = makeTx({ hash: 'bb', inputs: [io('bitcoincash:qother', 3000)], outputs: [io(own, 1000, nft)],
+      tokenAmountChanges: [{ category, amount: 0n, nftAmount: 1n }] });
+    expect(receiptsToAnnounce([tx], [coin('bb')], new Set(), isOwn)).toEqual([{ satoshis: 0n, tokenType: 'NFT' }]);
+  });
+
+  // the same keys open elsewhere: the change of a send made there has an input of the wallet
+  it('does not announce the change of a send from this wallet', () => {
+    const send = makeTx({ hash: 'bb', inputs: [io(own, 10_000)], outputs: [io('bitcoincash:qother', 1000), io(own, 8000)] });
+    expect(receiptsToAnnounce([send], [coin('bb')], new Set(), isOwn)).toEqual([]);
+  });
+
+  it('does not announce an older receipt in the history that brought none of the added coins', () => {
+    const older = makeTx({ hash: 'dd', inputs: [io('bitcoincash:qother', 9000)], outputs: [io(own, 8000)] });
+    expect(receiptsToAnnounce([older], [coin('bb')], new Set(), isOwn)).toEqual([]);
   });
 });

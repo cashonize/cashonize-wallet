@@ -2,7 +2,6 @@ import { defineStore } from "pinia"
 import { ref, shallowRef, reactive, computed, watch, toRaw } from 'vue'
 import {
   HDWallet,
-  TestNetHDWallet,
   BaseWallet,
   GAP_SIZE,
   DEPOSIT_BRANCH,
@@ -21,6 +20,7 @@ import {
   InsufficientFundsError,
   UtxoNotAvailableError,
   type Utxo,
+  type TransactionHistoryItem,
   type ElectrumNetworkProvider,
   type CancelFn,
   type HexHeaderI,
@@ -48,7 +48,8 @@ import {
 } from "./storeUtils"
 import { binToHex, hexToBin, lockingBytecodeToCashAddress, cashAddressToLockingBytecode } from "@bitauth/libauth"
 import type { Bytes } from "src/utils/dapp/reservedInputs"
-import { convertElectrumTokenData } from "src/utils/utils"
+import { newTokenItems } from "src/utils/utils"
+import { receiptsToAnnounce } from "src/utils/history/txDirection"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
 import { useIdentitiesStore } from "./identitiesStore"
@@ -245,10 +246,6 @@ export const useStore = defineStore('store', () => {
   const isWcInitDone = ref(false as boolean)
   const isCcInitDone = ref(false as boolean)
   const isWizInitDone = ref(false as boolean)
-  // An electrum subscription replays the current state as if it had just changed, inside the
-  // subscribe call itself; set after that, so a callback that sees it is looking at a change that
-  // came later
-  const electrumSubscriptionsActive = ref(false as boolean)
   // Set when wallet initialization aborts (electrum connection failure or a thrown error),
   // so views can show an error state instead of a loading state that never resolves
   const walletInitFailed = ref(false as boolean)
@@ -270,7 +267,8 @@ export const useStore = defineStore('store', () => {
   // call, this one is tracked, so callers re-run when the cache advances.
   function walletHasAddress(address: string) {
     // The read is the subscription, without it reactive callers never re-run. walletUtxos stands
-    // in for the cache because the store assigns it right after the getUtxos() calls that grow it.
+    // in for the cache because the store assigns it after every read of the coins (the coin
+    // watch's and updateWalletUtxos).
     void walletUtxos.value;
     return wallet.value.hasAddress(address);
   }
@@ -400,23 +398,13 @@ export const useStore = defineStore('store', () => {
     return tokenList.value;
   })
 
-  let cancelWatchBchtxs: undefined | CancelFn;
-  let cancelWatchTokenTxs: undefined | CancelFn;
+  let cancelWatchUtxos: undefined | CancelFn;
   let cancelWatchBlocks: undefined | CancelFn;
-  let cancelWatchBchBalanceCashConnect: undefined | CancelFn;
 
   // Counter to detect stale async operations after network/wallet switches.
   // Bumped whenever the state those operations write into is discarded, so at the start of
   // initializeWallet() and in resetWalletState(); checked after long awaits.
   let currentInitialization = 0;
-
-  // Every coin the wallet held since its initialization, so a transaction spending one is its own
-  // without fetching its inputs' parents. It only grows: a refresh can drop a spent coin before the
-  // transaction that spent it arrives.
-  const heldOutpoints = new Set<Outpoint>();
-  watch(walletUtxos, utxos => {
-    for (const utxo of utxos ?? []) heldOutpoints.add(outpointOf(utxo));
-  }, { flush: 'sync' });
 
   // Lets the 'online' event listener retry an initialization aborted while offline
   let abortedInitOffline = false;
@@ -429,17 +417,13 @@ export const useStore = defineStore('store', () => {
 
   async function cancelWalletSubscriptions() {
     const cancelSubscriptionCallbacks = [
-      cancelWatchBchtxs,
-      cancelWatchTokenTxs,
+      cancelWatchUtxos,
       cancelWatchBlocks,
-      cancelWatchBchBalanceCashConnect,
     ];
     const activeCancels = cancelSubscriptionCallbacks.filter((cancelFn): cancelFn is CancelFn => cancelFn !== undefined);
 
-    cancelWatchBchtxs = undefined;
-    cancelWatchTokenTxs = undefined;
+    cancelWatchUtxos = undefined;
     cancelWatchBlocks = undefined;
-    cancelWatchBchBalanceCashConnect = undefined;
 
     await Promise.all(activeCancels.map((cancelFn) =>
       cancelFn().catch(() => {})
@@ -688,14 +672,13 @@ export const useStore = defineStore('store', () => {
     // Capture value for closures to detect stale async operations
     const initialization = currentInitialization;
 
-    electrumSubscriptionsActive.value = false;
     walletInitFailed.value = false;
     abortedInitOffline = false;
     await cancelWalletSubscriptions();
 
     // Verify wallet type metadata matches the actual wallet class
     const metadataType = settingsStore.getWalletType(activeWalletName.value);
-    const isActuallyHD = _wallet.value instanceof HDWallet || _wallet.value instanceof TestNetHDWallet;
+    const isActuallyHD = _wallet.value instanceof HDWallet;
     if (metadataType === 'hd' && !isActuallyHD) {
       throw new Error(`Wallet type mismatch: metadata says 'hd' but wallet is single-address. This may indicate corrupted settings.`);
     }
@@ -759,34 +742,23 @@ export const useStore = defineStore('store', () => {
         walletInitFailed.value = true;
         return;
       }
-      // Fetch wallet utxos first, this result will be used in consecutive calls to avoid duplicate getUtxos() calls.
-      // For HD wallets this also awaits address discovery, which primes per-address utxos and history,
-      // and rejects if a subscription or first fetch of it failed.
-      console.time('fetch wallet utxos');
-      const walletAddressUtxos = await wallet.value.getUtxos()
-      console.timeEnd('fetch wallet utxos');
-      if (initialization !== currentInitialization) return;
-      const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
-      // Fetch fiat balance and max amount to send in parallel
-      // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
-      console.time('fetch fiat balance & max amount to send');
-      const promiseMaxAmountToSend = wallet.value.getMaxAmountToSend(spendExclusions());
-      const balancePromises = [promiseMaxAmountToSend];
-      const [resultMaxAmountToSend] = await Promise.all(balancePromises);
-      console.timeEnd('fetch fiat balance & max amount to send');
-      if (initialization !== currentInitialization) return;
-      // set values simulatenously with tokenList so the UI elements load together
-      balance.value = balanceSats
-      walletUtxos.value = walletAddressUtxos
-      maxAmountToSend.value = resultMaxAmountToSend
-      updateTokenList()
-      console.time('set up wallet subscriptions');
+      // The coin watch's first read sets the wallet's coins, balance and token list, and rejects if
+      // a subscription or first fetch failed. For HD wallets it first awaits address discovery,
+      // which primes per-address utxos and history.
+      console.time('fetch wallet utxos & set up subscriptions');
       await setUpWalletSubscriptions();
-      console.timeEnd('set up wallet subscriptions');
+      console.timeEnd('fetch wallet utxos & set up subscriptions');
+      if (initialization !== currentInitialization) return;
+      // getMaxAmountToSend makes no server request of its own: it uses the coins the library holds
+      // (waiting for a read already under way), the pinned relay fee and a local fee estimate. A
+      // failure leaves the max empty rather than failing an open whose coins are already shown
+      console.time('compute max amount to send');
+      await refreshMaxAmountToSend();
+      console.timeEnd('compute max amount to send');
+      if (initialization !== currentInitialization) return;
       if(!tokenList.value) return // should never happen
-      // From here the subscription callbacks update state; the metadata and history still loading
-      // are enrichment an update can run alongside
-      electrumSubscriptionsActive.value = true;
+      // From here the coin watch updates state; the metadata and history still loading are
+      // enrichment an update can run alongside
       // fire-and-forget getLatestGithubRelease promise for desktop platform
       if(isDesktop) void getLatestGithubRelease()
       console.time('fetch token metadata and initial history');
@@ -829,13 +801,13 @@ export const useStore = defineStore('store', () => {
   });
 
   // Show the received-BCH toast; failures (fiat-rate fetch) must never affect wallet state
-  async function showReceivedBchNotification(balanceDifferenceSats: bigint){
+  async function showReceivedBchNotification(receivedSats: bigint){
     try {
-      let amountInUnit = Number(balanceDifferenceSats) / 100_000_000;
+      let amountInUnit = Number(receivedSats) / 100_000_000;
       let unitString = network.value == 'mainnet' ? 'BCH' : 'tBCH';
       let maxFractionDigits = 8;
       if(settingsStore.bchUnit === 'sat'){
-        amountInUnit = Number(balanceDifferenceSats);
+        amountInUnit = Number(receivedSats);
         unitString = network.value == 'mainnet' ? 'sats' : 'tsats';
         maxFractionDigits = 0;
       }
@@ -861,89 +833,81 @@ export const useStore = defineStore('store', () => {
     // Capture initialization so subscription callbacks become no-ops after a wallet/network switch
     const initialization = currentInitialization;
 
-    // The callbacks are async: the library reports a callback's rejection to console.error and
-    // goes on watching
-    cancelWatchBchtxs = await wallet.value.watchBalance(
-      async (newBalance) => {
-        if (initialization !== currentInitialization) return;
-        // Compute oldBalance including bch on token utxos
-        // to match way newBalance is calculated in watchBalance
-        const oldBalance = walletUtxos.value?.reduce((acc, utxo) => acc + utxo.satoshis, BigInt(0));
-        // explicit undefined check because 0n is falsy: a truthiness check would freeze
-        // an empty wallet receiving its first funds and hide a wallet drained to zero
-        if(oldBalance !== undefined && electrumSubscriptionsActive.value){
-          // fire-and-forget so the notification (which may fetch a fiat rate) never
-          // delays or blocks the state update below
-          if(oldBalance < newBalance) void showReceivedBchNotification(newBalance - oldBalance);
-          // update state (skipped on the initial trigger via the electrumSubscriptionsActive check)
-          let walletAddressUtxos: Utxo[];
-          try {
-            walletAddressUtxos = await wallet.value.getUtxos();
-          } catch (error) {
-            warnRefreshFailed(error, initialization);
-            return;
-          }
-          if (initialization !== currentInitialization) return;
-          // update balance with the amount on bch-only utxos
-          const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
-          balance.value = balanceSats;
-          walletUtxos.value = walletAddressUtxos;
-          void updateWalletHistory();
-          await refreshMaxAmountToSend();
-        }
+    // The one handler of the wallet's coins. Its first callback is the coins the wallet opens with
+    // and announces nothing; the library makes the watch before that read, so a change during
+    // startup comes as a later callback. The library reports a callback's rejection to console.error
+    // and goes on watching.
+    let baseline = true;
+    const announcedTxids = new Set<string>();
+    const cancelUtxos = await wallet.value.watchUtxos(async ({ utxos, added, removed }) => {
+      if (initialization !== currentInitialization) return;
+      // read before the coins change, to tell which tokens are new
+      const heldTokens = allTokenList.value;
+      balance.value = getBalanceFromUtxos(utxos);
+      walletUtxos.value = utxos;
+      updateTokenList();
+      if (baseline) {
+        baseline = false;
+        return;
       }
-    );
-    cancelWatchTokenTxs = await wallet.value.watchTokenTransactions(
-      async (tx) => {
-        if (initialization !== currentInitialization) return;
-        const receivedTokenOutputs = tx.vout.filter(voutElem =>
-          voutElem.tokenData && voutElem.scriptPubKey.addresses?.[0] &&
-          wallet.value.hasAddress(voutElem.scriptPubKey.addresses[0])
-        );
-        const previousTokenList = tokenList.value;
-        const listNewTokens:TokenList = []
-        // User-sent txs produce token change outputs that trigger this subscription, skip notification for those
-        const isUserInitiatedTx = tx.vin.some(input => heldOutpoints.has(outpointOf(input)));
-        for(const tokenOutput of receivedTokenOutputs){
-          const outputTokenData = tokenOutput.tokenData!;
-          // Only notify for externally received tokens, not user-sent change outputs
-          if(!isUserInitiatedTx){
-            const tokenType = outputTokenData.nft ? "NFT" : "tokens"
-            Notify.create({
-              type: 'positive',
-              message: t('store.notifications.receivedTokens', { tokenType })
-            })
-          }
-          const category = outputTokenData.category;
-          const isKnownCategory = previousTokenList?.some(elem => elem.category === category) ?? false;
-          if (isKnownCategory) {
-            // Skip fetching metadata if we already know this category for fungible tokens
-            if (!outputTokenData.nft) continue;
-
-            // Skip fetching metadata if we already know this category with this commitment for NFTs
-            const commitment = outputTokenData.nft.commitment ?? "";
-            const hasCommitmentMetadata = bcmrRegistries.value?.[category]?.nfts?.[commitment] !== undefined;
-            if (hasCommitmentMetadata) continue;
-          }
-
-          const newTokenItem = convertElectrumTokenData(outputTokenData)
-          if(newTokenItem) listNewTokens.push(newTokenItem)
-        }
-        // Dynamically fetch token metadata
-        await fetchTokenMetadata(listNewTokens, true);
-        // refetch utxos to update tokenList
-        await updateWalletUtxos();
-        // fetch Cauldron prices for new FTs
-        void fetchCauldronPricesForTokens();
-        void updateWalletHistory();
-      }
-    );
-    cancelWatchBlocks = await wallet.value.watchBlocks(header => {
+      // CashConnect re-reads the coins on every change after the first, confirmations and reconnects
+      // included; notifying only when coins were added or removed would stop confirmations reaching dApps
+      notifyCashConnectOfCoins();
+      if (added.length || removed.length) void refreshMaxAmountToSend();
+      // a change without coins added or removed is a confirmation or a reconnect, which the history shows
+      const [history] = await Promise.all([
+        updateWalletHistory(),
+        fetchMetadataForNewTokens(added, heldTokens),
+      ]);
+      if (initialization !== currentInitialization || !history) return;
+      announceReceivedTransactions(history, added, announcedTxids);
+    }, { onError: error => warnRefreshFailed(error, initialization) });
+    // an initialization that started meanwhile already cancelled what it found, which was not this
+    if (initialization !== currentInitialization) {
+      await cancelUtxos();
+      return;
+    }
+    cancelWatchUtxos = cancelUtxos;
+    const cancelBlocks = await wallet.value.watchBlocks(header => {
       if (initialization !== currentInitialization) return;
       currentBlockHeight.value = header.height;
       // a test network's hashrate is too erratic for a gap between blocks to say anything about the server
       if (network.value === 'mainnet') warnIfServerTipStale(header);
     }, false);
+    if (initialization !== currentInitialization) {
+      await cancelBlocks();
+      return;
+    }
+    cancelWatchBlocks = cancelBlocks;
+  }
+
+  // CashConnect reads the wallet's coins itself, and is told when they change
+  function notifyCashConnectOfCoins() {
+    if (!dappsAvailableOn(network.value)) return;
+    const cashConnectWallet = useCashconnectStore().cashConnectWallet;
+    if (cashConnectWallet) void cashConnectWallet.notifyBalancesChanged();
+  }
+
+  async function fetchMetadataForNewTokens(added: Utxo[], heldTokens: TokenList | null) {
+    const newTokens = newTokenItems(added, heldTokens, bcmrRegistries.value);
+    if (!newTokens.length) return;
+    await fetchTokenMetadata(newTokens, true);
+    // fetch Cauldron prices for new FTs
+    void fetchCauldronPricesForTokens();
+  }
+
+  function announceReceivedTransactions(history: TransactionHistoryItem[], added: Utxo[], announcedTxids: Set<string>) {
+    const hasWalletAddress = (address: string) => wallet.value.hasAddress(address);
+    for (const received of receiptsToAnnounce(history, added, announcedTxids, hasWalletAddress)) {
+      // fire-and-forget: the notice may fetch a fiat rate
+      if (received.satoshis > 0n) void showReceivedBchNotification(received.satoshis);
+      if (received.tokenType) {
+        Notify.create({
+          type: 'positive',
+          message: t('store.notifications.receivedTokens', { tokenType: received.tokenType })
+        })
+      }
+    }
   }
 
   // Checked only on a tip the server delivers, which it does on every connect and reconnect, so a
@@ -973,7 +937,6 @@ export const useStore = defineStore('store', () => {
     // repopulate the state cleared below.
     currentInitialization++;
     viewStack.length = 0;
-    electrumSubscriptionsActive.value = false;
     walletInitFailed.value = false;
 
     // Stop the intervals and clear the state before the awaits below, so the views do not go on
@@ -982,7 +945,6 @@ export const useStore = defineStore('store', () => {
     balance.value = undefined;
     maxAmountToSend.value = undefined;
     walletUtxos.value = undefined;
-    heldOutpoints.clear();
     // The reservations and frozen addresses stay: a wallet switch replaces them in setWallet, and an
     // electrum server change keeps the same wallet, which would otherwise be left spending them
     pendingTokenSearch.value = undefined;
@@ -1224,21 +1186,7 @@ export const useStore = defineStore('store', () => {
       networkChangeCallbacks.push(async () => {
         await cashconnectWallet.stop();
       });
-
-      // Monitor the wallet for balance changes and notify CashConnect to refresh wallet state.
-      // Caught separately without a toast: watchBalance only fails when the electrum
-      // connection is down, which already shows its own error toast.
-      try {
-        cancelWatchBchBalanceCashConnect = await wallet.value.watchBalance(() => {
-          // Invoke wallet state has changed so that CashConnect can retrieve fresh UTXOs (and token balances).
-          // fire-and-forget promise
-          if(cashconnectWallet.cashConnectWallet) {
-            void cashconnectWallet.cashConnectWallet.notifyBalancesChanged();
-          }
-        });
-      } catch (error) {
-        console.error("Error setting up CashConnect balance watching:", error);
-      }
+      // the coin watch tells CashConnect when the wallet's coins change (notifyCashConnectOfCoins)
     } catch (error) {
       console.error("Error initializing CashConnect:", error);
       Notify.create({
@@ -1316,7 +1264,8 @@ export const useStore = defineStore('store', () => {
   // a BCMR record aren't re-queried on every history refresh (cachedFetch only caches successful lookups)
   let queriedHistoryCategories: string[] = [];
   // Without a count, a refresh of what is loaded: the newest page, merged into the full history once
-  // that is loaded; the refreshes of a send or receive, two or three per event, share one load
+  // that is loaded; the refreshes of a send or receive, one or two per event, share one load
+  // Resolves to the history items fetched, also when a newer load replaced them in walletHistory
   function updateWalletHistory({ count }: { count?: number } = {}) {
     if (count === undefined) return historyLoad.run({ again: true });
     return fetchWalletHistory(count);
@@ -1324,7 +1273,7 @@ export const useStore = defineStore('store', () => {
 
   // Fetches wallet history via the library's getHistory(), which decodes every transaction and its
   // prevouts, so the full history is loaded only when asked for and then kept up to date page-wise
-  async function fetchWalletHistory(count: number, { merge = false } = {}) {
+  async function fetchWalletHistory(count: number, { merge = false } = {}): Promise<TransactionHistoryItem[] | undefined> {
     const requestId = ++historyRequestId;
     try {
       const initialization = currentInitialization;
@@ -1332,7 +1281,7 @@ export const useStore = defineStore('store', () => {
       const rawHistory = await wallet.value.getRawHistory();
       const history = await wallet.value.getHistory({ count });
       if (initialization !== currentInitialization) return;
-      if (requestId !== historyRequestId) return; // newer request in-flight, discard stale result
+      if (requestId !== historyRequestId) return history; // a newer load is in flight and applies its own
       const historyTxids = new Set(rawHistory.map(tx => tx.tx_hash));
       let applied = history;
       if (merge) applied = mergeNewestPage(walletHistory.value ?? [], history, historyTxids);
@@ -1359,6 +1308,7 @@ export const useStore = defineStore('store', () => {
       if (missingCategories.length) {
         void fetchTokenMetadata(missingCategories.map(category => ({ category, amount: 0n })), false);
       }
+      return history;
     } catch(error){
       console.error(error)
       const errorMessage = typeof error == 'string' ? error : t('store.errors.errorFetchingHistory');
@@ -1819,9 +1769,13 @@ export const useStore = defineStore('store', () => {
 
   // maxAmountToSend is fetched, not derived, so it does not follow the spendable pool on its own
   async function refreshMaxAmountToSend() {
+    const initialization = currentInitialization;
     try {
-      maxAmountToSend.value = await spend.getMaxAmountToSend();
+      const max = await spend.getMaxAmountToSend();
+      if (initialization !== currentInitialization) return;
+      maxAmountToSend.value = max;
     } catch (error) {
+      if (initialization !== currentInitialization) return;
       maxAmountToSend.value = undefined;
       console.error("Failed to update maxAmountToSend:", error);
     }

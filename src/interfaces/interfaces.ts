@@ -1,6 +1,6 @@
-import type { Utxo, ElectrumRawTransaction, Wallet, TestNetWallet, HDWallet, TestNetHDWallet } from "@cashonize/bch-wallet-lib"
+import type { Utxo, Wallet, HDWallet } from "@cashonize/bch-wallet-lib"
 
-export type WalletType = Wallet | TestNetWallet | HDWallet | TestNetHDWallet;
+export type WalletType = Wallet | HDWallet;
 
 // Currency symbols for inline template use (e.g. send input label "EUR €", notification suffix).
 // Avoid symbols that match the CurrencyShortNames entry, as some templates show both (e.g. "CHF CHF").
@@ -133,6 +133,3 @@ export type BcmrExtensions = {
     | { [key: string]: string }
     | { [keyA: string]: { [keyB: string]: string } };
 }
-
-export type ElectrumRawTransactionVout = ElectrumRawTransaction["vout"][number]
-export type ElectrumTokenData = ElectrumRawTransactionVout["tokenData"]

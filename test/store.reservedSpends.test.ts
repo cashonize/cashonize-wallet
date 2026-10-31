@@ -36,14 +36,12 @@ vi.stubGlobal('localStorage', storage)
 const { fakeProvider } = vi.hoisted(() => ({
   fakeProvider: {
     network: 'mainnet',
-    connect: () => Promise.resolve(),
     subscribeToAddress: (address: string, callback: (data: [string, string]) => void) => {
       queueMicrotask(() => callback([address, 'status']))
       return Promise.resolve(() => Promise.resolve())
     },
     getUtxos: () => Promise.resolve(walletCoins),
     getHistory: () => Promise.resolve([]),
-    getBlockHeight: () => Promise.resolve(900_000),
   } as unknown as ElectrumNetworkProvider,
 }))
 vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
@@ -94,7 +92,7 @@ beforeAll(async () => {
   const keyWallet = await Wallet.fromWIF(throwAwayTestKeyWif)
   await keyWallet.stop()
   address = keyWallet.cashaddr
-  tokenAddress = keyWallet.tokenaddr
+  tokenAddress = keyWallet.getTokenDepositAddress()
 })
 afterAll(() => {
   removeGlobalProvider('mainnet')

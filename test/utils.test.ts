@@ -1,4 +1,6 @@
-import { chaingraphGraphqlUrl, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sameTokenList, sendAmountToSatoshis } from "../src/utils/utils";
+import { chaingraphGraphqlUrl, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sameTokenList, sendAmountToSatoshis, newTokenItems } from "../src/utils/utils";
+import type { Utxo } from "@cashonize/bch-wallet-lib";
+import type { BcmrTokenMetadata } from "../src/interfaces/interfaces";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
 
 describe('test electrumWssUrl', () => {
@@ -181,5 +183,24 @@ describe('sameTokenList', () => {
       [{ category, nfts: [{ ...nft, vout: 1 }] }],
     )).toBe(false)
     expect(sameTokenList([{ category, amount: 5n }, other], [other, { category, amount: 5n }])).toBe(false)
+  })
+})
+
+describe('newTokenItems', () => {
+  const category = '0123456789abcdef'.repeat(4)
+  const coin = (token?: Utxo['token']) => ({ txid: 'cc'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:qtest', ...(token ? { token } : {}) }) as Utxo
+  const nft = (commitment: string) => coin({ category, amount: 0n, nft: { capability: 'none', commitment } })
+  const held = [{ category, nfts: [nft('01')] }]
+  const registries = { [category]: { nfts: { '01': {} } } } as unknown as Record<string, BcmrTokenMetadata>
+
+  it('fetches a category the wallet did not hold', () => {
+    expect(newTokenItems([coin(), coin({ category, amount: 5n })], [], undefined)).toEqual([{ category, amount: 5n }])
+  })
+
+  it('skips a held category, unless the coin is an NFT commitment without metadata', () => {
+    expect(newTokenItems([coin({ category, amount: 5n }), nft('01')], held, registries)).toEqual([])
+    expect(newTokenItems([nft('02')], held, registries)).toEqual([
+      { category, nfts: [{ token: { nft: { capability: 'none', commitment: '02' } } }] },
+    ])
   })
 })
