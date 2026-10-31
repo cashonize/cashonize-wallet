@@ -80,7 +80,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 
 Cashonize is available for different platforms from the same codebase, but the platform variants have different security properties worth understanding.
 
-Webwallets are great for convenience, but downloaded applications are more secure because the code is pinned at install time rather than fetched fresh on every visit. Installable web apps share the same security model as webwallets, despite feeling like a native app.
+The webwallet is the easy way to start; for meaningful amounts the downloadable apps are recommended. The webwallet runs whatever cashonize.com serves on each visit, so a change to the site reaches every web user at once, while the desktop and Android apps keep the version you installed until you update. Installable web apps share the webwallet's security model, despite feeling like a native app.
 
 For more details see the [security considerations](./security-considerations.md), and the [security policy](./SECURITY.md) for responsible disclosure.
 
@@ -88,7 +88,7 @@ For more details see the [security considerations](./security-considerations.md)
 
 </> For local development check out the [developer instructions](./development.md).
 
-🗺️ For an overview of the architecture, see [CLAUDE.md](./CLAUDE.md): written to guide AI agents, it doubles as the codebase's architecture documentation.
+🗺️ For an overview of the architecture, see [AGENTS.md](./AGENTS.md): written to guide AI agents, it doubles as the codebase's architecture documentation.
 
 ## For dApp Developers
 
