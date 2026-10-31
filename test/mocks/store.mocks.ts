@@ -41,9 +41,7 @@ export const mockChipnetWallet = {
 
 // Mock functions for wallet classes
 export const mockWalletNamed = vi.fn()
-export const mockTestNetWalletNamed = vi.fn()
 export const mockHDWalletNamed = vi.fn()
-export const mockTestNetHDWalletNamed = vi.fn()
 // the wallet of the network a stored id is loaded with, as the library's fromId gives
 function walletOfNetwork(_walletId: string, options?: { network?: string }) {
   if (options?.network === 'testnet') return Promise.resolve(mockChipnetWallet)
@@ -51,9 +49,7 @@ function walletOfNetwork(_walletId: string, options?: { network?: string }) {
   return Promise.resolve(mockMainnetWallet)
 }
 export const mockWalletFromId = vi.fn(walletOfNetwork)
-export const mockTestNetWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
 export const mockHDWalletFromId = vi.fn(walletOfNetwork)
-export const mockTestNetHDWalletFromId = vi.fn().mockResolvedValue(mockChipnetWallet)
 
 // Mock localStorage
 export const localStorageMock = {
@@ -74,9 +70,7 @@ export const mockProvider = {
 
 // Mock wallet classes (must be real classes so instanceof checks work)
 class MockWallet { static named = mockWalletNamed; static fromId = mockWalletFromId }
-class MockTestNetWallet { static named = mockTestNetWalletNamed; static fromId = mockTestNetWalletFromId }
 class MockHDWallet { static named = mockHDWalletNamed; static fromId = mockHDWalletFromId }
-class MockTestNetHDWallet { static named = mockTestNetHDWalletNamed; static fromId = mockTestNetHDWalletFromId }
 
 // Mock bch-wallet-lib. The publication output parser is the real one: a publication is bytes on the
 // chain, and the tests that name an identity from one hand the store real bytecode. The error
@@ -97,9 +91,7 @@ vi.mock('@cashonize/bch-wallet-lib', async (importOriginal) => ({
   CHANGE_BRANCH: (await importOriginal<typeof BchWalletLib>()).CHANGE_BRANCH,
   GAP_SIZE: (await importOriginal<typeof BchWalletLib>()).GAP_SIZE,
   Wallet: MockWallet,
-  TestNetWallet: MockTestNetWallet,
   HDWallet: MockHDWallet,
-  TestNetHDWallet: MockTestNetHDWallet,
   Config: {
     EnforceCashTokenReceiptAddresses: true,
     UseIndexedDBCache: true,

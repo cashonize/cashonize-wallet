@@ -3,7 +3,7 @@
 // chain through proxy.ts, so its bchtest addresses map to bchreg ones here.
 
 import { decodeCashAddress, encodeCashAddress, generateRandomBytes } from '@bitauth/libauth'
-import { DefaultProvider, TestNetWallet, TokenGenesisRequest } from '@cashonize/bch-wallet-lib'
+import { DefaultProvider, TokenGenesisRequest, Wallet } from '@cashonize/bch-wallet-lib'
 
 // as env.sh
 export const RPC_PORT = 18543
@@ -64,11 +64,11 @@ export function randomAddress(type: 'p2pkh' | 'p2pkhWithTokens' = 'p2pkh'): stri
 
 // bch-wallet-lib exports no regtest wallet class, so the funder is a chipnet wallet that reaches
 // the chain through a proxy instance of its own, out of the app's connection counts
-let funder: TestNetWallet | undefined
-export async function funderWallet(): Promise<TestNetWallet> {
+let funder: Wallet | undefined
+export async function funderWallet(): Promise<Wallet> {
   if (funder) return funder
   DefaultProvider.servers.testnet = [`ws://127.0.0.1:${FUNDER_PROXY_PORT}`]
-  funder = await TestNetWallet.fromWIF(FUNDER_WIF)
+  funder = await Wallet.fromWIF(FUNDER_WIF, { network: 'testnet' })
   return funder
 }
 

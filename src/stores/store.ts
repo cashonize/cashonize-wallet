@@ -2,7 +2,6 @@ import { defineStore } from "pinia"
 import { ref, shallowRef, reactive, computed, watch, toRaw } from 'vue'
 import {
   HDWallet,
-  TestNetHDWallet,
   BaseWallet,
   GAP_SIZE,
   DEPOSIT_BRANCH,
@@ -695,7 +694,7 @@ export const useStore = defineStore('store', () => {
 
     // Verify wallet type metadata matches the actual wallet class
     const metadataType = settingsStore.getWalletType(activeWalletName.value);
-    const isActuallyHD = _wallet.value instanceof HDWallet || _wallet.value instanceof TestNetHDWallet;
+    const isActuallyHD = _wallet.value instanceof HDWallet;
     if (metadataType === 'hd' && !isActuallyHD) {
       throw new Error(`Wallet type mismatch: metadata says 'hd' but wallet is single-address. This may indicate corrupted settings.`);
     }

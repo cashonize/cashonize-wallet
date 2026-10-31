@@ -143,7 +143,7 @@ describe('switchWallet', () => {
       expect(result.networkChanged).toBe('mainnet')
       expect(store.activeWalletName).toBe('mainnetOnlyWallet')
       expect(localStorageMock.setItem).toHaveBeenCalledWith('activeWalletName', 'mainnetOnlyWallet')
-      // Should NOT have called TestNetWallet.named (we're switching away from chipnet)
+      // Should NOT have loaded a wallet by name (we're switching away from chipnet)
       expect(mockHDWalletNamed).not.toHaveBeenCalled()
       // Verify network was changed and correct wallet loader was called
       expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'mainnet')

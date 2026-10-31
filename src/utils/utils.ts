@@ -50,8 +50,6 @@ export function walletTypeFromWalletId(walletId: string): 'single' | 'hd' {
   return walletId.startsWith('hd:') ? 'hd' : 'single';
 }
 
-// A wallet of a test network comes from the mainnet classes with the network passed: the library's
-// TestNet classes are fixed to chipnet ("testnet")
 export async function loadWalletFromId(walletId: string, network: AppNetwork): Promise<WalletType> {
   const isHD = walletTypeFromWalletId(walletId) === 'hd';
   const options = { network: libraryNetwork(network) };
