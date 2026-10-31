@@ -155,6 +155,7 @@ Component styles are plain CSS by default; a few use `<style scoped lang="scss">
 
 ### Internationalization (i18n)
 Uses `vue-i18n`. In Vue components use `useI18n()` composable; in utility files use `i18n.global` from `src/boot/i18n.ts`.
+English is bundled as the fallback; every other language is its own chunk, so change the language only through `switchLocale` in `src/boot/i18n.ts`, which loads it first.
 
 ## Testing
 
