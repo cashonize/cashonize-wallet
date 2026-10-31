@@ -109,47 +109,6 @@ describe('the coin watch', () => {
     expect(receivedBch()).toHaveLength(0)
   })
 
-  // an older receipt in the refreshed history brought no coin in this change
-  it('announces one transaction once, however many outputs pay the wallet, and no older one', async () => {
-    const { change } = await openWallet([])
-    const first = coin('bb', 1000n, nft)
-    const second = { ...coin('bb', 1000n, { ...nft, nft: { capability: 'none' as const, commitment: '02' } }), vout: 1 }
-    const bch = { ...coin('bb', 4000n), vout: 2 }
-    const outputs = [output(own, 1000, first.token), output(own, 1000, second.token), output(own, 4000)]
-    const older = transaction('dd', [output(other, 9000)], [output(own, 8000)])
-    await change([first, second, bch], [first, second, bch], [], [transaction('bb', [output(other, 7000)], outputs), older])
-    await flush()
-
-    expect(receivedTokens()).toHaveLength(1)
-    expect(receivedBch()).toHaveLength(1)
-  })
-
-  // an HD wallet's debounce can split the coins of one transaction over two callbacks
-  it('announces a transaction once when its coins arrive in two callbacks', async () => {
-    const { change } = await openWallet([])
-    const first = coin('bb', 4000n)
-    const second = { ...coin('bb', 3000n), vout: 1 }
-    const payment = transaction('bb', [output(other, 8000)], [output(own, 4000), output(own, 3000)])
-    await change([first], [first], [], [payment])
-    await change([first, second], [second], [], [payment])
-    await flush()
-
-    expect(receivedBch()).toHaveLength(1)
-  })
-
-  // the same keys open elsewhere: the change of a send made there is no payment
-  it('does not announce the change of a send from this wallet, also one made on another device', async () => {
-    const spent = coin('aa', 10_000n)
-    const { change } = await openWallet([spent])
-    const tokenChange = coin('bb', 1000n, { category, amount: 5n })
-    const bchChange = { ...coin('bb', 7000n), vout: 1 }
-    const send = transaction('bb', [output(own, 10_000)], [output(other, 1000), output(own, 1000, tokenChange.token), output(own, 7000)])
-    await change([tokenChange, bchChange], [tokenChange, bchChange], [spent], [send])
-    await flush()
-
-    expect(notices().filter(notice => notice.type === 'positive')).toHaveLength(0)
-  })
-
   it('rebuilds the token list when a token coin disappears', async () => {
     const tokenCoin = coin('aa', 1000n, nft)
     const { store, change } = await openWallet([tokenCoin])

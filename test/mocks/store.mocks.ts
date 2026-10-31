@@ -247,7 +247,7 @@ vi.mock('src/utils/utils', async (importOriginal) => ({
   // the real one, on the mocked wallet classes: which class and network a stored id loads with is
   // what the network tests check
   loadWalletFromId: (await importOriginal<typeof Utils>()).loadWalletFromId,
-  tokenItemFromToken: (await importOriginal<typeof Utils>()).tokenItemFromToken,
+  newTokenItems: (await importOriginal<typeof Utils>()).newTokenItems,
   STALE_TIP_SECONDS: (await importOriginal<typeof Utils>()).STALE_TIP_SECONDS,
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),
 }))

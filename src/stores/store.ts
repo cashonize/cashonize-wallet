@@ -48,8 +48,8 @@ import {
 } from "./storeUtils"
 import { binToHex, hexToBin, lockingBytecodeToCashAddress, cashAddressToLockingBytecode } from "@bitauth/libauth"
 import type { Bytes } from "src/utils/dapp/reservedInputs"
-import { tokenItemFromToken } from "src/utils/utils"
-import { receivedFromOthers } from "src/utils/history/txDirection"
+import { newTokenItems } from "src/utils/utils"
+import { receiptsToAnnounce } from "src/utils/history/txDirection"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
 import { useIdentitiesStore } from "./identitiesStore"
@@ -836,7 +836,6 @@ export const useStore = defineStore('store', () => {
     // startup comes as a later callback. The library reports a callback's rejection to console.error
     // and goes on watching.
     let baseline = true;
-    // an HD wallet's debounce can split one transaction's coins over two callbacks
     const announcedTxids = new Set<string>();
     const cancelUtxos = await wallet.value.watchUtxos(async ({ utxos, added, removed }) => {
       if (initialization !== currentInitialization) return;
@@ -888,37 +887,17 @@ export const useStore = defineStore('store', () => {
     if (cashConnectWallet) void cashConnectWallet.notifyBalancesChanged();
   }
 
-  // Metadata for what new coins bring: a category the wallet did not hold, or an NFT commitment
-  // without metadata yet
   async function fetchMetadataForNewTokens(added: Utxo[], heldTokens: TokenList | null) {
-    const newTokens: TokenList = [];
-    for (const utxo of added) {
-      if (!utxo.token) continue;
-      const { category, nft } = utxo.token;
-      const isKnownCategory = heldTokens?.some(token => token.category === category) ?? false;
-      if (isKnownCategory) {
-        if (!nft) continue;
-        if (bcmrRegistries.value?.[category]?.nfts?.[nft.commitment] !== undefined) continue;
-      }
-      newTokens.push(tokenItemFromToken(utxo.token));
-    }
+    const newTokens = newTokenItems(added, heldTokens, bcmrRegistries.value);
     if (!newTokens.length) return;
     await fetchTokenMetadata(newTokens, true);
     // fetch Cauldron prices for new FTs
     void fetchCauldronPricesForTokens();
   }
 
-  // One notice per transaction that brought new coins and paid the wallet from coins not its own,
-  // read from the refreshed history: a send's change, also of a send made on another device, has an
-  // input of the wallet. A transaction's sats and its tokens each get one notice, not one per output.
   function announceReceivedTransactions(history: TransactionHistoryItem[], added: Utxo[], announcedTxids: Set<string>) {
-    const newTxids = new Set(added.map(utxo => utxo.txid));
     const hasWalletAddress = (address: string) => wallet.value.hasAddress(address);
-    for (const transaction of history) {
-      if (!newTxids.has(transaction.hash) || announcedTxids.has(transaction.hash)) continue;
-      announcedTxids.add(transaction.hash);
-      const received = receivedFromOthers(transaction, hasWalletAddress);
-      if (!received) continue;
+    for (const received of receiptsToAnnounce(history, added, announcedTxids, hasWalletAddress)) {
       // fire-and-forget: the notice may fetch a fiat rate
       if (received.satoshis > 0n) void showReceivedBchNotification(received.satoshis);
       if (received.tokenType) {

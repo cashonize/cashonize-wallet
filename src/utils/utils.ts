@@ -414,6 +414,27 @@ export function parseExtendedJson(jsonString: string){
   })
 }
 
+// What new coins bring that the wallet has no metadata for: a category it did not hold, or an NFT
+// commitment without metadata yet
+export function newTokenItems(
+  added: Utxo[],
+  heldTokens: TokenList | null,
+  registries: Record<string, BcmrTokenMetadata> | undefined
+): TokenList {
+  const newTokens: TokenList = [];
+  for (const utxo of added) {
+    if (!utxo.token) continue;
+    const { category, nft } = utxo.token;
+    const isKnownCategory = heldTokens?.some(token => token.category === category) ?? false;
+    if (isKnownCategory) {
+      if (!nft) continue;
+      if (registries?.[category]?.nfts?.[nft.commitment] !== undefined) continue;
+    }
+    newTokens.push(tokenItemFromToken(utxo.token));
+  }
+  return newTokens;
+}
+
 // A token coin's data as a token list item, enough to look up its metadata
 export function tokenItemFromToken(token: TokenI){
   if(token.amount > 0n){

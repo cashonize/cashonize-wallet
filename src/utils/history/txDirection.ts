@@ -1,4 +1,4 @@
-import { OpReturnData, type InOutput, type TransactionHistoryItem } from "@cashonize/bch-wallet-lib";
+import { OpReturnData, type InOutput, type TransactionHistoryItem, type Utxo } from "@cashonize/bch-wallet-lib";
 import { hexToBin } from "@bitauth/libauth";
 
 export type TxDirection = 'received' | 'sent' | 'combined';
@@ -40,6 +40,27 @@ export function receivedFromOthers(
   if (transaction.tokenAmountChanges.some(change => change.amount > 0n)) tokenType = 'tokens';
   if (transaction.tokenAmountChanges.some(change => change.nftAmount > 0n)) tokenType = 'NFT';
   return { satoshis, tokenType };
+}
+
+// One notice per transaction that brought new coins and paid the wallet from coins not its own,
+// read from the refreshed history. A transaction's sats and its tokens each get one notice, not one
+// per output. Adds what it looked at to announced, as an HD wallet's debounce can split one
+// transaction's coins over two changes
+export function receiptsToAnnounce(
+  history: TransactionHistoryItem[],
+  added: Utxo[],
+  announced: Set<string>,
+  hasWalletAddress: (address: string) => boolean
+) {
+  const newTxids = new Set(added.map(utxo => utxo.txid));
+  const receipts: NonNullable<ReturnType<typeof receivedFromOthers>>[] = [];
+  for (const transaction of history) {
+    if (!newTxids.has(transaction.hash) || announced.has(transaction.hash)) continue;
+    announced.add(transaction.hash);
+    const received = receivedFromOthers(transaction, hasWalletAddress);
+    if (received) receipts.push(received);
+  }
+  return receipts;
 }
 
 // A send that only moves coins between the wallet's own addresses, like a consolidation, costs
