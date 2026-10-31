@@ -4,9 +4,9 @@ Cashonize is available as a webwallet, an installable web app, and as downloadab
 
 ### Code delivery
 
-**Webwallets fetch a live application each time you visit.** The code is served fresh from the web on every visit, which means it is not vetted beforehand and could in principle change between sessions. This is an inherent property of any web wallet, not specific to Cashonize.
+**Webwallets fetch a live application each time you visit.** cashonize.com serves whatever is deployed at that moment, so a change to the site reaches every web user on their next visit, without being asked. Every web wallet works this way.
 
-**Downloadable apps pin the code at install time.** When you install the desktop or Android version, you download a specific version of the code once, and it does not change until you update. Note that current Cashonize releases are not code-signed, so you should verify you are downloading from the official GitHub releases page: https://github.com/cashonize/cashonize-wallet/releases
+**Downloadable apps pin the code at install time.** The desktop and Android apps run the version you installed until you install another one yourself; they do not update automatically. A bad release only reaches those who download and install it, rather than every user at once the way a change to the website does. The desktop releases are not code-signed, so only download releases from the official GitHub releases page: https://github.com/cashonize/cashonize-wallet/releases
 
 **Installable web apps share the security model of webwallets.** Adding Cashonize to your home screen makes it feel like a native app, but the code is still loaded from the web. It is a convenience feature, not a security upgrade.
 
@@ -36,7 +36,7 @@ Cashonize currently stores your seed phrase unencrypted in IndexedDB. The actual
 
 **Risk by platform:**
 - The webwallet and installable web app carry ongoing exposure on every visit: code is delivered fresh from the web, phishing applies each time you navigate to the URL, and any browser extension with access to the origin can read the seed in IndexedDB.
-- The desktop app pins the code at install time, but stores the seed in plaintext on your filesystem. Its main advantage over the webwallet is code pinning, not storage isolation.
+- The desktop app pins the code at install time (it changes only when you install an update), but stores the seed in plaintext on your filesystem. Its main advantage over the webwallet is code pinning, not storage isolation.
 - The Android .apk pins code at install and adds per-app sandboxing on top.
 
 **Recommendations:**
