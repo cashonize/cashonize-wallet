@@ -9,18 +9,19 @@ import { useStore } from '../src/stores/store'
 const coin = { txid: 'aa'.repeat(32), vout: 0, satoshis: 1000n }
 
 function createWallet() {
+  const watch = utxoWatch()
   const wallet = {
     ...mockMainnetWallet,
     getUtxos: vi.fn().mockResolvedValue([coin]),
     getMaxAmountToSend: vi.fn().mockResolvedValue(0n),
     getHistory: vi.fn().mockResolvedValue([]),
     getRawHistory: vi.fn().mockResolvedValue([]),
-    watchUtxos: utxoWatch().watchUtxos,
+    watchUtxos: watch.watchUtxos,
     watchBlocks: vi.fn().mockResolvedValue(async () => {}),
     hasAddress: vi.fn().mockReturnValue(false),
     provider: {},
   }
-  return { wallet }
+  return { wallet, watch }
 }
 
 const refreshWarnings = () => vi.mocked(Notify.create).mock.calls
@@ -44,6 +45,18 @@ describe('refresh failure notice', () => {
 
     wallet.getUtxos.mockRejectedValue(new Error('server'))
     await store.updateWalletUtxos()
+
+    expect(store.walletUtxos).toEqual([coin])
+    expect(refreshWarnings()).toHaveLength(1)
+  })
+
+  it("warns when the coin watch's read after a change fails, keeping the old coins", async () => {
+    const { wallet, watch } = createWallet()
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    await store.initializeWallet()
+
+    watch.fail(new Error('server'))
 
     expect(store.walletUtxos).toEqual([coin])
     expect(refreshWarnings()).toHaveLength(1)

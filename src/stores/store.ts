@@ -860,7 +860,7 @@ export const useStore = defineStore('store', () => {
       ]);
       if (initialization !== currentInitialization || !history) return;
       announceReceivedTransactions(history, added, announcedTxids);
-    });
+    }, { onError: error => warnRefreshFailed(error, initialization) });
     // an initialization that started meanwhile already cancelled what it found, which was not this
     if (initialization !== currentInitialization) {
       await cancelUtxos();

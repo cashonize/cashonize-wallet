@@ -65,14 +65,22 @@ type UtxoChange = { utxos: BchWalletLib.Utxo[], added: BchWalletLib.Utxo[], remo
 // the store's handler has finished with it
 export function utxoWatch() {
   let handler: ((change: UtxoChange) => unknown) | undefined
-  const watchUtxos = vi.fn(async function (this: { getUtxos(): Promise<BchWalletLib.Utxo[]> }, callback: (change: UtxoChange) => unknown) {
+  let onError: ((error: unknown) => unknown) | undefined
+  const watchUtxos = vi.fn(async function (
+    this: { getUtxos(): Promise<BchWalletLib.Utxo[]> },
+    callback: (change: UtxoChange) => unknown,
+    options: { onError?: (error: unknown) => unknown } = {},
+  ) {
     const utxos = await this.getUtxos()
     handler = callback
+    onError = options.onError
     void callback({ utxos, added: [], removed: [] })
     return async () => {}
   })
   const change = async (change: UtxoChange) => { await handler!(change) }
-  return { watchUtxos, change }
+  // a read after the first that failed, as the library hands it on
+  const fail = (error: unknown) => { onError?.(error) }
+  return { watchUtxos, change, fail }
 }
 
 // The provider the store makes for the selected server; the wallets' setProvider takes it
