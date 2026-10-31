@@ -62,7 +62,7 @@ test.describe.serial('CashConnect E2E', () => {
 
     // Wallet: rejects the proposal before any dialog — pair() rethrows the mismatch
     // error and the sessions component surfaces it as an error notification.
-    await expect(walletPage.locator('.q-notification').getByText(/requires wallet to be on Mainnet/))
+    await expect(walletPage.locator('.q-notification').getByText(/needs a wallet on Mainnet/))
       .toBeVisible({ timeout: 15_000 })
     await expect(walletPage.locator('.q-dialog:visible')).toHaveCount(0)
 

@@ -53,27 +53,38 @@ export async function importWalletOnboarding(page: Page, options: ImportOptions)
   await page.getByRole('button', { name: 'Finish Setup' }).waitFor({ timeout: 15_000 })
 }
 
-// Run the wallet onboarding (importing E2E_SEED_PHRASE when set, creating a fresh wallet
-// otherwise) and switch the wallet to chipnet. Leaves the wallet on the Wallet tab.
-export async function setupWalletOnChipnet(walletPage: Page) {
-  if (SEED_PHRASE) {
-    // Import funded wallet
-    await importWalletOnboarding(walletPage, { seedPhrase: SEED_PHRASE })
-  } else {
-    // Create a new wallet (no funds)
-    await walletPage.goto(CASHONIZE_URL)
-    await walletPage.getByRole('button', { name: 'Create new wallet' }).click()
-    await walletPage.getByRole('button', { name: 'Create wallet' }).click()
+// A wallet lives on one network, and onboarding makes mainnet ones: a chipnet wallet is added from
+// the developer settings, which open it once it is made. Creates one, or imports the seed phrase.
+export async function addChipnetWallet(page: Page, options: { seedPhrase?: string, walletType?: 'single' | 'hd', walletName?: string } = {}) {
+  await page.locator('nav img[src*="settings"]').click()
+  await page.getByText('Developer settings').click()
+  await page.getByText('Add development wallet').click()
+  await expect(page.locator('#addWalletNetwork')).toHaveValue('chipnet')
+  if (options.walletName) await page.getByPlaceholder('Enter wallet name').fill(options.walletName)
+  await page.getByRole('button', { name: 'Continue' }).click()
+  if (options.walletType) {
+    await page.locator('select').filter({ has: page.locator('option[value="hd"]') }).selectOption(options.walletType)
   }
+  if (options.seedPhrase) {
+    await page.getByRole('button', { name: 'Import existing wallet' }).click()
+    const firstSeedInput = page.locator('.seed-words-grid input').first()
+    await firstSeedInput.fill(options.seedPhrase)
+    await firstSeedInput.dispatchEvent('input')
+    await page.getByRole('button', { name: 'Import', exact: true }).click()
+  } else {
+    await page.getByRole('button', { name: 'Create new wallet' }).click()
+  }
+  if (options.walletName) await expect(page.locator('legend.walletName')).toContainText(options.walletName, { timeout: 30_000 })
+  await expect(page.locator('.depositAddr').first()).toHaveText(/^bchtest:/, { timeout: 30_000 })
+}
 
-  // Finish onboarding — wait for nav tabs to appear (wallet loaded)
+// Runs the onboarding, then adds a chipnet wallet: importing E2E_SEED_PHRASE when set, creating a
+// fresh one otherwise. Leaves the chipnet wallet on the Wallet tab.
+export async function setupWalletOnChipnet(walletPage: Page) {
+  await walletPage.goto(CASHONIZE_URL)
+  await walletPage.getByRole('button', { name: 'Create new wallet' }).click()
+  await walletPage.getByRole('button', { name: 'Create wallet' }).click()
   await walletPage.getByRole('button', { name: 'Finish Setup' }).click()
   await walletPage.locator('nav').waitFor({ timeout: 15_000 })
-
-  // Switch to chipnet: Settings → Developer settings → change network
-  await walletPage.locator('nav img[src*="settings"]').click()
-  await walletPage.getByText('Developer settings').click()
-  await walletPage.locator('select').first().selectOption('chipnet')
-  // Wait for network switch to complete. It resets the active view back to the wallet tab.
-  await expect(walletPage.locator('nav').getByText('Wallet', { exact: true })).toHaveClass(/active/, { timeout: 15_000 })
+  await addChipnetWallet(walletPage, SEED_PHRASE ? { seedPhrase: SEED_PHRASE } : {})
 }
