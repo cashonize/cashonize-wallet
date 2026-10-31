@@ -871,7 +871,14 @@ export const useStore = defineStore('store', () => {
           // delays or blocks the state update below
           if(oldBalance < newBalance) void showReceivedBchNotification(newBalance - oldBalance);
           // update state (skipped on the initial trigger via the electrumSubscriptionsActive check)
-          const walletAddressUtxos = await wallet.value.getUtxos();
+          let walletAddressUtxos: Utxo[];
+          try {
+            walletAddressUtxos = await wallet.value.getUtxos();
+          } catch (error) {
+            warnRefreshFailed(error, initialization);
+            return;
+          }
+          if (initialization !== currentInitialization) return;
           // update balance with the amount on bch-only utxos
           const balanceSats = getBalanceFromUtxos(walletAddressUtxos)
           balance.value = balanceSats;
@@ -1271,14 +1278,32 @@ export const useStore = defineStore('store', () => {
 
   // A refresh that fails leaves the list one update behind, not wrong for long: the next
   // notification or read fetches again, and a spend from coins already spent is refused by the
-  // library. It runs after every send, so a failure is logged rather than shown over a success.
+  // library. It runs after every send, so the warning is orange rather than red, to not read as
+  // the send failing, and grouped so repeated failures collapse into one notice.
   async function updateWalletUtxos() {
+    const initialization = currentInitialization;
     try {
-      walletUtxos.value = await wallet.value.getUtxos();
+      const utxos = await wallet.value.getUtxos();
+      // the coins of a wallet no longer open
+      if (initialization !== currentInitialization) return;
+      walletUtxos.value = utxos;
       updateTokenList()
     } catch(error) {
-      console.error(t('store.errors.errorFetchingUtxos'), error)
+      warnRefreshFailed(error, initialization);
     }
+  }
+
+  // No notice once the wallet or network has been switched: it would be about a wallet no longer open
+  function warnRefreshFailed(error: unknown, initialization: number) {
+    console.error(t('store.errors.errorFetchingUtxos'), error);
+    if (initialization !== currentInitialization) return;
+    Notify.create({
+      message: t('store.errors.walletRefreshFailed'),
+      icon: 'warning',
+      color: 'orange',
+      group: 'walletRefreshFailed',
+      timeout: 8000,
+    });
   }
 
   let historyRequestId = 0;

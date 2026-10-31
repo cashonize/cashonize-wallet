@@ -103,6 +103,7 @@
       "errorInitializingCashConnect": "Error al inicializar CashConnect",
       "errorInitializingWizardConnect": "Error al inicializar WizardConnect",
       "errorFetchingUtxos": "Error al obtener los UTXOs de la billetera",
+      "walletRefreshFailed": "No se pudo actualizar la billetera desde el servidor, por lo que el saldo mostrado puede estar desactualizado",
       "errorFetchingHistory": "Error al obtener el historial de la billetera",
       "unableToConnectElectrum": "No se puede conectar al servidor Electrum '{server}'",
       "staleElectrumServer": "El servidor Electrum '{server}' parece estar desactualizado: su bloque más reciente tiene {hours} horas, así que a tu saldo e historial les pueden faltar transacciones recientes. Puedes cambiar de servidor en la configuración avanzada.",
