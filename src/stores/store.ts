@@ -748,7 +748,8 @@ export const useStore = defineStore('store', () => {
       await setUpWalletSubscriptions();
       console.timeEnd('fetch wallet utxos & set up subscriptions');
       if (initialization !== currentInitialization) return;
-      // 'getMaxAmountToSend' combines multiple fetches (blockheight, relayfee, price) so is a bit slower
+      // getMaxAmountToSend makes no server request of its own: it uses the coins the library holds
+      // (waiting for a read already under way), the pinned relay fee and a local fee estimate
       console.time('fetch max amount to send');
       const resultMaxAmountToSend = await wallet.value.getMaxAmountToSend(spendExclusions());
       console.timeEnd('fetch max amount to send');
