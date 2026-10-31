@@ -516,9 +516,17 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     try {
       const encodedWcTransactionObj = schema.parse(wcSignTransactionParams);
       // Further validation that a hex-form transaction decodes to a structurally valid transaction
+      let transactionInputs: number;
       if(typeof encodedWcTransactionObj.transaction === "string") {
         const decodedResult = decodeTransaction(hexToBin(encodedWcTransactionObj.transaction));
         if(typeof decodedResult == "string") throw new Error("Invalid transaction hex string in encodedWcTransactionObj: " + decodedResult);
+        transactionInputs = decodedResult.inputs.length;
+      } else {
+        transactionInputs = encodedWcTransactionObj.transaction.inputs.length;
+      }
+      // the dialog and the signatures read each input from its sourceOutput, one per input
+      if(transactionInputs !== encodedWcTransactionObj.sourceOutputs.length) {
+        throw new Error("Transaction inputs and sourceOutputs length mismatch");
       }
       // TODO: consider local VM evaluation (libauth vm.verify with the sourceOutputs) of the fully
       // signed transaction in signTransactionWC as a final check before returning it to the dapp.
