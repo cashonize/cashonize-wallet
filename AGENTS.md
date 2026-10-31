@@ -54,7 +54,7 @@ The wallet functionality is powered by `bch-wallet-lib`, continued from mainnet-
 - The wallet type (`WalletType`) is the union of the two classes
 - `settingsStore.getWalletType(walletName)` returns `'hd'` or `'single'` to distinguish wallet types
 - Named wallets persist to IndexedDB (see Multi-Wallet Support)
-- The library builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. dApp-supplied transactions are the exception: a shortcoming of the WalletConnect/WizardConnect protocols is that the dApp builds the transaction and the wallet only signs it, against libauth directly in `utils/dapp/wcSigning.ts` / `wizSigning.ts`.
+- The library builds every ordinary send: coin selection, fees and change outputs are its call, not the app's. dApp-supplied transactions are the exception: a shortcoming of the WalletConnect/WizardConnect protocols is that the dApp builds the transaction and the wallet only signs it, against libauth directly in `utils/dapp/wcSigning.ts` / `wizSigning.ts`. A signature commits to what an input spends only for its own input unless it takes SIGHASH_UTXOS, so both sign every wallet input with it (`utils/dapp/signInput.ts`).
 - The app overrides several library defaults. Those in `store.ts` must be applied before the first wallet is constructed, since HD wallets start address discovery during construction; the rest follow a user action instead.
 - Errors are typed `Error` subclasses, told apart with `instanceof`, never by message.
 - Repo: https://github.com/cashonize/bch-wallet-lib

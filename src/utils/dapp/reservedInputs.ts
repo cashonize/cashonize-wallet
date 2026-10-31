@@ -50,7 +50,7 @@ export interface SignedSourceOutput {
 
 // The inputs spending a coin of a frozen address, read off the scripts the request says they spend
 // (sourceOutputs, in input order) rather than the wallet's coin list, which can trail a coin that
-// just arrived. A signature commits to the script its input spends, so a request misstating it
+// just arrived. A signature commits to the script its own input spends, so a request misstating it
 // gets no valid signature.
 export function frozenAddressInputs(
   inputs: readonly SignedInput[],

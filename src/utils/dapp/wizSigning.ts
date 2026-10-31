@@ -2,30 +2,22 @@ import {
   hexToBin,
   binToHex,
   hash160,
-  hash256,
   secp256k1,
   deriveHdPrivateNodeChild,
   encodeLockingBytecodeP2pkh,
   type HdPrivateNodeValid,
-  SigningSerializationFlag,
-  generateSigningSerializationBch,
   decodeTransaction,
   encodeTransaction,
   encodeDataPush,
-  type CompilationContextBch,
 } from "@bitauth/libauth"
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
+import { signInput } from "./signInput";
 
 export interface WizInputSigningKey {
   privateKey: Uint8Array;
   pubkeyCompressed: Uint8Array;
 }
 
-// The WizardConnect spec mandates signing every input with SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID.
-// Because the dapp selects which keys sign which inputs (inputPaths), this hashType is what makes that
-// safe: the signature commits to the full transaction and all source outputs, so it cannot be grafted
-// onto a different transaction and the dapp cannot misrepresent input amounts.
-const wizHashType = SigningSerializationFlag.allOutputs | SigningSerializationFlag.utxos | SigningSerializationFlag.forkId;
 
 // The P2PKH locking bytecode of one of a chain's addresses, in hex. The sign dialog marks the
 // wallet's own inputs and outputs by these, since the wallet tracks the receive and change chains
@@ -43,6 +35,8 @@ export function chainLockingBytecodes(chain: HdPrivateNodeValid, count: number):
   return bytecodes;
 }
 
+// The WizardConnect spec mandates SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID (see signInput.ts). Because
+// the dapp selects which keys sign which inputs (inputPaths), it is also what makes that safe.
 export function createSignedWizTransaction(
   wizTransactionObj: WcSignTransactionRequest,
   inputKeys: Map<number, WizInputSigningKey>,
@@ -58,21 +52,10 @@ export function createSignedWizTransaction(
     throw new Error("Transaction inputs and sourceOutputs length mismatch");
   }
 
-  const signInput = (inputIndex: number, coveredBytecode: Uint8Array, privateKey: Uint8Array) => {
-    const context: CompilationContextBch = { inputIndex, sourceOutputs, transaction: unsignedTransaction };
-    const signingSerializationType = new Uint8Array([wizHashType]);
-    const sighashPreimage = generateSigningSerializationBch(context, { coveredBytecode, signingSerializationType });
-    const sighash = hash256(sighashPreimage);
-    const signature = secp256k1.signMessageHashSchnorr(privateKey, sighash);
-    if (typeof signature === "string") {
-      throw new Error("Signature error: " + signature);
-    }
-    return Uint8Array.from([...signature, wizHashType]);
-  };
-
   for (const [index, input] of unsignedTransaction.inputs.entries()) {
     const correspondingSourceOutput = sourceOutputs[index] as (typeof sourceOutputs)[number];
     const signingKey = inputKeys.get(index);
+    const context = { inputIndex: index, sourceOutputs, transaction: unsignedTransaction };
 
     if (correspondingSourceOutput.contract?.artifact.contractName) {
       // contract input: replace the sig and pubkey placeholders in the provided unlocking bytecode
@@ -93,7 +76,7 @@ export function createSignedWizTransaction(
         if (!(coveredBytecode instanceof Uint8Array)) {
           throw new Error("The contract redeemScript must be bytecode to sign this input");
         }
-        const signature = signInput(index, coveredBytecode, signingKey.privateKey);
+        const signature = signInput(context, coveredBytecode, signingKey.privateKey);
         unlockingBytecodeHex = unlockingBytecodeHex.replace(sigPlaceholder, "41" + binToHex(signature));
       }
       if (unlockingBytecodeHex.indexOf(pubkeyPlaceholder) !== -1) {
@@ -107,7 +90,7 @@ export function createSignedWizTransaction(
       // P2PKH input the dapp asked us to sign (listed in inputPaths).
       // For P2PKH the coveredBytecode is the locking script itself. The derived key is not checked
       // against the locking bytecode: with SIGHASH_UTXOS a wrong-key signature is simply invalid.
-      const signature = signInput(index, correspondingSourceOutput.lockingBytecode, signingKey.privateKey);
+      const signature = signInput(context, correspondingSourceOutput.lockingBytecode, signingKey.privateKey);
       input.unlockingBytecode = Uint8Array.from([
         ...encodeDataPush(signature),
         ...encodeDataPush(signingKey.pubkeyCompressed),
