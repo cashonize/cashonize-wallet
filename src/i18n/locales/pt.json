@@ -104,6 +104,7 @@
       "errorInitializingWizardConnect": "Erro ao inicializar WizardConnect",
       "errorFetchingUtxos": "Erro ao buscar UTXOs da carteira",
       "walletRefreshFailed": "Não foi possível atualizar a carteira a partir do servidor, então o saldo exibido pode estar desatualizado",
+      "storageFullNotHeld": "O armazenamento está cheio, então isto não pôde ser retido. Limpar o cache de metadados dos tokens nas configurações libera espaço; depois tente novamente.",
       "errorFetchingHistory": "Erro ao buscar histórico da carteira",
       "unableToConnectElectrum": "Não foi possível conectar ao servidor Electrum '{server}'",
       "staleElectrumServer": "O servidor Electrum '{server}' parece estar desatualizado: o seu bloco mais recente tem {hours} horas, então seu saldo e histórico podem não mostrar transações recentes. Você pode trocar de servidor nas configurações avançadas.",

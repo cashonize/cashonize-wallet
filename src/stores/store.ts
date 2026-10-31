@@ -55,7 +55,7 @@ import { useIdentitiesStore } from "./identitiesStore"
 import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
 import { useWizardconnectStore } from "./wizardconnectStore"
-import { ActionableError, displayAndLogError } from "src/utils/errorHandling"
+import { ActionableError, displayAndLogError, isQuotaExceededError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
@@ -655,7 +655,12 @@ export const useStore = defineStore('store', () => {
       })
       return false;
     }
-    frozenAddresses.value = saveFrozenAddress(network.value, wallet.value.name, address);
+    try {
+      frozenAddresses.value = saveFrozenAddress(network.value, wallet.value.name, address);
+    } catch (error) {
+      notifyIfStorageFull(error);
+      throw error;
+    }
     updateTokenList();
     await refreshMaxAmountToSend();
     return true;
@@ -1780,12 +1785,28 @@ export const useStore = defineStore('store', () => {
   // Keyed by outpoint, so a coin this wallet made but has not seen yet can be held back too. A
   // resolve reserves what it found in one go, since the refresh at the end costs an electrum call.
   async function reserveOutpoints(outpoints: Outpoint[], reason: ReservationReason) {
-    for (const outpoint of outpoints) {
-      storedReservations.value = saveReservedOutpoint(network.value, wallet.value.name, outpoint, reason);
+    try {
+      for (const outpoint of outpoints) {
+        storedReservations.value = saveReservedOutpoint(network.value, wallet.value.name, outpoint, reason);
+      }
+    } catch (error) {
+      notifyIfStorageFull(error);
+      throw error;
     }
     // the fungible balances count what can be spent, and nothing else re-reads them on their own
     updateTokenList();
     await refreshMaxAmountToSend();
+  }
+
+  // A hold that can't be saved fails the action, so a coin never looks held back while it can be
+  // spent; with a full localStorage the user is told how to make room
+  function notifyIfStorageFull(error: unknown) {
+    if (!isQuotaExceededError(error)) return;
+    Notify.create({
+      message: t('store.errors.storageFullNotHeld'),
+      icon: 'warning',
+      color: "red"
+    })
   }
 
   // Drops a reservation without spending; cancelling a pledge goes through spend.releaseReservedCoin

@@ -65,9 +65,15 @@ vi.mock('src/stores/walletconnectStore', () => ({ useWalletconnectStore: vi.fn((
 vi.mock('src/stores/cashconnectStore', () => ({ useCashconnectStore: vi.fn(() => ({})) }))
 vi.mock('src/stores/wizardconnectStore', () => ({ useWizardconnectStore: vi.fn(() => ({})) }))
 vi.mock('quasar', () => ({ Notify: { create: vi.fn() } }))
-vi.mock('src/utils/errorHandling', () => ({ displayAndLogError: vi.fn() }))
+// the real quota check, which tells a full localStorage from other write failures
+vi.mock('src/utils/errorHandling', async (importOriginal) => ({
+  isQuotaExceededError: (await importOriginal<typeof ErrorHandling>()).isQuotaExceededError,
+  displayAndLogError: vi.fn(),
+}))
 vi.mock('src/utils/cacheUtils', () => ({ cachedFetch: vi.fn() }))
 
+import { Notify } from 'quasar'
+import type * as ErrorHandling from '../src/utils/errorHandling'
 import { useStore } from '../src/stores/store'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
 
@@ -285,5 +291,30 @@ describe('an NFT send spends the coin it names', () => {
     await expect(store.spend.send([new TokenSendRequest({ cashaddr: tokenAddress, category, nft: mutable })], [vanished]))
       .rejects.toMatchObject({ cause: expect.any(UtxoNotAvailableError) })
     expect(built).toEqual([])
+  })
+})
+
+describe('a reservation storage cannot keep', () => {
+  beforeEach(() => {
+    storage.clear()
+    setActivePinia(createPinia())
+  })
+  afterEach(async () => {
+    vi.restoreAllMocks()
+    await Promise.all(openWallets.splice(0).map(wallet => wallet.stop()))
+  })
+
+  // the coin must not look held back while it can be spent: the action fails and the user is told
+  it('fails the reservation with a notice when localStorage is full', async () => {
+    const unsaved = coin('11', 100_000n)
+    const store = await storeHolding([unsaved, coin('44', 50_000n)], [])
+    vi.mocked(Notify.create).mockClear()
+    vi.spyOn(storage, 'setItem').mockImplementation(() => {
+      throw new DOMException('full', 'QuotaExceededError')
+    })
+
+    await expect(store.reserveOutpoints([outpointOf(unsaved)], 'manual')).rejects.toThrow()
+    expect(Notify.create).toHaveBeenCalledOnce()
+    expect(store.storedReservations[outpointOf(unsaved)]).toBeUndefined()
   })
 })

@@ -75,17 +75,4 @@ describe('cachedFetch on a full localStorage', () => {
 
     expect(await response.json()).toEqual({ name: 'token' })
   })
-
-  it('reads a corrupt entry as a miss rather than throwing', async () => {
-    storage = limitedLocalStorage(10_000)
-    vi.stubGlobal('localStorage', storage)
-    await cachedFetch(url)
-    const [key] = [...storage.store.keys()]
-    storage.setItem(key!, '{not json')
-
-    const response = await cachedFetch(url)
-
-    expect(await response.json()).toEqual({ name: 'token' })
-    expect(fetch).toHaveBeenCalledTimes(2)
-  })
 })

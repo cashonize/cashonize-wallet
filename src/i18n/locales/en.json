@@ -104,6 +104,7 @@
       "errorInitializingWizardConnect": "Error initializing WizardConnect",
       "errorFetchingUtxos": "Error in fetching wallet UTXOs",
       "walletRefreshFailed": "Couldn't refresh the wallet from the server, so the balance shown may be out of date",
+      "storageFullNotHeld": "Storage is full, so this couldn't be held back. Clearing the token-metadata cache in the settings makes room; then try again.",
       "errorFetchingHistory": "Error in fetching wallet history",
       "unableToConnectElectrum": "Unable to connect to Electrum server '{server}'",
       "staleElectrumServer": "The Electrum server '{server}' seems to be out of date: its newest block is {hours} hours old, so your balance and history may be missing recent transactions. You can switch servers in the advanced settings.",
