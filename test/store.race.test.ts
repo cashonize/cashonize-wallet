@@ -137,8 +137,8 @@ describe('network switch race conditions', () => {
     const stale = createDeferred<Record<string, unknown>>()
     const fresh = createDeferred<Record<string, unknown>>()
     vi.mocked(mockFetchTokenMetadataFromIndexer)
-      .mockImplementationOnce((_list, _nft, _indexer, registries) => stale.promise.then(entries => Object.assign(registries!, entries)))
-      .mockImplementationOnce((_list, _nft, _indexer, registries) => fresh.promise.then(entries => Object.assign(registries!, entries)))
+      .mockImplementationOnce((_list, _nft, _indexer, registries) => stale.promise.then(entries => Object.assign(registries, entries)))
+      .mockImplementationOnce((_list, _nft, _indexer, registries) => fresh.promise.then(entries => Object.assign(registries, entries)))
 
     const store = useStore()
     await store.setWallet(createMockWallet() as never)
@@ -448,8 +448,8 @@ describe('subscriptions live before metadata and history', () => {
     await store.setWallet(wallet as never)
     const opening = createDeferred<Record<string, unknown>>()
     vi.mocked(mockFetchTokenMetadataFromIndexer)
-      .mockImplementationOnce((_list, _nft, _indexer, registries) => opening.promise.then(entries => Object.assign(registries!, entries)))
-      .mockImplementationOnce((_list, _nft, _indexer, registries) => Promise.resolve(Object.assign(registries!, { bbbb: { name: 'B' } }) as never))
+      .mockImplementationOnce((_list, _nft, _indexer, registries) => opening.promise.then(entries => Object.assign(registries, entries)))
+      .mockImplementationOnce((_list, _nft, _indexer, registries) => Promise.resolve(Object.assign(registries, { bbbb: { name: 'B' } }) as never))
 
     const init = store.initializeWallet()
     await flushAsyncWork()
