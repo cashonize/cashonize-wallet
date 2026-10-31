@@ -1182,7 +1182,7 @@ export const useStore = defineStore('store', () => {
 
       // Setup network change callback to stop the CashConnect service.
       // Sessions are not un-paired: they persist in localStorage (namespaced per wallet
-      // identity key) and are restored by the next start() for the same wallet.
+      // identity key) and are restored by the next start() for the same wallet and network.
       // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
       networkChangeCallbacks.push(async () => {
         await cashconnectWallet.stop();

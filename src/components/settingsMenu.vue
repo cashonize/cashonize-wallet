@@ -15,6 +15,7 @@
   import { useWizardconnectStore } from '../stores/wizardconnectStore'
   import { getElectrumCacheSize, clearElectrumCache } from "src/utils/cacheUtils";
   import { removeAllTransactionIndexes } from "src/utils/history/transactionIndex";
+  import { removeAllCashConnectSessions } from "src/utils/dapp/ccSessionStore";
   import { displayAndLogError } from "src/utils/errorHandling";
   import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
   import { curatedElectrumServers } from 'src/utils/wallet/electrumServers'
@@ -511,6 +512,8 @@
     // Wipe the dApp-connection databases. WalletKit/CashConnect keep these open, so the
     // delete is finalized on the reload below (same pattern as confirmDeleteWallets).
     indexedDB.deleteDatabase("WALLET_CONNECT_V2_INDEXED_DB");
+    // after the race: the disconnect above may not finish, and reaches only the active network's sessions
+    removeAllCashConnectSessions();
     if (indexedDB.databases) {
       const dbs = await indexedDB.databases();
       for (const db of dbs) {

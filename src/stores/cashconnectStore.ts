@@ -31,7 +31,6 @@ import {
 // Import Libauth.
 import {
   type Output,
-  CashAddressNetworkPrefix,
   binToHex,
   hexToBin,
   cashAddressToLockingBytecode,
@@ -42,6 +41,7 @@ import {
   walletTemplateToCompilerBch,
 } from "@bitauth/libauth";
 import { outputOfRawTransaction } from "src/utils/dapp/sourceOutput";
+import { sessionStoreForChain } from "src/utils/dapp/ccSessionStore";
 import { dappsAvailableOn } from "src/utils/wallet/networks";
 
 export const useCashconnectStore = defineStore("cashconnectStore", () => {
@@ -64,6 +64,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     // Instantiate CashConnect.
     cashConnectWallet.value = new Wallet({
       cashConnectPrivateKey: cashConnectPrivateKey,
+      store: sessionStoreForChain(cashConnectPrivateKey, activeChain()),
       eventCallbacks: {
         onSessionsUpdated,
         onSessionProposal,
@@ -126,19 +127,8 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     if (!dappsAvailableOn(mainStore.network)) {
       throw new Error(t('dapp.unavailableOnNetwork', { network: mainStore.network }));
     }
-    // Check the network and prompt user to switch if incorrect.
-    // NOTE: The walletClass.network property appears to return quirky values (e.g. undefined).
-    //       So we use the networkPrefix property to determine which chain we are currently on.
-    const currentChain = mainStore.wallet.networkPrefix;
-    const targetChain = proposal.chain;
-    // Cashonize uses an LibAuth's CashAddressNetworkPrefix enum, so we have to cast the value (strings/enums cannot be compared directly).
-    const targetChainCashonizeFormat: CashAddressNetworkPrefix = targetChain === "bitcoincash" ? CashAddressNetworkPrefix.mainnet : CashAddressNetworkPrefix.testnet;
-    // Check if the current chain is the target chain.
-    if (currentChain !== targetChainCashonizeFormat) {
-      // Cashonize UI uses "Mainnet" and "Chipnet" to identify networks.
-      throw new Error(
-        t(targetChain === 'bitcoincash' ? 'cashConnect.notifications.networkMismatch' : 'cashConnect.notifications.networkMismatchChipnet', { network: (targetChain === 'bitcoincash') ? 'Mainnet' : 'Chipnet' })
-      );
+    if (proposal.chain !== activeChain()) {
+      throw networkMismatchError(proposal.chain);
     }
     return await new Promise<SessionCreateRequest>((resolve, reject) => {
       Dialog.create({
@@ -170,6 +160,10 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     response: ExecuteActionResponse,
     cancelled: AbortSignal
   ): Promise<void> {
+    // Only the active network's sessions are restored; this refuses one from another network regardless.
+    if (session.chain !== activeChain()) {
+      throw networkMismatchError(session.chain);
+    }
     // If this is a request that DOES NOT require approval...
     if (!doesActionRequireApproval(session, request.action)) {
       return;
@@ -333,6 +327,17 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   //-----------------------------------------------------------------------------
   // Utils
   //-----------------------------------------------------------------------------
+  // dApps name their chain by its address prefix
+  function activeChain(): string {
+    return mainStore.wallet.networkPrefix;
+  }
+  function networkMismatchError(chain: WalletSession["chain"]) {
+    // Cashonize UI uses "Mainnet" and "Chipnet" to identify networks.
+    if (chain === 'bitcoincash') {
+      return new Error(t('cashConnect.notifications.networkMismatch', { network: 'Mainnet' }));
+    }
+    return new Error(t('cashConnect.notifications.networkMismatchChipnet', { network: 'Chipnet' }));
+  }
   function getCashConnectPrivateKeyForWallet(wallet: WalletType) {
     // If this is a single address (WIF) wallet, we just use the WIF's Private Key.
     if('privateKey' in wallet) {
