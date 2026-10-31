@@ -71,7 +71,7 @@ describe("fetchTokenMetadata for HoneyBadgers", () => {
     });
     const tokenList = [{ category: BADGERCOIN_CATEGORY, nfts: [nft(0, badger20), nft(1, honeyFor3), nft(2, honeyFor10)] }];
 
-    const registries = await fetchTokenMetadata(tokenList, true, indexer, undefined);
+    const registries = await fetchTokenMetadata(tokenList, true, indexer, {});
 
     expect(vi.mocked(cachedFetch).mock.calls.map(([url]) => url)).toEqual([
       `${indexer}/tokens/${BADGERCOIN_CATEGORY}/14/`,

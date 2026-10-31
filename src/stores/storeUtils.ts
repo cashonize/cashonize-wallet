@@ -75,10 +75,10 @@ export async function fetchTokenMetadata(
   tokenList: TokenList,
   fetchNftInfo: boolean,
   tokenMetadataIndexer: string,
-  bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
+  bcmrRegistries: Record<string, BcmrTokenMetadata>
 ) {
   // no indexer on the network (testnet4): tokens show without metadata
-  if (!tokenMetadataIndexer) return bcmrRegistries ?? {};
+  if (!tokenMetadataIndexer) return bcmrRegistries;
   const metadataPromises = [];
   // the commitments each NFT lookup answers for, by its URL
   const commitmentsByUrl = new Map<string, string[]>();
@@ -105,7 +105,7 @@ export async function fetchTokenMetadata(
   // so we use Promise.allSettled and handle the fulfilled results
   const resolveMetadataPromises = Promise.allSettled(metadataPromises);
   const resultsMetadata = await resolveMetadataPromises;
-  const registries = bcmrRegistries ?? {};
+  const registries = bcmrRegistries;
   for(const settledResult of resultsMetadata) {
     const response = settledResult.status == "fulfilled" ? settledResult.value : undefined;
     if(response?.status == 200) {
@@ -141,15 +141,15 @@ export async function fetchNftMetadata(
   category: string,
   commitment: string,
   tokenMetadataIndexer: string,
-  bcmrRegistries: Record<string, BcmrTokenMetadata> | undefined
+  bcmrRegistries: Record<string, BcmrTokenMetadata>
 ) {
-  if (!tokenMetadataIndexer) return bcmrRegistries ?? {};
+  if (!tokenMetadataIndexer) return bcmrRegistries;
   const res = await cachedFetch(nftMetadataUrl(tokenMetadataIndexer, category, commitment));
-  if (res.status !== 200) return bcmrRegistries ?? {};
+  if (res.status !== 200) return bcmrRegistries;
   const tokenInfoResult = await parseIndexerResponse(res);
-  if (!tokenInfoResult) return bcmrRegistries ?? {};
+  if (!tokenInfoResult) return bcmrRegistries;
   const tokenId = tokenInfoResult.token?.category;
-  const registries = bcmrRegistries ?? {};
+  const registries = bcmrRegistries;
   if (tokenInfoResult.type_metadata) {
     if (!registries[tokenId]) registries[tokenId] = tokenInfoResult;
     if (!registries[tokenId]?.nfts) registries[tokenId].nfts = {};

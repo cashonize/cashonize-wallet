@@ -223,7 +223,13 @@ export const useStore = defineStore('store', () => {
   // Address whose transactions the history narrows to, set from the addresses page
   const pendingHistorySearch = ref(undefined as (undefined | string));
   const currentBlockHeight = ref(undefined as (number | undefined));
-  const bcmrRegistries = ref(undefined as (Record<string, BcmrTokenMetadata> | undefined));
+  // Token metadata of the wallet's categories. Every fetch fills this one object, adding a category
+  // only when it is missing (storeUtils); a reset or an indexer change replaces it, so a late reply
+  // fills an object nothing reads any more
+  const bcmrRegistries = ref<Record<string, BcmrTokenMetadata>>({});
+  // Set once the opening fetch for the held tokens has landed. The views wait on this rather than on
+  // the registries, which a smaller fetch, such as the history's, can start filling first
+  const tokenMetadataLoaded = ref(false);
   const cauldronPrices = ref<Record<string, CauldronPriceData> | null>(null);
   // Cauldron liquidity pools owned by the wallet, null until the portfolio view looks them up
   const cauldronPools = ref<CauldronPool[] | null>(null);
@@ -763,7 +769,7 @@ export const useStore = defineStore('store', () => {
       if(isDesktop) void getLatestGithubRelease()
       console.time('fetch token metadata and initial history');
       await Promise.all([
-        fetchTokenMetadata(allTokenList.value ?? [], false),
+        loadTokenMetadata(),
         updateWalletHistory({ count: HISTORY_PAGE }),
       ]);
       console.timeEnd('fetch token metadata and initial history');
@@ -950,7 +956,8 @@ export const useStore = defineStore('store', () => {
     pendingTokenSearch.value = undefined;
     pendingHistorySearch.value = undefined;
     tokenList.value = null;
-    bcmrRegistries.value = undefined;
+    bcmrRegistries.value = {};
+    tokenMetadataLoaded.value = false;
     queriedHistoryCategories = [];
     cauldronPrices.value = null;
     cauldronPools.value = null;
@@ -1395,12 +1402,24 @@ export const useStore = defineStore('store', () => {
 
   // Fetch token metadata from BCMR indexer
   async function fetchTokenMetadata(tokenList: TokenList, fetchNftInfo: boolean) {
-    const initialization = currentInitialization;
-    const registries = await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, tokenMetadataIndexer.value, bcmrRegistries.value);
-    if (initialization !== currentInitialization) return;
-    // Merged rather than assigned: two fetches that started while the registries were still
-    // undefined each built their own object, and the second to land would replace the first's
-    bcmrRegistries.value = Object.assign(bcmrRegistries.value ?? {}, registries);
+    await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, tokenMetadataIndexer.value, bcmrRegistries.value);
+  }
+
+  // The opening fetch, for every token the wallet holds
+  async function loadTokenMetadata() {
+    const registries = bcmrRegistries.value;
+    await fetchTokenMetadata(allTokenList.value ?? [], false);
+    // a reset or an indexer change meanwhile replaced the registries and started a load of its own
+    if (registries === bcmrRegistries.value) tokenMetadataLoaded.value = true;
+  }
+
+  // After an indexer change: the old indexer's answers, late ones included, go with the old object.
+  // Before the wallet's coins are read, the initialization's own load covers it.
+  function reloadTokenMetadata() {
+    bcmrRegistries.value = {};
+    tokenMetadataLoaded.value = false;
+    queriedHistoryCategories = [];
+    if (allTokenList.value) void loadTokenMetadata();
   }
 
   // Fetch BCH exchange rate for fiat display
@@ -1661,8 +1680,7 @@ export const useStore = defineStore('store', () => {
 
   // Fetch NFT metadata for a specific category and commitment, updating bcmrRegistries
   async function fetchNftMetadata(category: string, commitment: string) {
-    const registries = await fetchNftMetadataFromIndexer(category, commitment, tokenMetadataIndexer.value, bcmrRegistries.value);
-    bcmrRegistries.value = registries;
+    await fetchNftMetadataFromIndexer(category, commitment, tokenMetadataIndexer.value, bcmrRegistries.value);
   }
 
 
@@ -2099,6 +2117,8 @@ export const useStore = defineStore('store', () => {
     explorerUrl,
     chaingraph,
     bcmrRegistries,
+    tokenMetadataLoaded,
+    reloadTokenMetadata,
     cauldronPrices,
     cauldronPools,
     badgerLocks,

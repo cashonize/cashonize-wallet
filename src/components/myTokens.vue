@@ -138,7 +138,7 @@
 </script>
 
 <template>
-  <div v-if="store.bcmrRegistries == undefined" style="text-align: center;">
+  <div v-if="!store.tokenMetadataLoaded" style="text-align: center;">
     <template v-if="store.walletInitFailed">{{ t('tokens.loadingFailed') }}</template>
     <template v-else>{{ t('tokens.loading') }} <q-spinner-dots size="1.2em" /></template>
   </div>

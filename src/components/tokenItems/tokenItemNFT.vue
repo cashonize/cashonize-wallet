@@ -6,7 +6,7 @@
   import { TokenSendRequest, type TokenI } from "@cashonize/bch-wallet-lib"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
-  import type { TokenDataNFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
+  import type { TokenDataNFT, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, gatewayUrl, sanitizeUrl, truncateHash } from 'src/utils/utils';
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
@@ -52,7 +52,8 @@
   const loadingChildNftMetadata = ref(false);
   const destinationAddr = ref("");
   const showQrCodeDialog = ref(false);
-  const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
+  // read from the store, not copied once: the row can render before its category's metadata arrives
+  const tokenMetaData = computed(() => store.bcmrRegistries[tokenData.value.category]);
   // Local state for batch NFT selection - keyed by "txid:vout"
   const selectedNfts = ref(new Set<string>());
   const activeAction = ref<TokenActionType | null>(null);
@@ -65,8 +66,6 @@
   }
 
   let fetchedMetadataChildren = false
-
-  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category] ?? undefined;
 
   const isSingleNft = computed(() => tokenData.value.nfts?.length == 1);
   
