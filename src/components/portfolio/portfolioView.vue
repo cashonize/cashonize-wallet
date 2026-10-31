@@ -624,7 +624,7 @@
     if (readyTimeoutElapsed.value) return true
     // any token needs the BCMR registries: fungible display data and the
     // loan/staking detection both come from the metadata
-    if ((store.tokenList?.length ?? 0) > 0 && !store.bcmrRegistries) return false
+    if ((store.tokenList?.length ?? 0) > 0 && !store.tokenMetadataLoaded) return false
     if (hasFungibleTokens.value && store.cauldronPrices === null) return false
     // pools are looked up on entering the view and add to the total and the chart
     if (store.cauldronPools === null) return false

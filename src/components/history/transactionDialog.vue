@@ -105,7 +105,8 @@
     if (!store.bcmrRegistries[category].nfts?.[commitment]) {
       await store.fetchNftMetadata(category, commitment);
     }
-    tokenMetadata.value = store.bcmrRegistries[category].nfts?.[commitment];
+    // a wallet switch or indexer change during the lookup replaces the registries
+    tokenMetadata.value = store.bcmrRegistries[category]?.nfts?.[commitment];
     selectedTokenCommitment.value = commitment;
   }
 </script>

@@ -153,7 +153,7 @@
 
   const loadingUtxos = computed(() => store.walletUtxos === undefined);
   // fetched after the utxos, and it carries the decimals a fungible amount is shown in
-  const loadingTokenData = computed(() => store.bcmrRegistries === undefined);
+  const loadingTokenData = computed(() => !store.tokenMetadataLoaded);
 
   // the per-category overview has nothing to act on, so it opens closed like the token lists
   const collapsedLists = ref({ bch: false, tokens: true, fungible: true, nft: true, ftNft: true });

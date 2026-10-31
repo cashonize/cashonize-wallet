@@ -4,7 +4,7 @@
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';
-  import type { TokenDataFT, BcmrTokenMetadata, TokenActionType } from "src/interfaces/interfaces"
+  import type { TokenDataFT, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -42,7 +42,8 @@
   const destinationAddr = ref("");
   const showQrCodeDialog = ref(false);
   const burnAmountFTs = ref("");
-  const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
+  // read from the store, not copied once: the row can render before its category's metadata arrives
+  const tokenMetaData = computed(() => store.bcmrRegistries[tokenData.value.category]);
 
   const heldIdentityLine = computed(() => identitiesStore.heldIdentityLine(tokenData.value.category));
   // what the wallet holds of the category, shown whole; sends and burns measure against the
@@ -60,8 +61,6 @@
     store.toggleFavorite(tokenData.value.category);
     starAnimating.value = true;
   }
-
-  tokenMetaData.value = store.bcmrRegistries?.[tokenData.value.category];
 
   const tokenName = computed(() => {
     return tokenMetaData.value?.name;

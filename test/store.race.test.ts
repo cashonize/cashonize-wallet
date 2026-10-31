@@ -132,32 +132,34 @@ describe('network switch race conditions', () => {
     expect(store.walletHistory).toEqual(freshHistory)
   })
 
-  it('ignores stale fetchTokenMetadata result after re-initialization', async () => {
-    const staleMetadataDeferred = createDeferred<Record<string, unknown>>()
-    const freshMetadata = { 'newTokenId': { name: 'NewToken' } }
-    // First call (old init) uses deferred, second call (new init) resolves immediately
+  // the indexer helper fills the registries object it is given; a reset replaces that object
+  it("keeps the previous wallet's late metadata out, and its load from opening the new wallet's gate", async () => {
+    const stale = createDeferred<Record<string, unknown>>()
+    const fresh = createDeferred<Record<string, unknown>>()
     vi.mocked(mockFetchTokenMetadataFromIndexer)
-      .mockReturnValueOnce(staleMetadataDeferred.promise as never)
-      .mockResolvedValueOnce(freshMetadata as never)
+      .mockImplementationOnce((_list, _nft, _indexer, registries) => stale.promise.then(entries => Object.assign(registries!, entries)))
+      .mockImplementationOnce((_list, _nft, _indexer, registries) => fresh.promise.then(entries => Object.assign(registries!, entries)))
 
     const store = useStore()
     await store.setWallet(createMockWallet() as never)
-
-    // First init blocks at fetchTokenMetadata
     const oldInit = store.initializeWallet()
     await flushAsyncWork()
 
-    // Re-initialize (bumps epoch)
-    await store.initializeWallet()
-
-    expect(store.bcmrRegistries).toEqual(freshMetadata)
-
-    // Old deferred resolves late — should be ignored
-    staleMetadataDeferred.resolve({ 'staleTokenId': { name: 'StaleToken' } })
-    await oldInit
+    await store.resetWalletState()
+    await store.setWallet(createMockWallet() as never)
+    const newInit = store.initializeWallet()
     await flushAsyncWork()
 
-    expect(store.bcmrRegistries).toEqual(freshMetadata)
+    stale.resolve({ stale: { name: 'Stale' } })
+    await oldInit
+    await flushAsyncWork()
+    expect(Object.keys(store.bcmrRegistries)).toEqual([])
+    expect(store.tokenMetadataLoaded).toBe(false)
+
+    fresh.resolve({ fresh: { name: 'Fresh' } })
+    await newInit
+    expect(Object.keys(store.bcmrRegistries)).toEqual(['fresh'])
+    expect(store.tokenMetadataLoaded).toBe(true)
   })
 
   // the history landing first must not look up a held token again: that category-only answer
@@ -438,25 +440,25 @@ describe('subscriptions live before metadata and history', () => {
     await init
   })
 
-  it('merges a second first-time metadata fetch into the first', async () => {
+  // a smaller fetch, such as the history's, can land before the opening one: the views wait on the
+  // opening fetch, or their rows would show without names and decimals
+  it('marks the metadata loaded only once the opening fetch lands, whatever lands first', async () => {
     const wallet = createMockWallet()
     const store = useStore()
     await store.setWallet(wallet as never)
-    const first = createDeferred<Record<string, unknown>>()
-    const second = createDeferred<Record<string, unknown>>()
+    const opening = createDeferred<Record<string, unknown>>()
     vi.mocked(mockFetchTokenMetadataFromIndexer)
-      .mockImplementationOnce(() => first.promise as never)
-      .mockImplementationOnce(() => second.promise as never)
+      .mockImplementationOnce((_list, _nft, _indexer, registries) => opening.promise.then(entries => Object.assign(registries!, entries)))
+      .mockImplementationOnce((_list, _nft, _indexer, registries) => Promise.resolve(Object.assign(registries!, { bbbb: { name: 'B' } }) as never))
 
     const init = store.initializeWallet()
     await flushAsyncWork()
-    const secondFetch = store.fetchTokenMetadata([], false)
-    // both started while the registries were undefined, and land in either order
-    second.resolve({ bbbb: { name: 'B' } })
-    await secondFetch
-    first.resolve({ aaaa: { name: 'A' } })
-    await init
+    await store.fetchTokenMetadata([], false)
+    expect(store.tokenMetadataLoaded).toBe(false)
 
-    expect(Object.keys(store.bcmrRegistries ?? {}).sort()).toEqual(['aaaa', 'bbbb'])
+    opening.resolve({ aaaa: { name: 'A' } })
+    await init
+    expect(store.tokenMetadataLoaded).toBe(true)
+    expect(Object.keys(store.bcmrRegistries).sort()).toEqual(['aaaa', 'bbbb'])
   })
 })

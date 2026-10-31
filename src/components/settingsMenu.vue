@@ -353,9 +353,7 @@
   }
   function applyTokenMetadataIndexer(indexerUrl: string){
     settingsStore.setTokenMetadataIndexer(activeNetwork, indexerUrl);
-    // refetch token metadata from the newly selected indexer
-    store.bcmrRegistries = undefined;
-    if (store.tokenList) void store.fetchTokenMetadata(store.tokenList, false);
+    store.reloadTokenMetadata();
   }
   function changeExchangeRateProvider(){
     settingsStore.exchangeRateProvider = selectedExchangeRateProvider.value;
