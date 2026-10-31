@@ -36,8 +36,8 @@ importers:
         specifier: 1.0.0-alpha.31
         version: 1.0.0-alpha.31
       '@cashonize/bch-wallet-lib':
-        specifier: 0.2.2
-        version: 0.2.2
+        specifier: 0.3.0
+        version: 0.3.0
       '@noble/ciphers':
         specifier: 2.4.0
         version: 2.4.0
@@ -228,8 +228,8 @@ packages:
   '@cashconnect-js/nostr@1.0.0-alpha.31':
     resolution: {integrity: sha512-/BebQtgfXrWQyhVPF3gvCYq1SCTeKQABEMbvzKeSi0pVdPYvchMjaOCAM2B0vRlnDHMbmXoc5z47GBXHvPO22g==}
 
-  '@cashonize/bch-wallet-lib@0.2.2':
-    resolution: {integrity: sha512-TI1dAYxUD3JTWqb9raW+b7S9/GvU3S7X06KfpfoQtgL4l4wRMptBjDAsdkFU60OpDcms2X1pKfjIuHli1HUQ6w==}
+  '@cashonize/bch-wallet-lib@0.3.0':
+    resolution: {integrity: sha512-EWWQTiox/bV0++hE1gBr+ZwK36RdvW/is8lRlGZsX2YrzgNSiORzBSdhpr0zpnL8KAYoe9T5NFrx05t+H8bUgQ==}
     engines: {node: ^26 || ^24 || ^22.12.0}
 
   '@clack/core@1.5.1':
@@ -2445,7 +2445,7 @@ snapshots:
       '@cashconnect-js/core': 1.0.0-alpha.31
       zod: 4.6.7
 
-  '@cashonize/bch-wallet-lib@0.2.2':
+  '@cashonize/bch-wallet-lib@0.3.0':
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
       '@electrum-cash/network': 4.4.8
