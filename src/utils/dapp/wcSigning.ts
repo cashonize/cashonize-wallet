@@ -9,7 +9,6 @@ import {
   generateTransaction,
   encodeTransaction,
   decodeTransaction,
-  importWalletTemplate,
   walletTemplateP2pkhNonHd,
   type CompilationContextBch,
   type TransactionTemplate,
@@ -24,10 +23,6 @@ export function createSignedWcTransaction(
   const { transaction: wcTransactionItem, sourceOutputs } = wcTransactionObj;
   const { privateKey, pubkeyCompressed } = signingInfo;
 
-  // prepare libauth template for input signing
-  const walletTemplate = importWalletTemplate(walletTemplateP2pkhNonHd);
-  if (typeof walletTemplate === "string") throw new Error("Transaction template error");
-
   const unsignedTransaction = typeof wcTransactionItem === "string" ? decodeTransaction(hexToBin(wcTransactionItem)) : wcTransactionItem;
   // If unsignedTransaction is still a string that means decodeTransaction failed
   if(typeof unsignedTransaction == "string") {
@@ -35,7 +30,7 @@ export function createSignedWcTransaction(
   }
 
   // configure compiler
-  const compiler = walletTemplateToCompilerBch(walletTemplate);
+  const compiler = walletTemplateToCompilerBch(walletTemplateP2pkhNonHd);
 
   // A Transaction representation that may use compilation directives in place of lockingBytecode and unlockingBytecode instances
   const txTemplate = {...unsignedTransaction} as TransactionTemplate<typeof compiler>;
