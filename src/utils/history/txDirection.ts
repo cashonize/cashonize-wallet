@@ -24,6 +24,24 @@ export function txDirection(transaction: TransactionHistoryItem): TxDirection {
   return txHasOutgoing(transaction) ? 'sent' : 'received';
 }
 
+// What a transaction paid the wallet from coins not its own, for the received notices. With an
+// input of the wallet, what comes back to it is change, also of a send made elsewhere on the same
+// keys. The satoshis are those of its BCH-only outputs: an NFT's dust is not BCH received.
+export function receivedFromOthers(
+  transaction: TransactionHistoryItem,
+  hasWalletAddress: (address: string) => boolean
+): { satoshis: bigint, tokenType: 'NFT' | 'tokens' | undefined } | undefined {
+  if (transaction.inputs.some(input => hasWalletAddress(input.address))) return undefined;
+  let satoshis = 0n;
+  for (const output of transaction.outputs) {
+    if (!output.token && hasWalletAddress(output.address)) satoshis += BigInt(output.value);
+  }
+  let tokenType: 'NFT' | 'tokens' | undefined;
+  if (transaction.tokenAmountChanges.some(change => change.amount > 0n)) tokenType = 'tokens';
+  if (transaction.tokenAmountChanges.some(change => change.nftAmount > 0n)) tokenType = 'NFT';
+  return { satoshis, tokenType };
+}
+
 // A send that only moves coins between the wallet's own addresses, like a consolidation, costs
 // the fee and nothing else. An OP_RETURN output pays no one, so it does not make a send external
 export function isSelfSend(

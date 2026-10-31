@@ -17,7 +17,6 @@ export const mockMainnetWallet = {
   name: 'testWallet',
   network: 'mainnet',
   cashaddr: 'bitcoincash:qtest',
-  tokenaddr: 'bitcoincash:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
   // deliberately not a decodable address: the portfolio lookups root at the wallet's public key
   // hashes, and an address that decodes would make every wallet initialization in the tests fetch
@@ -31,7 +30,6 @@ export const mockChipnetWallet = {
   name: 'testWallet',
   network: 'testnet', // the library's name for chipnet
   cashaddr: 'bchtest:qtest',
-  tokenaddr: 'bchtest:ztest',
   publicKeyHash: new Uint8Array([1, 2, 3]),
   getDepositAddress: () => 'bchtest:qtest',
   getTokenDepositAddress: () => 'bchtest:ztest',
@@ -61,11 +59,25 @@ export const localStorageMock = {
 }
 vi.stubGlobal('localStorage', localStorageMock)
 
+type UtxoChange = { utxos: BchWalletLib.Utxo[], added: BchWalletLib.Utxo[], removed: BchWalletLib.Utxo[] }
+// The library's watchUtxos for a fake wallet: the first callback with the coins of the wallet's own
+// getUtxos, as the library reads them, and each later change handed in by the test, resolving once
+// the store's handler has finished with it
+export function utxoWatch() {
+  let handler: ((change: UtxoChange) => unknown) | undefined
+  const watchUtxos = vi.fn(async function (this: { getUtxos(): Promise<BchWalletLib.Utxo[]> }, callback: (change: UtxoChange) => unknown) {
+    const utxos = await this.getUtxos()
+    handler = callback
+    void callback({ utxos, added: [], removed: [] })
+    return async () => {}
+  })
+  const change = async (change: UtxoChange) => { await handler!(change) }
+  return { watchUtxos, change }
+}
+
 // The provider the store makes for the selected server; the wallets' setProvider takes it
 export const mockProvider = {
-  connect: vi.fn().mockResolvedValue(undefined),
   disconnect: vi.fn().mockResolvedValue(true),
-  getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
 }
 
 // Mock wallet classes (must be real classes so instanceof checks work)
@@ -235,7 +247,7 @@ vi.mock('src/utils/utils', async (importOriginal) => ({
   // the real one, on the mocked wallet classes: which class and network a stored id loads with is
   // what the network tests check
   loadWalletFromId: (await importOriginal<typeof Utils>()).loadWalletFromId,
-  convertElectrumTokenData: vi.fn(),
+  tokenItemFromToken: (await importOriginal<typeof Utils>()).tokenItemFromToken,
   STALE_TIP_SECONDS: (await importOriginal<typeof Utils>()).STALE_TIP_SECONDS,
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),
 }))

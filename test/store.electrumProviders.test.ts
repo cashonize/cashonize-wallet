@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick, reactive } from 'vue'
 
-import { localStorageMock, mockMainnetWallet } from './mocks/store.mocks'
+import { localStorageMock, mockMainnetWallet, utxoWatch } from './mocks/store.mocks'
 
 import { createFailoverProvider, createProvider, DefaultProvider, NetworkType, setGlobalProvider, type FailoverTransportOptions } from '@cashonize/bch-wallet-lib'
 import { useSettingsStore } from '../src/stores/settingsStore'
@@ -23,9 +23,7 @@ function fakeProvider(server: string, options?: FailoverTransportOptions) {
   return {
     server,
     options,
-    connect: vi.fn().mockResolvedValue(undefined),
     disconnect: vi.fn().mockResolvedValue(true),
-    getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
   }
 }
 type FakeProvider = ReturnType<typeof fakeProvider>
@@ -39,8 +37,7 @@ function walletOn(provider: FakeProvider) {
     getMaxAmountToSend: vi.fn().mockResolvedValue(0n),
     getHistory: vi.fn().mockResolvedValue([]),
     getRawHistory: vi.fn().mockResolvedValue([]),
-    watchBalance: vi.fn().mockResolvedValue(async () => {}),
-    watchTokenTransactions: vi.fn().mockResolvedValue(async () => {}),
+    watchUtxos: utxoWatch().watchUtxos,
     watchBlocks: vi.fn().mockResolvedValue(async () => {}),
     hasAddress: vi.fn().mockReturnValue(false),
     setProvider: vi.fn((next: FakeProvider) => {

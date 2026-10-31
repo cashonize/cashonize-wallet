@@ -5,6 +5,7 @@ import { isReactive } from 'vue'
 import {
   localStorageMock,
   mockMainnetWallet,
+  utxoWatch,
 } from './mocks/store.mocks'
 
 // Import the mocked storeUtils to control fetchTokenMetadata responses
@@ -27,14 +28,10 @@ function createMockWallet() {
     getMaxAmountToSend: vi.fn().mockResolvedValue(0n),
     getHistory: vi.fn().mockResolvedValue([]),
     getRawHistory: vi.fn().mockResolvedValue([]),
-    watchBalance: vi.fn().mockResolvedValue(async () => {}),
-    watchTokenTransactions: vi.fn().mockResolvedValue(async () => {}),
+    ...utxoWatch(),
     watchBlocks: vi.fn().mockResolvedValue(async () => {}),
     hasAddress: vi.fn().mockReturnValue(false),
-    provider: {
-      connect: vi.fn().mockResolvedValue(undefined),
-      getRawTransactionObject: vi.fn().mockResolvedValue({ vin: [], vout: [] }),
-    },
+    provider: {},
   }
 }
 
@@ -408,9 +405,9 @@ describe('history refreshes', () => {
   })
 })
 
-// The subscriptions go live once their initial burst has passed, before the metadata and the
-// history have loaded: a payment arriving in that window updates the balance rather than waiting
-// on an indexer, and a first metadata fetch it starts merges into the init's rather than replacing it.
+// The coin watch goes live with its first read, before the metadata and the history have loaded: a
+// payment arriving in that window updates the coins rather than waiting on an indexer, and a first
+// metadata fetch it starts merges into the init's rather than replacing it.
 describe('subscriptions live before metadata and history', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -419,13 +416,8 @@ describe('subscriptions live before metadata and history', () => {
     localStorageMock.setItem('network', 'mainnet')
   })
 
-  it('applies a balance change while the metadata fetch is still pending', async () => {
+  it('applies a coin change while the metadata fetch is still pending', async () => {
     const wallet = createMockWallet()
-    let balanceCallback: ((balance: bigint) => void) | undefined
-    wallet.watchBalance.mockImplementation((callback: (balance: bigint) => void) => {
-      balanceCallback = callback
-      return Promise.resolve(async () => {})
-    })
     const metadata = createDeferred<Record<string, unknown>>()
     vi.mocked(mockFetchTokenMetadataFromIndexer).mockImplementationOnce(() => metadata.promise as never)
     const store = useStore()
@@ -433,13 +425,15 @@ describe('subscriptions live before metadata and history', () => {
 
     const init = store.initializeWallet()
     await flushAsyncWork()
-    expect(balanceCallback).toBeDefined()
-    expect(wallet.getUtxos).toHaveBeenCalledTimes(1)
+    expect(wallet.watchUtxos).toHaveBeenCalledTimes(1)
 
-    balanceCallback!(5000n)
+    const payment = { txid: 'aa'.repeat(32), vout: 0, satoshis: 5000n, address: 'bitcoincash:qtest' }
+    void wallet.change({ utxos: [payment], added: [payment], removed: [] })
     await flushAsyncWork()
 
-    expect(wallet.getUtxos).toHaveBeenCalledTimes(2)
+    expect(store.walletUtxos).toEqual([payment])
+    // the change carries the coins, so the store reads none itself
+    expect(wallet.getUtxos).toHaveBeenCalledTimes(1)
     metadata.resolve({})
     await init
   })
