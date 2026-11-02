@@ -33,7 +33,8 @@ test.describe.serial('CashConnect E2E', () => {
     dappPage = await dappContext.newPage()
 
     // Set up wallet via onboarding and switch to chipnet
-    await setupWalletOnChipnet(walletPage)
+    // single address, so dApp pairing keeps e2e coverage for that type; WalletConnect covers HD
+    await setupWalletOnChipnet(walletPage, 'single')
 
     // Read the wallet's deposit address from the wallet tab (used as send recipient)
     walletAddress = (await walletPage.locator('.depositAddr').first().textContent() ?? '').trim()

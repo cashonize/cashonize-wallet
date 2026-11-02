@@ -78,7 +78,16 @@
   }
 
   const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount > 0)));
-  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0)));
+  // With zero balances hidden and no receive address holding any (an empty wallet), there would be
+  // nothing to share: it gets the receive address the wallet page shows, which skips frozen and
+  // marked addresses, or else its first unused one
+  const unusedReceivingAddresses = computed(() => {
+    const unused = applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0));
+    if (unused.length || usedReceivingAddresses.value.length) return unused;
+    const fallback = receivingAddresses.value.find(row => row.address === store.currentDepositAddress)
+      ?? receivingAddresses.value.find(row => row.txCount === 0);
+    return fallback ? [fallback] : [];
+  });
   const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount > 0)));
   const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount === 0)));
 

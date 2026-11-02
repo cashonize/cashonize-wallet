@@ -37,9 +37,8 @@ test.afterEach(async () => {
   await info.attach('seed phrase', { contentType: 'text/plain', body: `E2E_CONVERT_SEED="${MNEMONIC}"\n` })
 })
 
-// onboarding imports as a single address wallet by default
 async function openSingleAddressWallet(page: Page) {
-  await importWalletOnboarding(page, { seedPhrase: MNEMONIC })
+  await importWalletOnboarding(page, { seedPhrase: MNEMONIC, walletType: 'single' })
   await page.getByRole('button', { name: 'Finish Setup' }).click()
   await expect(page.locator('.depositAddr').first()).toHaveText(firstAddress(MNEMONIC), { timeout: 30_000 })
 }
