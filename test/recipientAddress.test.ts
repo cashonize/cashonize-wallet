@@ -46,6 +46,9 @@ describe("validateRecipientAddress", () => {
     expect(() => validateRecipientAddress(legacyAddress, "bitcoincash")).toThrow("Legacy addresses look the same");
     expect(() => validateTokenRecipientAddress(legacyAddress, "bitcoincash")).toThrow("Legacy addresses look the same");
     expect(getCashAddressScanError(legacyAddress, "bitcoincash")).toMatch("Legacy addresses look the same");
+    // a Copay address is BCH-only and the converter refuses it, so it is just invalid
+    const copayAddress = encodeBase58AddressFormat(Base58AddressFormatVersion.p2pkhCopayBCH, payload);
+    expect(() => validateRecipientAddress(copayAddress, "bitcoincash")).toThrow("Invalid BCH address provided");
   });
 
   it("refuses an empty destination", () => {

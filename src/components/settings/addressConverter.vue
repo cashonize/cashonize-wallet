@@ -13,7 +13,7 @@
 
   const addressInput = ref("");
 
-  // a prefix-less cashaddr and a locking bytecode name no network, they are read on the active one
+  // a locking bytecode names no network, so it is read on the active one
   const activePrefix = computed(() => store.network === 'mainnet' ? 'bitcoincash' : 'bchtest');
   const converted = computed(() => convertAddress(addressInput.value, activePrefix.value));
 

@@ -209,7 +209,7 @@
       "insufficientFunds": "No hay suficiente BCH en la billetera",
       "invalidAddress": "Se proporcionó una dirección BCH inválida",
       "notCashaddress": "No es una cashaddress en la red actual",
-      "legacyAddress": "Las direcciones legacy se ven iguales que las direcciones de Bitcoin (BTC). CashAddr es el formato de dirección estándar en BCH. Si estás seguro de que es una dirección BCH, conviértela con el conversor de direcciones en las herramientas de billetera."
+      "legacyAddress": "Las direcciones legacy se ven igual que las direcciones de Bitcoin (BTC). CashAddr es el formato de dirección estándar en BCH. Si estás seguro de que es una dirección BCH, conviértela con el conversor de direcciones en las herramientas de billetera."
     },
     "reservedBalance": "Retenido: {amount}"
   },
@@ -1206,7 +1206,7 @@
   },
   "addressConverter": {
     "title": "Conversor de direcciones",
-    "description": "Introduce una dirección en cualquier forma para ver todas sus formas.",
+    "description": "Introduce una dirección para ver todas sus formas.",
     "formsInfo": "CashAddr, dirección de token, legacy y locking bytecode son distintas formas de escribir el mismo destino. Las monedas enviadas a cualquiera de ellas llegan al mismo lugar.",
     "inputPlaceholder": "CashAddr, dirección legacy o locking bytecode (hex)",
     "cashAddress": "CashAddr:",
@@ -1216,9 +1216,9 @@
     "type": "Tipo:",
     "network": "Red:",
     "none": "ninguna",
-    "tokenWarning": "Usa esta forma solo si la billetera del destinatario admite CashTokens: una billetera sin soporte de tokens puede no mostrar los tokens, o destruirlos al gastar.",
-    "activeNetworkNote": "(la red activa: un locking bytecode no indica ninguna)",
-    "legacyWarning": "Las direcciones legacy se ven iguales en BCH y BTC. Ten especial cuidado de no enviar nada en la cadena equivocada.",
+    "tokenWarning": "Usa esta forma solo si la billetera del destinatario admite CashTokens. Otras billeteras pueden no mostrar los tokens, o destruirlos al gastar.",
+    "activeNetworkNote": "(supuesta: un locking bytecode no tiene red)",
+    "legacyWarning": "Las direcciones legacy se ven igual en BCH y BTC. Ten especial cuidado de no enviar nada en la cadena equivocada.",
     "notAnAddress": "No es una dirección: introduce una CashAddr, una dirección legacy o el locking bytecode de una salida P2PKH o P2SH.",
     "ownAddress": "Esta dirección pertenece a esta billetera."
   },

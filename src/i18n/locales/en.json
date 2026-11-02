@@ -209,7 +209,7 @@
       "insufficientFunds": "Not enough BCH in wallet",
       "invalidAddress": "Invalid BCH address provided",
       "notCashaddress": "Not a cashaddress on current network",
-      "legacyAddress": "Legacy addresses look the same as Bitcoin (BTC) addresses. CashAddr is the standard address format on BCH. If you are sure this is a BCH address, convert it with the Address converter in Wallet tools."
+      "legacyAddress": "Legacy addresses look the same as Bitcoin (BTC) addresses. CashAddr is the standard address format on BCH. If you are sure this is a BCH address, convert it with the Address Converter in Wallet tools."
     },
     "reservedBalance": "Held back: {amount}"
   },
@@ -1206,7 +1206,7 @@
   },
   "addressConverter": {
     "title": "Address Converter",
-    "description": "Enter an address in any form to see all its forms.",
+    "description": "Enter an address to see all its forms.",
     "formsInfo": "CashAddr, token address, legacy and locking bytecode are different ways of writing the same destination. Coins sent to any of them end up in the same place.",
     "inputPlaceholder": "CashAddr, legacy address or locking bytecode (hex)",
     "cashAddress": "CashAddr:",
@@ -1216,8 +1216,8 @@
     "type": "Type:",
     "network": "Network:",
     "none": "none",
-    "tokenWarning": "Use this form only when the recipient's wallet supports CashTokens: a wallet without token support may not show the tokens, or may destroy them when it spends.",
-    "activeNetworkNote": "(the active network: a locking bytecode names none)",
+    "tokenWarning": "Use this form only if the recipient's wallet supports CashTokens. Other wallets may not show the tokens, or may destroy them when spending.",
+    "activeNetworkNote": "(assumed: a locking bytecode has no network)",
     "legacyWarning": "Legacy addresses look the same on BCH and BTC. Take extra care that nothing is sent on the wrong chain.",
     "notAnAddress": "Not an address: enter a CashAddr, a legacy address or the locking bytecode of a P2PKH or P2SH output.",
     "ownAddress": "This address belongs to this wallet."

@@ -209,7 +209,7 @@
       "insufficientFunds": "Nicht genug BCH im Wallet",
       "invalidAddress": "Ungültige BCH-Adresse angegeben",
       "notCashaddress": "Keine cashaddress im aktuellen Netzwerk",
-      "legacyAddress": "Legacy-Adressen sehen genauso aus wie Bitcoin-(BTC-)Adressen. CashAddr ist das Standard-Adressformat bei BCH. Wenn du sicher bist, dass es eine BCH-Adresse ist, wandle sie mit dem Adresskonverter in den Wallet-Werkzeugen um."
+      "legacyAddress": "Legacy-Adressen sehen genauso aus wie Bitcoin-Adressen (BTC). CashAddr ist das Standard-Adressformat bei BCH. Wenn du sicher bist, dass es eine BCH-Adresse ist, wandle sie mit dem Adresskonverter in den Wallet-Werkzeugen um."
     },
     "reservedBalance": "Zurückgehalten: {amount}"
   },
@@ -1206,7 +1206,7 @@
   },
   "addressConverter": {
     "title": "Adresskonverter",
-    "description": "Gib eine Adresse in beliebiger Form ein, um all ihre Formen zu sehen.",
+    "description": "Gib eine Adresse ein, um all ihre Formen zu sehen.",
     "formsInfo": "CashAddr, Token-Adresse, Legacy und Locking-Bytecode sind verschiedene Schreibweisen für dasselbe Ziel. Coins, die an eine davon gesendet werden, kommen am selben Ort an.",
     "inputPlaceholder": "CashAddr, Legacy-Adresse oder Locking-Bytecode (Hex)",
     "cashAddress": "CashAddr:",
@@ -1216,8 +1216,8 @@
     "type": "Typ:",
     "network": "Netzwerk:",
     "none": "keine",
-    "tokenWarning": "Verwende diese Form nur, wenn das Wallet des Empfängers CashTokens unterstützt: Ein Wallet ohne Token-Unterstützung zeigt die Tokens womöglich nicht an oder vernichtet sie beim Ausgeben.",
-    "activeNetworkNote": "(das aktive Netzwerk: ein Locking-Bytecode nennt keines)",
+    "tokenWarning": "Verwende diese Form nur, wenn das Wallet des Empfängers CashTokens unterstützt. Andere Wallets zeigen die Tokens womöglich nicht an oder vernichten sie beim Ausgeben.",
+    "activeNetworkNote": "(angenommen: ein Locking-Bytecode hat kein Netzwerk)",
     "legacyWarning": "Legacy-Adressen sehen bei BCH und BTC gleich aus. Achte besonders darauf, dass nichts auf der falschen Chain gesendet wird.",
     "notAnAddress": "Keine Adresse: Gib eine CashAddr, eine Legacy-Adresse oder den Locking-Bytecode eines P2PKH- oder P2SH-Outputs ein.",
     "ownAddress": "Diese Adresse gehört zu diesem Wallet."

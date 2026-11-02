@@ -1206,7 +1206,7 @@
   },
   "addressConverter": {
     "title": "Convertisseur d'adresses",
-    "description": "Saisissez une adresse sous n'importe quelle forme pour voir toutes ses formes.",
+    "description": "Saisissez une adresse pour voir toutes ses formes.",
     "formsInfo": "CashAddr, adresse de token, legacy et locking bytecode sont différentes façons d'écrire la même destination. Les coins envoyés à l'une d'elles arrivent au même endroit.",
     "inputPlaceholder": "CashAddr, adresse legacy ou locking bytecode (hex)",
     "cashAddress": "CashAddr :",
@@ -1216,8 +1216,8 @@
     "type": "Type :",
     "network": "Réseau :",
     "none": "aucune",
-    "tokenWarning": "N'utilisez cette forme que si le portefeuille du destinataire prend en charge les CashTokens : un portefeuille sans prise en charge des tokens risque de ne pas les afficher, ou de les détruire en dépensant.",
-    "activeNetworkNote": "(le réseau actif : un locking bytecode n'en indique aucun)",
+    "tokenWarning": "N'utilisez cette forme que si le portefeuille du destinataire prend en charge les CashTokens. Les autres portefeuilles risquent de ne pas afficher les tokens, ou de les détruire en dépensant.",
+    "activeNetworkNote": "(supposé : un locking bytecode n'a pas de réseau)",
     "legacyWarning": "Les adresses legacy sont identiques sur BCH et BTC. Veillez tout particulièrement à ne rien envoyer sur la mauvaise chaîne.",
     "notAnAddress": "Ce n'est pas une adresse : saisissez une CashAddr, une adresse legacy ou le locking bytecode d'une sortie P2PKH ou P2SH.",
     "ownAddress": "Cette adresse appartient à ce portefeuille."

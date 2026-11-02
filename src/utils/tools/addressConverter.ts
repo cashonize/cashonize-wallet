@@ -1,5 +1,4 @@
 import {
-  Base58AddressFormatVersion,
   base58AddressToLockingBytecode,
   binToHex,
   cashAddressToLockingBytecode,
@@ -10,6 +9,7 @@ import {
   lockingBytecodeToCashAddress,
   type CashAddressNetworkPrefix,
 } from "@bitauth/libauth";
+import { legacyVersionPrefixes } from "src/utils/addressValidation";
 
 type Prefix = `${CashAddressNetworkPrefix}`;
 
@@ -24,15 +24,6 @@ export interface ConvertedAddress {
   networkAssumed: boolean;
   lockingBytecode: string;
 }
-
-// The network each legacy version belongs to. libauth also decodes the Copay versions, which this
-// leaves out: no one should be handed one as the form to send to.
-const legacyVersionPrefixes = new Map<number, Prefix>([
-  [Base58AddressFormatVersion.p2pkh, 'bitcoincash'],
-  [Base58AddressFormatVersion.p2sh20, 'bitcoincash'],
-  [Base58AddressFormatVersion.p2pkhTestnet, 'bchtest'],
-  [Base58AddressFormatVersion.p2sh20Testnet, 'bchtest'],
-]);
 
 const knownPrefixes: Prefix[] = ['bitcoincash', 'bchtest', 'bchreg'];
 
