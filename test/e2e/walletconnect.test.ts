@@ -47,8 +47,8 @@ test.describe.serial('WalletConnect E2E', () => {
     await walletPage.getByPlaceholder('Connection URI').fill(uri!)
     await walletPage.locator('input.primaryButton[value*="Connect"]').click()
 
-    // Wallet: an HD wallet picks the address to share, which for this empty wallet is its first
-    // receive address; then approve the session proposal
+    // Wallet: an HD wallet picks the address to share, an empty one is offered its first receive
+    // address; then approve the session proposal
     const approveButton = walletPage.getByRole('button', { name: 'Approve' })
     await approveButton.waitFor({ timeout: 15_000 })
     await walletPage.locator('.q-dialog .address-item').first().click()

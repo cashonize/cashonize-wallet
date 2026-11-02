@@ -87,6 +87,9 @@ test.describe('Onboarding create', () => {
     const seedPhrase = await shownSeedPhrase(page)
     await page.locator('nav').getByText('Wallet', { exact: true }).click()
     await expectShownAddresses(page, addressesAt(seedPhrase, "m/44'/145'/0'/0/0"))
+    // a single address wallet stores no type, which is how every existing wallet without one reads
+    const walletType = await page.evaluate(() => JSON.parse(localStorage.getItem('walletMetadata') ?? '{}').mywallet?.walletType)
+    expect(walletType).toBeUndefined()
   })
 })
 
