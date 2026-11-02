@@ -41,11 +41,6 @@
   const applicationVersion = import.meta.env.version
 
   const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(0);
-  watch(() => store.pendingSettingsSection, (section) => {
-    if (section === undefined) return;
-    settingsSection.value = section as typeof settingsSection.value;
-    store.pendingSettingsSection = undefined;
-  }, { immediate: true });
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -219,6 +214,12 @@
   // Measured when the 'data and storage' submenu opens rather than on every visit to Settings, as
   // it reads the whole electrum cache
   watch(settingsSection, (section) => { if (section === 8) void loadCacheSizes(); });
+  // after the section watchers, so a section opened from elsewhere loads what it shows
+  watch(() => store.pendingSettingsSection, (section) => {
+    if (section === undefined) return;
+    settingsSection.value = section;
+    store.pendingSettingsSection = undefined;
+  }, { immediate: true });
 
   // store watches settingsStore.currency and refetches the exchange rate automatically
   function changeCurrency(){

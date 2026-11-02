@@ -11,7 +11,7 @@ import {
   generateRandomBytes,
   hash160,
 } from '@bitauth/libauth'
-import { importWalletOnboarding } from './helpers'
+import { importWalletOnboarding, waitForDialog } from './helpers'
 
 // Fresh for every run, so it is unused and the HD wallet shows its first receive address
 const MNEMONIC = process.env.E2E_CONVERT_SEED ?? freshSeedPhrase()
@@ -54,20 +54,23 @@ test('converts the single address wallet into the HD wallet on the same seed, ke
   await openManageWallets(page)
 
   await page.getByRole('button', { name: 'Convert to HD wallet' }).click()
-  const dialog = page.locator('.q-dialog')
+  const dialog = await waitForDialog(page)
   await expect(dialog).toContainText('Convert to HD wallet?')
   await dialog.getByRole('button', { name: 'Convert', exact: true }).click()
-  await expect(page.locator('.q-notification')).toContainText('is now an HD wallet')
+  await expect(page.locator('.q-notification').getByText('is now an HD wallet')).toBeVisible()
 
-  // offered only to single address wallets
-  await expect(page.getByRole('button', { name: 'Convert to HD wallet' })).toHaveCount(0)
+  // the Addresses tab is there for HD wallets only, and the address stays the single address
+  const addressesTab = page.locator('nav').getByText('Addresses', { exact: true })
+  await expect(addressesTab).toBeVisible()
   await page.locator('nav').getByText('Wallet', { exact: true }).click()
   await expect(page.locator('.depositAddr').first()).toHaveText(firstAddress(MNEMONIC), { timeout: 30_000 })
 
   // stored as HD: still HD, and still the same address, after a reload
   await page.reload()
+  await expect(addressesTab).toBeVisible({ timeout: 30_000 })
   await expect(page.locator('.depositAddr').first()).toHaveText(firstAddress(MNEMONIC), { timeout: 30_000 })
   await openManageWallets(page)
+  await expect(page.getByText('Current wallet:')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Convert to HD wallet' })).toHaveCount(0)
 })
 
@@ -79,7 +82,7 @@ test('a WizardConnect link on a single address wallet leads to Manage wallets, a
   await page.getByPlaceholder('Connection URI').fill(wizUri)
   await page.locator('input.primaryButton[value*="Connect"]').click()
 
-  const dialog = page.locator('.q-dialog')
+  const dialog = await waitForDialog(page)
   await expect(dialog).toContainText('WizardConnect needs an HD wallet')
   await dialog.getByRole('button', { name: 'Go to Manage wallets' }).click()
   // nothing was converted from the connect action

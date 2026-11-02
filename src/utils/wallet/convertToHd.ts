@@ -31,6 +31,12 @@ async function convertActiveWalletToHd(walletName: string, network: AppNetwork, 
   const cashConnectWallet = useCashconnectStore().cashConnectWallet;
   let rowWritten = false;
   try {
+    // checked again before anything ends: the wallet may have changed while the dialog was open
+    const recheck = await checkSeedWalletConvertible(walletName, network);
+    if (!recheck.success) return recheck;
+    if (recheck.seedId !== checkedSeedId) {
+      return makeError(t('walletUtils.errors.walletChangedBeforeConversion', { name: walletName }), false);
+    }
     if (cashConnectWallet && Object.keys(useCashconnectStore().sessions).length > 0) {
       const disconnect = (async () => {
         try {
@@ -46,7 +52,7 @@ async function convertActiveWalletToHd(walletName: string, network: AppNetwork, 
     const result = await storeSeedWalletAsHd(walletName, network, checkedSeedId);
     if (!result.success) return result;
     rowWritten = true;
-    // also sets the wallet type from the stored id, so it says HD only once an HD wallet is loaded
+    // also sets the wallet type from the stored id
     const hdWallet = await store.loadExistingWallet(walletName, network);
     // another wallet opened meanwhile stays open; this one opens as HD whenever it is opened next
     if (store.activeWalletName !== walletName) return result;
