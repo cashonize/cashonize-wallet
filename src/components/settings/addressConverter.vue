@@ -88,6 +88,7 @@
       </div>
       <div class="converter-row">
         {{ t('addressConverter.network') }} {{ networkNames[converted.prefix] }}
+        <span v-if="converted.networkAssumed" style="color: grey;">{{ t('addressConverter.activeNetworkNote') }}</span>
       </div>
     </div>
   </fieldset>

@@ -1205,7 +1205,7 @@
   },
   "addressConverter": {
     "title": "Conversor de endereços",
-    "description": "Digite um endereço em qualquer forma para ver todas as suas formas.",
+    "description": "Insira um endereço em qualquer forma para ver todas as suas formas.",
     "inputPlaceholder": "CashAddr, endereço legacy ou locking bytecode (hex)",
     "cashAddress": "CashAddr:",
     "tokenAddress": "Endereço de token:",
@@ -1214,9 +1214,10 @@
     "type": "Tipo:",
     "network": "Rede:",
     "none": "nenhum",
-    "tokenWarning": "Só envie tokens para esta forma se a carteira do destinatário suportar CashTokens; uma carteira sem suporte a tokens pode não mostrá-los.",
+    "tokenWarning": "Use esta forma só se a carteira do destinatário suportar CashTokens: uma carteira sem suporte a tokens pode não mostrar os tokens, ou destruí-los ao gastar.",
+    "activeNetworkNote": "(a rede ativa: um locking bytecode não indica nenhuma)",
     "legacyWarning": "Um endereço legacy parece igual a um endereço de Bitcoin (BTC): verifique se é um endereço BCH antes de enviar para ele.",
-    "notAnAddress": "Não é um endereço: digite um CashAddr, um endereço legacy ou o locking bytecode de uma saída P2PKH ou P2SH.",
+    "notAnAddress": "Não é um endereço: insira um CashAddr, um endereço legacy ou o locking bytecode de uma saída P2PKH ou P2SH.",
     "ownAddress": "Este endereço pertence a esta carteira."
   },
   "derivationPathSelect": {

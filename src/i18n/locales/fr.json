@@ -1214,7 +1214,8 @@
     "type": "Type :",
     "network": "Réseau :",
     "none": "aucune",
-    "tokenWarning": "N'envoyez des tokens à cette forme que si le portefeuille du destinataire prend en charge les CashTokens ; un portefeuille sans prise en charge des tokens risque de ne pas les afficher.",
+    "tokenWarning": "N'utilisez cette forme que si le portefeuille du destinataire prend en charge les CashTokens : un portefeuille sans prise en charge des tokens risque de ne pas les afficher, ou de les détruire en dépensant.",
+    "activeNetworkNote": "(le réseau actif : un locking bytecode n'en indique aucun)",
     "legacyWarning": "Une adresse legacy ressemble à une adresse Bitcoin (BTC) : assurez-vous qu'il s'agit d'une adresse BCH avant d'y envoyer des fonds.",
     "notAnAddress": "Ce n'est pas une adresse : saisissez une CashAddr, une adresse legacy ou le locking bytecode d'une sortie P2PKH ou P2SH.",
     "ownAddress": "Cette adresse appartient à ce portefeuille."

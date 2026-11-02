@@ -20,11 +20,13 @@ export interface ConvertedAddress {
   tokenAddress: string;
   // P2SH32 has no legacy form
   legacyAddress: string | undefined;
+  // a locking bytecode names no network, so it was read on the active one
+  networkAssumed: boolean;
   lockingBytecode: string;
 }
 
-// libauth reads every base58 version that is not a p2pkh one as p2sh20, so only the address
-// versions are let through, the Copay ones left out
+// The network each legacy version belongs to. libauth also decodes the Copay versions, which this
+// leaves out: no one should be handed one as the form to send to.
 const legacyVersionPrefixes = new Map<number, Prefix>([
   [Base58AddressFormatVersion.p2pkh, 'bitcoincash'],
   [Base58AddressFormatVersion.p2sh20, 'bitcoincash'],
@@ -34,9 +36,9 @@ const legacyVersionPrefixes = new Map<number, Prefix>([
 
 const knownPrefixes: Prefix[] = ['bitcoincash', 'bchtest', 'bchreg'];
 
-// The input as a locking bytecode and the network it names. A locking bytecode names none, and
-// neither does a cashaddr without its prefix, so those are read on the given network.
-function toLockingBytecode(input: string, defaultPrefix: Prefix): { bytecode: Uint8Array, prefix: Prefix } | undefined {
+// The input as a locking bytecode and the network it names. A locking bytecode names none, so it is
+// read on the given network.
+function toLockingBytecode(input: string, defaultPrefix: Prefix): { bytecode: Uint8Array, prefix: Prefix, networkAssumed?: boolean } | undefined {
   const lowerInput = input.toLowerCase();
   if (knownPrefixes.some(prefix => lowerInput.startsWith(`${prefix}:`))) {
     const decoded = cashAddressToLockingBytecode(input);
@@ -50,12 +52,16 @@ function toLockingBytecode(input: string, defaultPrefix: Prefix): { bytecode: Ui
     return { bytecode: legacy.bytecode, prefix };
   }
   // a cashaddr starts with q, p, z or r, none of which is a hex digit, so the two never overlap
-  if (isHex(input)) return { bytecode: hexToBin(input), prefix: defaultPrefix };
-  // the prefix added has to match the case of an uppercase address, as QR codes often encode it
-  const prefixToAdd = input === input.toUpperCase() ? defaultPrefix.toUpperCase() : defaultPrefix;
-  const decoded = cashAddressToLockingBytecode(`${prefixToAdd}:${input}`);
-  if (typeof decoded === 'string') return undefined;
-  return { bytecode: decoded.bytecode, prefix: decoded.prefix };
+  if (isHex(input)) return { bytecode: hexToBin(input), prefix: defaultPrefix, networkAssumed: true };
+  // The checksum covers the prefix, so only the network the address was made for decodes it: the
+  // active network is tried first. The prefix added has to match the case of an uppercase address,
+  // as QR codes often encode it.
+  const isUpperCase = input === input.toUpperCase();
+  for (const prefix of [defaultPrefix, ...knownPrefixes.filter(candidate => candidate !== defaultPrefix)]) {
+    const decoded = cashAddressToLockingBytecode(`${isUpperCase ? prefix.toUpperCase() : prefix}:${input}`);
+    if (typeof decoded !== 'string') return { bytecode: decoded.bytecode, prefix: decoded.prefix };
+  }
+  return undefined;
 }
 
 // Every form of an address, derived from its locking bytecode. Returns undefined for anything
@@ -65,7 +71,7 @@ export function convertAddress(input: string, defaultPrefix: Prefix): ConvertedA
   if (!trimmedInput) return undefined;
   const parsed = toLockingBytecode(trimmedInput, defaultPrefix);
   if (!parsed) return undefined;
-  const { bytecode, prefix } = parsed;
+  const { bytecode, prefix, networkAssumed = false } = parsed;
 
   // P2PK has no address form, and anything else is no standard output at all
   const { type } = lockingBytecodeToAddressContents(bytecode);
@@ -87,5 +93,6 @@ export function convertAddress(input: string, defaultPrefix: Prefix): ConvertedA
     tokenAddress: tokenAddress.address,
     legacyAddress,
     lockingBytecode: binToHex(bytecode),
+    networkAssumed,
   };
 }

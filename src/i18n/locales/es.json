@@ -1214,7 +1214,8 @@
     "type": "Tipo:",
     "network": "Red:",
     "none": "ninguna",
-    "tokenWarning": "Envía tokens a esta forma solo si la billetera del destinatario admite CashTokens; una billetera sin soporte de tokens puede no mostrarlos.",
+    "tokenWarning": "Usa esta forma solo si la billetera del destinatario admite CashTokens: una billetera sin soporte de tokens puede no mostrar los tokens, o destruirlos al gastar.",
+    "activeNetworkNote": "(la red activa: un locking bytecode no indica ninguna)",
     "legacyWarning": "Una dirección legacy se ve igual que una dirección de Bitcoin (BTC): asegúrate de que sea una dirección de BCH antes de enviar a ella.",
     "notAnAddress": "No es una dirección: introduce una CashAddr, una dirección legacy o el locking bytecode de una salida P2PKH o P2SH.",
     "ownAddress": "Esta dirección pertenece a esta billetera."

@@ -1214,7 +1214,8 @@
     "type": "Typ:",
     "network": "Netzwerk:",
     "none": "keine",
-    "tokenWarning": "Sende Tokens nur an diese Form, wenn das Wallet des Empfängers CashTokens unterstützt; ein Wallet ohne Token-Unterstützung zeigt sie womöglich nicht an.",
+    "tokenWarning": "Verwende diese Form nur, wenn das Wallet des Empfängers CashTokens unterstützt: Ein Wallet ohne Token-Unterstützung zeigt die Tokens womöglich nicht an oder vernichtet sie beim Ausgeben.",
+    "activeNetworkNote": "(das aktive Netzwerk: ein Locking-Bytecode nennt keines)",
     "legacyWarning": "Eine Legacy-Adresse sieht genauso aus wie eine Bitcoin-(BTC-)Adresse: Stelle sicher, dass es eine BCH-Adresse ist, bevor du daran sendest.",
     "notAnAddress": "Keine Adresse: Gib eine CashAddr, eine Legacy-Adresse oder den Locking-Bytecode eines P2PKH- oder P2SH-Outputs ein.",
     "ownAddress": "Diese Adresse gehört zu diesem Wallet."
