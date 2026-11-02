@@ -222,6 +222,9 @@ export const useStore = defineStore('store', () => {
   const pendingTokenSearch = ref(undefined as (undefined | string));
   // Address whose transactions the history narrows to, set from the addresses page
   const pendingHistorySearch = ref(undefined as (undefined | string));
+  // Settings section to open, set from outside the settings view. The settings view opens it and
+  // clears it again.
+  const pendingSettingsSection = ref(undefined as (undefined | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8));
   const currentBlockHeight = ref(undefined as (number | undefined));
   // Token metadata of the wallet's categories. Every fetch fills this one object, adding a category
   // only when it is missing (storeUtils); a reset or an indexer change replaces it, so a late reply
@@ -955,6 +958,7 @@ export const useStore = defineStore('store', () => {
     // electrum server change keeps the same wallet, which would otherwise be left spending them
     pendingTokenSearch.value = undefined;
     pendingHistorySearch.value = undefined;
+    pendingSettingsSection.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = {};
     tokenMetadataLoaded.value = false;
@@ -2110,6 +2114,7 @@ export const useStore = defineStore('store', () => {
     setAddressLabel,
     walletInitFailed,
     pendingTokenSearch,
+    pendingSettingsSection,
     pendingHistorySearch,
     dappConnectionStoresInitDone,
     latestGithubRelease,

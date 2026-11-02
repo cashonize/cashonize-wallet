@@ -55,7 +55,13 @@
       "failedToCreateWallet": "Failed to create wallet",
       "enterSeedPhrase": "Enter a seed phrase to import wallet",
       "fixInvalidWords": "Please fix invalid words in your seed phrase",
-      "invalidSeedPhrase": "Not a valid seed phrase"
+      "invalidSeedPhrase": "Not a valid seed phrase",
+      "convertTiedCopy": "Wallet \"{name}\" also has a copy on {network}. Remove its chipnet copy under Settings > Developer settings first, then convert.",
+      "cannotConvert": "Wallet \"{name}\" is not stored as a single address wallet that can be converted, so nothing was changed",
+      "conversionRunning": "The wallet is already being converted",
+      "failedToConvert": "Failed to convert wallet \"{name}\"",
+      "walletChangedBeforeConversion": "Wallet \"{name}\" changed since it was checked, so nothing was converted",
+      "convertedReloadToOpen": "Wallet \"{name}\" was converted and opens as an HD wallet after a reload"
     }
   },
   "bip21": {
@@ -472,6 +478,11 @@
     "errors": {
       "invalidUri": "Invalid WalletConnect, CashConnect or WizardConnect URI",
       "notValidUri": "Not a valid WalletConnect, CashConnect or WizardConnect URI"
+    },
+    "wizardConnectNeedsHd": {
+      "title": "WizardConnect needs an HD wallet",
+      "message": "WizardConnect needs an HD wallet, and this wallet uses a single address. In Manage wallets you can convert it to an HD wallet with the same seed phrase, keeping its coins, name and notes. The connection link stays here, so you can connect after converting.",
+      "goButton": "Go to Manage wallets"
     }
   },
   "history": {
@@ -693,6 +704,19 @@
     },
     "switchedNetwork": "Switched to {network} for wallet \"{name}\"",
     "switchFailed": "Failed to switch wallet: {error}"
+  },
+  "convertToHd": {
+    "label": "The current wallet is a single address wallet. HD wallets have advantages, such as better privacy and support for WizardConnect.",
+    "button": "Convert to HD wallet",
+    "hint": "An HD wallet uses a new address for each payment, which keeps your payments more private, and it is needed for WizardConnect. It keeps the same seed phrase, coins, name and notes.",
+    "hintNote": "Converting cannot be undone: from then on, restore this seed phrase as an HD wallet.",
+    "confirmTitle": "Convert to HD wallet?",
+    "intro": "This wallet becomes an HD wallet on the same seed phrase, so it can connect to WizardConnect dApps, and it uses a new address for each payment. Its coins, name and notes stay.",
+    "consequences": "This cannot be undone.\n\nAfter converting, coins also go to new addresses. From then on, always restore this seed phrase as an HD wallet. A single address wallet with this seed phrase won't show the coins on those new addresses, in Cashonize or in other wallet apps.",
+    "cashConnectSessions": "{count} CashConnect connection ends, and its dApp has to be paired again. | {count} CashConnect connections end, and their dApps have to be paired again.",
+    "walletConnectSessions": "{count} WalletConnect dApp is disconnected, and can be connected again afterwards. | {count} WalletConnect dApps are disconnected, and can be connected again afterwards.",
+    "confirmButton": "Convert",
+    "converted": "Wallet \"{name}\" is now an HD wallet"
   },
   "createTokens": {
     "title": "Create a token",

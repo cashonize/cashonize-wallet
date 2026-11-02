@@ -55,7 +55,13 @@
       "failedToCreateWallet": "Falha ao criar a carteira",
       "enterSeedPhrase": "Insira uma seed phrase para importar a carteira",
       "fixInvalidWords": "Por favor, corrija as palavras inválidas na sua seed phrase",
-      "invalidSeedPhrase": "Seed phrase inválida"
+      "invalidSeedPhrase": "Seed phrase inválida",
+      "convertTiedCopy": "A carteira \"{name}\" também tem uma cópia na {network}. Remova primeiro a cópia dela na chipnet em Configurações > Configurações de desenvolvedor e depois converta.",
+      "cannotConvert": "A carteira \"{name}\" não está salva como uma carteira de endereço único convertível, então nada foi alterado",
+      "conversionRunning": "A carteira já está sendo convertida",
+      "failedToConvert": "Falha ao converter a carteira \"{name}\"",
+      "walletChangedBeforeConversion": "A carteira \"{name}\" mudou desde a verificação, então nada foi convertido",
+      "convertedReloadToOpen": "A carteira \"{name}\" foi convertida e abre como carteira HD após recarregar"
     }
   },
   "bip21": {
@@ -472,6 +478,11 @@
     "errors": {
       "invalidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida",
       "notValidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida"
+    },
+    "wizardConnectNeedsHd": {
+      "title": "WizardConnect precisa de uma carteira HD",
+      "message": "O WizardConnect precisa de uma carteira HD, e esta carteira usa um endereço único. Em Gerenciar carteiras você pode convertê-la em uma carteira HD com a mesma seed phrase, mantendo suas moedas, nome e notas. O link de conexão fica aqui, para você se conectar depois da conversão.",
+      "goButton": "Ir para Gerenciar carteiras"
     }
   },
   "history": {
@@ -693,6 +704,19 @@
     },
     "switchedNetwork": "Mudou para {network} na carteira \"{name}\"",
     "switchFailed": "Falha ao trocar de carteira: {error}"
+  },
+  "convertToHd": {
+    "label": "A carteira atual é uma carteira de endereço único. Carteiras HD têm vantagens, como mais privacidade e suporte ao WizardConnect.",
+    "button": "Converter em carteira HD",
+    "hint": "Uma carteira HD usa um novo endereço para cada pagamento, o que deixa seus pagamentos mais privados, e é necessária para o WizardConnect. Ela mantém a mesma seed phrase, moedas, nome e notas.",
+    "hintNote": "A conversão não pode ser desfeita: a partir daí, restaure esta seed phrase como carteira HD.",
+    "confirmTitle": "Converter em carteira HD?",
+    "intro": "Esta carteira se torna uma carteira HD com a mesma seed phrase, podendo assim se conectar a dApps WizardConnect, e usa um novo endereço para cada pagamento. Suas moedas, nome e notas são mantidos.",
+    "consequences": "Isso não pode ser desfeito.\n\nDepois da conversão, as moedas também vão para novos endereços. A partir daí, restaure sempre esta seed phrase como carteira HD. Uma carteira de endereço único com esta seed phrase não mostra as moedas nesses novos endereços, nem no Cashonize nem em outros apps de carteira.",
+    "cashConnectSessions": "{count} conexão CashConnect termina, e o dApp dela terá que ser pareado novamente. | {count} conexões CashConnect terminam, e os dApps delas terão que ser pareados novamente.",
+    "walletConnectSessions": "{count} dApp WalletConnect é desconectado e pode ser conectado novamente depois. | {count} dApps WalletConnect são desconectados e podem ser conectados novamente depois.",
+    "confirmButton": "Converter",
+    "converted": "A carteira \"{name}\" agora é uma carteira HD"
   },
   "createTokens": {
     "title": "Criar um token",

@@ -55,7 +55,13 @@
       "failedToCreateWallet": "Échec de la création du portefeuille",
       "enterSeedPhrase": "Entrez une phrase de récupération pour importer le portefeuille",
       "fixInvalidWords": "Veuillez corriger les mots invalides dans votre phrase de récupération",
-      "invalidSeedPhrase": "Phrase de récupération invalide"
+      "invalidSeedPhrase": "Phrase de récupération invalide",
+      "convertTiedCopy": "Le portefeuille « {name} » a aussi une copie sur {network}. Supprimez d'abord sa copie chipnet dans Paramètres > Paramètres développeur, puis convertissez.",
+      "cannotConvert": "Le portefeuille « {name} » n'est pas enregistré comme un portefeuille à adresse unique convertible, rien n'a donc été modifié",
+      "conversionRunning": "Le portefeuille est déjà en cours de conversion",
+      "failedToConvert": "Échec de la conversion du portefeuille « {name} »",
+      "walletChangedBeforeConversion": "Le portefeuille « {name} » a changé depuis la vérification, rien n'a donc été converti",
+      "convertedReloadToOpen": "Le portefeuille « {name} » a été converti et s'ouvrira comme portefeuille HD après un rechargement"
     }
   },
   "bip21": {
@@ -472,6 +478,11 @@
     "errors": {
       "invalidUri": "URI WalletConnect, CashConnect ou WizardConnect invalide",
       "notValidUri": "Ce n'est pas une URI WalletConnect, CashConnect ou WizardConnect valide"
+    },
+    "wizardConnectNeedsHd": {
+      "title": "WizardConnect nécessite un portefeuille HD",
+      "message": "WizardConnect nécessite un portefeuille HD, et ce portefeuille utilise une adresse unique. Dans Gérer les portefeuilles, vous pouvez le convertir en portefeuille HD avec la même phrase de récupération, en conservant ses fonds, son nom et ses notes. Le lien de connexion reste ici, vous pourrez donc vous connecter après la conversion.",
+      "goButton": "Aller à Gérer les portefeuilles"
     }
   },
   "history": {
@@ -693,6 +704,19 @@
     },
     "switchedNetwork": "Basculé vers {network} pour le portefeuille « {name} »",
     "switchFailed": "Échec du changement de portefeuille : {error}"
+  },
+  "convertToHd": {
+    "label": "Le portefeuille actuel est un portefeuille à adresse unique. Les portefeuilles HD ont des avantages, comme une meilleure confidentialité et la prise en charge de WizardConnect.",
+    "button": "Convertir en portefeuille HD",
+    "hint": "Un portefeuille HD utilise une nouvelle adresse pour chaque paiement, ce qui rend vos paiements plus privés, et il est nécessaire pour WizardConnect. Il conserve la même phrase de récupération, les mêmes fonds, le même nom et les mêmes notes.",
+    "hintNote": "La conversion est irréversible : restaurez ensuite cette phrase de récupération en tant que portefeuille HD.",
+    "confirmTitle": "Convertir en portefeuille HD ?",
+    "intro": "Ce portefeuille devient un portefeuille HD avec la même phrase de récupération : il peut alors se connecter aux dApps WizardConnect et utilise une nouvelle adresse pour chaque paiement. Ses fonds, son nom et ses notes sont conservés.",
+    "consequences": "Cette action est irréversible.\n\nAprès la conversion, les fonds vont aussi vers de nouvelles adresses. Restaurez ensuite toujours cette phrase de récupération en tant que portefeuille HD. Un portefeuille à adresse unique avec cette phrase de récupération n'affichera pas les fonds sur ces nouvelles adresses, ni dans Cashonize ni dans d'autres applications de portefeuille.",
+    "cashConnectSessions": "{count} connexion CashConnect prend fin, et sa dApp devra être appairée à nouveau. | {count} connexions CashConnect prennent fin, et leurs dApps devront être appairées à nouveau.",
+    "walletConnectSessions": "{count} dApp WalletConnect est déconnectée et pourra être reconnectée ensuite. | {count} dApps WalletConnect sont déconnectées et pourront être reconnectées ensuite.",
+    "confirmButton": "Convertir",
+    "converted": "Le portefeuille « {name} » est maintenant un portefeuille HD"
   },
   "createTokens": {
     "title": "Créer un token",
