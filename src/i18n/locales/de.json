@@ -56,10 +56,12 @@
       "enterSeedPhrase": "Gib eine seed phrase ein, um ein Wallet zu importieren",
       "fixInvalidWords": "Bitte korrigiere ungültige Wörter in deiner seed phrase",
       "invalidSeedPhrase": "Keine gültige seed phrase",
-      "convertTiedCopy": "Wallet \"{name}\" hat noch eine Chipnet-Kopie. Entferne die Kopie zuerst unter Einstellungen > Entwicklereinstellungen und konvertiere dann.",
-      "cannotConvert": "Wallet \"{name}\" ist nicht als konvertierbares Einzeladressen-Wallet gespeichert, daher wurde nichts geändert",
-      "conversionRunning": "Das Wallet wird bereits konvertiert",
-      "failedToConvert": "Wallet \"{name}\" konnte nicht konvertiert werden"
+      "convertTiedCopy": "Wallet \"{name}\" hat noch eine Kopie auf {network}. Entferne zuerst seine Chipnet-Kopie unter Einstellungen > Entwicklereinstellungen und wandle es dann um.",
+      "cannotConvert": "Wallet \"{name}\" ist nicht als umwandelbares Einzeladressen-Wallet gespeichert, daher wurde nichts geändert",
+      "conversionRunning": "Das Wallet wird bereits umgewandelt",
+      "failedToConvert": "Wallet \"{name}\" konnte nicht umgewandelt werden",
+      "walletChangedBeforeConversion": "Wallet \"{name}\" hat sich seit der Prüfung geändert, daher wurde nichts umgewandelt",
+      "convertedReloadToOpen": "Wallet \"{name}\" wurde umgewandelt und öffnet sich nach einem Neuladen als HD-Wallet"
     }
   },
   "bip21": {
@@ -477,7 +479,6 @@
       "invalidUri": "Ungültige WalletConnect-, CashConnect- oder WizardConnect-URI",
       "notValidUri": "Keine gültige WalletConnect-, CashConnect- oder WizardConnect-URI"
     },
-    "convertWalletLink": "Dieses Wallet umwandeln",
     "wizardConnectNeedsHd": {
       "title": "WizardConnect braucht ein HD-Wallet",
       "message": "Dieses Wallet verwendet eine einzige Adresse. Du kannst es mit derselben Seed-Phrase in ein HD-Wallet umwandeln: deine Coins, der Name und die Notizen bleiben erhalten.",
@@ -706,10 +707,11 @@
   },
   "convertToHd": {
     "link": "→ In HD-Wallet umwandeln",
-    "hint": "Verwendet für jede Transaktion eine neue Adresse. Nötig für WizardConnect. Seed, Coins und Name bleiben gleich. Kann nicht rückgängig gemacht werden.",
+    "hint": "Verwendet für jede Transaktion eine neue Adresse. Nötig für WizardConnect. Seed-Phrase, Coins und Name bleiben gleich. Kann nicht rückgängig gemacht werden.",
     "confirmTitle": "In HD-Wallet umwandeln?",
-    "confirmMessage": "Das kann nicht rückgängig gemacht werden.\n\nNach dem ersten Senden liegen Coins auch auf neuen Adressen, stelle diese Seed-Phrase also ab jetzt als HD-Wallet wieder her. Als Einzeladressen-Wallet geöffnet, hier oder in anderer Wallet-Software, werden sie nicht angezeigt.",
+    "consequences": "Das kann nicht rückgängig gemacht werden.\n\nSobald es sendet oder empfängt, liegen Coins auch auf neuen Adressen, stelle diese Seed-Phrase also ab jetzt als HD-Wallet wieder her. Als Einzeladressen-Wallet geöffnet, hier oder in anderer Wallet-Software, werden sie nicht angezeigt.",
     "cashConnectSessions": "{count} CashConnect-Verbindung endet, und ihre dApp muss neu gekoppelt werden. | {count} CashConnect-Verbindungen enden, und ihre dApps müssen neu gekoppelt werden.",
+    "walletConnectSessions": "{count} WalletConnect-dApp wird getrennt und kann danach wieder verbunden werden. | {count} WalletConnect-dApps werden getrennt und können danach wieder verbunden werden.",
     "confirmButton": "Umwandeln",
     "converted": "Wallet \"{name}\" ist jetzt ein HD-Wallet"
   },

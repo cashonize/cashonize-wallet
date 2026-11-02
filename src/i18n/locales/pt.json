@@ -56,10 +56,12 @@
       "enterSeedPhrase": "Insira uma seed phrase para importar a carteira",
       "fixInvalidWords": "Por favor, corrija as palavras inválidas na sua seed phrase",
       "invalidSeedPhrase": "Seed phrase inválida",
-      "convertTiedCopy": "A carteira \"{name}\" também tem uma cópia na chipnet. Remova primeiro a cópia em Configurações > Configurações de desenvolvedor e depois converta.",
+      "convertTiedCopy": "A carteira \"{name}\" também tem uma cópia na {network}. Remova primeiro a cópia dela na chipnet em Configurações > Configurações de desenvolvedor e depois converta.",
       "cannotConvert": "A carteira \"{name}\" não está salva como uma carteira de endereço único convertível, então nada foi alterado",
       "conversionRunning": "A carteira já está sendo convertida",
-      "failedToConvert": "Falha ao converter a carteira \"{name}\""
+      "failedToConvert": "Falha ao converter a carteira \"{name}\"",
+      "walletChangedBeforeConversion": "A carteira \"{name}\" mudou desde a verificação, então nada foi convertido",
+      "convertedReloadToOpen": "A carteira \"{name}\" foi convertida e abre como carteira HD após recarregar"
     }
   },
   "bip21": {
@@ -477,10 +479,9 @@
       "invalidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida",
       "notValidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida"
     },
-    "convertWalletLink": "Converter esta carteira",
     "wizardConnectNeedsHd": {
       "title": "WizardConnect precisa de uma carteira HD",
-      "message": "Esta carteira usa um único endereço. Você pode convertê-la em uma carteira HD com a mesma frase semente: suas moedas, nome e notas permanecem.",
+      "message": "Esta carteira usa um único endereço. Você pode convertê-la em uma carteira HD com a mesma seed phrase: suas moedas, nome e notas permanecem.",
       "convertButton": "Converter em carteira HD"
     }
   },
@@ -706,10 +707,11 @@
   },
   "convertToHd": {
     "link": "→ Converter em carteira HD",
-    "hint": "Usa um novo endereço para cada transação. Necessário para o WizardConnect. Mantém a mesma seed, moedas e nome. Não pode ser desfeito.",
+    "hint": "Usa um novo endereço para cada transação. Necessário para o WizardConnect. Mantém a mesma seed phrase, moedas e nome. Não pode ser desfeito.",
     "confirmTitle": "Converter em carteira HD?",
-    "confirmMessage": "Isto não pode ser desfeito.\n\nApós o primeiro envio, moedas também ficam em novos endereços, então de agora em diante restaure esta frase semente como carteira HD. Aberta como carteira de endereço único, aqui ou em outro software de carteira, ela não as mostrará.",
+    "consequences": "Isto não pode ser desfeito.\n\nAssim que ela enviar ou receber, moedas também ficam em novos endereços, então de agora em diante restaure esta seed phrase como carteira HD. Aberta como carteira de endereço único, aqui ou em outro software de carteira, ela não as mostrará.",
     "cashConnectSessions": "{count} conexão CashConnect termina, e o dApp dela terá que ser pareado novamente. | {count} conexões CashConnect terminam, e os dApps delas terão que ser pareados novamente.",
+    "walletConnectSessions": "{count} dApp WalletConnect é desconectado e pode ser conectado novamente depois. | {count} dApps WalletConnect são desconectados e podem ser conectados novamente depois.",
     "confirmButton": "Converter",
     "converted": "A carteira \"{name}\" agora é uma carteira HD"
   },

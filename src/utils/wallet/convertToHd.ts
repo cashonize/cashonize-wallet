@@ -1,10 +1,11 @@
 import { Notify } from "quasar"
 import { useStore } from 'src/stores/store'
-import { useSettingsStore } from 'src/stores/settingsStore'
 import { useCashconnectStore } from 'src/stores/cashconnectStore'
+import { useWalletconnectStore } from 'src/stores/walletconnectStore'
 import { confirmDialog } from 'src/utils/txHelpers'
 import { isQuotaExceededError } from 'src/utils/errorHandling'
-import { makeError, storeSeedWalletAsHd, type WalletOperationResult } from 'src/utils/wallet/walletUtils'
+import { checkSeedWalletConvertible, makeError, storeSeedWalletAsHd, type WalletOperationResult } from 'src/utils/wallet/walletUtils'
+import type { AppNetwork } from 'src/utils/wallet/networks'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
@@ -15,21 +16,25 @@ const CASHCONNECT_DISCONNECT_TIMEOUT_MS = 3000;
 // Set while a conversion runs, so a second one cannot rewrite the same row meanwhile
 let converting = false;
 
-// Converts the active single-address wallet into the HD wallet on the same seed and reopens it, so
-// its state resets and HD discovery runs. The HD wallet's CashConnect identity key is another one,
-// so the CashConnect sessions are ended first: they could not continue.
-export async function convertActiveWalletToHd(): Promise<WalletOperationResult> {
+// Converts the active single-address wallet, as checked before the user confirmed, into the HD
+// wallet on the same seed and reopens it, so its state resets and HD discovery runs. The HD wallet's
+// CashConnect identity key is another one, so the CashConnect sessions are ended first: they could
+// not continue. Reopening resets the dApp connections, which ends the WalletConnect sessions too.
+async function convertActiveWalletToHd(walletName: string, network: AppNetwork, checkedSeedId: string): Promise<WalletOperationResult> {
   if (converting) return makeError(t('walletUtils.errors.conversionRunning'), true);
-  converting = true;
   const store = useStore();
-  const walletName = store.activeWalletName;
+  if (store.activeWalletName !== walletName || store.network !== network) {
+    return makeError(t('walletUtils.errors.walletChangedBeforeConversion', { name: walletName }), false);
+  }
+  converting = true;
+  // taken before any await, so a wallet switch meanwhile cannot end another wallet's sessions
+  const cashConnectWallet = useCashconnectStore().cashConnectWallet;
+  let rowWritten = false;
   try {
-    const network = store.network;
-    const cashconnectStore = useCashconnectStore();
-    if (Object.keys(cashconnectStore.sessions).length > 0) {
+    if (cashConnectWallet && Object.keys(useCashconnectStore().sessions).length > 0) {
       const disconnect = (async () => {
         try {
-          await cashconnectStore.cashConnectWallet?.disconnectAllSessions();
+          await cashConnectWallet.disconnectAllSessions();
         } catch (error) {
           console.error("Failed to disconnect CashConnect sessions:", error);
         }
@@ -38,19 +43,22 @@ export async function convertActiveWalletToHd(): Promise<WalletOperationResult> 
       await Promise.race([disconnect, timeout]);
     }
 
-    const result = await storeSeedWalletAsHd(walletName, network);
+    const result = await storeSeedWalletAsHd(walletName, network, checkedSeedId);
     if (!result.success) return result;
-    useSettingsStore().setWalletType(walletName, 'hd');
+    rowWritten = true;
+    // also sets the wallet type from the stored id, so it says HD only once an HD wallet is loaded
+    const hdWallet = await store.loadExistingWallet(walletName, network);
     // another wallet opened meanwhile stays open; this one opens as HD whenever it is opened next
     if (store.activeWalletName !== walletName) return result;
-    // loaded before the reset, so a failure leaves the wallet open as it was
-    const hdWallet = await store.loadExistingWallet(walletName, network);
     await store.resetWalletState();
     await store.setWallet(hdWallet);
     void store.initializeWallet();
     return result;
   } catch (error) {
     console.error(error);
+    if (rowWritten) {
+      return makeError(t('walletUtils.errors.convertedReloadToOpen', { name: walletName }), false);
+    }
     if (isQuotaExceededError(error)) {
       return makeError(t('walletUtils.errors.storageFull'), false);
     }
@@ -60,25 +68,65 @@ export async function convertActiveWalletToHd(): Promise<WalletOperationResult> 
   }
 }
 
-// The confirmation and the conversion, for every place that offers it
-export async function confirmAndConvertToHd(): Promise<void> {
+// What converting means, and the dApp connections it ends, for every dialog that offers it
+function conversionConsequences(): string {
+  let message = t('convertToHd.consequences');
+  const cashConnectCount = Object.keys(useCashconnectStore().sessions).length;
+  if (cashConnectCount > 0) {
+    message += '\n\n' + t('convertToHd.cashConnectSessions', { count: cashConnectCount }, cashConnectCount);
+  }
+  const walletConnectCount = Object.keys(useWalletconnectStore().activeSessions ?? {}).length;
+  if (walletConnectCount > 0) {
+    message += '\n\n' + t('convertToHd.walletConnectSessions', { count: walletConnectCount }, walletConnectCount);
+  }
+  return message;
+}
+
+function notifyFailure(message: string, isUserError: boolean) {
+  Notify.create({
+    message,
+    icon: 'warning',
+    color: isUserError ? "grey-7" : "red"
+  });
+}
+
+export interface ConversionPrompt {
+  title: string;
+  intro?: string;
+  okLabel: string;
+}
+
+// Checks the active wallet converts, asks the user and converts it. A wallet that cannot be converted
+// is refused before any dialog, so nothing is asked and no connection ends.
+export async function confirmAndConvertToHd(prompt?: ConversionPrompt): Promise<void> {
   const store = useStore();
   const walletName = store.activeWalletName;
-  const sessionCount = Object.keys(useCashconnectStore().sessions).length;
-  let message = t('convertToHd.confirmMessage');
-  if (sessionCount > 0) {
-    message += '\n\n' + t('convertToHd.cashConnectSessions', { count: sessionCount }, sessionCount);
+  const network = store.network;
+  let check: Awaited<ReturnType<typeof checkSeedWalletConvertible>>;
+  try {
+    check = await checkSeedWalletConvertible(walletName, network);
+  } catch (error) {
+    console.error(error);
+    notifyFailure(t('walletUtils.errors.failedToConvert', { name: walletName }), false);
+    return;
   }
-  const confirmed = await confirmDialog(t('convertToHd.confirmTitle'), message, t('convertToHd.confirmButton'));
+  if (!check.success) {
+    notifyFailure(check.message, check.isUserError);
+    return;
+  }
+
+  let message = conversionConsequences();
+  if (prompt?.intro) message = prompt.intro + '\n\n' + message;
+  const confirmed = await confirmDialog(
+    prompt?.title ?? t('convertToHd.confirmTitle'),
+    message,
+    prompt?.okLabel ?? t('convertToHd.confirmButton')
+  );
   if (!confirmed) return;
 
-  const result = await convertActiveWalletToHd();
+  const result = await convertActiveWalletToHd(walletName, network, check.seedId);
   if (!result.success) {
-    Notify.create({
-      message: result.message,
-      icon: 'warning',
-      color: result.isUserError ? "grey-7" : "red"
-    });
+    notifyFailure(result.message, result.isUserError);
     return;
   }
   Notify.create({

@@ -431,28 +431,45 @@ export async function importHDWallet(params: ImportWalletParams): Promise<Wallet
   }
 }
 
-// Rewrites the stored id of a single-address wallet as the HD wallet on the same seed, under the
-// same name. Each supported full path is an HD account path plus /0/0, so the HD wallet's first
-// receive address is the single address and every coin and everything kept by name carries over.
-// The stored id is re-read right before it is replaced, and anything unexpected leaves it as it is.
-export async function storeSeedWalletAsHd(walletName: string, network: AppNetwork): Promise<WalletOperationResult> {
-  // a row on another network is an older wallet's tied chipnet copy, which would keep the old form
+export interface ConvertibleSeedWallet {
+  success: true;
+  seedId: string;
+  hdId: string;
+}
+
+// Whether the stored wallet is a single-address wallet that converts into the HD wallet on the same
+// seed, and that HD wallet's id. Each supported full path is an HD account path plus /0/0, so the HD
+// wallet's first receive address is the single address and every coin and everything kept by name
+// carries over. Reads only, so a refusal changes nothing.
+export async function checkSeedWalletConvertible(walletName: string, network: AppNetwork): Promise<ConvertibleSeedWallet | WalletError> {
+  // a row on another network is an older wallet's tied copy, which would keep the old form
   for (const otherNetwork of appNetworks.filter(candidate => candidate !== network)) {
     if (await namedWalletExists(walletName, walletDbName(otherNetwork))) {
-      return makeError(t('walletUtils.errors.convertTiedCopy', { name: walletName }), true);
+      return makeError(t('walletUtils.errors.convertTiedCopy', { name: walletName, network: otherNetwork }), true);
     }
   }
-  const storedId = await getNamedWalletId(walletName, walletDbName(network));
-  const [kind, storedNetwork, mnemonic, fullPath, ...rest] = storedId?.split(':') ?? [];
+  const seedId = await getNamedWalletId(walletName, walletDbName(network));
+  const [kind, storedNetwork, mnemonic, fullPath, ...rest] = seedId?.split(':') ?? [];
   const pathType = (Object.keys(DERIVATION_PATHS) as DerivationPathType[]).find(candidate => DERIVATION_PATHS[candidate].full === fullPath);
-  const isExpectedId = kind === 'seed' && storedNetwork === libraryNetwork(network) && rest.length === 0 &&
-    pathType !== undefined && mnemonic !== undefined && isValidBip39Mnemonic(mnemonic);
+  const isExpectedId = seedId !== undefined && kind === 'seed' && storedNetwork === libraryNetwork(network) &&
+    rest.length === 0 && pathType !== undefined && mnemonic !== undefined && isValidBip39Mnemonic(mnemonic);
   if (!isExpectedId) {
     return makeError(t('walletUtils.errors.cannotConvert', { name: walletName }), false);
   }
-  const hdWalletId = `hd:${storedNetwork}:${mnemonic}:${DERIVATION_PATHS[pathType].parent}:0:0`;
+  const hdId = `hd:${storedNetwork}:${mnemonic}:${DERIVATION_PATHS[pathType].parent}:0:0`;
+  return { success: true, seedId, hdId };
+}
+
+// Replaces the checked single-address wallet's stored id with its HD wallet's, under the same name.
+// Checked again right before the write, so a row changed since the user confirmed is left as it is.
+export async function storeSeedWalletAsHd(walletName: string, network: AppNetwork, checkedSeedId: string): Promise<WalletOperationResult> {
+  const check = await checkSeedWalletConvertible(walletName, network);
+  if (!check.success) return check;
+  if (check.seedId !== checkedSeedId) {
+    return makeError(t('walletUtils.errors.walletChangedBeforeConversion', { name: walletName }), false);
+  }
   // replaces the row of that name, as the library documents
-  await saveNamedWallet(walletName, hdWalletId, walletDbName(network));
+  await saveNamedWallet(walletName, check.hdId, walletDbName(network));
   return { success: true, walletName };
 }
 
