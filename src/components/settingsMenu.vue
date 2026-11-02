@@ -942,32 +942,37 @@
         </template>
       </div>
 
-      <div style="margin-top:15px">
-        {{ t('settings.developer.enableMintNfts') }} <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.developer.enableMintNftsHint') }}
-        </div>
+      <div style="font-weight: 600; margin: 20px 0 15px;">{{ t('settings.developer.developerFeaturesHeading') }}</div>
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.developer.strictWcSchema') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div>{{ t('settings.developer.strictWcSchemaHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="strictWcSchema" @update:model-value="changeStrictWcSchema()" dense />
       </div>
 
-      <div style="margin-top:15px">
-        {{ t('settings.developer.nonTokenIdentities') }} <q-toggle v-model="enableNonTokenIdentities" @update:model-value="changeNonTokenIdentities()" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.developer.nonTokenIdentitiesHint') }}
-        </div>
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.developer.enableMintNfts') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div>{{ t('settings.developer.enableMintNftsHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="enableMintNfts" @update:model-value="changeMintNfts()" dense />
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px">
-        {{ t('settings.developer.strictWcSchema') }} <q-toggle v-model="strictWcSchema" @update:model-value="changeStrictWcSchema()" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.developer.strictWcSchemaHint') }}
-        </div>
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.developer.nonTokenIdentities') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div>{{ t('settings.developer.nonTokenIdentitiesHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="enableNonTokenIdentities" @update:model-value="changeNonTokenIdentities()" dense />
       </div>
 
-      <div style="margin-top:15px; margin-bottom: 15px">
-        {{ t('settings.developer.showPrivateKeyWif') }} <q-toggle v-model="showPrivateKeyWif" @update:model-value="changeShowPrivateKeyWif()" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.developer.showPrivateKeyWifHint') }}
-        </div>
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.developer.showPrivateKeyWif') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div>{{ t('settings.developer.showPrivateKeyWifHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="showPrivateKeyWif" @update:model-value="changeShowPrivateKeyWif()" dense />
       </div>
     </div>
     <div v-else-if="settingsSection == 5">

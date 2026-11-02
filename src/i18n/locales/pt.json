@@ -1545,6 +1545,7 @@
       "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único.",
       "nonTokenIdentities": "Habilitar criação de identidades sem token",
       "nonTokenIdentitiesHint": "Mostra Adicionar nova na página das identidades, que cria uma identidade a partir de qualquer UTXO desta carteira em vez de um token. As identidades de pessoas, organizações e contratos são novas, e poucas ferramentas as leem ainda.",
+      "developerFeaturesHeading": "Recursos para desenvolvedores",
       "addDevWallet": "→ Adicionar carteira de desenvolvimento",
       "addDevWalletHint": "Cria ou importa uma carteira numa rede de teste, chipnet ou testnet4, e só nela.",
       "alsoOnNetwork": "Carteira também na {network}",

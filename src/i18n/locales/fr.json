@@ -1545,6 +1545,7 @@
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
       "nonTokenIdentities": "Activer la création d'identités sans token",
       "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore.",
+      "developerFeaturesHeading": "Fonctions pour développeurs",
       "addDevWallet": "→ Ajouter un portefeuille de développement",
       "addDevWalletHint": "Crée ou importe un portefeuille sur un réseau de test, chipnet ou testnet4, et uniquement là.",
       "alsoOnNetwork": "Portefeuille aussi sur {network}",

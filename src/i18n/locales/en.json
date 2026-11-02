@@ -1545,6 +1545,7 @@
       "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets.",
       "nonTokenIdentities": "Enable creating non-token identities",
       "nonTokenIdentitiesHint": "Shows Add new on the identities page, which makes an identity from any UTXO of this wallet rather than from a token. Identities of people, organizations and contracts are new, and few tools read them yet.",
+      "developerFeaturesHeading": "Developer features",
       "addDevWallet": "→ Add development wallet",
       "addDevWalletHint": "Creates or imports a wallet on a test network, chipnet or testnet4, and only there.",
       "alsoOnNetwork": "Wallet also on {network}",

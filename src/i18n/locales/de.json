@@ -1545,6 +1545,7 @@
       "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu.",
       "nonTokenIdentities": "Erstellen von Identitäten ohne Token aktivieren",
       "nonTokenIdentitiesHint": "Zeigt Neue hinzufügen auf der Identitäten-Seite, das aus einem beliebigen UTXO dieses Wallets statt aus einem Token eine Identität macht. Identitäten von Personen, Organisationen und Verträgen sind neu, und wenige Werkzeuge lesen sie bisher.",
+      "developerFeaturesHeading": "Entwicklerfunktionen",
       "addDevWallet": "→ Entwicklungs-Wallet hinzufügen",
       "addDevWalletHint": "Erstellt oder importiert eine Wallet auf einem Testnetzwerk, Chipnet oder Testnet4, und nur dort.",
       "alsoOnNetwork": "Wallet auch auf {network}",
