@@ -208,7 +208,8 @@
       "invalidAmount": "Enter a positive amount: whole satoshis, or BCH with at most 8 decimals",
       "insufficientFunds": "Not enough BCH in wallet",
       "invalidAddress": "Invalid BCH address provided",
-      "notCashaddress": "Not a cashaddress on current network"
+      "notCashaddress": "Not a cashaddress on current network",
+      "legacyAddress": "Legacy addresses look the same as Bitcoin (BTC) addresses. CashAddr is the standard address format on BCH. If you are sure this is a BCH address, convert it with the Address converter in Wallet tools."
     },
     "reservedBalance": "Held back: {amount}"
   },
@@ -1206,6 +1207,7 @@
   "addressConverter": {
     "title": "Address Converter",
     "description": "Enter an address in any form to see all its forms.",
+    "formsInfo": "CashAddr, token address, legacy and locking bytecode are different ways of writing the same destination. Coins sent to any of them end up in the same place.",
     "inputPlaceholder": "CashAddr, legacy address or locking bytecode (hex)",
     "cashAddress": "CashAddr:",
     "tokenAddress": "Token address:",
@@ -1216,7 +1218,7 @@
     "none": "none",
     "tokenWarning": "Use this form only when the recipient's wallet supports CashTokens: a wallet without token support may not show the tokens, or may destroy them when it spends.",
     "activeNetworkNote": "(the active network: a locking bytecode names none)",
-    "legacyWarning": "A legacy address looks the same as a Bitcoin (BTC) address: make sure it is a BCH address before sending to it.",
+    "legacyWarning": "Legacy addresses look the same on BCH and BTC. Take extra care that nothing is sent on the wrong chain.",
     "notAnAddress": "Not an address: enter a CashAddr, a legacy address or the locking bytecode of a P2PKH or P2SH output.",
     "ownAddress": "This address belongs to this wallet."
   },
@@ -1561,8 +1563,6 @@
       "strictWcSchemaHint": "Checks WalletConnect and WizardConnect requests against their exact formats, and shows the full reason when one is refused. Enable this when developing a dApp to surface non-compliant payloads.",
       "showPrivateKeyWif": "Show WIF private key on backup page",
       "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets.",
-      "enableAddressConverter": "Show address converter in wallet tools",
-      "enableAddressConverterHint": "Shows an address in all its forms: CashAddr, token address, legacy and locking bytecode.",
       "nonTokenIdentities": "Enable creating non-token identities",
       "nonTokenIdentitiesHint": "Shows Add new on the identities page, which makes an identity from any UTXO of this wallet rather than from a token. Identities of people, organizations and contracts are new, and few tools read them yet.",
       "developerFeaturesHeading": "Developer features",

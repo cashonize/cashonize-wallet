@@ -5,6 +5,7 @@
   import { useI18n } from 'vue-i18n'
   import { copyToClipboard } from 'src/utils/utils'
   import { convertAddress } from 'src/utils/tools/addressConverter'
+  import InfoPopup from 'src/components/general/InfoPopup.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -32,12 +33,20 @@
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('addressConverter.title') }}</legend>
 
-    <div>{{ t('addressConverter.description') }}</div>
+    <div>
+      {{ t('addressConverter.description') }}
+      <InfoPopup>
+        <div>{{ t('addressConverter.formsInfo') }}</div>
+      </InfoPopup>
+    </div>
 
     <input
       v-model="addressInput"
       type="text"
       :placeholder="t('addressConverter.inputPlaceholder')"
+      autocomplete="off"
+      autocapitalize="none"
+      spellcheck="false"
       style="width: 100%; margin-top: 15px;"
     >
 
@@ -51,25 +60,25 @@
       </div>
 
       <div class="converter-row">
-        <div>{{ t('addressConverter.cashAddress') }}</div>
-        <span class="converter-value" @click="copyToClipboard(converted.cashAddress)">
-          {{ converted.cashAddress }}<img class="copyIcon" :src="copyIconSrc">
+        {{ t('addressConverter.cashAddress') }}
+        <span class="converter-copy" @click="copyToClipboard(converted.cashAddress)">
+          <span class="depositAddr">{{ converted.cashAddress }}</span> <img class="copyIcon" :src="copyIconSrc">
         </span>
       </div>
 
       <div class="converter-row">
-        <div>{{ t('addressConverter.tokenAddress') }}</div>
-        <span class="converter-value" @click="copyToClipboard(converted.tokenAddress)">
-          {{ converted.tokenAddress }}<img class="copyIcon" :src="copyIconSrc">
+        {{ t('addressConverter.tokenAddress') }}
+        <span class="converter-copy" @click="copyToClipboard(converted.tokenAddress)">
+          <span class="depositAddr">{{ converted.tokenAddress }}</span> <img class="copyIcon" :src="copyIconSrc">
         </span>
         <div class="converter-hint">{{ t('addressConverter.tokenWarning') }}</div>
       </div>
 
       <div class="converter-row">
-        <div>{{ t('addressConverter.legacyAddress') }}</div>
+        {{ t('addressConverter.legacyAddress') }}
         <template v-if="converted.legacyAddress">
-          <span class="converter-value" @click="copyToClipboard(converted.legacyAddress)">
-            {{ converted.legacyAddress }}<img class="copyIcon" :src="copyIconSrc">
+          <span class="converter-copy" @click="copyToClipboard(converted.legacyAddress)">
+            <span class="depositAddr">{{ converted.legacyAddress }}</span> <img class="copyIcon" :src="copyIconSrc">
           </span>
           <div class="converter-hint">{{ t('addressConverter.legacyWarning') }}</div>
         </template>
@@ -77,9 +86,9 @@
       </div>
 
       <div class="converter-row">
-        <div>{{ t('addressConverter.lockingBytecode') }}</div>
-        <span class="converter-value" @click="copyToClipboard(converted.lockingBytecode)">
-          {{ converted.lockingBytecode }}<img class="copyIcon" :src="copyIconSrc">
+        {{ t('addressConverter.lockingBytecode') }}
+        <span class="converter-copy" @click="copyToClipboard(converted.lockingBytecode)">
+          <span class="depositAddr">{{ converted.lockingBytecode }}</span> <img class="copyIcon" :src="copyIconSrc">
         </span>
       </div>
 
@@ -98,14 +107,12 @@
 .converter-row {
   margin-bottom: 12px;
 }
-.converter-value {
-  font-family: monospace;
-  word-break: break-all;
+.converter-copy {
   cursor: pointer;
 }
 .converter-hint {
   font-size: smaller;
   color: grey;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 </style>

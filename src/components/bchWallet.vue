@@ -6,7 +6,7 @@
   import { copyToClipboard, formatFiatAmount, convertToCurrency, sendAmountToSatoshis } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, addressFromUri, formatSatoshisAsBch } from 'src/utils/payments/bip21';
   import { parsePayProParams, getPaymentRequestValidationError } from 'src/utils/payments/paymentRequest';
-  import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
+  import { isLegacyAddress, normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar, type QMenu } from 'quasar'
@@ -245,6 +245,7 @@
       const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
         invalidAddress: t('wallet.errors.invalidAddress'),
         wrongNetwork: t('wallet.errors.notCashaddress'),
+        legacyAddress: t('wallet.errors.legacyAddress'),
       });
       destinationAddr.value = address;
 
@@ -279,7 +280,9 @@
     parseAddrParams()
   }
   const qrFilter = (content: string) => {
-    const decoded = decodeCashAddress(addressFromUri(content));
+    const address = addressFromUri(content);
+    if (isLegacyAddress(address)) return t('wallet.errors.legacyAddress');
+    const decoded = decodeCashAddress(address);
     if (typeof decoded === "string" || decoded.prefix !== `${store.wallet.networkPrefix}`) {
       return t('wallet.errors.notCashaddress');
     }

@@ -208,7 +208,8 @@
       "invalidAmount": "Insira um valor positivo: satoshis inteiros, ou BCH com no máximo 8 casas decimais",
       "insufficientFunds": "BCH insuficiente na carteira",
       "invalidAddress": "Endereço BCH inválido",
-      "notCashaddress": "Não é um cashaddress na rede atual"
+      "notCashaddress": "Não é um cashaddress na rede atual",
+      "legacyAddress": "Endereços legacy são iguais a endereços de Bitcoin (BTC). CashAddr é o formato de endereço padrão no BCH. Se você tem certeza de que é um endereço BCH, converta-o com o conversor de endereços nas ferramentas da carteira."
     },
     "reservedBalance": "Retido: {amount}"
   },
@@ -1206,6 +1207,7 @@
   "addressConverter": {
     "title": "Conversor de endereços",
     "description": "Insira um endereço em qualquer forma para ver todas as suas formas.",
+    "formsInfo": "CashAddr, endereço de token, legacy e locking bytecode são formas diferentes de escrever o mesmo destino. Moedas enviadas a qualquer uma delas chegam ao mesmo lugar.",
     "inputPlaceholder": "CashAddr, endereço legacy ou locking bytecode (hex)",
     "cashAddress": "CashAddr:",
     "tokenAddress": "Endereço de token:",
@@ -1216,7 +1218,7 @@
     "none": "nenhum",
     "tokenWarning": "Use esta forma só se a carteira do destinatário suportar CashTokens: uma carteira sem suporte a tokens pode não mostrar os tokens, ou destruí-los ao gastar.",
     "activeNetworkNote": "(a rede ativa: um locking bytecode não indica nenhuma)",
-    "legacyWarning": "Um endereço legacy parece igual a um endereço de Bitcoin (BTC): verifique se é um endereço BCH antes de enviar para ele.",
+    "legacyWarning": "Endereços legacy são iguais em BCH e BTC. Tenha cuidado redobrado para que nada seja enviado na rede errada.",
     "notAnAddress": "Não é um endereço: insira um CashAddr, um endereço legacy ou o locking bytecode de uma saída P2PKH ou P2SH.",
     "ownAddress": "Este endereço pertence a esta carteira."
   },
@@ -1561,8 +1563,6 @@
       "strictWcSchemaHint": "Verifica os pedidos WalletConnect e WizardConnect contra o formato exato e mostra o motivo completo quando um é recusado. Ative ao desenvolver uma dApp para identificar pedidos fora do formato.",
       "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",
       "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único.",
-      "enableAddressConverter": "Mostrar o conversor de endereços nas ferramentas da carteira",
-      "enableAddressConverterHint": "Mostra um endereço em todas as suas formas: CashAddr, endereço de token, legacy e locking bytecode.",
       "nonTokenIdentities": "Habilitar criação de identidades sem token",
       "nonTokenIdentitiesHint": "Mostra Adicionar nova na página das identidades, que cria uma identidade a partir de qualquer UTXO desta carteira em vez de um token. As identidades de pessoas, organizações e contratos são novas, e poucas ferramentas as leem ainda.",
       "developerFeaturesHeading": "Recursos para desenvolvedores",

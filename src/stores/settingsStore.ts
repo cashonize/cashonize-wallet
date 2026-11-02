@@ -75,7 +75,7 @@ export const settingsMenuKeys = [
   "electrumMode-testnet4", "chaingraph-mainnet", "chaingraph-chipnet", "chaingraph-testnet4", "cauldronIndexer",
   "bcmrIndexerMainnet", "bcmrIndexerChipnet", "bcmrIndexer-testnet4", "ipfsGateway", "exchangeRateProvider",
   // developer settings
-  "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif", "addressConverter",
+  "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
 ] as const;
 
 export type BackupStatus = 'verified' | 'imported' | 'dismissed' | 'none';
@@ -141,7 +141,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
   const showPrivateKeyWif = ref(false);
-  const addressConverter = ref(false);
   // history settings
   const showFiatValueHistory = ref(true);
   // Balance after each transaction in the history, hidden by default like in payment apps
@@ -378,9 +377,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readShowPrivateKeyWif = localStorage.getItem("showPrivateKeyWif");
   if(readShowPrivateKeyWif) showPrivateKeyWif.value = readShowPrivateKeyWif === "true";
-
-  const readAddressConverter = localStorage.getItem("addressConverter");
-  if(readAddressConverter) addressConverter.value = readAddressConverter === "true";
 
   // --- Exchange rate provider configuration ---
 
@@ -640,7 +636,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     nonTokenIdentities,
     strictWcSchema,
     showPrivateKeyWif,
-    addressConverter,
     dateFormat,
     confirmBeforeSending,
     disableTokenIcons,

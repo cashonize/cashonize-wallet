@@ -1,5 +1,6 @@
 import {
   assertSuccess,
+  base58AddressToLockingBytecode,
   decodeCashAddress,
   decodeCashAddressFormatWithoutPrefix,
   encodeCashAddress
@@ -44,12 +45,19 @@ export function toPrefixedAddress(address: string): string | undefined {
   return `${decodedAddress.prefix}:${trimmedAddress}`;
 }
 
+// A legacy (base58) address looks the same on BCH and BTC, so sending to one is refused with its
+// own message, pointing to the address converter for a user who is sure it is a BCH address.
+export function isLegacyAddress(address: string): boolean {
+  return typeof base58AddressToLockingBytecode(address.trim()) !== "string";
+}
+
 export function normalizeCashAddressForNetwork(
   input: string,
   expectedPrefix: string,
-  errorMessages: { invalidAddress: string; wrongNetwork: string }
+  errorMessages: { invalidAddress: string; wrongNetwork: string; legacyAddress?: string }
 ) {
   let address = input.trim();
+  if (errorMessages.legacyAddress && isLegacyAddress(address)) throw new Error(errorMessages.legacyAddress);
   const lowerAddress = address.toLowerCase();
 
   if (!CASH_ADDRESS_PREFIXES.some(prefix => lowerAddress.startsWith(prefix))) {

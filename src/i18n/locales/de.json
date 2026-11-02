@@ -208,7 +208,8 @@
       "invalidAmount": "Gib einen positiven Betrag ein: ganze Satoshis oder BCH mit höchstens 8 Nachkommastellen",
       "insufficientFunds": "Nicht genug BCH im Wallet",
       "invalidAddress": "Ungültige BCH-Adresse angegeben",
-      "notCashaddress": "Keine cashaddress im aktuellen Netzwerk"
+      "notCashaddress": "Keine cashaddress im aktuellen Netzwerk",
+      "legacyAddress": "Legacy-Adressen sehen genauso aus wie Bitcoin-(BTC-)Adressen. CashAddr ist das Standard-Adressformat bei BCH. Wenn du sicher bist, dass es eine BCH-Adresse ist, wandle sie mit dem Adresskonverter in den Wallet-Werkzeugen um."
     },
     "reservedBalance": "Zurückgehalten: {amount}"
   },
@@ -1206,6 +1207,7 @@
   "addressConverter": {
     "title": "Adresskonverter",
     "description": "Gib eine Adresse in beliebiger Form ein, um all ihre Formen zu sehen.",
+    "formsInfo": "CashAddr, Token-Adresse, Legacy und Locking-Bytecode sind verschiedene Schreibweisen für dasselbe Ziel. Coins, die an eine davon gesendet werden, kommen am selben Ort an.",
     "inputPlaceholder": "CashAddr, Legacy-Adresse oder Locking-Bytecode (Hex)",
     "cashAddress": "CashAddr:",
     "tokenAddress": "Token-Adresse:",
@@ -1216,7 +1218,7 @@
     "none": "keine",
     "tokenWarning": "Verwende diese Form nur, wenn das Wallet des Empfängers CashTokens unterstützt: Ein Wallet ohne Token-Unterstützung zeigt die Tokens womöglich nicht an oder vernichtet sie beim Ausgeben.",
     "activeNetworkNote": "(das aktive Netzwerk: ein Locking-Bytecode nennt keines)",
-    "legacyWarning": "Eine Legacy-Adresse sieht genauso aus wie eine Bitcoin-(BTC-)Adresse: Stelle sicher, dass es eine BCH-Adresse ist, bevor du daran sendest.",
+    "legacyWarning": "Legacy-Adressen sehen bei BCH und BTC gleich aus. Achte besonders darauf, dass nichts auf der falschen Chain gesendet wird.",
     "notAnAddress": "Keine Adresse: Gib eine CashAddr, eine Legacy-Adresse oder den Locking-Bytecode eines P2PKH- oder P2SH-Outputs ein.",
     "ownAddress": "Diese Adresse gehört zu diesem Wallet."
   },
@@ -1561,8 +1563,6 @@
       "strictWcSchemaHint": "Prüft WalletConnect- und WizardConnect-Anfragen genau gegen ihr Format und zeigt den vollständigen Grund, wenn eine abgelehnt wird. Aktiviere dies bei der Entwicklung einer dApp, um nicht konforme Anfragen aufzudecken.",
       "showPrivateKeyWif": "WIF-Schlüssel auf der Backup-Seite anzeigen",
       "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu.",
-      "enableAddressConverter": "Adresskonverter in den Wallet-Werkzeugen anzeigen",
-      "enableAddressConverterHint": "Zeigt eine Adresse in all ihren Formen: CashAddr, Token-Adresse, Legacy und Locking-Bytecode.",
       "nonTokenIdentities": "Erstellen von Identitäten ohne Token aktivieren",
       "nonTokenIdentitiesHint": "Zeigt Neue hinzufügen auf der Identitäten-Seite, das aus einem beliebigen UTXO dieses Wallets statt aus einem Token eine Identität macht. Identitäten von Personen, Organisationen und Verträgen sind neu, und wenige Werkzeuge lesen sie bisher.",
       "developerFeaturesHeading": "Entwicklerfunktionen",

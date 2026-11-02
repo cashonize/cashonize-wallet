@@ -208,7 +208,8 @@
       "invalidAmount": "Saisissez un montant positif : des satoshis entiers, ou des BCH avec 8 décimales au maximum",
       "insufficientFunds": "Pas assez de BCH dans le portefeuille",
       "invalidAddress": "Adresse BCH invalide fournie",
-      "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel"
+      "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel",
+      "legacyAddress": "Les adresses legacy sont identiques aux adresses Bitcoin (BTC). CashAddr est le format d'adresse standard sur BCH. Si vous êtes sûr qu'il s'agit d'une adresse BCH, convertissez-la avec le convertisseur d'adresses dans les outils du portefeuille."
     },
     "reservedBalance": "Retenu : {amount}"
   },
@@ -1206,6 +1207,7 @@
   "addressConverter": {
     "title": "Convertisseur d'adresses",
     "description": "Saisissez une adresse sous n'importe quelle forme pour voir toutes ses formes.",
+    "formsInfo": "CashAddr, adresse de token, legacy et locking bytecode sont différentes façons d'écrire la même destination. Les coins envoyés à l'une d'elles arrivent au même endroit.",
     "inputPlaceholder": "CashAddr, adresse legacy ou locking bytecode (hex)",
     "cashAddress": "CashAddr :",
     "tokenAddress": "Adresse de token :",
@@ -1216,7 +1218,7 @@
     "none": "aucune",
     "tokenWarning": "N'utilisez cette forme que si le portefeuille du destinataire prend en charge les CashTokens : un portefeuille sans prise en charge des tokens risque de ne pas les afficher, ou de les détruire en dépensant.",
     "activeNetworkNote": "(le réseau actif : un locking bytecode n'en indique aucun)",
-    "legacyWarning": "Une adresse legacy ressemble à une adresse Bitcoin (BTC) : assurez-vous qu'il s'agit d'une adresse BCH avant d'y envoyer des fonds.",
+    "legacyWarning": "Les adresses legacy sont identiques sur BCH et BTC. Veillez tout particulièrement à ne rien envoyer sur la mauvaise chaîne.",
     "notAnAddress": "Ce n'est pas une adresse : saisissez une CashAddr, une adresse legacy ou le locking bytecode d'une sortie P2PKH ou P2SH.",
     "ownAddress": "Cette adresse appartient à ce portefeuille."
   },
@@ -1561,8 +1563,6 @@
       "strictWcSchemaHint": "Vérifie les requêtes WalletConnect et WizardConnect par rapport à leur format exact, et affiche la raison complète lorsqu'une requête est refusée. Activez cette option lors du développement d'une dApp pour repérer les requêtes non conformes.",
       "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
-      "enableAddressConverter": "Afficher le convertisseur d'adresses dans les outils du portefeuille",
-      "enableAddressConverterHint": "Affiche une adresse sous toutes ses formes : CashAddr, adresse de token, legacy et locking bytecode.",
       "nonTokenIdentities": "Activer la création d'identités sans token",
       "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore.",
       "developerFeaturesHeading": "Fonctions pour développeurs",

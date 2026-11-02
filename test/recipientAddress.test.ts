@@ -1,4 +1,4 @@
-import { encodeCashAddress, hexToBin } from "@bitauth/libauth";
+import { Base58AddressFormatVersion, encodeBase58AddressFormat, encodeCashAddress, hexToBin } from "@bitauth/libauth";
 import {
   getCashAddressScanError,
   validateRecipientAddress,
@@ -11,6 +11,7 @@ const plainAddress = encodeCashAddress({ prefix: "bitcoincash", type: "p2pkh", p
 const tokenAddress = encodeCashAddress({ prefix: "bitcoincash", type: "p2pkhWithTokens", payload }).address;
 const testnetAddress = encodeCashAddress({ prefix: "bchtest", type: "p2pkh", payload }).address;
 const testnetTokenAddress = encodeCashAddress({ prefix: "bchtest", type: "p2pkhWithTokens", payload }).address;
+const legacyAddress = encodeBase58AddressFormat(Base58AddressFormatVersion.p2pkh, payload);
 
 describe("validateRecipientAddress", () => {
   it("returns a valid address on the wallet's network unchanged", () => {
@@ -38,6 +39,13 @@ describe("validateRecipientAddress", () => {
   it("refuses a mainnet payload under the testnet prefix, since the checksum covers the prefix", () => {
     const withoutPrefix = plainAddress.split(":")[1]!;
     expect(() => validateRecipientAddress(withoutPrefix, "bchtest")).toThrow("Invalid BCH address provided");
+  });
+
+  // it looks the same as a BTC address, so it gets its own message rather than "invalid"
+  it("refuses a legacy address with its own message, also where a token is sent", () => {
+    expect(() => validateRecipientAddress(legacyAddress, "bitcoincash")).toThrow("Legacy addresses look the same");
+    expect(() => validateTokenRecipientAddress(legacyAddress, "bitcoincash")).toThrow("Legacy addresses look the same");
+    expect(getCashAddressScanError(legacyAddress, "bitcoincash")).toMatch("Legacy addresses look the same");
   });
 
   it("refuses an empty destination", () => {
