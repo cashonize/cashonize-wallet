@@ -33,7 +33,8 @@ export async function openRegtestWallet(page: Page, options: WalletOptions = {})
   await page.locator('nav').waitFor({ timeout: 15_000 })
   const chipnetOptions: Parameters<typeof addChipnetWallet>[1] = {}
   if (options.seedPhrase) chipnetOptions.seedPhrase = options.seedPhrase
-  if (options.walletType) chipnetOptions.walletType = options.walletType
+  // the suite was written against single address wallets, which are no longer the default
+  chipnetOptions.walletType = options.walletType ?? 'single'
   await addChipnetWallet(page, chipnetOptions)
 }
 

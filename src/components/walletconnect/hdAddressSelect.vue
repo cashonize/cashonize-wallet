@@ -78,7 +78,14 @@
   }
 
   const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount > 0)));
-  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0)));
+  // An empty wallet's addresses all have a zero balance, so it would have none to share: it gets its
+  // first unused receive address, the one the wallet shows to receive on
+  const unusedReceivingAddresses = computed(() => {
+    const unused = applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0));
+    if (unused.length || usedReceivingAddresses.value.length) return unused;
+    const firstUnused = receivingAddresses.value.find(row => row.txCount === 0);
+    return firstUnused ? [firstUnused] : [];
+  });
   const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount > 0)));
   const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount === 0)));
 

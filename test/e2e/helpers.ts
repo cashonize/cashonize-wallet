@@ -28,7 +28,7 @@ export interface ImportOptions {
 }
 
 // Run the onboarding import up to the preferences step. Wallet type and derivation path stay
-// at the onboarding defaults (single address, standard path) unless given.
+// at the onboarding defaults (HD, standard path) unless given.
 export async function importWalletOnboarding(page: Page, options: ImportOptions) {
   await page.goto(CASHONIZE_URL)
   await page.getByRole('button', { name: 'Import wallet' }).click()

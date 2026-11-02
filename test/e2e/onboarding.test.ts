@@ -64,7 +64,7 @@ async function shownSeedPhrase(page: Page) {
 }
 
 test.describe('Onboarding create', () => {
-  test('with the defaults: a single address wallet at the standard path of the 12 word seed phrase it shows', async ({ page }) => {
+  test('with the defaults: an HD wallet at the standard path of the 12 word seed phrase it shows', async ({ page }) => {
     await page.goto(CASHONIZE_URL)
     await page.getByRole('button', { name: 'Create new wallet' }).click()
     await page.getByRole('button', { name: 'Create wallet' }).click()
@@ -77,10 +77,10 @@ test.describe('Onboarding create', () => {
     await expectShownAddresses(page, addressesAt(seedPhrase, "m/44'/145'/0'/0/0"))
   })
 
-  test('an HD wallet at the standard path of the seed phrase it shows', async ({ page }) => {
+  test('a single address wallet at the standard path of the seed phrase it shows', async ({ page }) => {
     await page.goto(CASHONIZE_URL)
     await page.getByRole('button', { name: 'Create new wallet' }).click()
-    await page.locator('select').filter({ has: page.locator('option[value="hd"]') }).selectOption('hd')
+    await page.locator('select').filter({ has: page.locator('option[value="hd"]') }).selectOption('single')
     await page.getByRole('button', { name: 'Create wallet' }).click()
     await page.getByRole('button', { name: 'Finish Setup' }).click()
 
@@ -93,18 +93,18 @@ test.describe('Onboarding create', () => {
 test.describe('Onboarding import', () => {
   // The onboarding defaults decide which addresses a re-imported seed phrase finds, so this test
   // leaves the wallet type and derivation path as they are
-  test('12 words with the defaults: a single address wallet at the standard path', async ({ page }) => {
+  test('12 words with the defaults: an HD wallet at the standard path', async ({ page }) => {
     await importWalletOnboarding(page, { seedPhrase: MNEMONIC_12 })
     await page.getByRole('button', { name: 'Finish Setup' }).click()
     await expectShownAddresses(page, addressesAt(MNEMONIC_12, "m/44'/145'/0'/0/0"))
 
-    // Existing wallets are stored under the default name, so it must not change; a single
-    // address wallet stores no type, which reads as single
+    // Existing wallets are stored under the default name, so it must not change; an HD wallet
+    // stores its type, where a wallet with none reads as single
     const stored = await page.evaluate(() => ({
       activeWalletName: localStorage.getItem('activeWalletName'),
       walletType: JSON.parse(localStorage.getItem('walletMetadata') ?? '{}').mywallet?.walletType,
     }))
-    expect(stored).toEqual({ activeWalletName: 'mywallet', walletType: undefined })
+    expect(stored).toEqual({ activeWalletName: 'mywallet', walletType: 'hd' })
   })
 
   test('24 words, HD wallet at the standard path', async ({ page }) => {
