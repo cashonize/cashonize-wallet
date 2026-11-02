@@ -481,8 +481,8 @@
     },
     "wizardConnectNeedsHd": {
       "title": "WizardConnect braucht ein HD-Wallet",
-      "message": "Dieses Wallet verwendet eine einzige Adresse. Du kannst es mit derselben Seed-Phrase in ein HD-Wallet umwandeln: deine Coins, der Name und die Notizen bleiben erhalten.",
-      "convertButton": "In HD-Wallet umwandeln"
+      "message": "WizardConnect benötigt ein HD-Wallet, und dieses Wallet verwendet eine Einzeladresse. Unter Wallets verwalten kannst du es in ein HD-Wallet mit derselben Seed-Phrase umwandeln; Coins, Name und Notizen bleiben erhalten. Der Verbindungslink bleibt hier, sodass du dich nach dem Umwandeln verbinden kannst.",
+      "goButton": "Zu Wallets verwalten"
     }
   },
   "history": {
@@ -706,10 +706,13 @@
     "switchFailed": "Wallet-Wechsel fehlgeschlagen: {error}"
   },
   "convertToHd": {
-    "link": "→ In HD-Wallet umwandeln",
-    "hint": "Verwendet für jede Transaktion eine neue Adresse. Nötig für WizardConnect. Seed-Phrase, Coins und Name bleiben gleich. Kann nicht rückgängig gemacht werden.",
+    "label": "Das aktuelle Wallet ist ein Wallet mit Einzeladresse. HD-Wallets haben Vorteile, etwa mehr Privatsphäre und Unterstützung für WizardConnect.",
+    "button": "In HD-Wallet umwandeln",
+    "hint": "Ein HD-Wallet verwendet für jede Zahlung eine neue Adresse, was deine Zahlungen privater macht, und wird für WizardConnect benötigt. Seed-Phrase, Coins, Name und Notizen bleiben gleich.",
+    "hintNote": "Das Umwandeln kann nicht rückgängig gemacht werden: Stelle diese Seed-Phrase danach als HD-Wallet wieder her.",
     "confirmTitle": "In HD-Wallet umwandeln?",
-    "consequences": "Das kann nicht rückgängig gemacht werden.\n\nSobald es sendet oder empfängt, liegen Coins auch auf neuen Adressen, stelle diese Seed-Phrase also ab jetzt als HD-Wallet wieder her. Als Einzeladressen-Wallet geöffnet, hier oder in anderer Wallet-Software, werden sie nicht angezeigt.",
+    "intro": "Dieses Wallet wird zu einem HD-Wallet mit derselben Seed-Phrase. Damit kann es sich mit WizardConnect-dApps verbinden und verwendet für jede Zahlung eine neue Adresse. Coins, Name und Notizen bleiben erhalten.",
+    "consequences": "Das kann nicht rückgängig gemacht werden.\n\nNach dem Umwandeln gehen Coins auch an neue Adressen. Stelle diese Seed-Phrase danach immer als HD-Wallet wieder her. Ein Wallet mit Einzeladresse und dieser Seed-Phrase zeigt die Coins auf diesen neuen Adressen nicht an, weder in Cashonize noch in anderen Wallet-Apps.",
     "cashConnectSessions": "{count} CashConnect-Verbindung endet, und ihre dApp muss neu gekoppelt werden. | {count} CashConnect-Verbindungen enden, und ihre dApps müssen neu gekoppelt werden.",
     "walletConnectSessions": "{count} WalletConnect-dApp wird getrennt und kann danach wieder verbunden werden. | {count} WalletConnect-dApps werden getrennt und können danach wieder verbunden werden.",
     "confirmButton": "Umwandeln",

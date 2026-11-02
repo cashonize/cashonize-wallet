@@ -9,7 +9,7 @@
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
-  import { confirmAndConvertToHd } from 'src/utils/wallet/convertToHd'
+  import { confirmDialog } from 'src/utils/txHelpers'
   import { isWalletConnectUri, isCashConnectUri, isWizardConnectUri } from 'src/utils/dapp/dappUri';
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
   import QrScanButton from './qr/qrScanButton.vue';
@@ -76,7 +76,7 @@
 
       // Otherwise, if the URI begins with "wiz:" (wizardconnect)...
       else if (isWizardConnectUri(dappUri)) {
-        // a single-address wallet is offered the conversion instead of the error pairing would give;
+        // a single-address wallet is told where to convert instead of the error pairing would give;
         // the URI goes in the input from a scan or deep link too, so after converting only Connect
         // has to be pressed again
         if (!isHdWallet.value && dappsAvailableOn(store.network)) {
@@ -105,12 +105,17 @@
     }
   }
 
-  function offerConversionForWizardConnect() {
-    return confirmAndConvertToHd({
-      title: t('dapp.wizardConnectNeedsHd.title'),
-      intro: t('dapp.wizardConnectNeedsHd.message'),
-      okLabel: t('dapp.wizardConnectNeedsHd.convertButton'),
-    });
+  // explains the limit and leads to Manage wallets, where converting is its own decision
+  async function offerConversionForWizardConnect() {
+    const goToManageWallets = await confirmDialog(
+      t('dapp.wizardConnectNeedsHd.title'),
+      t('dapp.wizardConnectNeedsHd.message'),
+      t('dapp.wizardConnectNeedsHd.goButton')
+    );
+    if (!goToManageWallets) return;
+    // Manage wallets is settings section 5
+    store.pendingSettingsSection = 5;
+    store.changeView(5);
   }
 
   // Handle Props.

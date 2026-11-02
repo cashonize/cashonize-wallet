@@ -481,8 +481,8 @@
     },
     "wizardConnectNeedsHd": {
       "title": "WizardConnect necesita una billetera HD",
-      "message": "Esta billetera usa una sola dirección. Puedes convertirla en una billetera HD con la misma frase semilla: tus monedas, nombre y notas se mantienen.",
-      "convertButton": "Convertir en billetera HD"
+      "message": "WizardConnect necesita una billetera HD, y esta billetera usa una dirección única. En Administrar billeteras puedes convertirla en una billetera HD con la misma frase semilla, conservando sus monedas, nombre y notas. El enlace de conexión se queda aquí, así puedes conectarte después de convertirla.",
+      "goButton": "Ir a Administrar billeteras"
     }
   },
   "history": {
@@ -706,10 +706,13 @@
     "switchFailed": "Error al cambiar de billetera: {error}"
   },
   "convertToHd": {
-    "link": "→ Convertir en billetera HD",
-    "hint": "Usa una dirección nueva para cada transacción. Necesario para WizardConnect. Conserva la misma semilla, monedas y nombre. No se puede deshacer.",
+    "label": "La billetera actual es una billetera de dirección única. Las billeteras HD tienen ventajas, como más privacidad y compatibilidad con WizardConnect.",
+    "button": "Convertir en billetera HD",
+    "hint": "Una billetera HD usa una dirección nueva para cada pago, lo que hace tus pagos más privados, y es necesaria para WizardConnect. Conserva la misma frase semilla, monedas, nombre y notas.",
+    "hintNote": "La conversión no se puede deshacer: a partir de entonces, restaura esta frase semilla como billetera HD.",
     "confirmTitle": "¿Convertir en billetera HD?",
-    "consequences": "Esto no se puede deshacer.\n\nEn cuanto envíe o reciba, también habrá monedas en direcciones nuevas, así que de ahora en adelante restaura esta frase semilla como billetera HD. Abierta como billetera de dirección única, aquí o en otro software de billetera, no las mostrará.",
+    "intro": "Esta billetera se convierte en una billetera HD con la misma frase semilla, así puede conectarse a dApps de WizardConnect y usa una dirección nueva para cada pago. Sus monedas, nombre y notas se mantienen.",
+    "consequences": "Esto no se puede deshacer.\n\nDespués de convertirla, las monedas también van a direcciones nuevas. A partir de entonces, restaura siempre esta frase semilla como billetera HD. Una billetera de dirección única con esta frase semilla no mostrará las monedas en esas direcciones nuevas, ni en Cashonize ni en otras apps de billetera.",
     "cashConnectSessions": "{count} conexión de CashConnect termina, y su dApp tendrá que emparejarse de nuevo. | {count} conexiones de CashConnect terminan, y sus dApps tendrán que emparejarse de nuevo.",
     "walletConnectSessions": "{count} dApp de WalletConnect se desconecta y puede volver a conectarse después. | {count} dApps de WalletConnect se desconectan y pueden volver a conectarse después.",
     "confirmButton": "Convertir",

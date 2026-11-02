@@ -41,6 +41,11 @@
   const applicationVersion = import.meta.env.version
 
   const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(0);
+  watch(() => store.pendingSettingsSection, (section) => {
+    if (section === undefined) return;
+    settingsSection.value = section as typeof settingsSection.value;
+    store.pendingSettingsSection = undefined;
+  }, { immediate: true });
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   

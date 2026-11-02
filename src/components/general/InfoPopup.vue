@@ -55,6 +55,8 @@
     border: 0;
     background: #2d2d33;
     color: #f5f5f5;
+    /* every line wraps at the same width, a note under the text included */
+    max-width: min(324px, 95vw);
   }
   /* For secondary lines in the slotted content */
   .info-popup-note {

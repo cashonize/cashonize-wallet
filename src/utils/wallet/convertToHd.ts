@@ -90,15 +90,9 @@ function notifyFailure(message: string, isUserError: boolean) {
   });
 }
 
-export interface ConversionPrompt {
-  title: string;
-  intro?: string;
-  okLabel: string;
-}
-
 // Checks the active wallet converts, asks the user and converts it. A wallet that cannot be converted
 // is refused before any dialog, so nothing is asked and no connection ends.
-export async function confirmAndConvertToHd(prompt?: ConversionPrompt): Promise<void> {
+export async function confirmAndConvertToHd(): Promise<void> {
   const store = useStore();
   const walletName = store.activeWalletName;
   const network = store.network;
@@ -115,13 +109,9 @@ export async function confirmAndConvertToHd(prompt?: ConversionPrompt): Promise<
     return;
   }
 
-  let message = conversionConsequences();
-  if (prompt?.intro) message = prompt.intro + '\n\n' + message;
-  const confirmed = await confirmDialog(
-    prompt?.title ?? t('convertToHd.confirmTitle'),
-    message,
-    prompt?.okLabel ?? t('convertToHd.confirmButton')
-  );
+  // what the wallet gains comes first, then what converting costs
+  const message = t('convertToHd.intro') + '\n\n' + conversionConsequences();
+  const confirmed = await confirmDialog(t('convertToHd.confirmTitle'), message, t('convertToHd.confirmButton'));
   if (!confirmed) return;
 
   const result = await convertActiveWalletToHd(walletName, network, check.seedId);
