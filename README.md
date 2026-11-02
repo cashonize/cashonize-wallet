@@ -95,7 +95,7 @@ For more details see the [security considerations](./security-considerations.md)
 Cashonize supports three connection methods for dapps: [WalletConnect](https://github.com/mainnet-pat/wc2-bch-bcr) (following the WC2-BCH spec), [CashConnect](https://cashconnect.developers.cash/) and [WizardConnect](https://gitlab.com/riftenlabs/lib/wizardconnect).
 
 - The [example WalletConnect dApp](./test/e2e/test-dapp) is a minimal reference for connecting to Cashonize, sending requests and handling responses.
-- The [`docs`](./docs) folder contains protocol documentation, such as the [`bch_cancelPendingRequests`](./docs/walletconnect-cancellation.md) WalletConnect method for dismissing stale signing dialogs and how the wallet handles [BCMR identities](./docs/bcmr-identities.md).
+- The [`docs`](./docs) folder contains design and protocol documentation, such as the [`bch_cancelPendingRequests`](./docs/walletconnect-cancellation.md) WalletConnect method for dismissing stale signing dialogs and how the wallet handles [BCMR identities](./docs/bcmr-identities.md).
 
 ## License & Disclaimer
 
@@ -105,24 +105,13 @@ The Cashonize name and logo are not covered by the MIT license: they remain the 
 
 Cashonize is non-custodial software provided "as is", without warranty of any kind. You are solely responsible for safeguarding your seed phrases and funds; the authors and contributors cannot recover lost wallets and accept no liability for any loss of funds arising from the use of this software.
 
-## Special Thanks to
+## Built on
 
-🙏 Special thanks to mainnet-pat, jimtendo and rnbrady for their major contributions to the project!
+Cashonize is built on the work of:
+- Jason Dreyzehner (bitjson) for [libauth](https://libauth.org/), which does the wallet's cryptography, signing and transaction encoding
+- mainnet-pat for [mainnet-js](https://github.com/mainnet-cash/mainnet-js), the library [bch-wallet-lib](https://github.com/cashonize/bch-wallet-lib) was forked from
+- Jonathan Silverblood for [electrum-cash](https://gitlab.com/electrum-cash/network), through which the wallet reads the blockchain
 
-Thanks to damascene & bitjson for helping with the early formation of the project.
+🙏 Special thanks also to jimtendo and rnbrady for their major contributions to the project!
 
-The 2024 work on the project was enabled by the financial support of the [flipstarter contributors](https://flipstarter.cashonize.com/). <br>
-In special: molecular, Mike Komaransky, 'BCH Conference', toorik and majamalu.
-
-Further thanks to bitcoincashautist, Joemar, Romit and Kallisti for being very helpful responding to questions. <br>
-Also a thank you to users reporting bugs: samrock5000, Stockleezy and Steve Thurmond.
-
-## History
-
-Cashonize started in 2023, when CashTokens was only live on chipnet. It pioneered CashTokens and BCMR token metadata support before the upgrade activated on mainnet, making it the first wallet where users could hold and send CashTokens with rich token info.
-
-Cashonize has kept pioneering since: it was the first wallet to support CashConnect, the first to display parsable NFTs, and the first to show BCH, tokens and DeFi positions as a single portfolio.
-
-An important milestone at the start of 2026 was the addition of multi-wallet support and HD wallets for improved transaction privacy.
-
-🪦 Cashonize started out as a web-only wallet written in vanilla JavaScript, before becoming the Vue-Typescript application built with Quasar it is today. You can find the archived [legacy codebase](https://github.com/cashonize/legacy-wallet) on GitHub.
+Everyone who helped along the way is thanked in [ACKNOWLEDGEMENTS.md](./ACKNOWLEDGEMENTS.md). [The history](./docs/history.md) tells how the project grew since 2023.
