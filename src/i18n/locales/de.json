@@ -208,7 +208,8 @@
       "invalidAmount": "Gib einen positiven Betrag ein: ganze Satoshis oder BCH mit höchstens 8 Nachkommastellen",
       "insufficientFunds": "Nicht genug BCH im Wallet",
       "invalidAddress": "Ungültige BCH-Adresse angegeben",
-      "notCashaddress": "Keine cashaddress im aktuellen Netzwerk"
+      "notCashaddress": "Keine cashaddress im aktuellen Netzwerk",
+      "legacyAddress": "Legacy-Adressen sehen genauso aus wie Bitcoin-Adressen (BTC). CashAddr ist das Standard-Adressformat bei BCH. Wenn du sicher bist, dass es eine BCH-Adresse ist, wandle sie mit dem Adresskonverter in den Wallet-Werkzeugen um."
     },
     "reservedBalance": "Zurückgehalten: {amount}"
   },
@@ -1203,6 +1204,24 @@
       "addressNotInWallet": "Zum Signieren wird eine Adresse des aktiven Wallets benötigt"
     }
   },
+  "addressConverter": {
+    "title": "Adresskonverter",
+    "description": "Gib eine Adresse ein, um all ihre Formen zu sehen.",
+    "formsInfo": "CashAddr, Token-Adresse, Legacy und Locking-Bytecode sind verschiedene Schreibweisen für dasselbe Ziel. Coins, die an eine davon gesendet werden, kommen am selben Ort an.",
+    "inputPlaceholder": "CashAddr, Legacy-Adresse oder Locking-Bytecode (Hex)",
+    "cashAddress": "CashAddr:",
+    "tokenAddress": "Token-Adresse:",
+    "legacyAddress": "Legacy:",
+    "lockingBytecode": "Locking-Bytecode:",
+    "type": "Typ:",
+    "network": "Netzwerk:",
+    "none": "keine",
+    "tokenWarning": "Verwende diese Form nur, wenn das Wallet des Empfängers CashTokens unterstützt. Andere Wallets zeigen die Tokens womöglich nicht an oder vernichten sie beim Ausgeben.",
+    "activeNetworkNote": "(angenommen: ein Locking-Bytecode hat kein Netzwerk)",
+    "legacyWarning": "Legacy-Adressen sehen bei BCH und BTC gleich aus. Achte besonders darauf, dass nichts auf der falschen Chain gesendet wird.",
+    "notAnAddress": "Keine Adresse: Gib eine CashAddr, eine Legacy-Adresse oder den Locking-Bytecode eines P2PKH- oder P2SH-Outputs ein.",
+    "ownAddress": "Diese Adresse gehört zu diesem Wallet."
+  },
   "derivationPathSelect": {
     "label": "Ableitungspfad:",
     "standard": "Standard",
@@ -1440,6 +1459,7 @@
       "transferAllAssets": "Alle Werte übertragen",
       "signVerifyMessage": "Nachricht signieren / verifizieren",
       "exportXpub": "Xpub exportieren",
+      "addressConverter": "Adresskonverter",
       "aboutCashonize": "Über Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identitäten",

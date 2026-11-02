@@ -208,7 +208,8 @@
       "invalidAmount": "Saisissez un montant positif : des satoshis entiers, ou des BCH avec 8 décimales au maximum",
       "insufficientFunds": "Pas assez de BCH dans le portefeuille",
       "invalidAddress": "Adresse BCH invalide fournie",
-      "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel"
+      "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel",
+      "legacyAddress": "Les adresses legacy sont identiques aux adresses Bitcoin (BTC). CashAddr est le format d'adresse standard sur BCH. Si vous êtes sûr qu'il s'agit d'une adresse BCH, convertissez-la avec le convertisseur d'adresses dans les outils du portefeuille."
     },
     "reservedBalance": "Retenu : {amount}"
   },
@@ -1203,6 +1204,24 @@
       "addressNotInWallet": "La signature nécessite une adresse du portefeuille actif"
     }
   },
+  "addressConverter": {
+    "title": "Convertisseur d'adresses",
+    "description": "Saisissez une adresse pour voir toutes ses formes.",
+    "formsInfo": "CashAddr, adresse de token, legacy et locking bytecode sont différentes façons d'écrire la même destination. Les coins envoyés à l'une d'elles arrivent au même endroit.",
+    "inputPlaceholder": "CashAddr, adresse legacy ou locking bytecode (hex)",
+    "cashAddress": "CashAddr :",
+    "tokenAddress": "Adresse de token :",
+    "legacyAddress": "Legacy :",
+    "lockingBytecode": "Locking bytecode :",
+    "type": "Type :",
+    "network": "Réseau :",
+    "none": "aucune",
+    "tokenWarning": "N'utilisez cette forme que si le portefeuille du destinataire prend en charge les CashTokens. Les autres portefeuilles risquent de ne pas afficher les tokens, ou de les détruire en dépensant.",
+    "activeNetworkNote": "(supposé : un locking bytecode n'a pas de réseau)",
+    "legacyWarning": "Les adresses legacy sont identiques sur BCH et BTC. Veillez tout particulièrement à ne rien envoyer sur la mauvaise chaîne.",
+    "notAnAddress": "Ce n'est pas une adresse : saisissez une CashAddr, une adresse legacy ou le locking bytecode d'une sortie P2PKH ou P2SH.",
+    "ownAddress": "Cette adresse appartient à ce portefeuille."
+  },
   "derivationPathSelect": {
     "label": "Chemin de dérivation :",
     "standard": "standard",
@@ -1440,6 +1459,7 @@
       "transferAllAssets": "Transférer tous les actifs",
       "signVerifyMessage": "Signer / Vérifier un message",
       "exportXpub": "Exporter la xpub",
+      "addressConverter": "Convertisseur d'adresses",
       "aboutCashonize": "À propos de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identités",

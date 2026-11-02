@@ -208,7 +208,8 @@
       "invalidAmount": "Enter a positive amount: whole satoshis, or BCH with at most 8 decimals",
       "insufficientFunds": "Not enough BCH in wallet",
       "invalidAddress": "Invalid BCH address provided",
-      "notCashaddress": "Not a cashaddress on current network"
+      "notCashaddress": "Not a cashaddress on current network",
+      "legacyAddress": "Legacy addresses look the same as Bitcoin (BTC) addresses. CashAddr is the standard address format on BCH. If you are sure this is a BCH address, convert it with the Address Converter in Wallet tools."
     },
     "reservedBalance": "Held back: {amount}"
   },
@@ -1203,6 +1204,24 @@
       "addressNotInWallet": "Signing requires an address of the active wallet"
     }
   },
+  "addressConverter": {
+    "title": "Address Converter",
+    "description": "Enter an address to see all its forms.",
+    "formsInfo": "CashAddr, token address, legacy and locking bytecode are different ways of writing the same destination. Coins sent to any of them end up in the same place.",
+    "inputPlaceholder": "CashAddr, legacy address or locking bytecode (hex)",
+    "cashAddress": "CashAddr:",
+    "tokenAddress": "Token address:",
+    "legacyAddress": "Legacy:",
+    "lockingBytecode": "Locking bytecode:",
+    "type": "Type:",
+    "network": "Network:",
+    "none": "none",
+    "tokenWarning": "Use this form only if the recipient's wallet supports CashTokens. Other wallets may not show the tokens, or may destroy them when spending.",
+    "activeNetworkNote": "(assumed: a locking bytecode has no network)",
+    "legacyWarning": "Legacy addresses look the same on BCH and BTC. Take extra care that nothing is sent on the wrong chain.",
+    "notAnAddress": "Not an address: enter a CashAddr, a legacy address or the locking bytecode of a P2PKH or P2SH output.",
+    "ownAddress": "This address belongs to this wallet."
+  },
   "derivationPathSelect": {
     "label": "Derivation path:",
     "standard": "standard",
@@ -1440,6 +1459,7 @@
       "transferAllAssets": "Transfer All Assets",
       "signVerifyMessage": "Sign / Verify Message",
       "exportXpub": "Export Xpub",
+      "addressConverter": "Address Converter",
       "aboutCashonize": "About Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identities",

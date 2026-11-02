@@ -5,13 +5,15 @@
 
 import { decodeCashAddress } from "@bitauth/libauth"
 import { addressFromUri } from 'src/utils/payments/bip21';
-import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
+import { isLegacyAddress, normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
 /** Reason a scanned code cannot be used as a recipient, or undefined when it can */
 export function getCashAddressScanError(content: string, networkPrefix: string) {
-  const decoded = decodeCashAddress(addressFromUri(content));
+  const address = addressFromUri(content);
+  if (isLegacyAddress(address)) return t('wallet.errors.legacyAddress');
+  const decoded = decodeCashAddress(address);
   if (typeof decoded === "string" || decoded.prefix !== networkPrefix) {
     return t('tokenItem.errors.notCashaddress');
   }
@@ -22,6 +24,7 @@ function validateAddress(destinationAddr: string, networkPrefix: string, require
   const { address, decodedAddress } = normalizeCashAddressForNetwork(destinationAddr, networkPrefix, {
     invalidAddress: t('tokenItem.errors.invalidAddress'),
     wrongNetwork: t('tokenItem.errors.notCashaddress'),
+    legacyAddress: t('wallet.errors.legacyAddress'),
   });
   if(requireTokenSupport){
     const supportsTokens = (decodedAddress.type === 'p2pkhWithTokens' || decodedAddress.type === 'p2shWithTokens');

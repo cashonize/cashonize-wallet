@@ -1,5 +1,7 @@
 import {
   assertSuccess,
+  Base58AddressFormatVersion,
+  base58AddressToLockingBytecode,
   decodeCashAddress,
   decodeCashAddressFormatWithoutPrefix,
   encodeCashAddress
@@ -44,12 +46,29 @@ export function toPrefixedAddress(address: string): string | undefined {
   return `${decodedAddress.prefix}:${trimmedAddress}`;
 }
 
+// The network each legacy address version belongs to. libauth also decodes the Copay versions,
+// which are left out: they are BCH-only, and no one should be handed one as the form to send to.
+export const legacyVersionPrefixes = new Map<number, "bitcoincash" | "bchtest">([
+  [Base58AddressFormatVersion.p2pkh, "bitcoincash"],
+  [Base58AddressFormatVersion.p2sh20, "bitcoincash"],
+  [Base58AddressFormatVersion.p2pkhTestnet, "bchtest"],
+  [Base58AddressFormatVersion.p2sh20Testnet, "bchtest"],
+]);
+
+// A legacy (base58) address looks the same on BCH and BTC, so sending to one is refused with its
+// own message, pointing to the address converter for a user who is sure it is a BCH address.
+export function isLegacyAddress(address: string): boolean {
+  const decoded = base58AddressToLockingBytecode(address.trim());
+  return typeof decoded !== "string" && legacyVersionPrefixes.has(decoded.version);
+}
+
 export function normalizeCashAddressForNetwork(
   input: string,
   expectedPrefix: string,
-  errorMessages: { invalidAddress: string; wrongNetwork: string }
+  errorMessages: { invalidAddress: string; wrongNetwork: string; legacyAddress?: string }
 ) {
   let address = input.trim();
+  if (errorMessages.legacyAddress && isLegacyAddress(address)) throw new Error(errorMessages.legacyAddress);
   const lowerAddress = address.toLowerCase();
 
   if (!CASH_ADDRESS_PREFIXES.some(prefix => lowerAddress.startsWith(prefix))) {
