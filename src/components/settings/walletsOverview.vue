@@ -5,6 +5,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { switchWalletWithNotice, maxWallets } from 'src/utils/wallet/walletUtils'
+  import { confirmAndConvertToHd } from 'src/utils/wallet/convertToHd'
   import type { WalletInfo } from 'src/utils/wallet/dbUtils'
   import { useI18n } from 'vue-i18n'
 
@@ -15,6 +16,7 @@
   const { t } = useI18n()
 
   const canAddMoreWallets = computed(() => store.availableWallets.length < maxWallets)
+  const isSingleAddressWallet = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'single')
 
   function formatCreationDate(walletName: string, shortYear = false): string {
     const meta = settingsStore.getWalletMetadata(walletName);
@@ -111,6 +113,10 @@
   <div>
     <div style="margin-bottom: 15px;">
       {{ t('walletsOverview.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
+    </div>
+    <div v-if="isSingleAddressWallet" style="margin-bottom: 15px;">
+      <div style="cursor: pointer;" @click="confirmAndConvertToHd()">{{ t('convertToHd.link') }}</div>
+      <div style="font-size: smaller; color: grey;">{{ t('convertToHd.hint') }}</div>
     </div>
 
     <div v-for="group in walletGroups" :key="group.title" style="margin-bottom: 20px;">

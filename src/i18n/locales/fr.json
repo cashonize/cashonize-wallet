@@ -55,7 +55,11 @@
       "failedToCreateWallet": "Échec de la création du portefeuille",
       "enterSeedPhrase": "Entrez une phrase de récupération pour importer le portefeuille",
       "fixInvalidWords": "Veuillez corriger les mots invalides dans votre phrase de récupération",
-      "invalidSeedPhrase": "Phrase de récupération invalide"
+      "invalidSeedPhrase": "Phrase de récupération invalide",
+      "convertTiedCopy": "Le portefeuille « {name} » a aussi une copie chipnet. Supprimez d'abord la copie dans Paramètres > Paramètres développeur, puis convertissez.",
+      "cannotConvert": "Le portefeuille « {name} » n'est pas enregistré comme un portefeuille à adresse unique convertible, rien n'a donc été modifié",
+      "conversionRunning": "Le portefeuille est déjà en cours de conversion",
+      "failedToConvert": "Échec de la conversion du portefeuille « {name} »"
     }
   },
   "bip21": {
@@ -472,6 +476,12 @@
     "errors": {
       "invalidUri": "URI WalletConnect, CashConnect ou WizardConnect invalide",
       "notValidUri": "Ce n'est pas une URI WalletConnect, CashConnect ou WizardConnect valide"
+    },
+    "convertWalletLink": "Convertir ce portefeuille",
+    "wizardConnectNeedsHd": {
+      "title": "WizardConnect nécessite un portefeuille HD",
+      "message": "Ce portefeuille utilise une adresse unique. Vous pouvez le convertir en portefeuille HD avec la même phrase de récupération : vos fonds, son nom et vos notes sont conservés.",
+      "convertButton": "Convertir en portefeuille HD"
     }
   },
   "history": {
@@ -693,6 +703,15 @@
     },
     "switchedNetwork": "Basculé vers {network} pour le portefeuille « {name} »",
     "switchFailed": "Échec du changement de portefeuille : {error}"
+  },
+  "convertToHd": {
+    "link": "→ Convertir en portefeuille HD",
+    "hint": "Utilise une nouvelle adresse pour chaque transaction. Nécessaire pour WizardConnect. Conserve la même seed, les mêmes fonds et le même nom. Irréversible.",
+    "confirmTitle": "Convertir en portefeuille HD ?",
+    "confirmMessage": "Cette action est irréversible.\n\nAprès son premier envoi, des fonds se trouvent aussi sur de nouvelles adresses : restaurez désormais cette phrase de récupération comme portefeuille HD. Ouverte comme portefeuille à adresse unique, ici ou dans un autre logiciel, elle ne les affichera pas.",
+    "cashConnectSessions": "{count} connexion CashConnect prend fin, et sa dApp devra être appairée à nouveau. | {count} connexions CashConnect prennent fin, et leurs dApps devront être appairées à nouveau.",
+    "confirmButton": "Convertir",
+    "converted": "Le portefeuille « {name} » est maintenant un portefeuille HD"
   },
   "createTokens": {
     "title": "Créer un token",

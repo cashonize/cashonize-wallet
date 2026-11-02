@@ -55,7 +55,11 @@
       "failedToCreateWallet": "Wallet konnte nicht erstellt werden",
       "enterSeedPhrase": "Gib eine seed phrase ein, um ein Wallet zu importieren",
       "fixInvalidWords": "Bitte korrigiere ungültige Wörter in deiner seed phrase",
-      "invalidSeedPhrase": "Keine gültige seed phrase"
+      "invalidSeedPhrase": "Keine gültige seed phrase",
+      "convertTiedCopy": "Wallet \"{name}\" hat noch eine Chipnet-Kopie. Entferne die Kopie zuerst unter Einstellungen > Entwicklereinstellungen und konvertiere dann.",
+      "cannotConvert": "Wallet \"{name}\" ist nicht als konvertierbares Einzeladressen-Wallet gespeichert, daher wurde nichts geändert",
+      "conversionRunning": "Das Wallet wird bereits konvertiert",
+      "failedToConvert": "Wallet \"{name}\" konnte nicht konvertiert werden"
     }
   },
   "bip21": {
@@ -472,6 +476,12 @@
     "errors": {
       "invalidUri": "Ungültige WalletConnect-, CashConnect- oder WizardConnect-URI",
       "notValidUri": "Keine gültige WalletConnect-, CashConnect- oder WizardConnect-URI"
+    },
+    "convertWalletLink": "Dieses Wallet umwandeln",
+    "wizardConnectNeedsHd": {
+      "title": "WizardConnect braucht ein HD-Wallet",
+      "message": "Dieses Wallet verwendet eine einzige Adresse. Du kannst es mit derselben Seed-Phrase in ein HD-Wallet umwandeln: deine Coins, der Name und die Notizen bleiben erhalten.",
+      "convertButton": "In HD-Wallet umwandeln"
     }
   },
   "history": {
@@ -693,6 +703,15 @@
     },
     "switchedNetwork": "Zu {network} gewechselt für Wallet \"{name}\"",
     "switchFailed": "Wallet-Wechsel fehlgeschlagen: {error}"
+  },
+  "convertToHd": {
+    "link": "→ In HD-Wallet umwandeln",
+    "hint": "Verwendet für jede Transaktion eine neue Adresse. Nötig für WizardConnect. Seed, Coins und Name bleiben gleich. Kann nicht rückgängig gemacht werden.",
+    "confirmTitle": "In HD-Wallet umwandeln?",
+    "confirmMessage": "Das kann nicht rückgängig gemacht werden.\n\nNach dem ersten Senden liegen Coins auch auf neuen Adressen, stelle diese Seed-Phrase also ab jetzt als HD-Wallet wieder her. Als Einzeladressen-Wallet geöffnet, hier oder in anderer Wallet-Software, werden sie nicht angezeigt.",
+    "cashConnectSessions": "{count} CashConnect-Verbindung endet, und ihre dApp muss neu gekoppelt werden. | {count} CashConnect-Verbindungen enden, und ihre dApps müssen neu gekoppelt werden.",
+    "confirmButton": "Umwandeln",
+    "converted": "Wallet \"{name}\" ist jetzt ein HD-Wallet"
   },
   "createTokens": {
     "title": "Token erstellen",

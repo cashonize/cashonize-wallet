@@ -55,7 +55,11 @@
       "failedToCreateWallet": "Error al crear la billetera",
       "enterSeedPhrase": "Ingresa una frase de recuperación para importar la billetera",
       "fixInvalidWords": "Por favor corrige las palabras inválidas en tu frase de recuperación",
-      "invalidSeedPhrase": "Frase de recuperación no válida"
+      "invalidSeedPhrase": "Frase de recuperación no válida",
+      "convertTiedCopy": "La billetera \"{name}\" también tiene una copia en chipnet. Primero elimina la copia en Configuración > Configuración de desarrollador y luego conviértela.",
+      "cannotConvert": "La billetera \"{name}\" no está guardada como una billetera de dirección única convertible, así que no se cambió nada",
+      "conversionRunning": "La billetera ya se está convirtiendo",
+      "failedToConvert": "Error al convertir la billetera \"{name}\""
     }
   },
   "bip21": {
@@ -472,6 +476,12 @@
     "errors": {
       "invalidUri": "URI de WalletConnect, CashConnect o WizardConnect inválida",
       "notValidUri": "No es una URI válida de WalletConnect, CashConnect o WizardConnect"
+    },
+    "convertWalletLink": "Convertir esta billetera",
+    "wizardConnectNeedsHd": {
+      "title": "WizardConnect necesita una billetera HD",
+      "message": "Esta billetera usa una sola dirección. Puedes convertirla en una billetera HD con la misma frase semilla: tus monedas, nombre y notas se mantienen.",
+      "convertButton": "Convertir en billetera HD"
     }
   },
   "history": {
@@ -693,6 +703,15 @@
     },
     "switchedNetwork": "Cambiado a {network} para la billetera \"{name}\"",
     "switchFailed": "Error al cambiar de billetera: {error}"
+  },
+  "convertToHd": {
+    "link": "→ Convertir en billetera HD",
+    "hint": "Usa una dirección nueva para cada transacción. Necesario para WizardConnect. Conserva la misma semilla, monedas y nombre. No se puede deshacer.",
+    "confirmTitle": "¿Convertir en billetera HD?",
+    "confirmMessage": "Esto no se puede deshacer.\n\nDespués de su primer envío, también habrá monedas en direcciones nuevas, así que de ahora en adelante restaura esta frase semilla como billetera HD. Abierta como billetera de dirección única, aquí o en otro software de billetera, no las mostrará.",
+    "cashConnectSessions": "{count} conexión de CashConnect termina, y su dApp tendrá que emparejarse de nuevo. | {count} conexiones de CashConnect terminan, y sus dApps tendrán que emparejarse de nuevo.",
+    "confirmButton": "Convertir",
+    "converted": "La billetera \"{name}\" ahora es una billetera HD"
   },
   "createTokens": {
     "title": "Crear un token",

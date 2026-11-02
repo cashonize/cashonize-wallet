@@ -55,7 +55,11 @@
       "failedToCreateWallet": "Falha ao criar a carteira",
       "enterSeedPhrase": "Insira uma seed phrase para importar a carteira",
       "fixInvalidWords": "Por favor, corrija as palavras inválidas na sua seed phrase",
-      "invalidSeedPhrase": "Seed phrase inválida"
+      "invalidSeedPhrase": "Seed phrase inválida",
+      "convertTiedCopy": "A carteira \"{name}\" também tem uma cópia na chipnet. Remova primeiro a cópia em Configurações > Configurações de desenvolvedor e depois converta.",
+      "cannotConvert": "A carteira \"{name}\" não está salva como uma carteira de endereço único convertível, então nada foi alterado",
+      "conversionRunning": "A carteira já está sendo convertida",
+      "failedToConvert": "Falha ao converter a carteira \"{name}\""
     }
   },
   "bip21": {
@@ -472,6 +476,12 @@
     "errors": {
       "invalidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida",
       "notValidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida"
+    },
+    "convertWalletLink": "Converter esta carteira",
+    "wizardConnectNeedsHd": {
+      "title": "WizardConnect precisa de uma carteira HD",
+      "message": "Esta carteira usa um único endereço. Você pode convertê-la em uma carteira HD com a mesma frase semente: suas moedas, nome e notas permanecem.",
+      "convertButton": "Converter em carteira HD"
     }
   },
   "history": {
@@ -693,6 +703,15 @@
     },
     "switchedNetwork": "Mudou para {network} na carteira \"{name}\"",
     "switchFailed": "Falha ao trocar de carteira: {error}"
+  },
+  "convertToHd": {
+    "link": "→ Converter em carteira HD",
+    "hint": "Usa um novo endereço para cada transação. Necessário para o WizardConnect. Mantém a mesma seed, moedas e nome. Não pode ser desfeito.",
+    "confirmTitle": "Converter em carteira HD?",
+    "confirmMessage": "Isto não pode ser desfeito.\n\nApós o primeiro envio, moedas também ficam em novos endereços, então de agora em diante restaure esta frase semente como carteira HD. Aberta como carteira de endereço único, aqui ou em outro software de carteira, ela não as mostrará.",
+    "cashConnectSessions": "{count} conexão CashConnect termina, e o dApp dela terá que ser pareado novamente. | {count} conexões CashConnect terminam, e os dApps delas terão que ser pareados novamente.",
+    "confirmButton": "Converter",
+    "converted": "A carteira \"{name}\" agora é uma carteira HD"
   },
   "createTokens": {
     "title": "Criar um token",

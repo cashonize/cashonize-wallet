@@ -9,6 +9,8 @@
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
+  import { confirmDialog } from 'src/utils/txHelpers'
+  import { confirmAndConvertToHd } from 'src/utils/wallet/convertToHd'
   import { isWalletConnectUri, isCashConnectUri, isWizardConnectUri } from 'src/utils/dapp/dappUri';
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
   import QrScanButton from './qr/qrScanButton.vue';
@@ -75,6 +77,14 @@
 
       // Otherwise, if the URI begins with "wiz:" (wizardconnect)...
       else if (isWizardConnectUri(dappUri)) {
+        // a single-address wallet is offered the conversion instead of the error pairing would give;
+        // the URI goes in the input from a scan or deep link too, so after converting only Connect
+        // has to be pressed again
+        if (!isHdWallet.value && dappsAvailableOn(store.network)) {
+          dappUriInput.value = dappUri;
+          await offerConversionForWizardConnect();
+          return false;
+        }
         await wizardconnectStore.pair(dappUri);
       }
 
@@ -94,6 +104,15 @@
       })
       return false;
     }
+  }
+
+  async function offerConversionForWizardConnect() {
+    const convert = await confirmDialog(
+      t('dapp.wizardConnectNeedsHd.title'),
+      t('dapp.wizardConnectNeedsHd.message'),
+      t('dapp.wizardConnectNeedsHd.convertButton')
+    );
+    if (convert) await confirmAndConvertToHd();
   }
 
   // Handle Props.
@@ -152,7 +171,10 @@
         <!-- WizardConnect requires an HD wallet, so the listed connection methods depend on the wallet type -->
         <InfoPopup>
           <div>{{ t(isHdWallet ? 'dapp.supportedMethods' : 'dapp.supportedMethodsSingleAddress') }}</div>
-          <div v-if="!isHdWallet" class="info-popup-note">{{ t('dapp.supportedMethodsNote') }}</div>
+          <div v-if="!isHdWallet" class="info-popup-note">
+            {{ t('dapp.supportedMethodsNote') }}
+            <a href="#" class="explore-dapps-link" @click.prevent="confirmAndConvertToHd()">{{ t('dapp.convertWalletLink') }}</a>
+          </div>
         </InfoPopup>
       </div>
       <div style="display: flex; gap: 0.5rem; ">
