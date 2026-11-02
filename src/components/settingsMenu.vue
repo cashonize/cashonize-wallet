@@ -140,6 +140,7 @@
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
   const strictWcSchema = ref(settingsStore.strictWcSchema);
   const showPrivateKeyWif = ref(settingsStore.showPrivateKeyWif);
+  const enableAddressConverter = ref(settingsStore.addressConverter);
 
   const utxosWithBchAndTokens = computed(() => {
     return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n);
@@ -598,6 +599,10 @@
     localStorage.setItem("showPrivateKeyWif", showPrivateKeyWif.value ? "true" : "false");
     settingsStore.showPrivateKeyWif = showPrivateKeyWif.value;
   }
+  function changeAddressConverter(){
+    localStorage.setItem("addressConverter", enableAddressConverter.value ? "true" : "false");
+    settingsStore.addressConverter = enableAddressConverter.value;
+  }
 
 </script>
 
@@ -973,6 +978,14 @@
           <div>{{ t('settings.developer.showPrivateKeyWifHint') }}</div>
         </InfoPopup>
         <q-toggle v-model="showPrivateKeyWif" @update:model-value="changeShowPrivateKeyWif()" dense />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.developer.enableAddressConverter') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div>{{ t('settings.developer.enableAddressConverterHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="enableAddressConverter" @update:model-value="changeAddressConverter()" dense />
       </div>
     </div>
     <div v-else-if="settingsSection == 5">

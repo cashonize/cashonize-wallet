@@ -1203,6 +1203,22 @@
       "addressNotInWallet": "Firmar requiere una dirección de la billetera activa"
     }
   },
+  "addressConverter": {
+    "title": "Conversor de direcciones",
+    "description": "Introduce una dirección en cualquier forma para ver todas sus formas.",
+    "inputPlaceholder": "CashAddr, dirección legacy o locking bytecode (hex)",
+    "cashAddress": "CashAddr:",
+    "tokenAddress": "Dirección de token:",
+    "legacyAddress": "Legacy:",
+    "lockingBytecode": "Locking bytecode:",
+    "type": "Tipo:",
+    "network": "Red:",
+    "none": "ninguna",
+    "tokenWarning": "Envía tokens a esta forma solo si la billetera del destinatario admite CashTokens; una billetera sin soporte de tokens puede no mostrarlos.",
+    "legacyWarning": "Una dirección legacy se ve igual que una dirección de Bitcoin (BTC): asegúrate de que sea una dirección de BCH antes de enviar a ella.",
+    "notAnAddress": "No es una dirección: introduce una CashAddr, una dirección legacy o el locking bytecode de una salida P2PKH o P2SH.",
+    "ownAddress": "Esta dirección pertenece a esta billetera."
+  },
   "derivationPathSelect": {
     "label": "Ruta de derivación:",
     "standard": "estándar",
@@ -1440,6 +1456,7 @@
       "transferAllAssets": "Transferir todos los activos",
       "signVerifyMessage": "Firmar / Verificar mensaje",
       "exportXpub": "Exportar Xpub",
+      "addressConverter": "Conversor de direcciones",
       "aboutCashonize": "Acerca de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identidades",
@@ -1543,6 +1560,8 @@
       "strictWcSchemaHint": "Comprueba las solicitudes de WalletConnect y WizardConnect contra su formato exacto y muestra el motivo completo cuando se rechaza una. Actívalo al desarrollar una dApp para detectar solicitudes que no cumplen el formato.",
       "showPrivateKeyWif": "Mostrar la clave privada WIF en la página de respaldo",
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única.",
+      "enableAddressConverter": "Habilitar el conversor de direcciones",
+      "enableAddressConverterHint": "Añade a las herramientas de billetera un conversor de direcciones, que muestra una dirección en todas sus formas: CashAddr, dirección de token, legacy y locking bytecode.",
       "nonTokenIdentities": "Habilitar crear identidades sin token",
       "nonTokenIdentitiesHint": "Muestra Añadir nueva en la página de identidades, que crea una identidad a partir de cualquier UTXO de esta billetera en lugar de un token. Las identidades de personas, organizaciones y contratos son nuevas, y pocas herramientas las leen todavía.",
       "developerFeaturesHeading": "Funciones para desarrolladores",

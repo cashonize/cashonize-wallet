@@ -58,5 +58,9 @@
     <div v-if="settingsStore.getWalletType(store.activeWalletName) === 'hd'" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(15)">
       → {{ t('settings.menu.exportXpub') }}
     </div>
+
+    <div v-if="settingsStore.addressConverter" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(20)">
+      → {{ t('settings.menu.addressConverter') }}
+    </div>
   </fieldset>
 </template>

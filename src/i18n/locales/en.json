@@ -1203,6 +1203,22 @@
       "addressNotInWallet": "Signing requires an address of the active wallet"
     }
   },
+  "addressConverter": {
+    "title": "Address Converter",
+    "description": "Enter an address in any form to see all its forms.",
+    "inputPlaceholder": "CashAddr, legacy address or locking bytecode (hex)",
+    "cashAddress": "CashAddr:",
+    "tokenAddress": "Token address:",
+    "legacyAddress": "Legacy:",
+    "lockingBytecode": "Locking bytecode:",
+    "type": "Type:",
+    "network": "Network:",
+    "none": "none",
+    "tokenWarning": "Only send tokens to this form when the recipient's wallet supports CashTokens; a wallet without token support may not show them.",
+    "legacyWarning": "A legacy address looks the same as a Bitcoin (BTC) address: make sure it is a BCH address before sending to it.",
+    "notAnAddress": "Not an address: enter a CashAddr, a legacy address or the locking bytecode of a P2PKH or P2SH output.",
+    "ownAddress": "This address belongs to this wallet."
+  },
   "derivationPathSelect": {
     "label": "Derivation path:",
     "standard": "standard",
@@ -1440,6 +1456,7 @@
       "transferAllAssets": "Transfer All Assets",
       "signVerifyMessage": "Sign / Verify Message",
       "exportXpub": "Export Xpub",
+      "addressConverter": "Address Converter",
       "aboutCashonize": "About Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identities",
@@ -1543,6 +1560,8 @@
       "strictWcSchemaHint": "Checks WalletConnect and WizardConnect requests against their exact formats, and shows the full reason when one is refused. Enable this when developing a dApp to surface non-compliant payloads.",
       "showPrivateKeyWif": "Show WIF private key on backup page",
       "showPrivateKeyWifHint": "Adds the WIF private key to the backup page for single-address wallets.",
+      "enableAddressConverter": "Enable address converter",
+      "enableAddressConverterHint": "Adds an address converter to the wallet tools, which shows an address in all its forms: CashAddr, token address, legacy and locking bytecode.",
       "nonTokenIdentities": "Enable creating non-token identities",
       "nonTokenIdentitiesHint": "Shows Add new on the identities page, which makes an identity from any UTXO of this wallet rather than from a token. Identities of people, organizations and contracts are new, and few tools read them yet.",
       "developerFeaturesHeading": "Developer features",

@@ -1203,6 +1203,22 @@
       "addressNotInWallet": "Zum Signieren wird eine Adresse des aktiven Wallets benötigt"
     }
   },
+  "addressConverter": {
+    "title": "Adresskonverter",
+    "description": "Gib eine Adresse in beliebiger Form ein, um all ihre Formen zu sehen.",
+    "inputPlaceholder": "CashAddr, Legacy-Adresse oder Locking-Bytecode (Hex)",
+    "cashAddress": "CashAddr:",
+    "tokenAddress": "Token-Adresse:",
+    "legacyAddress": "Legacy:",
+    "lockingBytecode": "Locking-Bytecode:",
+    "type": "Typ:",
+    "network": "Netzwerk:",
+    "none": "keine",
+    "tokenWarning": "Sende Tokens nur an diese Form, wenn das Wallet des Empfängers CashTokens unterstützt; ein Wallet ohne Token-Unterstützung zeigt sie womöglich nicht an.",
+    "legacyWarning": "Eine Legacy-Adresse sieht genauso aus wie eine Bitcoin-(BTC-)Adresse: Stelle sicher, dass es eine BCH-Adresse ist, bevor du daran sendest.",
+    "notAnAddress": "Keine Adresse: Gib eine CashAddr, eine Legacy-Adresse oder den Locking-Bytecode eines P2PKH- oder P2SH-Outputs ein.",
+    "ownAddress": "Diese Adresse gehört zu diesem Wallet."
+  },
   "derivationPathSelect": {
     "label": "Ableitungspfad:",
     "standard": "Standard",
@@ -1440,6 +1456,7 @@
       "transferAllAssets": "Alle Werte übertragen",
       "signVerifyMessage": "Nachricht signieren / verifizieren",
       "exportXpub": "Xpub exportieren",
+      "addressConverter": "Adresskonverter",
       "aboutCashonize": "Über Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identitäten",
@@ -1543,6 +1560,8 @@
       "strictWcSchemaHint": "Prüft WalletConnect- und WizardConnect-Anfragen genau gegen ihr Format und zeigt den vollständigen Grund, wenn eine abgelehnt wird. Aktiviere dies bei der Entwicklung einer dApp, um nicht konforme Anfragen aufzudecken.",
       "showPrivateKeyWif": "WIF-Schlüssel auf der Backup-Seite anzeigen",
       "showPrivateKeyWifHint": "Fügt den privaten WIF-Schlüssel zur Backup-Seite für Wallets mit einer einzelnen Adresse hinzu.",
+      "enableAddressConverter": "Adresskonverter aktivieren",
+      "enableAddressConverterHint": "Fügt den Wallet-Werkzeugen einen Adresskonverter hinzu, der eine Adresse in all ihren Formen zeigt: CashAddr, Token-Adresse, Legacy und Locking-Bytecode.",
       "nonTokenIdentities": "Erstellen von Identitäten ohne Token aktivieren",
       "nonTokenIdentitiesHint": "Zeigt Neue hinzufügen auf der Identitäten-Seite, das aus einem beliebigen UTXO dieses Wallets statt aus einem Token eine Identität macht. Identitäten von Personen, Organisationen und Verträgen sind neu, und wenige Werkzeuge lesen sie bisher.",
       "developerFeaturesHeading": "Entwicklerfunktionen",

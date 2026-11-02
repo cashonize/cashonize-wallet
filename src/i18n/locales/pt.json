@@ -1203,6 +1203,22 @@
       "addressNotInWallet": "Assinar requer um endereço da carteira ativa"
     }
   },
+  "addressConverter": {
+    "title": "Conversor de endereços",
+    "description": "Digite um endereço em qualquer forma para ver todas as suas formas.",
+    "inputPlaceholder": "CashAddr, endereço legacy ou locking bytecode (hex)",
+    "cashAddress": "CashAddr:",
+    "tokenAddress": "Endereço de token:",
+    "legacyAddress": "Legacy:",
+    "lockingBytecode": "Locking bytecode:",
+    "type": "Tipo:",
+    "network": "Rede:",
+    "none": "nenhum",
+    "tokenWarning": "Só envie tokens para esta forma se a carteira do destinatário suportar CashTokens; uma carteira sem suporte a tokens pode não mostrá-los.",
+    "legacyWarning": "Um endereço legacy parece igual a um endereço de Bitcoin (BTC): verifique se é um endereço BCH antes de enviar para ele.",
+    "notAnAddress": "Não é um endereço: digite um CashAddr, um endereço legacy ou o locking bytecode de uma saída P2PKH ou P2SH.",
+    "ownAddress": "Este endereço pertence a esta carteira."
+  },
   "derivationPathSelect": {
     "label": "Derivation path:",
     "standard": "padrão",
@@ -1440,6 +1456,7 @@
       "transferAllAssets": "Transferir todos os ativos",
       "signVerifyMessage": "Assinar / Verificar mensagem",
       "exportXpub": "Exportar Xpub",
+      "addressConverter": "Conversor de endereços",
       "aboutCashonize": "Sobre o Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identidades",
@@ -1543,6 +1560,8 @@
       "strictWcSchemaHint": "Verifica os pedidos WalletConnect e WizardConnect contra o formato exato e mostra o motivo completo quando um é recusado. Ative ao desenvolver uma dApp para identificar pedidos fora do formato.",
       "showPrivateKeyWif": "Mostrar a chave privada WIF na página de backup",
       "showPrivateKeyWifHint": "Adiciona a chave privada WIF à página de backup para carteiras de endereço único.",
+      "enableAddressConverter": "Habilitar o conversor de endereços",
+      "enableAddressConverterHint": "Adiciona às ferramentas da carteira um conversor de endereços, que mostra um endereço em todas as suas formas: CashAddr, endereço de token, legacy e locking bytecode.",
       "nonTokenIdentities": "Habilitar criação de identidades sem token",
       "nonTokenIdentitiesHint": "Mostra Adicionar nova na página das identidades, que cria uma identidade a partir de qualquer UTXO desta carteira em vez de um token. As identidades de pessoas, organizações e contratos são novas, e poucas ferramentas as leem ainda.",
       "developerFeaturesHeading": "Recursos para desenvolvedores",

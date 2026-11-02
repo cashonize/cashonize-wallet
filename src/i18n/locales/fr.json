@@ -1203,6 +1203,22 @@
       "addressNotInWallet": "La signature nécessite une adresse du portefeuille actif"
     }
   },
+  "addressConverter": {
+    "title": "Convertisseur d'adresses",
+    "description": "Saisissez une adresse sous n'importe quelle forme pour voir toutes ses formes.",
+    "inputPlaceholder": "CashAddr, adresse legacy ou locking bytecode (hex)",
+    "cashAddress": "CashAddr :",
+    "tokenAddress": "Adresse de token :",
+    "legacyAddress": "Legacy :",
+    "lockingBytecode": "Locking bytecode :",
+    "type": "Type :",
+    "network": "Réseau :",
+    "none": "aucune",
+    "tokenWarning": "N'envoyez des tokens à cette forme que si le portefeuille du destinataire prend en charge les CashTokens ; un portefeuille sans prise en charge des tokens risque de ne pas les afficher.",
+    "legacyWarning": "Une adresse legacy ressemble à une adresse Bitcoin (BTC) : assurez-vous qu'il s'agit d'une adresse BCH avant d'y envoyer des fonds.",
+    "notAnAddress": "Ce n'est pas une adresse : saisissez une CashAddr, une adresse legacy ou le locking bytecode d'une sortie P2PKH ou P2SH.",
+    "ownAddress": "Cette adresse appartient à ce portefeuille."
+  },
   "derivationPathSelect": {
     "label": "Chemin de dérivation :",
     "standard": "standard",
@@ -1440,6 +1456,7 @@
       "transferAllAssets": "Transférer tous les actifs",
       "signVerifyMessage": "Signer / Vérifier un message",
       "exportXpub": "Exporter la xpub",
+      "addressConverter": "Convertisseur d'adresses",
       "aboutCashonize": "À propos de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identités",
@@ -1543,6 +1560,8 @@
       "strictWcSchemaHint": "Vérifie les requêtes WalletConnect et WizardConnect par rapport à leur format exact, et affiche la raison complète lorsqu'une requête est refusée. Activez cette option lors du développement d'une dApp pour repérer les requêtes non conformes.",
       "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
+      "enableAddressConverter": "Activer le convertisseur d'adresses",
+      "enableAddressConverterHint": "Ajoute aux outils du portefeuille un convertisseur d'adresses, qui affiche une adresse sous toutes ses formes : CashAddr, adresse de token, legacy et locking bytecode.",
       "nonTokenIdentities": "Activer la création d'identités sans token",
       "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore.",
       "developerFeaturesHeading": "Fonctions pour développeurs",
