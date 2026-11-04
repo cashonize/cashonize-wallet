@@ -711,10 +711,11 @@
     "button": "In HD-Wallet umwandeln",
     "hint": "Ein HD-Wallet verwendet für jede Zahlung eine neue Adresse, was deine Zahlungen privater macht, und wird für WizardConnect benötigt. Seed-Phrase, Guthaben, Name und Notizen bleiben gleich.",
     "hintNote": "Das Umwandeln kann nicht rückgängig gemacht werden: Stelle diese Seed-Phrase danach als HD-Wallet wieder her.",
+    "cashConnectNote": "Nicht empfohlen, wenn du CashConnect-dApps nutzt. Sie sehen dieses Wallet dann als neues Konto.",
     "confirmTitle": "In HD-Wallet umwandeln?",
     "intro": "Dieses Wallet wird zu einem HD-Wallet mit derselben Seed-Phrase. Damit kann es sich mit WizardConnect-dApps verbinden und verwendet für jede Zahlung eine neue Adresse. Guthaben, Name und Notizen bleiben erhalten.",
     "consequences": "Das kann nicht rückgängig gemacht werden.\n\nNach dem Umwandeln geht Guthaben auch an neue Adressen. Stelle diese Seed-Phrase danach immer als HD-Wallet wieder her. Ein Wallet mit Einzeladresse und dieser Seed-Phrase zeigt das Guthaben auf diesen neuen Adressen nicht an, weder in Cashonize noch in anderen Wallet-Apps.",
-    "cashConnectSessions": "{count} CashConnect-Verbindung endet, und ihre dApp muss neu gekoppelt werden. | {count} CashConnect-Verbindungen enden, und ihre dApps müssen neu gekoppelt werden.",
+    "cashConnectAccount": "CashConnect-dApps sehen dieses Wallet als neues Konto. Um wieder an dein altes Konto zu kommen, importiere diese Seed-Phrase zusätzlich als Wallet mit Einzeladresse.",
     "walletConnectSessions": "{count} WalletConnect-dApp wird getrennt und kann danach wieder verbunden werden. | {count} WalletConnect-dApps werden getrennt und können danach wieder verbunden werden.",
     "confirmButton": "Umwandeln",
     "converted": "Wallet \"{name}\" ist jetzt ein HD-Wallet"

@@ -74,13 +74,10 @@ async function convertActiveWalletToHd(walletName: string, network: AppNetwork, 
   }
 }
 
-// What converting means, and the dApp connections it ends, for every dialog that offers it
+// What converting means, and the dApp connections it ends, for every dialog that offers it. The
+// CashConnect line always shows: a session entry is deleted on disconnect, so past use leaves no trace.
 function conversionConsequences(): string {
-  let message = t('convertToHd.consequences');
-  const cashConnectCount = Object.keys(useCashconnectStore().sessions).length;
-  if (cashConnectCount > 0) {
-    message += '\n\n' + t('convertToHd.cashConnectSessions', { count: cashConnectCount }, cashConnectCount);
-  }
+  let message = t('convertToHd.consequences') + '\n\n' + t('convertToHd.cashConnectAccount');
   const walletConnectCount = Object.keys(useWalletconnectStore().activeSessions ?? {}).length;
   if (walletConnectCount > 0) {
     message += '\n\n' + t('convertToHd.walletConnectSessions', { count: walletConnectCount }, walletConnectCount);

@@ -711,10 +711,11 @@
     "button": "Convert to HD wallet",
     "hint": "An HD wallet uses a new address for each payment, which keeps your payments more private, and it is needed for WizardConnect. It keeps the same seed phrase, coins, name and notes.",
     "hintNote": "Converting cannot be undone: from then on, restore this seed phrase as an HD wallet.",
+    "cashConnectNote": "Not recommended if you use CashConnect dApps. They will see this wallet as a new account.",
     "confirmTitle": "Convert to HD wallet?",
     "intro": "This wallet becomes an HD wallet on the same seed phrase, so it can connect to WizardConnect dApps, and it uses a new address for each payment. Its coins, name and notes stay.",
     "consequences": "This cannot be undone.\n\nAfter converting, coins also go to new addresses. From then on, always restore this seed phrase as an HD wallet. A single address wallet with this seed phrase won't show the coins on those new addresses, in Cashonize or in other wallet apps.",
-    "cashConnectSessions": "{count} CashConnect connection ends, and its dApp has to be paired again. | {count} CashConnect connections end, and their dApps have to be paired again.",
+    "cashConnectAccount": "CashConnect dApps will see this wallet as a new account. To get back to your old account, also import this seed phrase as a single address wallet.",
     "walletConnectSessions": "{count} WalletConnect dApp is disconnected, and can be connected again afterwards. | {count} WalletConnect dApps are disconnected, and can be connected again afterwards.",
     "confirmButton": "Convert",
     "converted": "Wallet \"{name}\" is now an HD wallet"

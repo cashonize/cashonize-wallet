@@ -120,6 +120,7 @@
           <InfoPopup>
             <div>{{ t('convertToHd.hint') }}</div>
             <div class="info-popup-note">{{ t('convertToHd.hintNote') }}</div>
+            <div class="info-popup-note">{{ t('convertToHd.cashConnectNote') }}</div>
           </InfoPopup>
         </div>
         <input @click="confirmAndConvertToHd()" type="button" :value="t('convertToHd.button')" class="button" style="display: block;">
