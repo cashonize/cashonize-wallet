@@ -441,6 +441,9 @@ export const useStore = defineStore('store', () => {
 
   // Create a callback that triggers when we switch networks.
   let networkChangeCallbacks: Array<() => Promise<void>> = [];
+  // The dApp cleanup of the resets so far, which a later reset waits for too, so quick switches
+  // still finish in the order they were made
+  let dappConnectionsCleanup: Promise<unknown> = Promise.resolve();
 
   function changeView(newView: number) {
     // Skip if already on this view
@@ -990,7 +993,8 @@ export const useStore = defineStore('store', () => {
       networkChangeCallbacks = [];
       // Await WC/CC/Wiz cleanup so stop() finishes before start() can be called again
       const cleanupPromises = cleanupCallbacks.map(callback => callback().catch(() => {}));
-      await Promise.all(cleanupPromises);
+      dappConnectionsCleanup = Promise.all([dappConnectionsCleanup, ...cleanupPromises]);
+      await dappConnectionsCleanup;
     }
 
     // cancel active listeners
