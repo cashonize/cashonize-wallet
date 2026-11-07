@@ -218,13 +218,17 @@
 
       // Fetch fiat value for BCH balance
       if (bchBalanceSats.value > 0n) {
+        let exchangeRate: number | undefined;
         try {
-          const exchangeRate = await convert(1, 'bch', settingsStore.currency);
-          if (generation !== sweepStateGeneration) return;
-          const fiatValue = convertToCurrency(bchBalanceSats.value, exchangeRate);
-          fiatBalance.value = formatFiatAmount(fiatValue, settingsStore.currency);
+          exchangeRate = await convert(1, 'bch', settingsStore.currency);
         } catch {
           // Non-critical: fiat display is optional
+        }
+        // outside the try, so a failed rate fetch does not let a stale run go on writing
+        if (generation !== sweepStateGeneration) return;
+        if (exchangeRate !== undefined) {
+          const fiatValue = convertToCurrency(bchBalanceSats.value, exchangeRate);
+          fiatBalance.value = formatFiatAmount(fiatValue, settingsStore.currency);
         }
       }
 

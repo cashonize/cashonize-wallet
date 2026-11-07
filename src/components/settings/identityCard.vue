@@ -263,9 +263,9 @@
 
   // Everything the publisher should see before signing: the wallet fetched what the locations
   // serve now, hashed it, and reads out of it what holders will be told changed.
-  function publishConfirmMessage(candidateSummary: RegistrySummary, hash: string) {
+  function publishConfirmMessage(candidateSummary: RegistrySummary, hash: string, uris: string[]) {
     const lines = [t('identities.publish.confirm.message', { hash })];
-    lines.push(...filledUris.value);
+    lines.push(...uris);
     if (hash === props.identity.publication?.hash) lines.push(t('identities.publish.confirm.sameFile'));
     if (currentRegistry.value) {
       const diff = diffRegistries(currentRegistry.value, candidateSummary);
@@ -287,15 +287,18 @@
     const authUtxo = props.identity.authUtxo;
     if (!authUtxo) return;
     await runAction('publish', async () => {
-      if (!filledUris.value.length) throw new Error(t('identities.publish.errors.noUris'));
+      // the locations stay editable during the fetch and the dialog, so the hash is published
+      // with the ones it was fetched from
+      const uris = [...filledUris.value];
+      if (!uris.length) throw new Error(t('identities.publish.errors.noUris'));
       if (publicationBytesLeft.value < 0) throw new Error(t('identities.publish.errors.tooLarge'));
-      const candidate = await fetchCandidateRegistry(filledUris.value, settingsStore.ipfsGateway);
+      const candidate = await fetchCandidateRegistry(uris, settingsStore.ipfsGateway);
       const candidateSummary = summarizeRegistry(candidate.content, props.identity.category);
       if (!candidateSummary) throw new Error(t('identities.publish.errors.noIdentity'));
 
       const confirmed = await confirmDialog(
         t('identities.publish.confirm.title'),
-        publishConfirmMessage(candidateSummary, candidate.hash),
+        publishConfirmMessage(candidateSummary, candidate.hash, uris),
         t('identities.publish.confirm.button')
       );
       if (!confirmed) return;
@@ -303,7 +306,7 @@
       notifySending();
       const { txId } = await store.spend.spendAuthUtxo(authUtxo, [
         identityOutput(authUtxo, store.walletAddresses()),
-        publicationOutput(candidate.hash, filledUris.value),
+        publicationOutput(candidate.hash, uris),
       ]);
       return { txId, message: t('identities.publish.done'), title: t('identities.publish.doneTitle') };
     });

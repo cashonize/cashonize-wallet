@@ -143,15 +143,17 @@
   ));
 
   async function checkRegistry() {
+    // taken before the fetch: the coin and the locations can both change while it runs
     const category = plannedCategory.value;
-    if (activeAction.value || !category || !filledUris.value.length) return;
+    const uris = [...filledUris.value];
+    if (activeAction.value || !category || !uris.length) return;
     activeAction.value = 'checking';
     try {
-      if (locationBudgetLeft(filledUris.value) < 0) throw new Error(t('identities.publish.errors.tooLarge'));
-      const candidate = await fetchCandidateRegistry(filledUris.value, settingsStore.ipfsGateway);
+      if (locationBudgetLeft(uris) < 0) throw new Error(t('identities.publish.errors.tooLarge'));
+      const candidate = await fetchCandidateRegistry(uris, settingsStore.ipfsGateway);
       const summary = summarizeRegistry(candidate.content, category);
       if (!summary) throw new Error(t('createTokens.notifications.bcmrWrongIdentity'));
-      checkedRegistry.value = { category, uris: [...filledUris.value], summary, hash: candidate.hash };
+      checkedRegistry.value = { category, uris, summary, hash: candidate.hash };
     } catch (error) {
       displayAndLogError(error);
     } finally {
