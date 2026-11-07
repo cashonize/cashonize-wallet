@@ -984,11 +984,13 @@ export const useStore = defineStore('store', () => {
       isCcInitDone.value = false;
       isWizInitDone.value = false;
 
-      // Await WC/CC/Wiz cleanup so stop() finishes before start() can be called again
-      const cleanupPromises = networkChangeCallbacks.map(callback => callback().catch(() => {}));
-      await Promise.all(cleanupPromises);
-      // Clear the networkChangeCallbacks before initialising newWallet
+      // Taken off the list before they are awaited, so a callback an init registers meanwhile is
+      // kept for the next switch rather than dropped with these
+      const cleanupCallbacks = networkChangeCallbacks;
       networkChangeCallbacks = [];
+      // Await WC/CC/Wiz cleanup so stop() finishes before start() can be called again
+      const cleanupPromises = cleanupCallbacks.map(callback => callback().catch(() => {}));
+      await Promise.all(cleanupPromises);
     }
 
     // cancel active listeners
@@ -1148,7 +1150,6 @@ export const useStore = defineStore('store', () => {
   }
 
   async function initializeWalletConnect() {
-    const initialization = currentInitialization;
     try {
       const walletconnectStore = useWalletconnectStore()
       const walletKitReady = walletconnectStore.initweb3wallet();
@@ -1176,9 +1177,8 @@ export const useStore = defineStore('store', () => {
         color: "red"
       });
     } finally {
-      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever;
-      // an overtaken init leaves that to the init that overtook it, which runs this function too
-      if (!walletSwitchedSince(initialization)) isWcInitDone.value = true;
+      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever
+      isWcInitDone.value = true;
     }
   }
 
@@ -1217,9 +1217,8 @@ export const useStore = defineStore('store', () => {
         });
       }
     } finally {
-      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever;
-      // an overtaken init leaves that to the init that overtook it, which runs this function too
-      if (!walletSwitchedSince(initialization)) isCcInitDone.value = true;
+      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever
+      isCcInitDone.value = true;
     }
   }
 
