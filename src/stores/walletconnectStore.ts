@@ -49,8 +49,9 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   const mainStore = useStore();
   const activeSessions = ref(undefined as undefined | Record<string, SessionTypes.Struct>);
   const web3wallet = ref(undefined as undefined | IWalletKit);
-  // Store a state variable to make sure we don't call "initweb3wallet" more than once.
-  const isInitialized = ref(false);
+  // Kept from the first call on, so WalletKit is set up once: a call made while it still
+  // initializes waits for the same init rather than registering every handler a second time
+  let initPromise: Promise<void> | undefined;
   // Track the approval dialog so it can be cleared if a cancellation request is received over walletconnect
   let pendingDialog: { id: number; handle: ReturnType<typeof Dialog.create>; dappName: string } | null = null;
   let cancellationPollingInterval: ReturnType<typeof setInterval> | null = null;
@@ -84,10 +85,15 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
       cancelledCount++;
     }
   }
-  async function initweb3wallet() {
-    // Make sure we don't initialize WC more than once.
-    // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
-    if (isInitialized.value) return;
+  function initweb3wallet() {
+    // a failed init is forgotten, so the next wallet initialization tries again
+    initPromise ??= initializeWalletKit().catch((error: unknown) => {
+      initPromise = undefined;
+      throw error;
+    });
+    return initPromise;
+  }
+  async function initializeWalletKit() {
     const core = new Core({
       projectId: walletConnectProjectId,
       // On by default: posts pairing, approval and response failures (flow step names, error
@@ -159,8 +165,6 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     });
     web3wallet.value = walletKit
     activeSessions.value = web3wallet.value.getActiveSessions();
-    // Set our state variable so we don't initialize it again when switching networks.
-    isInitialized.value = true;
   }
   function wcSessionProposal(sessionProposal: WalletKitTypes.SessionProposal) {
     const namespaces = getNamespaces(sessionProposal)

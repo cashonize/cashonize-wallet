@@ -1150,10 +1150,12 @@ export const useStore = defineStore('store', () => {
   async function initializeWalletConnect() {
     try {
       const walletconnectStore = useWalletconnectStore()
-      await walletconnectStore.initweb3wallet();
+      const walletKitReady = walletconnectStore.initweb3wallet();
 
-      // Setup network change callback to disconnect all sessions.
+      // Setup network change callback to disconnect all sessions. Registered before the init is
+      // awaited, so a switch while WalletKit still initializes also ends the sessions it restores.
       networkChangeCallbacks.push(async () => {
+        await walletKitReady;
         const sessions = walletconnectStore.web3wallet?.getActiveSessions();
         if(!sessions) return
 
@@ -1164,6 +1166,7 @@ export const useStore = defineStore('store', () => {
           Object.values(sessions).map(session => walletconnectStore.deleteSession(session.topic))
         );
       });
+      await walletKitReady;
     } catch (error) {
       console.error("Error initializing WalletConnect:", error);
       Notify.create({
@@ -1188,16 +1191,18 @@ export const useStore = defineStore('store', () => {
       // Initialize CashConnect.
       const cashconnectWallet = useCashconnectStore();
 
-      // Start the wallet service.
-      await cashconnectWallet.start();
-
       // Setup network change callback to stop the CashConnect service.
       // Sessions are not un-paired: they persist in localStorage (namespaced per wallet
       // identity key) and are restored by the next start() for the same wallet and network.
+      // Registered before the start is awaited, so a switch during it stops this instance too,
+      // rather than leaving it serving the previous wallet's sessions with the next wallet's coins.
       // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
       networkChangeCallbacks.push(async () => {
         await cashconnectWallet.stop();
       });
+
+      // Start the wallet service.
+      await cashconnectWallet.start();
       // the coin watch tells CashConnect when the wallet's coins change (notifyCashConnectOfCoins)
     } catch (error) {
       console.error("Error initializing CashConnect:", error);

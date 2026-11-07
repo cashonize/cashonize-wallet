@@ -53,11 +53,15 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   const sessions = ref<Record<string, WalletSession>>({});
   // The CashConnect Wallet instance.
   const cashConnectWallet = shallowRef<Wallet | undefined>();
+  // The library's stop() does not stop a start still running, which goes on to restore and run the
+  // sessions after it, so stop() waits this out first
+  let startPromise: Promise<void> | undefined;
   async function start() {
     // Make sure we don't start CC more than once.
     // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
+    // A start still running is waited for, so a caller only goes on once CashConnect is up.
     if (cashConnectWallet.value) {
-      return;
+      return startPromise;
     }
     // Get the Private Key to use for CashConnect.
     const cashConnectPrivateKey = getCashConnectPrivateKeyForWallet(mainStore.wallet);
@@ -80,7 +84,8 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     });
 
     // Start CashConnect service.
-    await cashConnectWallet.value.start();
+    startPromise = cashConnectWallet.value.start();
+    await startPromise;
   }
   async function stop() {
     // If already stopped, do nothing.
@@ -92,9 +97,13 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     //       This causes a race-condition whereby CashConnect hasn't finished closing connections yet.
     //       And the `start()` call thinks that the existing instance still exists.
     const cashConnectPrevInstance = cashConnectWallet.value;
+    const prevStartPromise = startPromise;
     cashConnectWallet.value = undefined;
+    startPromise = undefined;
+    // a failed start is the init's to report; whatever it got running still gets stopped
+    await prevStartPromise?.catch(() => {});
     // the sessions are the stopped wallet's, and a wallet that starts no CashConnect (testnet4)
-    // must not list them
+    // must not list them; cleared after the start, which lists the sessions it restored
     sessions.value = {};
     // Stop the CashConnect Wallet service.
     await cashConnectPrevInstance.stop();
