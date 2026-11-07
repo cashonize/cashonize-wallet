@@ -136,6 +136,7 @@
   // the decimals field is only shown for a shape with a supply, so only then can it disagree
   // with the registry; a leftover value must not block a minting NFT alone
   const readiness = computed(() => metadataReadiness(
+    plannedCategory.value,
     filledUris.value,
     checkedRegistry.value,
     hasSupply.value ? decimals.value : (checkedRegistry.value?.summary.decimals ?? 0),
@@ -150,7 +151,7 @@
       const candidate = await fetchCandidateRegistry(filledUris.value, settingsStore.ipfsGateway);
       const summary = summarizeRegistry(candidate.content, category);
       if (!summary) throw new Error(t('createTokens.notifications.bcmrWrongIdentity'));
-      checkedRegistry.value = { uris: [...filledUris.value], summary, hash: candidate.hash };
+      checkedRegistry.value = { category, uris: [...filledUris.value], summary, hash: candidate.hash };
     } catch (error) {
       displayAndLogError(error);
     } finally {

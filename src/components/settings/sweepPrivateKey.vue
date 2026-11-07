@@ -85,7 +85,12 @@
     return t('sweepPrivateKey.unlockButton');
   });
 
+  // Bumped on every reset, so a preview or unlock still running for the key or network left
+  // behind drops its result instead of showing it under the new one
+  let sweepStateGeneration = 0;
+
   function resetSweepState() {
+    sweepStateGeneration++;
     previewReady.value = false;
     isEmpty.value = false;
     insufficientFeeBch.value = false;
@@ -140,6 +145,7 @@
       return displayAndLogError(new Error(t('sweepPrivateKey.errors.noPassphraseProvided')));
     }
     isUnlocking.value = true;
+    const generation = sweepStateGeneration;
     try {
       const encryptedKey = keyToSweep.value;
       // Decrypting holds the main thread from here until it is done, so wait for the paint that
@@ -153,6 +159,8 @@
       // An encrypted key holds no network of its own, it unlocks the same key on either
       const wif = encodePrivateKeyWif(privateKey, store.network == 'mainnet' ? 'mainnet' : 'testnet');
       const address = await withTempWallet(wif, (tempWallet) => Promise.resolve(tempWallet.cashaddr));
+      // the wif is encoded for the network the unlock started on
+      if (generation !== sweepStateGeneration) return;
       unlockedKey.value = { encryptedKey, wif, address };
       // The passphrase has done its work, the unlocked key is what the sweep needs from here
       bip38Passphrase.value = "";
@@ -199,9 +207,11 @@
     isLoading.value = true;
     previewReady.value = false;
     isEmpty.value = false;
+    const generation = sweepStateGeneration;
     try {
       const wif = getWifToSweep();
       const utxos = await withTempWallet(wif, (tempWallet) => tempWallet.getUtxos());
+      if (generation !== sweepStateGeneration) return;
 
       // Include sats from token UTXOs since those will be recovered after sweeping the tokens
       bchBalanceSats.value = utxos.reduce((sum, utxo) => sum + utxo.satoshis, 0n);
@@ -210,6 +220,7 @@
       if (bchBalanceSats.value > 0n) {
         try {
           const exchangeRate = await convert(1, 'bch', settingsStore.currency);
+          if (generation !== sweepStateGeneration) return;
           const fiatValue = convertToCurrency(bchBalanceSats.value, exchangeRate);
           fiatBalance.value = formatFiatAmount(fiatValue, settingsStore.currency);
         } catch {
@@ -235,6 +246,7 @@
       const categoriesToFetch = [...categories].filter(category => !store.bcmrRegistries?.[category]);
       const fetchPromises = categoriesToFetch.map(category => fetchUnverifiedTokenInfo(category));
       await Promise.all(fetchPromises);
+      if (generation !== sweepStateGeneration) return;
 
       previewReady.value = true;
     } catch (error) {

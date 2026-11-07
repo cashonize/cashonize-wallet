@@ -44,34 +44,43 @@ describe('genesisAmounts', () => {
 })
 
 describe('metadataReadiness', () => {
+  const category = 'cd'.repeat(32)
   const checked: CheckedRegistry = {
+    category,
     uris: ['example.com'],
     summary: { name: 'Test', symbol: 'TST', decimals: 2, snapshots: [] },
     hash: 'ab'.repeat(32),
   }
 
   it('needs nothing while no location is typed', () => {
-    expect(metadataReadiness([], undefined, 2)).toBe('none')
+    expect(metadataReadiness(category, [], undefined, 2)).toBe('none')
   })
 
   // Create must not commit to a hash the wallet has not fetched and verified
   it('needs a check once a location is typed, and again once it was edited', () => {
-    expect(metadataReadiness(['example.com'], undefined, 2)).toBe('unchecked')
-    expect(metadataReadiness(['other.example'], checked, 2)).toBe('unchecked')
-    expect(metadataReadiness(['example.com', 'ipfs://bafy'], checked, 2)).toBe('unchecked')
+    expect(metadataReadiness(category, ['example.com'], undefined, 2)).toBe('unchecked')
+    expect(metadataReadiness(category, ['other.example'], checked, 2)).toBe('unchecked')
+    expect(metadataReadiness(category, ['example.com', 'ipfs://bafy'], checked, 2)).toBe('unchecked')
   })
 
   // the supply was created for one number of decimals; a registry saying another would show
   // every balance wrong by powers of ten
   it('refuses a registry that disagrees on the decimals', () => {
-    expect(metadataReadiness(['example.com'], checked, 0)).toBe('decimalsMismatch')
-    expect(metadataReadiness(['example.com'], checked, 2)).toBe('ready')
+    expect(metadataReadiness(category, ['example.com'], checked, 0)).toBe('decimalsMismatch')
+    expect(metadataReadiness(category, ['example.com'], checked, 2)).toBe('ready')
   })
 
   it('reads a registry that says nothing about decimals as zero', () => {
     const noDecimals = { ...checked, summary: { name: 'Test', snapshots: [] } }
-    expect(metadataReadiness(['example.com'], noDecimals, 0)).toBe('ready')
-    expect(metadataReadiness(['example.com'], noDecimals, 2)).toBe('decimalsMismatch')
+    expect(metadataReadiness(category, ['example.com'], noDecimals, 0)).toBe('ready')
+    expect(metadataReadiness(category, ['example.com'], noDecimals, 2)).toBe('decimalsMismatch')
+  })
+
+  // the file was verified to name the category of the coin picked then; picking another coin
+  // changes the category, and the genesis would publish a registry about a different token
+  it('needs a fresh check once another coin is picked', () => {
+    expect(metadataReadiness('ef'.repeat(32), ['example.com'], checked, 2)).toBe('unchecked')
+    expect(metadataReadiness(undefined, ['example.com'], checked, 2)).toBe('unchecked')
   })
 })
 
