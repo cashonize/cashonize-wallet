@@ -51,20 +51,23 @@ export function genesisAmounts(supplyText: string, circulatingText: string, deci
   return { supply, circulating, reserve: supply - circulating };
 }
 
-// What the wallet fetched from the typed locations and verified names this category
+// What the wallet fetched from the typed locations and verified names the category it was checked for
 export interface CheckedRegistry {
+  category: string;
   uris: string[];
   summary: RegistrySummary;
   hash: string;
 }
 
 // What stands between the typed locations and Create: nothing while none is typed, a check once
-// one is, a fresh check once they were edited, and the registry agreeing on the decimals
+// one is, a fresh check once they or the coin the category comes from changed, and the registry
+// agreeing on the decimals
 export type MetadataReadiness = 'none' | 'unchecked' | 'decimalsMismatch' | 'ready';
 
-export function metadataReadiness(uris: string[], checked: CheckedRegistry | undefined, decimals: number): MetadataReadiness {
+export function metadataReadiness(category: string | undefined, uris: string[], checked: CheckedRegistry | undefined, decimals: number): MetadataReadiness {
   if (!uris.length) return 'none';
-  if (!checked || checked.uris.length !== uris.length || checked.uris.some((uri, index) => uri !== uris[index])) {
+  if (!checked || checked.category !== category) return 'unchecked';
+  if (checked.uris.length !== uris.length || checked.uris.some((uri, index) => uri !== uris[index])) {
     return 'unchecked';
   }
   // a registry that says nothing about decimals means zero, per the spec
