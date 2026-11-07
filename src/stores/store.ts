@@ -1148,6 +1148,7 @@ export const useStore = defineStore('store', () => {
   }
 
   async function initializeWalletConnect() {
+    const initialization = currentInitialization;
     try {
       const walletconnectStore = useWalletconnectStore()
       const walletKitReady = walletconnectStore.initweb3wallet();
@@ -1175,8 +1176,9 @@ export const useStore = defineStore('store', () => {
         color: "red"
       });
     } finally {
-      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever
-      isWcInitDone.value = true;
+      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever;
+      // an overtaken init leaves that to the init that overtook it, which runs this function too
+      if (!walletSwitchedSince(initialization)) isWcInitDone.value = true;
     }
   }
 
@@ -1187,6 +1189,7 @@ export const useStore = defineStore('store', () => {
       isCcInitDone.value = true;
       return;
     }
+    const initialization = currentInitialization;
     try{
       // Initialize CashConnect.
       const cashconnectWallet = useCashconnectStore();
@@ -1194,8 +1197,7 @@ export const useStore = defineStore('store', () => {
       // Setup network change callback to stop the CashConnect service.
       // Sessions are not un-paired: they persist in localStorage (namespaced per wallet
       // identity key) and are restored by the next start() for the same wallet and network.
-      // Registered before the start is awaited, so a switch during it stops this instance too,
-      // rather than leaving it serving the previous wallet's sessions with the next wallet's coins.
+      // Registered before the start is awaited, so a switch during the start stops it too.
       // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
       networkChangeCallbacks.push(async () => {
         await cashconnectWallet.stop();
@@ -1206,14 +1208,18 @@ export const useStore = defineStore('store', () => {
       // the coin watch tells CashConnect when the wallet's coins change (notifyCashConnectOfCoins)
     } catch (error) {
       console.error("Error initializing CashConnect:", error);
-      Notify.create({
-        message: t('store.errors.errorInitializingCashConnect'),
-        icon: 'warning',
-        color: "red"
-      });
+      // a start the switch stopped fails on purpose
+      if (!walletSwitchedSince(initialization)) {
+        Notify.create({
+          message: t('store.errors.errorInitializingCashConnect'),
+          icon: 'warning',
+          color: "red"
+        });
+      }
     } finally {
-      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever
-      isCcInitDone.value = true;
+      // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever;
+      // an overtaken init leaves that to the init that overtook it, which runs this function too
+      if (!walletSwitchedSince(initialization)) isCcInitDone.value = true;
     }
   }
 
