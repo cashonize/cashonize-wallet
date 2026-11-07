@@ -287,7 +287,7 @@
     const authUtxo = props.identity.authUtxo;
     if (!authUtxo) return;
     await runAction('publish', async () => {
-      // the locations stay editable during the fetch and the dialog, so the hash is published
+      // the locations stay editable during the fetch, so the hash is published
       // with the ones it was fetched from
       const uris = [...filledUris.value];
       if (!uris.length) throw new Error(t('identities.publish.errors.noUris'));
