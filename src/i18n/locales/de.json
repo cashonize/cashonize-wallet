@@ -45,6 +45,15 @@
     "history": "Historie",
     "connect": "Verbinden"
   },
+  "networkBadge": {
+    "intro": "Diese Wallet ist auf {network}, einem Testnetzwerk: Ihre Coins haben keinen Wert.",
+    "unavailableHeading": "Auf {network} nicht verfügbar:",
+    "unavailable": {
+      "tokenMetadata": "Token-Metadaten (Namen, Symbole, Dezimalstellen)",
+      "cauldronPrices": "Cauldron-Tokenpreise",
+      "dappConnections": "dApp-Verbindungen"
+    }
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Bitte gib einen Wallet-Namen ein",

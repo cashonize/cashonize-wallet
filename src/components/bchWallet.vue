@@ -18,6 +18,7 @@
   import QrScanButton from './qr/qrScanButton.vue';
   import QrCode from './general/qrCode.vue';
   import portfolioIcon from './portfolio/portfolioIcon.vue';
+  import NetworkBadge from './general/networkBadge.vue';
 
   const $q = useQuasar()
   const store = useStore()
@@ -310,6 +311,8 @@
     <legend class="walletName" role="button" :aria-label="t('settings.currentWallet')">
       <span class="walletNameText">{{ store.activeWalletName }}</span>
       <q-icon name="expand_more" size="20px" class="walletNameChevron" />
+      <!-- stops the click here, so the badge opens its own popup and not the wallet menu -->
+      <span class="walletNetworkBadge" @click.stop><NetworkBadge /></span>
       <q-menu ref="walletMenu" anchor="bottom left" self="top left" :transition-duration="walletMenuTransitionMs" @hide="onWalletMenuHide">
         <q-list dense style="min-width: 180px">
           <q-item v-for="wallet in store.availableWallets" :key="wallet.name" clickable v-close-popup @click="switchWalletWithNotice(wallet.name)">
@@ -435,6 +438,14 @@
 }
 .walletNameChevron {
   opacity: 0.6;
+}
+.walletNetworkBadge {
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+/* only a comment node is left while the badge is hidden, so no gap is kept for it */
+.walletNetworkBadge:empty {
+  display: none;
 }
 .walletNameText {
   overflow: hidden;

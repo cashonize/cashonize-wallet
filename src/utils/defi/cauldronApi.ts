@@ -17,13 +17,18 @@ export interface CauldronPriceData {
   hasSufficientLiquidity: boolean;
 }
 
+// Cauldron runs an indexer for mainnet and chipnet only
+export function cauldronAvailableOn(network: AppNetwork): boolean {
+  return network === 'mainnet' || network === 'chipnet';
+}
+
 // Fetch prices for multiple tokens; none on a network without a Cauldron indexer (testnet4)
 export async function fetchCauldronPrices(
   tokenIds: string[],
   network: AppNetwork
 ): Promise<Record<string, CauldronPriceData>> {
   const results: Record<string, CauldronPriceData> = {};
-  if (network !== 'mainnet' && network !== 'chipnet') return results;
+  if (!cauldronAvailableOn(network)) return results;
   const isMainnet = network === 'mainnet';
   const indexerUrl = isMainnet ? useSettingsStore().cauldronIndexer : CAULDRON_INDEXER_CHIPNET;
   const minLiquiditySats = isMainnet ? MIN_LIQUIDITY_SATS_MAINNET : MIN_LIQUIDITY_SATS_CHIPNET;

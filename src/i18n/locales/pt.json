@@ -45,6 +45,15 @@
     "history": "Histórico",
     "connect": "Conectar"
   },
+  "networkBadge": {
+    "intro": "Esta carteira está na {network}, uma rede de teste: as suas moedas não têm valor.",
+    "unavailableHeading": "Não disponível na {network}:",
+    "unavailable": {
+      "tokenMetadata": "Metadados de tokens (nomes, ícones, casas decimais)",
+      "cauldronPrices": "Preços de tokens da Cauldron",
+      "dappConnections": "Conexões com dApps"
+    }
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Por favor, insira um nome para a carteira",

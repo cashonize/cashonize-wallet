@@ -45,6 +45,15 @@
     "history": "Historial",
     "connect": "Conectar"
   },
+  "networkBadge": {
+    "intro": "Esta billetera está en {network}, una red de prueba: sus monedas no tienen valor.",
+    "unavailableHeading": "No disponible en {network}:",
+    "unavailable": {
+      "tokenMetadata": "Metadatos de tokens (nombres, iconos, decimales)",
+      "cauldronPrices": "Precios de tokens de Cauldron",
+      "dappConnections": "Conexiones con dApps"
+    }
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Por favor ingresa un nombre de billetera",

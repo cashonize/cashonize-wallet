@@ -45,6 +45,15 @@
     "history": "Historique",
     "connect": "Connecter"
   },
+  "networkBadge": {
+    "intro": "Ce portefeuille est sur {network}, un réseau de test : ses pièces n'ont aucune valeur.",
+    "unavailableHeading": "Non disponible sur {network} :",
+    "unavailable": {
+      "tokenMetadata": "Métadonnées des tokens (noms, icônes, décimales)",
+      "cauldronPrices": "Prix des tokens sur Cauldron",
+      "dappConnections": "Connexions aux dApps"
+    }
+  },
   "walletUtils": {
     "errors": {
       "enterWalletName": "Veuillez entrer un nom de portefeuille",
