@@ -37,7 +37,18 @@ const defaultChaingraphs: Record<AppNetwork, string> = {
   chipnet: "",
   testnet4: "",
 };
-const defaultCauldronIndexer = "https://indexer.riften.net";
+// The Cauldron DEX's indexer per network: Riften Labs runs one for mainnet and one for chipnet,
+// and testnet4 has none, "" turning token prices off there. Mainnet keeps the key it always had.
+const defaultCauldronIndexers: Record<AppNetwork, string> = {
+  mainnet: "https://indexer.riften.net",
+  chipnet: "https://indexer-chipnet.riften.net",
+  testnet4: "",
+};
+const cauldronIndexerKeys: Record<AppNetwork, string> = {
+  mainnet: "cauldronIndexer",
+  chipnet: "cauldronIndexer-chipnet",
+  testnet4: "cauldronIndexer-testnet4",
+};
 // The token metadata endpoints: a BCMR indexer that indexes token identities only, keyed by
 // category. Not a way to name a non-token identity, which the identities page reads from its own
 // registry. Stored under the old "bcmrIndexer*" keys, which a user never sees. Testnet4 has none,
@@ -73,6 +84,7 @@ export const settingsMenuKeys = [
   // advanced settings
   "electrum-mainnet", "electrum-chipnet", "electrum-testnet4", "electrumMode-mainnet", "electrumMode-chipnet",
   "electrumMode-testnet4", "chaingraph-mainnet", "chaingraph-chipnet", "chaingraph-testnet4", "cauldronIndexer",
+  "cauldronIndexer-chipnet", "cauldronIndexer-testnet4",
   "bcmrIndexerMainnet", "bcmrIndexerChipnet", "bcmrIndexer-testnet4", "ipfsGateway", "exchangeRateProvider",
   // developer settings
   "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
@@ -103,7 +115,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     testnet4: storedElectrumMode("testnet4"),
   } as Record<AppNetwork, ElectrumServerMode>);
   const chaingraph = ref<Record<AppNetwork, string>>({ ...defaultChaingraphs });
-  const cauldronIndexer = ref(defaultCauldronIndexer);
+  const cauldronIndexer = ref<Record<AppNetwork, string>>({ ...defaultCauldronIndexers });
   const tokenMetadataIndexer = ref<Record<AppNetwork, string>>({ ...defaultTokenMetadataIndexers });
   const ipfsGateway = ref(defaultIpfsGateway);
   const darkMode  = ref(false);
@@ -299,6 +311,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     if (readExplorer) explorer.value[network] = readExplorer;
     const readTokenMetadataIndexer = localStorage.getItem(tokenMetadataIndexerKeys[network]);
     if (readTokenMetadataIndexer) tokenMetadataIndexer.value[network] = readTokenMetadataIndexer;
+    const readCauldronIndexer = localStorage.getItem(cauldronIndexerKeys[network]);
+    if (readCauldronIndexer) cauldronIndexer.value[network] = readCauldronIndexer;
   }
 
   function setElectrumMode(network: AppNetwork, mode: ElectrumServerMode) {
@@ -320,6 +334,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem(`chaingraph-${network}`, chaingraphUrl);
   }
   // "" is no indexer, which turns token metadata off
+  function setCauldronIndexer(network: AppNetwork, indexerUrl: string) {
+    cauldronIndexer.value[network] = indexerUrl;
+    localStorage.setItem(cauldronIndexerKeys[network], indexerUrl);
+  }
   function setTokenMetadataIndexer(network: AppNetwork, indexerUrl: string) {
     tokenMetadataIndexer.value[network] = indexerUrl;
     localStorage.setItem(tokenMetadataIndexerKeys[network], indexerUrl);
@@ -340,8 +358,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     if (readChaingraph !== null) chaingraph.value[network] = readChaingraph;
   }
 
-  const readCauldronIndexer = localStorage.getItem("cauldronIndexer") ?? "";
-  if(readCauldronIndexer) cauldronIndexer.value = readCauldronIndexer
   
   const readIpfsGateway = localStorage.getItem("ipfsGateway") ?? "";
   if(readIpfsGateway) ipfsGateway.value = readIpfsGateway
@@ -598,6 +614,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     setExplorer,
     setChaingraph,
     setTokenMetadataIndexer,
+    setCauldronIndexer,
     chaingraph,
     cauldronIndexer,
     tokenMetadataIndexer,

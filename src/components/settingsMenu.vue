@@ -100,7 +100,15 @@
   const isCustomChaingraph = storedChaingraph !== "" && !predefinedChaingraphs[activeNetwork].includes(storedChaingraph);
   const selectedChaingraph = ref(isCustomChaingraph ? "custom" : storedChaingraph);
   const customChaingraph = ref(isCustomChaingraph ? storedChaingraph : "");
-  const selectedCauldronIndexer = ref(settingsStore.cauldronIndexer);
+  const predefinedCauldronIndexers: Record<AppNetwork, string[]> = {
+    mainnet: ["https://indexer.riften.net", "https://indexer.cauldron.quest"],
+    chipnet: ["https://indexer-chipnet.riften.net"],
+    testnet4: [],
+  };
+  const storedCauldronIndexer = settingsStore.cauldronIndexer[activeNetwork];
+  const isCustomCauldronIndexer = storedCauldronIndexer !== "" && !predefinedCauldronIndexers[activeNetwork].includes(storedCauldronIndexer);
+  const selectedCauldronIndexer = ref(isCustomCauldronIndexer ? "custom" : storedCauldronIndexer);
+  const customCauldronIndexer = ref(isCustomCauldronIndexer ? storedCauldronIndexer : "");
   const predefinedTokenMetadataIndexers: Record<AppNetwork, string[]> = {
     mainnet: ["https://bcmr.paytaca.com/api"],
     chipnet: ["https://bcmr-chipnet.paytaca.com/api"],
@@ -346,8 +354,20 @@
     settingsStore.setChaingraph(activeNetwork, normalizedChaingraph);
   }
   function changeCauldronIndexer(){
-    settingsStore.cauldronIndexer = selectedCauldronIndexer.value;
-    localStorage.setItem("cauldronIndexer", selectedCauldronIndexer.value);
+    if (selectedCauldronIndexer.value === "custom") return;
+    applyCauldronIndexer(selectedCauldronIndexer.value);
+  }
+  function saveCustomCauldronIndexer(){
+    // the price fetch appends /cauldron/... paths, so strip any trailing slash
+    let trimmedIndexer = customCauldronIndexer.value.trim().replace(/\/+$/, "");
+    if (!trimmedIndexer) return;
+    // without a scheme the value would be used as a path on the app's own origin
+    if (!/^https?:\/\//i.test(trimmedIndexer)) trimmedIndexer = `https://${trimmedIndexer}`;
+    customCauldronIndexer.value = trimmedIndexer;
+    applyCauldronIndexer(trimmedIndexer);
+  }
+  function applyCauldronIndexer(indexerUrl: string){
+    settingsStore.setCauldronIndexer(activeNetwork, indexerUrl);
     // refetch token prices from the newly selected indexer
     void store.fetchCauldronPricesForTokens();
   }
@@ -850,9 +870,22 @@
           <div style="max-width: 300px;">{{ t('settings.advanced.cauldronIndexerHint') }}</div>
         </InfoPopup>
         <select v-model="selectedCauldronIndexer" @change="changeCauldronIndexer()">
-          <option value="https://indexer.riften.net">indexer.riften.net {{ t('settings.advanced.default') }}</option>
-          <option value="https://indexer.cauldron.quest">indexer.cauldron.quest</option>
+          <option v-if="predefinedCauldronIndexers[activeNetwork].length === 0" value="">{{ t('settings.advanced.cauldronIndexerNone') }} {{ t('settings.advanced.default') }}</option>
+          <option v-for="(indexer, index) in predefinedCauldronIndexers[activeNetwork]" :key="indexer" :value="indexer">
+            {{ getHostname(indexer) }}{{ index === 0 ? ' ' + t('settings.advanced.default') : '' }}
+          </option>
+          <option value="custom">{{ t('settings.advanced.custom') }}</option>
         </select>
+        <div v-if="selectedCauldronIndexer === 'custom'" style="margin-top: 8px;">
+          <input
+            v-model="customCauldronIndexer"
+            @blur="saveCustomCauldronIndexer()"
+            @keyup.enter="saveCustomCauldronIndexer()"
+            type="text"
+            :placeholder="t('settings.advanced.cauldronIndexerCustomPlaceholder')"
+            style="width: 100%;"
+          >
+        </div>
       </div>
 
       <div style="margin-top:15px">

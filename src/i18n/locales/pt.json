@@ -1539,6 +1539,8 @@
       "chaingraphNone": "Nenhum",
       "cauldronIndexer": "Indexador Cauldron:",
       "cauldronIndexerHint": "Usado para obter preços de tokens da DEX Cauldron para o portfólio e a lista de tokens.",
+      "cauldronIndexerNone": "Nenhum",
+      "cauldronIndexerCustomPlaceholder": "ex: https://indexer.example.com",
       "exchangeRate": "Provedor de cotações:",
       "exchangeRateDefault": "Padrão (bitcoin.com para USD, BitPay para o resto)",
       "deleteAllWallets": "Remover todas as carteiras e dados do {platform}",

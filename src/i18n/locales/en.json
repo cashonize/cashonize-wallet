@@ -1539,6 +1539,8 @@
       "chaingraphNone": "None",
       "cauldronIndexer": "Cauldron indexer:",
       "cauldronIndexerHint": "Used to get token prices from the Cauldron DEX for the portfolio and the token list.",
+      "cauldronIndexerNone": "None",
+      "cauldronIndexerCustomPlaceholder": "e.g. https://indexer.example.com",
       "exchangeRate": "Exchange rate provider:",
       "exchangeRateDefault": "Default (bitcoin.com for USD, BitPay for rest)",
       "deleteAllWallets": "Remove all wallets and all data from {platform}",
