@@ -449,6 +449,9 @@ export const useStore = defineStore('store', () => {
 
   // Create a callback that triggers when we switch networks.
   let networkChangeCallbacks: Array<() => Promise<void>> = [];
+  // The dApp cleanup of the resets so far, which a later reset waits for too, so quick switches
+  // still finish in the order they were made
+  let dappConnectionsCleanup: Promise<unknown> = Promise.resolve();
 
   function changeView(newView: number) {
     // Skip if already on this view
@@ -992,11 +995,14 @@ export const useStore = defineStore('store', () => {
       isCcInitDone.value = false;
       isWizInitDone.value = false;
 
-      // Await WC/CC/Wiz cleanup so stop() finishes before start() can be called again
-      const cleanupPromises = networkChangeCallbacks.map(callback => callback().catch(() => {}));
-      await Promise.all(cleanupPromises);
-      // Clear the networkChangeCallbacks before initialising newWallet
+      // Taken off the list before they are awaited, so a callback an init registers meanwhile is
+      // kept for the next switch rather than dropped with these
+      const cleanupCallbacks = networkChangeCallbacks;
       networkChangeCallbacks = [];
+      // Await WC/CC/Wiz cleanup so stop() finishes before start() can be called again
+      const cleanupPromises = cleanupCallbacks.map(callback => callback().catch(() => {}));
+      dappConnectionsCleanup = Promise.all([dappConnectionsCleanup, ...cleanupPromises]);
+      await dappConnectionsCleanup;
     }
 
     // cancel active listeners
@@ -1165,10 +1171,12 @@ export const useStore = defineStore('store', () => {
   async function initializeWalletConnect() {
     try {
       const walletconnectStore = useWalletconnectStore()
-      await walletconnectStore.initweb3wallet();
+      const walletKitReady = walletconnectStore.initweb3wallet();
 
-      // Setup network change callback to disconnect all sessions.
+      // Setup network change callback to disconnect all sessions. Registered before the init is
+      // awaited, so a switch while WalletKit still initializes also ends the sessions it restores.
       networkChangeCallbacks.push(async () => {
+        await walletKitReady;
         const sessions = walletconnectStore.web3wallet?.getActiveSessions();
         if(!sessions) return
 
@@ -1179,6 +1187,7 @@ export const useStore = defineStore('store', () => {
           Object.values(sessions).map(session => walletconnectStore.deleteSession(session.topic))
         );
       });
+      await walletKitReady;
     } catch (error) {
       console.error("Error initializing WalletConnect:", error);
       Notify.create({
@@ -1199,28 +1208,33 @@ export const useStore = defineStore('store', () => {
       isCcInitDone.value = true;
       return;
     }
+    const initialization = currentInitialization;
     try{
       // Initialize CashConnect.
       const cashconnectWallet = useCashconnectStore();
 
-      // Start the wallet service.
-      await cashconnectWallet.start();
-
       // Setup network change callback to stop the CashConnect service.
       // Sessions are not un-paired: they persist in localStorage (namespaced per wallet
       // identity key) and are restored by the next start() for the same wallet and network.
+      // Registered before the start is awaited, so a switch during the start stops it too.
       // NOTE: This must be wrapped, otherwise we don't have the appropriate context.
       networkChangeCallbacks.push(async () => {
         await cashconnectWallet.stop();
       });
+
+      // Start the wallet service.
+      await cashconnectWallet.start();
       // the coin watch tells CashConnect when the wallet's coins change (notifyCashConnectOfCoins)
     } catch (error) {
       console.error("Error initializing CashConnect:", error);
-      Notify.create({
-        message: t('store.errors.errorInitializingCashConnect'),
-        icon: 'warning',
-        color: "red"
-      });
+      // a start the switch stopped fails on purpose
+      if (!walletSwitchedSince(initialization)) {
+        Notify.create({
+          message: t('store.errors.errorInitializingCashConnect'),
+          icon: 'warning',
+          color: "red"
+        });
+      }
     } finally {
       // Always mark init as done so callers waiting on dappConnectionStoresInitDone don't hang forever
       isCcInitDone.value = true;
