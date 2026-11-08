@@ -713,6 +713,7 @@
       "buttonTitle": "Excluir carteira"
     },
     "switchedNetwork": "Mudou para {network} na carteira \"{name}\"",
+    "switchedOnTestNetwork": "Mudou para \"{name}\" na {network}",
     "switchFailed": "Falha ao trocar de carteira: {error}"
   },
   "convertToHd": {

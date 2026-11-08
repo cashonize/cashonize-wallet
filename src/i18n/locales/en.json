@@ -713,6 +713,7 @@
       "buttonTitle": "Delete wallet"
     },
     "switchedNetwork": "Switched to {network} for wallet \"{name}\"",
+    "switchedOnTestNetwork": "Switched to \"{name}\" on {network}",
     "switchFailed": "Failed to switch wallet: {error}"
   },
   "convertToHd": {

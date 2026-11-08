@@ -534,8 +534,9 @@
     location.reload();
   }
 
-  // A wallet name with rows on both networks opens on mainnet from the wallet list; this opens the
-  // other one. Any other wallet is on one network, reached by opening it from the wallet list.
+  // A wallet name with rows on both networks opens on mainnet from the wallet list, unless switched
+  // to from chipnet; this opens the other one. Any other wallet is on one network, reached by
+  // opening it from the wallet list.
   async function openOtherSide(){
     if (store.removingChipnetCopy) return;
     settingsStore.hasPlayedAnimation = false;

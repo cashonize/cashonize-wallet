@@ -175,7 +175,8 @@ describe('switchWallet', () => {
       expect(mockHDWalletNamed).not.toHaveBeenCalled()
     })
 
-    it('opens a wallet with a mainnet row on mainnet, even when the stored network is chipnet', async () => {
+    // a developer moving between older wallets on their chipnet copies is not sent back to mainnet
+    it('keeps chipnet when switching from chipnet to a wallet with a chipnet copy', async () => {
       localStorageMock.setItem('network', 'chipnet')
       const store = useStore()
       await store.setWallet(mockChipnetWallet as never)
@@ -186,9 +187,26 @@ describe('switchWallet', () => {
 
       const result = await store.switchWallet('bothNetworks')
 
+      expect(result.networkChanged).toBeUndefined()
+      // said in a notice: the name usually opens its mainnet side
+      expect(result.keptTestNetwork).toBe('chipnet')
+      expect(mockGetNamedWalletId).toHaveBeenCalledWith('bothNetworks', 'bchtest')
+      expect(mockWalletFromId).toHaveBeenCalledWith(expect.anything(), { network: 'testnet' })
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'chipnet')
+    })
+
+    it('opens a wallet with a chipnet copy on mainnet when switching from testnet4', async () => {
+      localStorageMock.setItem('network', 'testnet4')
+      const store = useStore()
+      await store.setWallet(mockChipnetWallet as never)
+      store.availableWallets = [
+        { name: 'bothNetworks', networks: ['mainnet', 'chipnet'] }
+      ]
+
+      const result = await store.switchWallet('bothNetworks')
+
       expect(result.networkChanged).toBe('mainnet')
       expect(mockGetNamedWalletId).toHaveBeenCalledWith('bothNetworks', 'bitcoincash')
-      expect(mockWalletFromId).not.toHaveBeenCalledWith(expect.anything(), { network: 'testnet' })
       expect(localStorageMock.setItem).toHaveBeenCalledWith('network', 'mainnet')
     })
 

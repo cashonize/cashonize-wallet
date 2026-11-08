@@ -713,6 +713,7 @@
       "buttonTitle": "Eliminar billetera"
     },
     "switchedNetwork": "Cambiado a {network} para la billetera \"{name}\"",
+    "switchedOnTestNetwork": "Cambiado a \"{name}\" en {network}",
     "switchFailed": "Error al cambiar de billetera: {error}"
   },
   "convertToHd": {

@@ -713,6 +713,7 @@
       "buttonTitle": "Supprimer le portefeuille"
     },
     "switchedNetwork": "Basculé vers {network} pour le portefeuille « {name} »",
+    "switchedOnTestNetwork": "Basculé vers « {name} » sur {network}",
     "switchFailed": "Échec du changement de portefeuille : {error}"
   },
   "convertToHd": {

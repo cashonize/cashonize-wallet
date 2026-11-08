@@ -1068,6 +1068,9 @@ export const useStore = defineStore('store', () => {
   interface SwitchWalletResult {
     success: true;
     networkChanged?: AppNetwork; // Set if network was changed to accommodate wallet
+    // Set when a wallet with a mainnet side was opened on the test network switched from, where its
+    // name stands for another row than the one the wallet list usually opens
+    keptTestNetwork?: AppNetwork;
   }
 
   async function switchWallet(walletName: string): Promise<SwitchWalletResult> {
@@ -1075,11 +1078,12 @@ export const useStore = defineStore('store', () => {
     const currentNetwork = storedAppNetwork();
 
     // The network follows the wallet: it opens on its own network, mainnet for an older wallet
-    // that also has its chipnet copy, which opens only from the developer settings
+    // that also has its chipnet copy. A switch made from chipnet stays there when the wallet has a
+    // chipnet side, so a developer moving between such wallets is not sent back to mainnet.
     // (availableWallets may be stale, loadExistingWallet below re-checks IndexedDB)
     let targetNetwork = currentNetwork;
     const walletInfo = availableWallets.value.find(w => w.name === walletName);
-    if (walletInfo?.networks[0]) {
+    if (walletInfo?.networks[0] && !walletInfo.networks.includes(currentNetwork)) {
       targetNetwork = walletInfo.networks[0];
     }
 
@@ -1090,6 +1094,9 @@ export const useStore = defineStore('store', () => {
     await activateWallet(newWallet, targetNetwork);
     if (targetNetwork !== currentNetwork) {
       return { success: true, networkChanged: targetNetwork };
+    }
+    if (targetNetwork !== 'mainnet' && walletInfo?.networks.includes('mainnet')) {
+      return { success: true, keptTestNetwork: targetNetwork };
     }
     return { success: true };
   }

@@ -713,6 +713,7 @@
       "buttonTitle": "Wallet löschen"
     },
     "switchedNetwork": "Zu {network} gewechselt für Wallet \"{name}\"",
+    "switchedOnTestNetwork": "Zu \"{name}\" auf {network} gewechselt",
     "switchFailed": "Wallet-Wechsel fehlgeschlagen: {error}"
   },
   "convertToHd": {
