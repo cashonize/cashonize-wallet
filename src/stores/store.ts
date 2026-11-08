@@ -263,6 +263,14 @@ export const useStore = defineStore('store', () => {
   // Computed properties
   const network = computed(() => appNetworkOf(wallet.value.network))
   const explorerUrl = computed(() => settingsStore.explorer[network.value]);
+  // The txid goes after the explorer's path and before any query it carries, which Selene's
+  // explorer uses to pick the network (?network=chipnet)
+  function explorerTxUrl(txid: string) {
+    const [path, query] = explorerUrl.value.split('?');
+    let txUrl = `${path}/${txid}`;
+    if (query) txUrl += `?${query}`;
+    return txUrl;
+  }
 
   // Access to the wallet without a null check at every call site: throws rather than hand out
   // null. Read-only, so replacing the wallet goes through _wallet.
@@ -2120,6 +2128,7 @@ export const useStore = defineStore('store', () => {
     latestGithubRelease,
     network,
     explorerUrl,
+    explorerTxUrl,
     chaingraph,
     bcmrRegistries,
     tokenMetadataLoaded,

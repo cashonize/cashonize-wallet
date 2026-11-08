@@ -118,6 +118,8 @@
       { url: "https://blockbook.pat.mn/tx", label: "BlockBook Pat" },
       { url: "https://3xpl.com/bitcoin-cash/transaction", label: "3xpl" },
       { url: "https://bchexplorer.cash/tx", label: "bchexplorer.cash by Melroy" },
+      { url: "https://explorer.selene.cash/tx", label: "Selene explorer" },
+      { url: "https://blockexplorer.cash/mainnet/tx", label: "blockexplorer.cash" },
       { url: "https://explorer.bch.ninja/tx", label: "explorer.bch.ninja (no Token Metadata)" },
       { url: "https://bch.loping.net/tx", label: "bch.loping.net (no Token Metadata)" },
       { url: "https://explorer.coinex.com/bch/tx", label: "CoinEx explorer (no CashTokens support)" },
@@ -127,10 +129,15 @@
       { url: "https://chipnet.imaginary.cash/tx", label: "chipnet.imaginary.cash" },
       { url: "https://chipnet.chaingraph.cash/tx", label: "chipnet.chaingraph.cash" },
       { url: "https://chipnet.bchexplorer.info/tx", label: "chipnet.bchexplorer.info" },
+      { url: "https://explorer.selene.cash/tx?network=chipnet", label: "Selene explorer" },
+      { url: "https://blockexplorer.cash/chipnet/tx", label: "blockexplorer.cash" },
+      { url: "https://bchexplorer.cash/chipnet/tx", label: "bchexplorer.cash by Melroy" },
     ],
     testnet4: [
       { url: "https://tbch4.loping.net/tx", label: "tbch4.loping.net" },
       { url: "https://testnet4.imaginary.cash/tx", label: "testnet4.imaginary.cash" },
+      { url: "https://blockexplorer.cash/testnet4/tx", label: "blockexplorer.cash" },
+      { url: "https://bchexplorer.cash/testnet4/tx", label: "bchexplorer.cash by Melroy" },
     ],
   };
   const selectedExchangeRateProvider = ref(settingsStore.exchangeRateProvider);

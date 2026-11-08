@@ -130,7 +130,7 @@
         <div style="display: flex; flex-direction: column; gap: 1rem">
           <div>
             {{ isMobilePhone? t('transactionDialog.txIdShort') : t('transactionDialog.txIdFull') }}
-            <span :href="store.explorerUrl + `/${historyItem.hash}`" @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer; color: var(--color-grey);">
+            <span :href="store.explorerTxUrl(historyItem.hash)" @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer; color: var(--color-grey);">
               {{ historyItem.hash.slice(0, 12) + "..." + historyItem.hash.slice(52) }}
             </span>
             <span @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer;">
@@ -138,10 +138,10 @@
             </span>
           </div>
           <div>
-            <a :href="store.explorerUrl + `/${historyItem.hash}`" target="_blank" style="display: inline-block;">
+            <a :href="store.explorerTxUrl(historyItem.hash)" target="_blank" style="display: inline-block;">
               {{ t('transactionDialog.linkToExplorer') }}
             </a>
-            <span @click="() => copyToClipboard(store.explorerUrl + `/${historyItem.hash}`)" style="cursor:pointer;">
+            <span @click="() => copyToClipboard(store.explorerTxUrl(historyItem.hash))" style="cursor:pointer;">
               <img class="copyIcon" src="images/copyGrey.svg" style="vertical-align: text-bottom;">
             </span>
           </div>

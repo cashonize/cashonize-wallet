@@ -93,7 +93,7 @@
         <span v-if="link.publication && link.kind !== 'publication'">{{ t('identities.history.publishedToo') }}</span>
         <span v-if="madeByThisWallet(link.hash)" class="identity-badge">{{ t('identities.history.madeHere') }}</span>
       </span>
-      <a :href="`${store.explorerUrl}/${link.hash}`" target="_blank" class="chain-explorer-link">
+      <a :href="store.explorerTxUrl(link.hash)" target="_blank" class="chain-explorer-link">
         {{ t('identities.history.viewTransaction') }}
       </a>
     </div>

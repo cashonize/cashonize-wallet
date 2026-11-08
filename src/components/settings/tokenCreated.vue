@@ -77,7 +77,7 @@
     <input type="button" :value="t('createTokens.created.seeIdentity')" @click="store.changeView(19)">
   </div>
   <div class="created-links">
-    <a v-if="created.txId" :href="`${store.explorerUrl}/${created.txId}`" target="_blank" class="action-link">
+    <a v-if="created.txId" :href="store.explorerTxUrl(created.txId)" target="_blank" class="action-link">
       {{ t('createTokens.created.viewTransaction') }}
       <img :src="settingsStore.darkMode ? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;">
     </a>

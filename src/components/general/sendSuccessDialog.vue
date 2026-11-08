@@ -34,7 +34,7 @@
     return `${prefix}:${payload.slice(0, 4)}…${payload.slice(-4)}`
   })
   const shortTxid = computed(() => `${props.sendInfo.txid.slice(0, 8)}…${props.sendInfo.txid.slice(-6)}`)
-  const explorerLink = computed(() => `${store.explorerUrl}/${props.sendInfo.txid}`)
+  const explorerLink = computed(() => store.explorerTxUrl(props.sendInfo.txid))
   const copyIconSrc = computed(() => settingsStore.darkMode ? 'images/copyGrey.svg' : 'images/copy.svg')
 
   // Enter closes the screen like Done, except while typing a note, where Enter saves the note

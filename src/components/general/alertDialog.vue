@@ -40,8 +40,8 @@
         </span>
         <template v-if="!alertInfo.hideExplorerLink">
           <br><br>
-          <a :href="store.explorerUrl + `/${alertInfo.txid}`" target="_blank">{{ t('alertDialog.linkExplorer') }}</a>
-          <span @click="copyToClipboard(store.explorerUrl + `/${alertInfo.txid}`)" style="cursor: pointer;">
+          <a :href="store.explorerTxUrl(alertInfo.txid)" target="_blank">{{ t('alertDialog.linkExplorer') }}</a>
+          <span @click="copyToClipboard(store.explorerTxUrl(alertInfo.txid))" style="cursor: pointer;">
             <img class="copyIcon icon" :src="settingsStore.darkMode? 'images/copyGrey.svg':'images/copy.svg'">
           </span>
         </template>

@@ -98,7 +98,7 @@ export async function handleTransactionBroadcastSuccess(
     })
   }
   console.log(alertMessage);
-  console.log(`${store.explorerUrl}/${txId}`);
+  console.log(store.explorerTxUrl(txId));
   // update utxo list
   await store.updateWalletUtxos();
   // update wallet history as fire-and-forget promise
