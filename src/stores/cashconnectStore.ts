@@ -65,6 +65,7 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     cashConnectWallet.value = new Wallet({
       cashConnectPrivateKey: cashConnectPrivateKey,
       store: sessionStoreForChain(cashConnectPrivateKey, activeChain()),
+      chain: activeChain(),
       eventCallbacks: {
         onSessionsUpdated,
         onSessionProposal,
