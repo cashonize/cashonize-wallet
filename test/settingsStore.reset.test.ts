@@ -12,13 +12,15 @@ vi.mock('src/utils/composables', () => ({
 // still read the app afterwards. The rest are not options on the settings pages: removing
 // walletMetadata would make an HD wallet load as single-address, walletBackupStatus would bring
 // the backup reminder back, and the rest are the token list's and history's own view state,
-// device facts and migrated old keys.
+// device facts and migrated old keys. The discovery bundles are what the user added, and go
+// unused once the reset turns the contract discovery option off.
 const keptKeys = [
   "locale",
   "walletMetadata", "walletBackupStatus", "seedBackedUp",
   "featuredTokens", "hiddenTokens", "tokenDisplayFilter", "fiatValueHistory", "showBalanceInHistory",
   "qrScannerCameraId", "pwaInstalled",
   "hideBalanceColumn", "chaingraph", "authchains",
+  "discoveryBundles",
 ]
 
 const stored: Record<string, string> = {}

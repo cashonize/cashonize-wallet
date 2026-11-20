@@ -238,6 +238,9 @@
     "askingPrice": "Precio de venta",
     "manageListings": "Gestiona tus anuncios en {link}.",
     "tapswapInfo": "Los activos anunciados siguen perteneciendo a la billetera, pero están en un contrato de venta de TapSwap, por lo que no aparecen en la lista de tokens de la billetera. Los precios de venta no se cuentan en el total.",
+    "discoveredPositions": "Otras posiciones en contratos ({count})",
+    "discoveredPositionsInfo": "Encontradas por un paquete de detección que añadiste. Cashonize no ha revisado estos paquetes, por lo que las posiciones se muestran aparte y no se cuentan en el total.",
+    "discoveredBy": "encontrada por {bundle}",
     "collateral": "Colateral",
     "debt": "Deuda",
     "netValue": "Valor neto",
@@ -1222,6 +1225,27 @@
       "addressNotInWallet": "Firmar requiere una dirección de la billetera activa"
     }
   },
+  "contractDiscovery": {
+    "title": "Detección de contratos",
+    "backToTools": "Volver a las herramientas del monedero",
+    "description": "Un paquete de detección describe dónde guarda posiciones un protocolo, para que el portafolio pueda encontrar las tuyas en la cadena.",
+    "safetyInfo": "Un paquete es solo datos: no puede mover fondos ni indicar adónde van, y solo hace consultas al servidor electrum de tu monedero. Puede mostrar una posición que no es lo que dice ser, por lo que estas posiciones se listan aparte de tu total. Añade solo paquetes de una fuente en la que confíes.",
+    "builtIn": "Incluidos",
+    "added": "Añadidos por ti",
+    "none": "No hay paquetes añadidos.",
+    "remove": "Quitar",
+    "pastePlaceholder": "Pega un paquete de detección (JSON)",
+    "add": "Añadir paquete",
+    "errors": {
+      "notJson": "Esto no es JSON válido.",
+      "tooLarge": "Este paquete es demasiado grande.",
+      "tooMany": "Se pueden añadir como máximo {max} paquetes. Quita uno primero.",
+      "heldUnsupported": "Las posiciones mantenidas como NFT aún no se admiten en los paquetes añadidos.",
+      "invalid": "No es un paquete de detección válido: {detail}",
+      "nameTaken": "El nombre '{name}' lo usa el paquete incluido.",
+      "idTaken": "El id de contrato '{name}' ya lo usa otro paquete."
+    }
+  },
   "addressConverter": {
     "title": "Conversor de direcciones",
     "description": "Introduce una dirección para ver todas sus formas.",
@@ -1478,6 +1502,7 @@
       "signVerifyMessage": "Firmar / Verificar mensaje",
       "exportXpub": "Exportar Xpub",
       "addressConverter": "Conversor de direcciones",
+      "contractDiscovery": "Detección de contratos",
       "aboutCashonize": "Acerca de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identidades",
@@ -1583,6 +1608,8 @@
       "strictWcSchemaHint": "Comprueba las solicitudes de WalletConnect y WizardConnect contra su formato exacto y muestra el motivo completo cuando se rechaza una. Actívalo al desarrollar una dApp para detectar solicitudes que no cumplen el formato.",
       "showPrivateKeyWif": "Mostrar la clave privada WIF en la página de respaldo",
       "showPrivateKeyWifHint": "Añade la clave privada WIF a la página de respaldo para monederos de dirección única.",
+      "contractDiscovery": "Herramienta de detección de contratos",
+      "contractDiscoveryHint": "Añade una herramienta del monedero para agregar paquetes de detección de contratos, que permiten al portafolio encontrar posiciones en protocolos que Cashonize no incluye. El formato de los paquetes es propio de Cashonize y aún puede cambiar.",
       "nonTokenIdentities": "Habilitar crear identidades sin token",
       "nonTokenIdentitiesHint": "Muestra Añadir nueva en la página de identidades, que crea una identidad a partir de cualquier UTXO de esta billetera en lugar de un token. Las identidades de personas, organizaciones y contratos son nuevas, y pocas herramientas las leen todavía.",
       "developerFeaturesHeading": "Funciones para desarrolladores",

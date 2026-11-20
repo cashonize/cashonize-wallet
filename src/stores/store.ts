@@ -67,6 +67,7 @@ import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/caul
 import { defiChainPublicKeyHashes, publicKeyHashFromAddress } from "src/utils/wallet/walletKeyHashes"
 import { runManifest, type ContractPosition } from "src/utils/contracts/runManifest"
 import { builtinManifest, LIQUIDITY_POOL_MANIFESTS } from "src/utils/contracts/builtins"
+import { discoveryManifests } from "src/utils/contracts/discoveryBundles"
 
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import { updateTransactionIndex, removeTransactionIndex, type ScannedTransaction } from "src/utils/history/transactionIndex"
@@ -246,6 +247,8 @@ export const useStore = defineStore('store', () => {
   const tapswapRegistries = ref<Record<string, BcmrTokenMetadata>>({});
   // BCH locked in hodl contracts, null until the portfolio view looks it up
   const hodlContracts = ref<ContractPosition[] | null>(null);
+  // Positions found by the discovery bundles the user added, null until first looked up
+  const discoveredPositions = ref<ContractPosition[] | null>(null);
   // Why the last TapSwap and hodl lookup failed, shown inline in the portfolio view
   const announcedAssetsError = ref<string | undefined>(undefined);
   const exchangeRate = ref<number | undefined>(undefined);
@@ -1007,6 +1010,7 @@ export const useStore = defineStore('store', () => {
     tapswapListings.value = null;
     tapswapRegistries.value = {};
     hodlContracts.value = null;
+    discoveredPositions.value = null;
     announcedAssetsError.value = undefined;
     exchangeRate.value = undefined;
     walletHistory.value = undefined;
@@ -1500,9 +1504,9 @@ export const useStore = defineStore('store', () => {
     const fungibleTokens = allTokenList.value?.filter(token => 'amount' in token) ?? [];
     const ftTokenIds = fungibleTokens.map(token => token.category);
     // a pool holds a token the wallet does not have to hold itself, so it needs a price too
-    for (const pool of liquidityPools.value ?? []) {
-      const category = pool.token?.category;
-      if (category && !ftTokenIds.includes(category)) ftTokenIds.push(category);
+    for (const position of [...liquidityPools.value ?? [], ...discoveredPositions.value ?? []]) {
+      const category = position.token?.category;
+      if (category && !position.token?.nft && !ftTokenIds.includes(category)) ftTokenIds.push(category);
     }
     if (ftTokenIds.length === 0) return;
 
@@ -1714,6 +1718,64 @@ export const useStore = defineStore('store', () => {
       announcedAssetsError.value = t('portfolio.announcedAssetsLoadingFailed');
       tapswapListings.value ??= [];
       hodlContracts.value ??= [];
+    }
+  }
+
+  // Find the positions of the discovery bundles the user added, on the network each is for. Only
+  // the portfolio view shows them, so it drives the fetch. A manifest that fails is logged and
+  // skipped, so one bundle's unreachable lookup does not hide what the others found.
+  async function fetchWalletDiscoveredPositions() {
+    if (!_wallet.value) return;
+    let bundles = settingsStore.discoveryBundles;
+    if (!settingsStore.contractDiscovery) bundles = [];
+    const manifests = discoveryManifests(bundles, network.value);
+    if (!manifests.length) {
+      discoveredPositions.value = [];
+      return;
+    }
+    const initialization = currentInitialization;
+    try {
+      const ownerPkhs = walletPublicKeyHashes();
+      let announcements: ScannedTransaction[] = [];
+      if (manifests.some(entry => entry.manifest.find.kind === 'announcement')) {
+        announcements = (await indexedTransactions()).announcements;
+        if (initialization !== currentInitialization) return;
+      }
+      const context = {
+        provider: wallet.value.provider,
+        ownerPkhs,
+        history: announcements,
+        networkPrefix: wallet.value.networkPrefix,
+      };
+      const found = await Promise.all(manifests.map(async ({ manifest }) => {
+        try {
+          return await runManifest(manifest, context);
+        } catch (error) {
+          console.error(`Failed to look up discovered contract '${manifest.id}':`, error);
+          return [];
+        }
+      }));
+      if (initialization !== currentInitialization) return;
+      const positions = found.flat();
+      discoveredPositions.value = positions;
+
+      // the token a position holds does not have to be held by the wallet, so its metadata can be missing
+      // as can that of the token a manifest names for its icon
+      const tokens: TokenList = [];
+      function needsMetadata(category: string, amount: bigint) {
+        const known = bcmrRegistries.value?.[category] !== undefined || tokens.some(token => token.category === category);
+        if (!known) tokens.push({ category, amount });
+      }
+      for (const position of positions) {
+        if (position.token && !position.token.nft) needsMetadata(position.token.category, position.token.amount);
+        const icon = manifests.find(entry => entry.manifest.id === position.manifestId)?.manifest.icon;
+        if (icon && !icon.startsWith('ipfs://')) needsMetadata(icon, 0n);
+      }
+      if (tokens.length) await fetchTokenMetadata(tokens, false);
+    } catch (error) {
+      console.error("Failed to look up discovered contracts:", error);
+      if (initialization !== currentInitialization) return;
+      discoveredPositions.value ??= [];
     }
   }
 
@@ -2209,6 +2271,7 @@ export const useStore = defineStore('store', () => {
     tapswapListings,
     tapswapRegistries,
     hodlContracts,
+    discoveredPositions,
     announcedAssetsError,
     exchangeRate,
     currentBlockHeight,
@@ -2238,6 +2301,7 @@ export const useStore = defineStore('store', () => {
     fetchWalletLiquidityPools,
     fetchWalletBadgerLocks,
     fetchWalletAnnouncedAssets,
+    fetchWalletDiscoveredPositions,
     loadAllHistory,
     ensureFullHistory,
     loadingFullHistory,

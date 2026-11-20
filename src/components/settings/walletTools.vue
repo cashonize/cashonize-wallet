@@ -62,5 +62,9 @@
     <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(20)">
       → {{ t('settings.menu.addressConverter') }}
     </div>
+
+    <div v-if="settingsStore.contractDiscovery" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(21)">
+      → {{ t('settings.menu.contractDiscovery') }}
+    </div>
   </fieldset>
 </template>

@@ -140,6 +140,29 @@ describe('transaction index', () => {
     }
   })
 
+  // a bundle added later can announce in transactions the earlier scan passed over
+  it('scans the history again for a discovery bundle added since', async () => {
+    const announcement = `6a045641554c${'01aa'}${'01bb'}`
+    const specs = [...fixture(), tx('d4', 1009, [{ txid: 'f8'.repeat(32), vout: 1 }], [{ lockingBytecode: announcement }, p2pkh()])]
+    const { wallet } = walletOver(specs)
+
+    const before = await updateTransactionIndex(wallet, 'mainnet', 'w')
+    expect(before.announcements.map(kept => kept.hash)).not.toContain('d4'.repeat(32))
+
+    localStorageMock.setItem('contractDiscovery', 'true')
+    localStorageMock.setItem('discoveryBundles', JSON.stringify([{
+      format: 1, name: 'Example bundle', contracts: [{
+        id: 'example-listing', name: 'Example listing',
+        find: { kind: 'announcement', output: 0, prefix: '6a045641554c', pushes: 3, fields: { makerPkh: { push: 1, as: 'hex' } }, position: { output: 1 } },
+        owner: { kind: 'field', field: 'makerPkh' },
+      }],
+    }]))
+    const after = await updateTransactionIndex(wallet, 'mainnet', 'w')
+    expect(after.announcements.map(kept => kept.hash)).toContain('d4'.repeat(32))
+    // and what the built-in manifests read is still kept
+    expect(after.announcements).toHaveLength(before.announcements.length + 1)
+  })
+
   // a metadata update through an AuthGuard publishes, so it is kept as a marker, and the walk out of
   // the guard still needs the AuthKey its input 1 carries
   it('follows a chain through a publishing AuthGuard spend', async () => {

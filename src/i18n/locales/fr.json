@@ -238,6 +238,9 @@
     "askingPrice": "Prix demandé",
     "manageListings": "Gérez vos annonces sur {link}.",
     "tapswapInfo": "Les actifs mis en vente appartiennent toujours au portefeuille, mais ils sont détenus par un contrat de vente TapSwap, ils n'apparaissent donc pas dans la liste des tokens du portefeuille. Les prix demandés ne sont pas comptés dans le total.",
+    "discoveredPositions": "Autres positions en contrats ({count})",
+    "discoveredPositionsInfo": "Trouvées par un lot de détection que vous avez ajouté. Cashonize n'a pas vérifié ces lots, les positions sont donc affichées à part et ne sont pas comptées dans le total.",
+    "discoveredBy": "trouvée par {bundle}",
     "collateral": "Collatéral",
     "debt": "Dette",
     "netValue": "Valeur nette",
@@ -1222,6 +1225,27 @@
       "addressNotInWallet": "La signature nécessite une adresse du portefeuille actif"
     }
   },
+  "contractDiscovery": {
+    "title": "Détection de contrats",
+    "backToTools": "Retour aux outils du portefeuille",
+    "description": "Un lot de détection décrit où un protocole conserve des positions, afin que le portfolio puisse trouver les vôtres sur la chaîne.",
+    "safetyInfo": "Un lot n'est que des données : il ne peut pas déplacer de fonds ni indiquer où ils vont, et il n'interroge que le serveur electrum de votre portefeuille. Il peut afficher une position qui n'est pas ce qu'elle prétend être, ces positions sont donc listées à part de votre total. N'ajoutez que des lots provenant d'une source de confiance.",
+    "builtIn": "Intégrés",
+    "added": "Ajoutés par vous",
+    "none": "Aucun lot ajouté.",
+    "remove": "Retirer",
+    "pastePlaceholder": "Collez un lot de détection (JSON)",
+    "add": "Ajouter le lot",
+    "errors": {
+      "notJson": "Ce n'est pas du JSON valide.",
+      "tooLarge": "Ce lot est trop volumineux.",
+      "tooMany": "Au plus {max} lots peuvent être ajoutés. Retirez-en un d'abord.",
+      "heldUnsupported": "Les positions détenues sous forme de NFT ne sont pas encore prises en charge dans les lots ajoutés.",
+      "invalid": "Lot de détection non valide : {detail}",
+      "nameTaken": "Le nom '{name}' est utilisé par le lot intégré.",
+      "idTaken": "L'identifiant de contrat '{name}' est déjà utilisé par un autre lot."
+    }
+  },
   "addressConverter": {
     "title": "Convertisseur d'adresses",
     "description": "Saisissez une adresse pour voir toutes ses formes.",
@@ -1478,6 +1502,7 @@
       "signVerifyMessage": "Signer / Vérifier un message",
       "exportXpub": "Exporter la xpub",
       "addressConverter": "Convertisseur d'adresses",
+      "contractDiscovery": "Détection de contrats",
       "aboutCashonize": "À propos de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identités",
@@ -1583,6 +1608,8 @@
       "strictWcSchemaHint": "Vérifie les requêtes WalletConnect et WizardConnect par rapport à leur format exact, et affiche la raison complète lorsqu'une requête est refusée. Activez cette option lors du développement d'une dApp pour repérer les requêtes non conformes.",
       "showPrivateKeyWif": "Afficher la clé privée WIF sur la page de sauvegarde",
       "showPrivateKeyWifHint": "Ajoute la clé privée WIF à la page de sauvegarde pour les portefeuilles à adresse unique.",
+      "contractDiscovery": "Outil de détection de contrats",
+      "contractDiscoveryHint": "Ajoute un outil du portefeuille pour ajouter des lots de détection de contrats, qui permettent au portfolio de trouver des positions dans des protocoles que Cashonize n'intègre pas. Le format des lots est propre à Cashonize et peut encore changer.",
       "nonTokenIdentities": "Activer la création d'identités sans token",
       "nonTokenIdentitiesHint": "Affiche Ajouter nouvelle sur la page des identités, qui crée une identité à partir de n'importe quel UTXO de ce portefeuille plutôt que d'un token. Les identités de personnes, d'organisations et de contrats sont nouvelles, et peu d'outils les lisent encore.",
       "developerFeaturesHeading": "Fonctions pour développeurs",

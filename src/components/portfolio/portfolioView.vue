@@ -11,6 +11,7 @@
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { ContractPosition } from 'src/utils/contracts/runManifest'
   import { heldManifestFor } from 'src/utils/contracts/builtins'
+  import { discoveryManifests } from 'src/utils/contracts/discoveryBundles'
   import { readLoan, readStake, type ContractManifest } from 'src/utils/contracts/contractManifest'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
   import { sharedRun } from 'src/utils/concurrency'
@@ -82,6 +83,7 @@
   const showSmallBalances = ref(false)
   const showUnpriced = ref(false)
   const showTapswapListings = ref(false)
+  const showDiscoveredPositions = ref(false)
   // Everything the wallet holds counts, except supply that was never issued: an identity's
   // reserve priced at the pool is a fiction, and selling it would empty the pool. A frozen or
   // pledged coin is an ordinary holding the user chose to protect, and counts.
@@ -119,12 +121,14 @@
     await Promise.all([
       store.fetchWalletLiquidityPools(),
       store.fetchWalletBadgerLocks(),
+      store.fetchWalletDiscoveredPositions(),
       store.fetchCauldronPricesForTokens(true),
     ])
-    // a pool can hold a token the wallet does not, which needs a price of its own; the held
-    // tokens' prices come from cache on this second pass
+    // a pool or a discovered position can hold a token the wallet does not, which needs a price
+    // of its own; the held tokens' prices come from cache on this second pass
     const prices = store.cauldronPrices ?? {}
-    if (store.liquidityPools?.some(pool => pool.token && !(pool.token.category in prices))) {
+    const contractPositions = [...store.liquidityPools ?? [], ...store.discoveredPositions ?? []]
+    if (contractPositions.some(position => position.token && !position.token.nft && !(position.token.category in prices))) {
       await store.fetchCauldronPricesForTokens(true)
     }
   }
@@ -615,6 +619,56 @@
     return rows
   })
 
+  // Positions found by the discovery bundles the user added. Cashonize has not checked those
+  // bundles, and one can describe a position that is not what it claims, so these are shown in
+  // their own collapsed section and stay out of the chart and the total.
+  const discoveredRows = computed(() => {
+    let bundles = settingsStore.discoveryBundles
+    if (!settingsStore.contractDiscovery) bundles = []
+    const manifests = discoveryManifests(bundles, store.network)
+    return (store.discoveredPositions ?? []).flatMap(position => {
+      // a bundle removed since the lookup shows nothing
+      const entry = manifests.find(candidate => candidate.manifest.id === position.manifestId)
+      if (!entry) return []
+      const positionBch = satsToBch(position.satoshis)
+      const token = position.token
+      let tokenDisplay
+      let tokenBchValue = 0
+      if (token?.nft) {
+        tokenDisplay = `NFT ${token.category.slice(0, 8)}... #${token.nft.commitment}`
+      } else if (token) {
+        const metadata = store.bcmrRegistries?.[token.category]
+        const tokenName = metadata?.token?.symbol ?? metadata?.name ?? token.category.slice(0, 8) + '...'
+        tokenDisplay = formatTokenAmount(token.amount, metadata?.token?.decimals) + ' ' + tokenName
+        const priceInfo = store.cauldronPrices?.[token.category]
+        if (priceInfo) tokenBchValue = calculateTokenFiatValue(token.amount, priceInfo, 1) ?? 0
+      }
+      // the manifest's own icon, else the held token's, else a pattern drawn from the address
+      const icon = entry.manifest.icon
+      let iconId = token?.category ?? position.address
+      let iconUrl = token ? store.tokenIconUrl(token.category) : undefined
+      if (icon?.startsWith('ipfs://')) {
+        iconId = entry.manifest.id
+        iconUrl = gatewayUrl(icon, settingsStore.ipfsGateway)
+      } else if (icon) {
+        iconId = icon
+        iconUrl = store.tokenIconUrl(icon)
+      }
+      return [{
+        id: position.txid !== undefined ? `${position.txid}:${position.vout}` : `${position.manifestId}:${position.address}`,
+        name: entry.manifest.name,
+        bundleName: entry.bundleName,
+        iconId,
+        iconUrl,
+        bchDisplay: bchValueFormatter.format(positionBch) + ' ' + bchUnitName.value,
+        tokenDisplay,
+        bchValue: positionBch + tokenBchValue,
+        address: position.address,
+        fields: Object.entries(position.fields).map(([name, value]) => `${name}: ${value}`),
+      }]
+    })
+  })
+
   const hasFungibleTokens = computed(() => (store.tokenList ?? []).some(token => 'amount' in token))
 
   // Safety valve for the loading gate: a hanging icon fetch or a wedged electrum
@@ -1040,6 +1094,41 @@
               <a href="https://tapswap.cash" target="_blank" rel="noopener" class="manage-listings-link">TapSwap.cash</a>
             </template>
           </i18n-t>
+        </div>
+      </template>
+
+      <template v-if="discoveredRows.length">
+        <div class="section-label collapsible" @click="showDiscoveredPositions = !showDiscoveredPositions">
+          <q-icon name="expand_more" class="chevron" :class="{ open: showDiscoveredPositions }" />
+          {{ t('portfolio.discoveredPositions', { count: discoveredRows.length }) }}
+          <!-- click.stop so opening the popup by tap does not also toggle the section -->
+          <InfoPopup @click.stop>
+            <div style="max-width: 260px;">{{ t('portfolio.discoveredPositionsInfo') }}</div>
+          </InfoPopup>
+        </div>
+        <div v-if="showDiscoveredPositions" class="asset-list">
+          <div v-for="row in discoveredRows" :key="row.id" class="asset-row">
+            <span class="dot"></span>
+            <TokenIcon
+              :token-id="row.iconId"
+              :icon-url="!settingsStore.disableTokenIcons ? row.iconUrl : undefined"
+              :size="32"
+            />
+            <div class="asset-name">
+              <div>
+                {{ row.name }}
+                <InfoPopup>
+                  <div style="max-width: 280px; word-break: break-all;">
+                    <div>{{ row.address }}</div>
+                    <div v-for="field in row.fields" :key="field" class="sub">{{ field }}</div>
+                  </div>
+                </InfoPopup>
+              </div>
+              <div class="sub">{{ t('portfolio.discoveredBy', { bundle: row.bundleName }) }}</div>
+              <div class="sub">{{ row.bchDisplay }}<template v-if="row.tokenDisplay"> + {{ row.tokenDisplay }}</template></div>
+            </div>
+            <div class="asset-value">{{ formatBchValue(row.bchValue) }}</div>
+          </div>
         </div>
       </template>
 

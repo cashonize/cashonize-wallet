@@ -155,6 +155,28 @@ and icon makes a phishing story credible — so user bundles are visibly distinc
 either. Lookups are capped, since a manifest naming addresses the wallet never chose would
 otherwise decide how long a wallet open takes.
 
+## Bundles a user adds: contract discovery
+
+A user adds a bundle on the Contract Discovery page of the wallet tools, which a developer option
+turns on: the format is Cashonize's own and still changing, and nobody publishes bundles yet.
+Bundles are kept app-wide, and unused while the option is off.
+
+- **What is refused when added.** Anything the schema refuses, which includes a way of finding
+  paired with a proof of ownership it cannot use (`manifestProblem`); an id or a name of the
+  built-in bundle or one of its contracts; and `held` positions, which are valued from parsed NFT
+  fields by rows only the built-in protocols have.
+- **Where its positions show.** In a section of their own under the portfolio, "Other contract
+  positions", each row naming the bundle that found it. They stay out of the chart and the total.
+  A row shows what the position holds, the BCH and a token, and the decoded fields behind an info
+  icon; there is no row per protocol to write.
+- **Icons.** A manifest may name an `icon`: a token category, whose registry icon is shown, or an
+  `ipfs://` file fetched through the user's gateway. Not a web address, which would tell a host
+  the bundle chose that this wallet opened its portfolio. Without one the held token's icon
+  stands in, or a pattern drawn from the address.
+- **Announcements.** The transaction index keeps the announcements of the bundles in use, and
+  scans the history again when that set changes.
+- **Networks.** A bundle names the network it is for, mainnet when it names none.
+
 ## Where the code is
 
 - `src/utils/contracts/contractManifest.ts` — the format, its schema, and reading and building
@@ -162,6 +184,8 @@ otherwise decide how long a wallet open takes.
 - `src/utils/contracts/runManifest.ts` — running one against a wallet.
 - `src/utils/contracts/builtinContracts.json` — the bundle the wallet ships, in the same shape a
   user's bundle has.
+- `src/utils/contracts/discoveryBundles.ts`, `src/components/settings/contractDiscovery.vue` —
+  the bundles a user adds, and the page they are added on.
 - `src/utils/wallet/walletKeyHashes.ts` — the key hashes a manifest's owner is matched against
   or built from, the `defi` chain among them.
 - `src/utils/defi/` — the integrations still written as modules: Emerald, and Cauldron's price

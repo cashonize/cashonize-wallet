@@ -9,6 +9,8 @@ import { defaultWalletName } from "./constants";
 import { storedElectrumMode, type ElectrumServerMode } from "src/utils/wallet/electrumServers";
 import { appNetworks, type AppNetwork } from "src/utils/wallet/networks";
 import { i18n } from 'src/boot/i18n'
+import { loadDiscoveryBundles, saveDiscoveryBundle, deleteDiscoveryBundle } from "src/utils/contracts/discoveryBundles";
+import type { ContractBundle } from "src/utils/contracts/contractManifest";
 const { t } = i18n.global
 
 // The per-network options: each network's default and storage key. Mainnet and chipnet keep the
@@ -87,7 +89,7 @@ export const settingsMenuKeys = [
   "cauldronIndexer-chipnet", "cauldronIndexer-testnet4",
   "bcmrIndexerMainnet", "bcmrIndexerChipnet", "bcmrIndexer-testnet4", "ipfsGateway", "exchangeRateProvider",
   // developer settings
-  "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
+  "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif", "contractDiscovery",
 ] as const;
 
 export type BackupStatus = 'verified' | 'imported' | 'dismissed' | 'none';
@@ -153,6 +155,16 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const disableTokenIcons = ref(false);
   const strictWcSchema = ref(false);
   const showPrivateKeyWif = ref(false);
+  // Contract discovery: bundles the user added for the portfolio, used while the option is on
+  // (see utils/contracts/discoveryBundles.ts)
+  const contractDiscovery = ref(false);
+  const discoveryBundles = ref(loadDiscoveryBundles());
+  function addDiscoveryBundle(bundle: ContractBundle) {
+    discoveryBundles.value = saveDiscoveryBundle(bundle);
+  }
+  function removeDiscoveryBundle(name: string) {
+    discoveryBundles.value = deleteDiscoveryBundle(name);
+  }
   // history settings
   const showFiatValueHistory = ref(true);
   // Balance after each transaction in the history, hidden by default like in payment apps
@@ -393,6 +405,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readShowPrivateKeyWif = localStorage.getItem("showPrivateKeyWif");
   if(readShowPrivateKeyWif) showPrivateKeyWif.value = readShowPrivateKeyWif === "true";
+  contractDiscovery.value = localStorage.getItem("contractDiscovery") === "true";
 
   // --- Exchange rate provider configuration ---
 
@@ -653,6 +666,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     nonTokenIdentities,
     strictWcSchema,
     showPrivateKeyWif,
+    contractDiscovery,
+    discoveryBundles,
+    addDiscoveryBundle,
+    removeDiscoveryBundle,
     dateFormat,
     confirmBeforeSending,
     disableTokenIcons,

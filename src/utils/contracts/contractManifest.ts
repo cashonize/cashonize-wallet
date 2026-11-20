@@ -134,21 +134,74 @@ const ownerSchema = z.union([
   z.object({ kind: z.literal('holder') }),
 ]);
 
-export const ContractManifestSchema = z.object({
+const manifestShape = z.object({
   id: identifier,
   name: z.string().min(1).max(64),
   description: z.string().max(600).optional(),
+  // What stands for the protocol in the portfolio: a token category, whose registry icon is
+  // shown, or an ipfs:// file, fetched through the user's own gateway. Never a web address, which
+  // would tell a host the bundle chose that this wallet opened its portfolio.
+  icon: z.string().regex(/^([0-9a-fA-F]{64}|ipfs:\/\/[A-Za-z0-9/._-]{10,200})$/).optional(),
   find: z.union([findAtAddressSchema, findByAnnouncementSchema, findDerivedSchema, findHeldSchema]),
   script: scriptSchema.optional(),
   value: valueSchema.optional(),
   owner: ownerSchema,
 });
 
+// Why a manifest of valid parts can still find nothing: each way of finding a position goes with
+// one way of proving it is the wallet's, and names fields the other parts have to carry. Checked
+// with the shape, so a bundle that could never match is refused when it is added rather than
+// showing an empty portfolio.
+export function manifestProblem(manifest: z.infer<typeof manifestShape>): string | undefined {
+  const { find, owner, script } = manifest;
+  const holes = [...(script?.template.matchAll(/<([A-Za-z][A-Za-z0-9]*)>/g) ?? [])].map(match => match[1]!);
+  const undeclared = holes.find(hole => !script?.fields[hole]);
+  if (undeclared) return `the script template has a hole <${undeclared}> its fields do not describe`;
+
+  if (find.kind === 'held') {
+    if (owner.kind !== 'holder') return 'a held position is owned by holding it, so its owner is { "kind": "holder" }';
+    return undefined;
+  }
+  if (owner.kind === 'holder') return 'only a held position is owned by holding it';
+  if (find.kind === 'address') {
+    if (owner.kind !== 'field') return 'a position at a named address names its owner in a commitment field';
+    if (!find.commitment?.fields[owner.field]) return `the commitment has no field '${owner.field}' to read the owner from`;
+    return undefined;
+  }
+  if (find.kind === 'derived') {
+    if (owner.kind !== 'field' || !script) return 'a derived position needs a script and an owner field to fill it with';
+    if (holes.length !== 1 || holes[0] !== owner.field) return `a derived script takes the owner field '${owner.field}' as its only parameter`;
+    return undefined;
+  }
+  if (find.position) {
+    if (owner.kind !== 'field') return 'a position at an output of the announcing transaction names its owner in an announcement field';
+    if (!find.fields[owner.field]) return `the announcement has no field '${owner.field}' to read the owner from`;
+    return undefined;
+  }
+  if (owner.kind !== 'rebuild' || !script) return 'an announced contract is proved by rebuilding its script, which needs a script and a rebuild owner';
+  if (find.fields[owner.matches]?.as !== 'addressHash') return `the field '${owner.matches}' the rebuilt contract is compared with has to be read as an addressHash`;
+  if (!holes.includes(owner.ownerField)) return `the script template has no hole <${owner.ownerField}> for the owner`;
+  const unfilled = holes.find(hole => hole !== owner.ownerField && !find.fields[hole]);
+  if (unfilled) return `the script parameter '${unfilled}' is not a field of the announcement`;
+  return undefined;
+}
+
+export const ContractManifestSchema = manifestShape.superRefine((manifest, context) => {
+  const problem = manifestProblem(manifest);
+  if (problem) context.addIssue({ code: 'custom', message: problem });
+});
+
 export const ContractBundleSchema = z.object({
   format: z.literal(1),
   name: z.string().min(1).max(80),
   description: z.string().max(600).optional(),
+  // the network the bundle's contracts are on, mainnet when it says nothing
+  network: z.enum(['mainnet', 'chipnet', 'testnet4']).optional(),
   contracts: z.array(ContractManifestSchema).min(1).max(50),
+}).superRefine((bundle, context) => {
+  const ids = bundle.contracts.map(contract => contract.id);
+  const repeated = ids.find((id, index) => ids.indexOf(id) !== index);
+  if (repeated) context.addIssue({ code: 'custom', message: `two contracts share the id '${repeated}'` });
 });
 
 export type ContractManifest = z.infer<typeof ContractManifestSchema>;
