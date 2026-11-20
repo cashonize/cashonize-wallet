@@ -26,6 +26,7 @@ import { useSettingsStore } from 'src/stores/settingsStore';
 import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
+import type { DappMetadata } from "src/interfaces/interfaces"
 import { displayBroadcastError } from "src/utils/wallet/broadcastErrors"
 import type { ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
 import { reportDappRefusal } from "src/utils/txHelpers"
@@ -197,7 +198,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
       Dialog.create({
         component: WC2AddressSelectDialog,
         componentProps: {
-          sessionProposalWC: sessionProposal,
+          dappMetadata: sessionProposal.params.proposer.metadata as DappMetadata,
         },
       })
         .onOk((selectedAddresses: string[]) => {
@@ -383,7 +384,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
           component: WC2SignMessageRequest,
           componentProps: {
             dappMetadata,
-            signMessageRequestWC: event,
+            messageRequest: event.params.request.params as WcSignMessageRequest,
             signerAddress: getSessionAddress(topic) ?? walletAddress,
           },
         })

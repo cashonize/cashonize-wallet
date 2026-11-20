@@ -7,9 +7,10 @@ import packageJson from './package.json';
 
 export default defineConfig((ctx) => {
   // ctx.mode contains every mode as a key preset to false, so test the value, never key presence
-  const bootFiles = ['icons', 'i18n'];
+  const bootFiles = ['preloadStartupAssets', 'icons', 'i18n'];
   if (ctx.mode.capacitor) bootFiles.push('deepLinking');
   if (ctx.mode.spa) bootFiles.push('plausible');
+  if (ctx.mode.bex) bootFiles.push('bexBridge');
   // every icon in public/, which the web build preloads after startup (src/utils/icons/preloadIcons.ts)
   const iconPaths = ['images', 'emoji-icons'].flatMap(dir =>
     readdirSync(ctx.appPaths.resolve.app(`public/${dir}`)).filter(file => file.endsWith('.svg')).map(file => `${dir}/${file}`)

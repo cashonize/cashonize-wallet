@@ -80,8 +80,8 @@ export async function addChipnetWallet(page: Page, options: { seedPhrase?: strin
 
 // Runs the onboarding, then adds a chipnet wallet: importing E2E_SEED_PHRASE when set, creating a
 // fresh one otherwise. Leaves the chipnet wallet on the Wallet tab.
-export async function setupWalletOnChipnet(walletPage: Page, walletType?: 'single' | 'hd') {
-  await walletPage.goto(CASHONIZE_URL)
+export async function setupWalletOnChipnet(walletPage: Page, walletType?: 'single' | 'hd', url = CASHONIZE_URL) {
+  await walletPage.goto(url)
   await walletPage.getByRole('button', { name: 'Create new wallet' }).click()
   await walletPage.getByRole('button', { name: 'Create wallet' }).click()
   await walletPage.getByRole('button', { name: 'Finish Setup' }).click()

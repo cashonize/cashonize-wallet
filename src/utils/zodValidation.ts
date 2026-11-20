@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { hexToBin } from "@bitauth/libauth";
 import { toPrefixedAddress } from "src/utils/addressValidation";
+import { isUsableIcon } from "src/utils/bex/metadata";
 
 /* WcMessageObjSchema */
 
@@ -122,6 +123,30 @@ export const WcMessageObjSchema = z.object({
   userPrompt: z.optional(z.string()),
   address: z.optional(z.string()), // no longer used but kept in the interface as dapps might still send it
   account: z.optional(z.string()), // no longer used but kept in the interface as dapps might still send it
+});
+
+/* BEX dApp metadata */
+
+// Self-declared by the dApp. The wallet always shows the browser-attested origin as the URL;
+// name, description and icon are cosmetic and must never be used as the security identity.
+// A field the wallet cannot use is left out instead of discarding the rest: a dApp's name and
+// description are worth showing even when its icon URL is not loadable.
+const bexIconSchema = z.string()
+  .max(4096)
+  .refine(isUsableIcon, "Icon must be an https URL, a data:image URI or an http localhost URL")
+
+// The page's provider has already folded a WizardConnect-style singular icon into icons.
+export const BexDappMetadataSchema = z.object({
+  name: z.string().trim().min(1).transform((value) => value.slice(0, 64)).optional().catch(undefined),
+  description: z.string().transform((value) => value.slice(0, 256)).optional().catch(undefined),
+  icons: z.array(bexIconSchema).max(1).optional().catch(undefined),
+});
+
+export const BexRequestAccountsParamsSchema = z.object({
+  // cosmetic, so metadata that does not validate is left out rather than refusing the request
+  dappMetadata: BexDappMetadataSchema.optional().catch(undefined),
+  // the network the dApp needs, named as in a WalletConnect proposal: bch:bitcoincash, bch:bchtest
+  chainId: z.string().max(64).optional(),
 });
 
 

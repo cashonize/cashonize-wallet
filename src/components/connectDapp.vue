@@ -18,9 +18,11 @@
   import WCSessions from 'src/components/walletconnect/WCSessions.vue'
   import CCSessions from 'src/components/cashconnect/CCSessions.vue'
   import WizSessions from 'src/components/wizardconnect/WizSessions.vue'
+  import BexSessions from 'src/components/general/bexSessions.vue'
   import DappActivityButton from 'src/components/history/dappActivityButton.vue'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import { useSettingsStore } from 'src/stores/settingsStore';
+  import { useBexStore } from 'src/stores/bexStore';
   import { caughtErrorToString } from 'src/utils/errorHandling';
 
   const $q = useQuasar();
@@ -33,6 +35,9 @@
   const { web3wallet } = storeToRefs(walletconnectStore)
   const cashconnectStore = useCashconnectStore();
   const wizardconnectStore = useWizardconnectStore();
+  // The browser provider exists only in the extension build; its store reads chrome.storage
+  const isBex = import.meta.env.QUASAR_BEX_MODE;
+  const bexStore = isBex ? useBexStore() : null;
 
   // Props.
   const props = defineProps<{
@@ -48,7 +53,8 @@
   const hasNoSessions = computed(() =>
     !Object.keys(walletconnectStore.activeSessions ?? {}).length &&
     !Object.keys(cashconnectStore.sessions).length &&
-    !Object.keys(wizardconnectStore.connections).length
+    !Object.keys(wizardconnectStore.connections).length &&
+    !Object.keys(bexStore?.activePermissions ?? {}).length
   );
 
   // WizardConnect requires an HD wallet (see wizardconnectStore.pair)
@@ -177,6 +183,7 @@
           <div v-if="!isHdWallet" class="info-popup-note">{{ t('dapp.supportedMethodsNote') }}</div>
         </InfoPopup>
       </div>
+      <div v-if="isBex" class="browser-provider-note">{{ t('dapp.browserProviderNote') }}</div>
       <div style="display: flex; gap: 0.5rem; ">
         <input @keyup.enter="() => connectDappUriInput(dappUriInput)" v-model="dappUriInput" :placeholder="t('dapp.uriPlaceholder')" style="margin-bottom: 10px;">
         <QrScanButton style="height: 43px;" @click="showQrCodeDialog = true" />
@@ -193,6 +200,7 @@
         <WCSessions />
         <CCSessions />
         <WizSessions />
+        <BexSessions v-if="isBex" />
         <div v-if="hasNoSessions" class="sessions-empty">{{ t('dapp.noActiveSessions') }}</div>
       </div>
     </fieldset>
@@ -248,7 +256,11 @@
       padding-top: 0;
     }
   }
-  /* Styled like the about-page note on the onboarding page */
+  .browser-provider-note {
+    color: grey;
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
   .explore-dapps-note {
     text-align: center;
     color: grey;
