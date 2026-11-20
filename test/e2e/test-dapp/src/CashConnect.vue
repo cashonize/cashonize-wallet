@@ -13,9 +13,14 @@ const CC_TEMPLATE = {
   name: 'Cashonize E2E Test Template',
   description: 'Template for Cashonize CashConnect E2E tests',
   actions: {
-    // Resolve-only action: does not contain a transaction instruction, so the wallet
-    // auto-responds without showing an approval dialog.
+    // Resolve-only action: it has no transaction instruction and opts out of approval, which
+    // every action asks for by default, so the wallet auto-responds without a dialog.
     ping: {
+      meta: {
+        title: 'Ping',
+        description: 'Echo {{ <someString> }}',
+        requiresApproval: false,
+      },
       params: {
         someString: { name: 'Some String', type: 'string' },
       },
