@@ -53,34 +53,69 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
   const sessions = ref<Record<string, WalletSession>>({});
   // The CashConnect Wallet instance.
   const cashConnectWallet = shallowRef<Wallet | undefined>();
+  // The start of the instance above, which a second start() waits for and stop() follows up on,
+  // and the wallet it was started for
+  let startPromise: Promise<void> | undefined;
+  let startedForWallet: WalletType | undefined;
   async function start() {
     // Make sure we don't start CC more than once.
     // Otherwise, we'll register multiple handlers and end up with multiple dialogs.
+    // A start still running is waited for, so a caller only goes on once CashConnect is up.
+    if (cashConnectWallet.value && startedForWallet === mainStore.wallet) {
+      return startPromise;
+    }
+    // Two quick wallet switches can leave the instance of the wallet in between here, its stop
+    // having been handed to a switch that already ran its callbacks
     if (cashConnectWallet.value) {
-      return;
+      await stop();
+      if (cashConnectWallet.value) return startPromise;
     }
     // Get the Private Key to use for CashConnect.
     const cashConnectPrivateKey = getCashConnectPrivateKeyForWallet(mainStore.wallet);
+    // An instance stopped during its start can still restore sessions after the stop, until the
+    // follow-up stop catches them. They belong to the wallet left behind, while these callbacks read
+    // the active wallet, so a stopped instance answers nothing.
+    function ifCurrent<Args extends unknown[], Result>(callback: (...args: Args) => Result) {
+      return (...args: Args): Result => {
+        if (cashConnectWallet.value !== instance) throw new Error("This CashConnect instance was stopped");
+        return callback(...args);
+      };
+    }
     // Instantiate CashConnect.
-    cashConnectWallet.value = new Wallet({
+    const instance: Wallet = new Wallet({
       cashConnectPrivateKey: cashConnectPrivateKey,
       store: sessionStoreForChain(cashConnectPrivateKey, activeChain()),
       eventCallbacks: {
-        onSessionsUpdated,
-        onSessionProposal,
+        onSessionsUpdated: (updatedSessions) => {
+          if (cashConnectWallet.value === instance) onSessionsUpdated(updatedSessions);
+        },
+        onSessionProposal: ifCurrent(onSessionProposal),
         onSessionDelete,
-        onExecuteAction,
-        onError,
+        onExecuteAction: ifCurrent(onExecuteAction),
+        // a request refused by a stopped instance would otherwise open an error dialog
+        onError: (error: Error) => {
+          if (cashConnectWallet.value !== instance) return Promise.resolve();
+          return onError(error);
+        },
       },
       contextCallbacks: {
-        getSourceOutput,
-        getSpendableUTXOs,
-        getChangeTemplateDirective,
+        getSourceOutput: ifCurrent(getSourceOutput),
+        getSpendableUTXOs: ifCurrent(getSpendableUTXOs),
+        getChangeTemplateDirective: ifCurrent(getChangeTemplateDirective),
       },
     });
+    cashConnectWallet.value = instance;
+    startedForWallet = mainStore.wallet;
 
     // Start CashConnect service.
-    await cashConnectWallet.value.start();
+    startPromise = instance.start();
+    try {
+      await startPromise;
+    } catch (error) {
+      // forgotten, so the next wallet initialization starts it again, as WalletConnect's init is
+      if (cashConnectWallet.value === instance) await stop();
+      throw error;
+    }
   }
   async function stop() {
     // If already stopped, do nothing.
@@ -92,12 +127,23 @@ export const useCashconnectStore = defineStore("cashconnectStore", () => {
     //       This causes a race-condition whereby CashConnect hasn't finished closing connections yet.
     //       And the `start()` call thinks that the existing instance still exists.
     const cashConnectPrevInstance = cashConnectWallet.value;
+    const prevStartPromise = startPromise;
     cashConnectWallet.value = undefined;
+    startPromise = undefined;
+    startedForWallet = undefined;
     // the sessions are the stopped wallet's, and a wallet that starts no CashConnect (testnet4)
     // must not list them
     sessions.value = {};
     // Stop the CashConnect Wallet service.
     await cashConnectPrevInstance.stop();
+    // The library's stop() only stops the sessions a start already restored, and a start still
+    // running goes on to restore the rest, so it is stopped again once the start settles. Not
+    // awaited, so a wallet switch does not wait on relay connects.
+    if (prevStartPromise) {
+      void prevStartPromise.catch(() => {})
+        .then(() => cashConnectPrevInstance.stop())
+        .catch((error: unknown) => console.error("Error stopping CashConnect after its start:", error));
+    }
   }
   async function pair(wcUri: string) {
     if (!dappsAvailableOn(mainStore.network)) {
