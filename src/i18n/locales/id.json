@@ -1,5 +1,6 @@
 {
   "common": {
+    "extensionImportNote": "Ekstensi menyimpan datanya sendiri: alamat yang dibekukan, janji Flipstarter, label, dan catatan dari aplikasi web Cashonize bukan bagian dari frasa pemulihan. Atur ulang semuanya di sini sebelum menggunakan dApp, agar koin yang ditahan tetap terlindungi.",
     "actions": {
       "back": "Kembali",
       "send": "Kirim",
@@ -480,6 +481,20 @@
     "title": "Hubungkan ke dApp",
     "unavailableOnNetwork": "Koneksi dApp tidak tersedia di {network}: dApp hanya mengenali jaringan uji dari prefiks alamat bchtest atau versi xpub-nya, yang sama dengan chipnet.",
     "connectText": "Hubungkan ke dApp BCH dengan metode koneksi yang didukung.",
+    "browserProvider": "Penyedia browser",
+    "browserProviderNote": "Situs juga dapat terhubung melalui penyedia ekstensi browser Cashonize (window.cashonize).",
+    "disconnect": "Putuskan koneksi",
+    "tiedChipnetCopy": "Dompet chipnet ini memakai kunci yang sama dengan dompet mainnet Anda, sehingga tanda tangan dApp di sini juga dapat membelanjakan koin mainnet. Gunakan dompet chipnet tersendiri untuk dApp: Menu > Pengaturan > Pengaturan pengembang > Tambah dompet pengembangan.",
+    "browserConnect": {
+      "title": "Hubungkan ke Cashonize",
+      "app": "Aplikasi:",
+      "origin": "Asal:",
+      "account": "Akun:",
+      "network": "Jaringan:",
+      "notice": "Situs ini akan dapat melihat alamat Anda dan meminta tanda tangan, yang memerlukan persetujuan Anda kecuali Anda mengaktifkan persetujuan otomatis untuknya.",
+      "connectButton": "Hubungkan",
+      "cancelButton": "Batal"
+    },
     "supportedMethods": "WalletConnect, CashConnect dan WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect dan CashConnect",
     "supportedMethodsNote": "WizardConnect memerlukan dompet HD",

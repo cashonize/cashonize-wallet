@@ -28,6 +28,7 @@ jobs:
       - run: pnpm exec vitest run
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - run: pnpm test:e2e:extension
 
   # Comments the pull request's changed lines, split into code, tests, translations
   # and generated files, so the size of a change is readable at a glance.

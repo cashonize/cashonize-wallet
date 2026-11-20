@@ -19,7 +19,9 @@
     "generate:chaingraph": "gql-tada generate output",
     "dev": "quasar dev",
     "build": "quasar build",
+    "build:bex": "quasar build -m bex -T chrome",
     "test:e2e": "playwright test --config test/e2e/playwright.config.ts",
+    "test:e2e:extension": "pnpm build:bex && playwright test --config test/e2e/extension/playwright.config.ts",
     "test:e2e:ui": "playwright test --config test/e2e/playwright.config.ts --ui",
     "test:e2e:regtest": "playwright test --config test/e2e/regtest/playwright.config.ts"
   },
