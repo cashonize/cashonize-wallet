@@ -28,7 +28,7 @@
   const showOptions = ref(false);
   const hideZeroBalances = ref(false);
   const showTokenAddresses = ref(false);
-  const collapsedGroups = ref({ unused: false, used: false });
+  const collapsedGroups = ref({ pinned: false, unused: false, used: false });
   const showQrDialog = ref(false);
   const qrDialogRow = ref<AddressRow | null>(null);
   const qrDialogTokenAddress = ref(false);
@@ -41,6 +41,20 @@
   const freezeOption = ref(store.frozenAddresses.length > 0);
   const anyAddressFrozen = computed(() => store.frozenAddresses.length > 0);
   const showFreezeButtons = computed(() => freezeOption.value || anyAddressFrozen.value);
+
+  // Same for the pin buttons: an address stays pinned regardless, so its unpin button has to show
+  const pinOption = ref(store.pinnedAddresses.length > 0);
+  const anyAddressPinned = computed(() => store.pinnedAddresses.length > 0);
+  const showPinButtons = computed(() => pinOption.value || anyAddressPinned.value);
+
+  function isPinned(row: AddressRow): boolean {
+    return store.pinnedAddresses.includes(row.address);
+  }
+
+  function togglePin(row: AddressRow) {
+    if (isPinned(row)) store.unpinAddress(row.address);
+    else store.pinAddress(row.address);
+  }
 
   // Marks are kept but ignored while the setting is off, which also drops the tag,
   // the unmark button and the grouping of marked addresses under used
@@ -91,7 +105,7 @@
     store.setAddressLabel(row.address, labelDraft.value);
   }
 
-  function toggleGroup(key: "unused" | "used") {
+  function toggleGroup(key: "pinned" | "unused" | "used") {
     collapsedGroups.value[key] = !collapsedGroups.value[key];
   }
 
@@ -136,20 +150,28 @@
 
   // Addresses the user marked as used or froze are grouped under used: they are no longer handed out
   const isSkipped = (row: AddressRow) => isMarked(row) || isFrozen(row);
-  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount > 0 || isSkipped(row))));
-  const unusedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0 && !isSkipped(row))));
+  // A pinned address is listed in its own group only, whether or not it has been paid to yet
+  const pinnedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(isPinned)));
+  const unpinnedReceivingAddresses = computed(() => receivingAddresses.value.filter(row => !isPinned(row)));
+  const usedReceivingAddresses = computed(() => applyBalanceFilter(unpinnedReceivingAddresses.value.filter(row => row.txCount > 0 || isSkipped(row))));
+  const unusedReceivingAddresses = computed(() => applyBalanceFilter(unpinnedReceivingAddresses.value.filter(row => row.txCount === 0 && !isSkipped(row))));
   const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount > 0)));
   const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount === 0)));
 
-  const filteredReceivingCount = computed(() => usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length);
+  const filteredReceivingCount = computed(() => {
+    return pinnedReceivingAddresses.value.length + usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length;
+  });
   const filteredChangeCount = computed(() => usedChangeAddresses.value.length + unusedChangeAddresses.value.length);
 
-  // Fresh addresses first: handing out an unused address is the main use of this page
+  // Pinned addresses on top, they are the ones the user comes back for. Then the fresh ones:
+  // handing out an unused address is the main use of this page
   const addressGroups = computed(() => {
     const isReceiving = selectedChain.value === "receiving";
     const unused = isReceiving ? unusedReceivingAddresses.value : unusedChangeAddresses.value;
     const used = isReceiving ? usedReceivingAddresses.value : usedChangeAddresses.value;
-    const groups: { key: "unused" | "used"; label: string; rows: AddressRow[] }[] = [];
+    const groups: { key: "pinned" | "unused" | "used"; label: string; rows: AddressRow[] }[] = [];
+    const pinned = pinnedReceivingAddresses.value;
+    if (isReceiving && pinned.length) groups.push({ key: "pinned", label: t('hdAddresses.pinnedAddresses'), rows: pinned });
     if (unused.length) groups.push({ key: "unused", label: t('hdAddresses.unusedAddresses'), rows: unused });
     if (used.length) groups.push({ key: "used", label: t('hdAddresses.usedAddresses'), rows: used });
     return groups;
@@ -216,6 +238,10 @@
       <div class="option-item" :title="anyAddressFrozen ? t('addressManagement.freezeOptionLocked') : undefined">
         {{ t('addressManagement.freezeOption') }}
         <q-toggle :model-value="showFreezeButtons" :disable="anyAddressFrozen" dense @update:model-value="(value: boolean) => freezeOption = value" />
+      </div>
+      <div class="option-item" :title="anyAddressPinned ? t('addressManagement.pinOptionLocked') : undefined">
+        {{ t('addressManagement.pinOption') }}
+        <q-toggle :model-value="showPinButtons" :disable="anyAddressPinned" dense @update:model-value="(value: boolean) => pinOption = value" />
       </div>
     </div>
 
@@ -329,15 +355,24 @@
               >
                 <q-icon name="ac_unit" size="22px" />
               </span>
+              <span
+                v-if="showPinButtons && selectedChain === 'receiving'"
+                class="mark-button"
+                :class="{ pinned: isPinned(row) }"
+                :title="isPinned(row) ? t('addressManagement.unpinAddress') : t('addressManagement.pinAddress')"
+                @click.stop="togglePin(row)"
+              >
+                <q-icon name="push_pin" size="22px" />
+              </span>
               <span class="qr-button" @click.stop="openQrDialog(row)">
                 <q-icon name="qr_code_2" size="22px" />
               </span>
-              <!-- an address marked used can have no transactions yet, it keeps the slot so the
-                   qr buttons of the used group stay in one column -->
+              <!-- an address marked used or pinned can have no transactions yet, it keeps the slot
+                   when others in its group have a history, so the qr buttons stay in one column -->
               <span v-if="row.txCount > 0" class="history-button" :title="t('hdAddresses.showHistory')" @click.stop="openHistory(row)">
                 <q-icon name="history" size="22px" />
               </span>
-              <span v-else-if="group.key === 'used'" class="history-button" style="visibility: hidden;">
+              <span v-else-if="group.rows.some(other => other.txCount > 0)" class="history-button" style="visibility: hidden;">
                 <q-icon name="history" size="22px" />
               </span>
             </div>
@@ -564,6 +599,11 @@
 
 .mark-button.frozen {
   color: var(--color-frozen);
+  opacity: 1;
+}
+
+.mark-button.pinned {
+  color: var(--color-primary);
   opacity: 1;
 }
 

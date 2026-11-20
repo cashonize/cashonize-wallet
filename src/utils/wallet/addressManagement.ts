@@ -1,5 +1,5 @@
 // Address management for HD wallets: addresses the user marked as used (so the wallet hands
-// out a fresh receive address), address labels and frozen addresses. All are stored in
+// out a fresh receive address), address labels, frozen addresses and pinned addresses. All are stored in
 // localStorage per wallet per network as cashaddr-keyed data; they never leave the device.
 
 export const maxAddressLabelLength = 100;
@@ -17,6 +17,10 @@ function addressLabelsKey(network: Network, walletName: string): string {
 
 function frozenAddressesKey(network: Network, walletName: string): string {
   return `frozenAddresses-${network}-${walletName}`;
+}
+
+function pinnedAddressesKey(network: Network, walletName: string): string {
+  return `pinnedAddresses-${network}-${walletName}`;
 }
 
 export function loadAddressMarks(network: Network, walletName: string): string[] {
@@ -100,17 +104,44 @@ export function deleteFrozenAddress(network: Network, walletName: string, addres
   return frozenAddresses;
 }
 
+// A pinned address is one the user keeps receiving on, a donation address for example: it is
+// listed apart and no longer handed out as the fresh receive address
+export function loadPinnedAddresses(network: Network, walletName: string): string[] {
+  const readPinned = localStorage.getItem(pinnedAddressesKey(network, walletName));
+  if (!readPinned) return [];
+  try {
+    return JSON.parse(readPinned) as string[];
+  } catch {
+    return [];
+  }
+}
+
+// Same fresh read-modify-write approach as saveAddressMark.
+export function savePinnedAddress(network: Network, walletName: string, address: string): string[] {
+  const pinnedAddresses = loadPinnedAddresses(network, walletName);
+  if (!pinnedAddresses.includes(address)) pinnedAddresses.push(address);
+  localStorage.setItem(pinnedAddressesKey(network, walletName), JSON.stringify(pinnedAddresses));
+  return pinnedAddresses;
+}
+
+export function deletePinnedAddress(network: Network, walletName: string, address: string): string[] {
+  const pinnedAddresses = loadPinnedAddresses(network, walletName).filter(pinned => pinned !== address);
+  localStorage.setItem(pinnedAddressesKey(network, walletName), JSON.stringify(pinnedAddresses));
+  return pinnedAddresses;
+}
+
 // A future wallet created under the same name must not inherit the old wallet's data
 export function removeAddressManagementData(walletName: string) {
   for (const network of appNetworks) {
     localStorage.removeItem(addressMarksKey(network, walletName));
     localStorage.removeItem(addressLabelsKey(network, walletName));
     localStorage.removeItem(frozenAddressesKey(network, walletName));
+    localStorage.removeItem(pinnedAddressesKey(network, walletName));
   }
 }
 
 // The receive address to hand out: the first address that is neither used on-chain nor skipped
-// (marked as used or frozen), staying within gapSize of the last used address. A seed restore
+// (marked as used, frozen or pinned), staying within gapSize of the last used address. A seed restore
 // stops scanning there, so a payment beyond it would never be found. Returns undefined when every
 // address in that window is skipped, callers should then fall back to the wallet's own default.
 export function deriveFreshAddressIndex(

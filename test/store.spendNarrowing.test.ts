@@ -471,4 +471,26 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
     expect(store.frozenAddresses).not.toContain(addressAt(0, 20))
     expect(store.currentDepositAddress).toBe(addressAt(0, 20))
   })
+
+  // a pinned address is already given out, a donation address for example
+  it('hands out the next address once the current one is pinned, and the pinned one again when unpinned', async () => {
+    const { store, addressAt } = await storeWithHdWallet()
+
+    expect(store.pinAddress(addressAt(0, 1))).toBe(true)
+    expect(store.currentDepositAddress).toBe(addressAt(0, 2))
+
+    store.unpinAddress(addressAt(0, 1))
+    expect(store.currentDepositAddress).toBe(addressAt(0, 1))
+  })
+
+  it('refuses to pin the last fresh receive address of the discovery window', async () => {
+    const { store, addressAt } = await storeWithHdWallet()
+    for (let index = 1; index < 20; index++) {
+      expect(store.pinAddress(addressAt(0, index))).toBe(true)
+    }
+
+    expect(store.pinAddress(addressAt(0, 20))).toBe(false)
+    expect(store.pinnedAddresses).not.toContain(addressAt(0, 20))
+    expect(store.currentDepositAddress).toBe(addressAt(0, 20))
+  })
 })

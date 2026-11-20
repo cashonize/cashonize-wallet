@@ -4,6 +4,9 @@ import {
   loadFrozenAddresses,
   saveFrozenAddress,
   deleteFrozenAddress,
+  loadPinnedAddresses,
+  savePinnedAddress,
+  deletePinnedAddress,
   removeAddressManagementData,
 } from "../src/utils/wallet/addressManagement";
 
@@ -113,5 +116,30 @@ describe("frozen addresses", () => {
     removeAddressManagementData("mywallet");
     expect(loadFrozenAddresses("mainnet", "mywallet")).toEqual([]);
     expect(loadFrozenAddresses("chipnet", "mywallet")).toEqual([]);
+  });
+});
+
+describe("pinned addresses", () => {
+  beforeEach(() => {
+    vi.stubGlobal("localStorage", makeLocalStorage());
+  });
+
+  it("saves and loads them per wallet per network", () => {
+    savePinnedAddress("mainnet", "mywallet", "bitcoincash:qa");
+    expect(loadPinnedAddresses("mainnet", "mywallet")).toEqual(["bitcoincash:qa"]);
+    expect(loadPinnedAddresses("chipnet", "mywallet")).toEqual([]);
+    expect(loadPinnedAddresses("mainnet", "otherwallet")).toEqual([]);
+  });
+
+  it("re-reads before writing, so a pin from another tab survives", () => {
+    savePinnedAddress("mainnet", "mywallet", "bitcoincash:qa");
+    localStorage.setItem("pinnedAddresses-mainnet-mywallet", JSON.stringify(["bitcoincash:qa", "bitcoincash:qb"]));
+    expect(deletePinnedAddress("mainnet", "mywallet", "bitcoincash:qa")).toEqual(["bitcoincash:qb"]);
+  });
+
+  it("is removed with the wallet, so a new wallet of the same name starts without pins", () => {
+    savePinnedAddress("mainnet", "mywallet", "bitcoincash:qa");
+    removeAddressManagementData("mywallet");
+    expect(loadPinnedAddresses("mainnet", "mywallet")).toEqual([]);
   });
 });
