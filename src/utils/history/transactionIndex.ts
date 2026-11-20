@@ -1,5 +1,5 @@
 // The few transactions of the wallet's history its own features look for: the identity markers and
-// the authchain links after them, and the TapSwap and hodl announcements. Kept per wallet per
+// the authchain links after them, and the announcements the contract manifests read. Kept per wallet per
 // network, so an open decodes what arrived since the last one rather than the whole history, and
 // only their outputs and input outpoints, never the prevouts a history item is built from.
 
@@ -12,8 +12,8 @@ import {
 } from "@bitauth/libauth";
 import type { InOutput, TokenI, TxI } from "@cashonize/bch-wallet-lib";
 import { toHex } from "@cashonize/bch-wallet-lib";
-import { listingOffer } from "src/utils/defi/tapswapListings";
-import { hodlAnnouncement } from "src/utils/defi/hodlContracts";
+import { builtinBundle } from "src/utils/contracts/builtins";
+import { announcementOutputCount, isAnnouncement } from "src/utils/contracts/runManifest";
 import { continuesAuthchain, isIdentityMarker, isP2pkh } from "src/utils/tools/identityDetection";
 
 type Network = AppNetwork;
@@ -33,6 +33,9 @@ export interface TransactionIndex {
   // every txid of the history, which tells a genesis from a token passed on
   historyTxids: ReadonlySet<string>;
 }
+
+// The leading outputs of an announcing transaction that a contract manifest reads
+const announcedOutputs = announcementOutputCount(builtinBundle.contracts);
 
 // Raised when what is kept changes, so an index written by an earlier version is scanned again
 const INDEX_VERSION = 3;
@@ -197,9 +200,9 @@ export async function updateTransactionIndex(wallet: IndexedWallet, network: Net
         identityChain.set(hash, transaction);
         markers.push(transaction);
       }
-      // both announce at output 0 or 1, and read nothing else
-      if (listingOffer(transaction) || hodlAnnouncement(transaction)) {
-        announcements.set(hash, { hash, inputs: [], outputs: transaction.outputs.slice(0, 2) });
+      // kept with the outputs the manifests read, and nothing else
+      if (isAnnouncement(transaction, builtinBundle.contracts)) {
+        announcements.set(hash, { hash, inputs: [], outputs: transaction.outputs.slice(0, announcedOutputs) });
       }
     }
   }

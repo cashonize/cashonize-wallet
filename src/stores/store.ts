@@ -64,15 +64,10 @@ import { appNetworkOf, appNetworks, dappsAvailableOn, libraryNetwork, storedAppN
 import { removeEmptyChipnetCopy } from "src/utils/wallet/tiedWallets"
 import { sharedRun } from "src/utils/concurrency"
 import { fetchCauldronPrices, type CauldronPriceData } from "src/utils/defi/cauldronApi"
-import {
-  fetchCauldronPools,
-  cauldronChainPublicKeyHashes,
-  publicKeyHashFromAddress,
-  type CauldronPool
-} from "src/utils/defi/cauldronPools"
-import { fetchBadgerLocks, type BadgerLock } from "src/utils/defi/badgersStake"
-import { listingsFromHistory, fetchActiveListings, type TapswapListing } from "src/utils/defi/tapswapListings"
-import { hodlContractsFromHistory, fetchHodlContractStates, type HodlContract } from "src/utils/defi/hodlContracts"
+import { defiChainPublicKeyHashes, publicKeyHashFromAddress } from "src/utils/wallet/walletKeyHashes"
+import { runManifest, type ContractPosition } from "src/utils/contracts/runManifest"
+import { builtinManifest, LIQUIDITY_POOL_MANIFESTS } from "src/utils/contracts/builtins"
+
 import { loadTxNotes, saveTxNote, removeTxNotes } from "src/utils/history/txNotes"
 import { updateTransactionIndex, removeTransactionIndex, type ScannedTransaction } from "src/utils/history/transactionIndex"
 import { mergeNewestPage } from "src/utils/history/historyMerge"
@@ -239,17 +234,18 @@ export const useStore = defineStore('store', () => {
   // the registries, which a smaller fetch, such as the history's, can start filling first
   const tokenMetadataLoaded = ref(false);
   const cauldronPrices = ref<Record<string, CauldronPriceData> | null>(null);
-  // Cauldron liquidity pools owned by the wallet, null until the portfolio view looks them up
-  const cauldronPools = ref<CauldronPool[] | null>(null);
+  // Cauldron and Guanaco liquidity pools owned by the wallet, null until the portfolio view looks
+  // them up
+  const liquidityPools = ref<ContractPosition[] | null>(null);
   // BCH locked in the Badgers.cash contract, null until the portfolio view looks it up
-  const badgerLocks = ref<BadgerLock[] | null>(null);
+  const badgerLocks = ref<ContractPosition[] | null>(null);
   // Assets listed for sale on TapSwap, null until the portfolio view looks them up
-  const tapswapListings = ref<TapswapListing[] | null>(null);
+  const tapswapListings = ref<ContractPosition[] | null>(null);
   // Metadata of the listed assets. They are not held by the wallet, so like the dapp dialogs'
   // unverified metadata this lives in its own object rather than in bcmrRegistries.
   const tapswapRegistries = ref<Record<string, BcmrTokenMetadata>>({});
   // BCH locked in hodl contracts, null until the portfolio view looks it up
-  const hodlContracts = ref<HodlContract[] | null>(null);
+  const hodlContracts = ref<ContractPosition[] | null>(null);
   // Why the last TapSwap and hodl lookup failed, shown inline in the portfolio view
   const announcedAssetsError = ref<string | undefined>(undefined);
   const exchangeRate = ref<number | undefined>(undefined);
@@ -1006,7 +1002,7 @@ export const useStore = defineStore('store', () => {
     tokenMetadataLoaded.value = false;
     queriedHistoryCategories = [];
     cauldronPrices.value = null;
-    cauldronPools.value = null;
+    liquidityPools.value = null;
     badgerLocks.value = null;
     tapswapListings.value = null;
     tapswapRegistries.value = {};
@@ -1504,8 +1500,9 @@ export const useStore = defineStore('store', () => {
     const fungibleTokens = allTokenList.value?.filter(token => 'amount' in token) ?? [];
     const ftTokenIds = fungibleTokens.map(token => token.category);
     // a pool holds a token the wallet does not have to hold itself, so it needs a price too
-    for (const pool of cauldronPools.value ?? []) {
-      if (!ftTokenIds.includes(pool.tokenId)) ftTokenIds.push(pool.tokenId);
+    for (const pool of liquidityPools.value ?? []) {
+      const category = pool.token?.category;
+      if (category && !ftTokenIds.includes(category)) ftTokenIds.push(category);
     }
     if (ftTokenIds.length === 0) return;
 
@@ -1516,7 +1513,7 @@ export const useStore = defineStore('store', () => {
     cauldronPrices.value = prices;
   }
 
-  // The public key hashes that could own a Cauldron pool. On the wallet's own receive and change
+  // The public key hashes that could own a contract position. On the wallet's own receive and change
   // chains an address that owns a pool signed the transaction creating it, so it has history and
   // addresses without history can be skipped. The dapp chain has no such history to go by: the
   // wallet never spends from it itself, so a fixed window of its addresses is checked.
@@ -1537,49 +1534,62 @@ export const useStore = defineStore('store', () => {
       }
     }
     publicKeyHashes.push(
-      ...cauldronChainPublicKeyHashes(activeWallet.mnemonic, activeWallet.derivation, GAP_SIZE)
+      ...defiChainPublicKeyHashes(activeWallet.mnemonic, activeWallet.derivation, GAP_SIZE)
     );
     return publicKeyHashes;
   }
 
   // a revisit within a minute, for the same wallet, addresses and coins, reuses the last lookup
   const DEFI_LOOKUP_TTL_MS = 60_000;
-  let cauldronPoolsLookup: { key: string, at: number } | undefined;
+  let liquidityPoolsLookup: { key: string, at: number } | undefined;
   let badgerLocksLookup: { key: string, at: number } | undefined;
   function defiLookupKey(ownerPkhs: string[]) {
     const coins = (walletUtxos.value ?? []).map(outpointOf).sort();
     return `${currentInitialization}:${ownerPkhs.join()}:${coins.join()}`;
   }
 
-  // Find the Cauldron liquidity pools the wallet owns. Pools are not held as a token or an NFT,
-  // they live at the pool contract address derived from the owner's public key hash, so this is
-  // a UTXO lookup per wallet address. Only the portfolio view shows them, so it drives the fetch.
-  async function fetchWalletCauldronPools() {
+  // Find the Cauldron and Guanaco liquidity pools the wallet owns. Pools are not held as a token
+  // or an NFT, they live at the pool contract address derived from the owner's public key hash, so
+  // this is a UTXO lookup per wallet address and manifest. Only the portfolio view shows them, so
+  // it drives the fetch. Guanaco is mainnet only, so on chipnet only Cauldron is looked up.
+  async function fetchWalletLiquidityPools() {
     // the portfolio view can ask before the wallet is set, the retry comes with the token list
     if (!_wallet.value) return;
     try {
       const ownerPkhs = walletPublicKeyHashes();
       const lookupKey = defiLookupKey(ownerPkhs);
-      if (cauldronPools.value && isFreshLookup(cauldronPoolsLookup, lookupKey, DEFI_LOOKUP_TTL_MS)) return;
+      if (liquidityPools.value && isFreshLookup(liquidityPoolsLookup, lookupKey, DEFI_LOOKUP_TTL_MS)) return;
       const initialization = currentInitialization;
-      const pools = await fetchCauldronPools(wallet.value.provider, ownerPkhs, wallet.value.networkPrefix);
+      let manifestIds = LIQUIDITY_POOL_MANIFESTS;
+      if (network.value !== 'mainnet') manifestIds = ['cauldron-pool'];
+      const context = {
+        provider: wallet.value.provider,
+        ownerPkhs,
+        // a derived manifest builds its address from the keys, so it reads no history
+        history: [],
+        networkPrefix: wallet.value.networkPrefix,
+      };
+      const found = await Promise.all(manifestIds.map(manifestId => runManifest(builtinManifest(manifestId), context)));
+      const pools = found.flat();
       if (initialization !== currentInitialization) return;
-      cauldronPools.value = pools;
-      cauldronPoolsLookup = { key: lookupKey, at: Date.now() };
+      liquidityPools.value = pools;
+      liquidityPoolsLookup = { key: lookupKey, at: Date.now() };
 
       // the token in a pool does not have to be held by the wallet, so its metadata can be missing
       const poolTokens: TokenList = [];
       for (const pool of pools) {
-        const metadataAlreadyFetched = bcmrRegistries.value?.[pool.tokenId] !== undefined
-          || poolTokens.some(poolToken => poolToken.category === pool.tokenId);
-        if (!metadataAlreadyFetched) poolTokens.push({ category: pool.tokenId, amount: pool.tokenAmount });
+        if (!pool.token) continue;
+        const category = pool.token.category;
+        const metadataAlreadyFetched = bcmrRegistries.value?.[category] !== undefined
+          || poolTokens.some(poolToken => poolToken.category === category);
+        if (!metadataAlreadyFetched) poolTokens.push({ category, amount: pool.token.amount });
       }
       if (poolTokens.length) await fetchTokenMetadata(poolTokens, false);
     } catch (error) {
       // swallowed so the portfolio still gets to fetch its prices, without which every token
       // would show up as unpriced; the empty list also lets the view render instead of waiting
-      console.error("Failed to look up Cauldron pools:", error);
-      cauldronPools.value ??= [];
+      console.error("Failed to look up liquidity pools:", error);
+      liquidityPools.value ??= [];
     }
   }
 
@@ -1599,12 +1609,18 @@ export const useStore = defineStore('store', () => {
       const lookupKey = defiLookupKey(ownerPkhs);
       if (badgerLocks.value && isFreshLookup(badgerLocksLookup, lookupKey, DEFI_LOOKUP_TTL_MS)) return;
       const initialization = currentInitialization;
-      const locks = await fetchBadgerLocks(wallet.value.provider, ownerPkhs);
+      const locks = await runManifest(builtinManifest("badgers-stake"), {
+        provider: wallet.value.provider,
+        ownerPkhs,
+        // an address manifest names where to look, so it reads no history
+        history: [],
+        networkPrefix: wallet.value.networkPrefix,
+      });
       if (initialization !== currentInitialization) return;
       badgerLocks.value = locks;
       badgerLocksLookup = { key: lookupKey, at: Date.now() };
     } catch (error) {
-      // swallowed like the Cauldron lookup, so one unreachable request does not keep the
+      // swallowed like the pool lookup, so one unreachable request does not keep the
       // portfolio from rendering everything else
       console.error("Failed to look up Badgers.cash locks:", error);
       badgerLocks.value ??= [];
@@ -1631,37 +1647,48 @@ export const useStore = defineStore('store', () => {
     announcedAssetsError.value = undefined;
     const initialization = currentInitialization;
 
+    function announcedPositions(manifestId: string, announcements: ScannedTransaction[], ownerPkhs: string[]) {
+      return runManifest(builtinManifest(manifestId), {
+        provider: wallet.value.provider,
+        ownerPkhs,
+        history: announcements,
+        networkPrefix: wallet.value.networkPrefix,
+      });
+    }
     async function lookUpListings(announcements: ScannedTransaction[], ownerPkhs: string[]) {
-      const listings = await fetchActiveListings(wallet.value.provider, listingsFromHistory(announcements, ownerPkhs, wallet.value.networkPrefix));
+      const listings = await announcedPositions("tapswap-listing", announcements, ownerPkhs);
       if (initialization !== currentInitialization) return;
       tapswapListings.value = listings;
       // names and icons fill in after the rows: nothing waits on them
       void fetchListingMetadata(listings);
     }
     async function lookUpHodlContracts(announcements: ScannedTransaction[], ownerPkhs: string[]) {
-      const contracts = await fetchHodlContractStates(wallet.value.provider, hodlContractsFromHistory(announcements, ownerPkhs));
+      const contracts = await announcedPositions("hodl-vault", announcements, ownerPkhs);
       if (initialization !== currentInitialization) return;
       hodlContracts.value = contracts;
     }
     // NFT listings fetch their NFT-specific metadata (name, icon), which carries the collection
     // metadata with it; fungible listings fetch the category metadata. The fetches merge into
     // tapswapRegistries in place.
-    async function fetchListingMetadata(listings: TapswapListing[]) {
+    async function fetchListingMetadata(listings: ContractPosition[]) {
       const fetches: Promise<unknown>[] = [];
       // several listings of one token or NFT ask once, now that the fetches no longer wait on each other
       const requested = new Set<string>();
       for (const listing of listings) {
-        const key = `${listing.category}:${listing.commitment ?? 'fungible'}`;
+        const token = listing.token;
+        if (!token) continue;
+        const commitment = token.nft?.commitment;
+        const key = `${token.category}:${commitment ?? 'fungible'}`;
         if (requested.has(key)) continue;
         requested.add(key);
-        if (listing.commitment !== undefined) {
-          if (tapswapRegistries.value[listing.category]?.nfts?.[listing.commitment]) continue;
-          fetches.push(fetchNftMetadataFromIndexer(listing.category, listing.commitment, tokenMetadataIndexer.value, tapswapRegistries.value));
+        if (commitment !== undefined) {
+          if (tapswapRegistries.value[token.category]?.nfts?.[commitment]) continue;
+          fetches.push(fetchNftMetadataFromIndexer(token.category, commitment, tokenMetadataIndexer.value, tapswapRegistries.value));
           continue;
         }
-        if (tapswapRegistries.value[listing.category]) continue;
+        if (tapswapRegistries.value[token.category]) continue;
         fetches.push(fetchTokenMetadataFromIndexer(
-          [{ category: listing.category, amount: listing.tokenAmount }], false, tokenMetadataIndexer.value, tapswapRegistries.value
+          [{ category: token.category, amount: token.amount }], false, tokenMetadataIndexer.value, tapswapRegistries.value
         ));
       }
       const results = await Promise.allSettled(fetches);
@@ -1735,7 +1762,6 @@ export const useStore = defineStore('store', () => {
   async function fetchNftMetadata(category: string, commitment: string) {
     await fetchNftMetadataFromIndexer(category, commitment, tokenMetadataIndexer.value, bcmrRegistries.value);
   }
-
 
   async function parseNftCommitment(categoryId: string, utxo: Utxo) {
     const metadata = bcmrRegistries.value?.[categoryId];
@@ -2178,7 +2204,7 @@ export const useStore = defineStore('store', () => {
     tokenMetadataLoaded,
     reloadTokenMetadata,
     cauldronPrices,
-    cauldronPools,
+    liquidityPools,
     badgerLocks,
     tapswapListings,
     tapswapRegistries,
@@ -2209,7 +2235,7 @@ export const useStore = defineStore('store', () => {
     checkTokenUtxosSpendable,
     fetchTokenMetadata,
     fetchCauldronPricesForTokens,
-    fetchWalletCauldronPools,
+    fetchWalletLiquidityPools,
     fetchWalletBadgerLocks,
     fetchWalletAnnouncedAssets,
     loadAllHistory,

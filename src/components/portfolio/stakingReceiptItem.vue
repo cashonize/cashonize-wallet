@@ -20,7 +20,7 @@
   }>()
 </script>
 
-<!-- One ParyonUSD staking receipt row in the portfolio asset list.
+<!-- One staking receipt row in the portfolio asset list.
   The stake recorded on the receipt can have been reduced since, so the value is
   displayed as an estimate and stays out of the chart and total.
   Row styling comes from portfolioView's asset-list :deep() rules. -->

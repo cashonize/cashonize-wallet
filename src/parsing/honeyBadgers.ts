@@ -1,6 +1,8 @@
 import { hexToBin } from '@bitauth/libauth'
 import { parseNft, type NftParseInfo, type ParseResult } from 'src/parsing/nftParsing'
-import { BADGERCOIN_CATEGORY } from 'src/utils/defi/badgersStake'
+
+// BadgerCoin's category, whose NFTs are the Badgers and the Honey
+export const BADGERCOIN_CATEGORY = "242f6ecedb404c743477e35b09733a56cacae34f3109d5cee1cbc1d5630affd7";
 
 // The HoneyBadgers registry lists its NFT types without the bytecode that tells an NFT's type. A
 // commitment opens with a 2-byte little-endian id, and the registry keys its types by that id as a

@@ -1,7 +1,6 @@
 import { vi } from "vitest";
 import type { Utxo } from "@cashonize/bch-wallet-lib";
-import { honeyBadgersTypeKey, parseHoneyBadgersNft } from "../src/parsing/honeyBadgers";
-import { BADGERCOIN_CATEGORY } from "../src/utils/defi/badgersStake";
+import { BADGERCOIN_CATEGORY, honeyBadgersTypeKey, parseHoneyBadgersNft } from "../src/parsing/honeyBadgers";
 import { fetchTokenMetadata } from "../src/stores/storeUtils";
 import { cachedFetch } from "../src/utils/cacheUtils";
 
