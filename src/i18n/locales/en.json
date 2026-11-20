@@ -1491,7 +1491,7 @@
     "userOptions": {
       "darkMode": "Dark mode",
       "confirmPayments": "Confirm payments before sending",
-      "confirmPaymentsHint": "Ask for confirmation after clicking send (recommended)",
+      "confirmPaymentsHint": "Shows the amount and address for a final check after you click send. Recommended, since a payment can't be undone.",
       "showCauldronSwap": "Show Cauldron Swap Button",
       "showCauldronFTValue": "Show fiat value in the tokens list",
       "showCauldronFTValueHint": "Display fiat value on the Tokens tab for fungible tokens with at least 1 BCH combined liquidity across Cauldron DEX pools",

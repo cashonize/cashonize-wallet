@@ -1491,7 +1491,7 @@
     "userOptions": {
       "darkMode": "Mode sombre",
       "confirmPayments": "Confirmer les paiements avant l'envoi",
-      "confirmPaymentsHint": "Demander une confirmation après avoir cliqué sur envoyer (recommandé)",
+      "confirmPaymentsHint": "Affiche le montant et l'adresse pour une dernière vérification après avoir cliqué sur envoyer. Recommandé, car un paiement ne peut pas être annulé.",
       "showCauldronSwap": "Afficher le bouton Cauldron Swap",
       "showCauldronFTValue": "Afficher la valeur en devise dans la liste des tokens",
       "showCauldronFTValueHint": "Affiche la valeur en devise dans l'onglet Tokens pour les tokens fongibles avec au moins 1 BCH de liquidité combinée dans les pools de Cauldron DEX",

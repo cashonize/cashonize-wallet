@@ -1491,7 +1491,7 @@
     "userOptions": {
       "darkMode": "Dark Mode",
       "confirmPayments": "Zahlungen vor dem Senden bestätigen",
-      "confirmPaymentsHint": "Nach dem Klicken auf Senden um Bestätigung bitten (empfohlen)",
+      "confirmPaymentsHint": "Zeigt Betrag und Adresse zur letzten Kontrolle, nachdem du auf Senden geklickt hast. Empfohlen, da eine Zahlung nicht rückgängig gemacht werden kann.",
       "showCauldronSwap": "Cauldron Swap-Button anzeigen",
       "showCauldronFTValue": "Fiat-Wert in der Token-Liste anzeigen",
       "showCauldronFTValueHint": "Zeigt den Fiat-Wert im Token-Tab für fungible Tokens mit mindestens 1 BCH kombinierter Liquidität über die Cauldron-DEX-Pools",
