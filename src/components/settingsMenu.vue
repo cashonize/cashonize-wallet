@@ -657,10 +657,11 @@
       </div>
 
       <div style="margin-bottom: 15px;">
-        {{ t('settings.userOptions.confirmPayments') }} <q-toggle v-model="confirmBeforeSending" @update:model-value="toggleConfirmBeforeSending" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('settings.userOptions.confirmPaymentsHint') }}
-        </div>
+        {{ t('settings.userOptions.confirmPayments') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.confirmPaymentsHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="confirmBeforeSending" @update:model-value="toggleConfirmBeforeSending" dense />
       </div>
 
       <div v-if="!isCapacitor" style="margin-bottom: 15px;">

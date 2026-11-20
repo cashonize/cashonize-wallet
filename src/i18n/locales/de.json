@@ -1019,6 +1019,7 @@
     "change": "Wechselgeld",
     "usedAddresses": "Verwendet",
     "unusedAddresses": "Unbenutzt",
+    "pinnedAddresses": "Angepinnt",
     "noAddresses": "Noch keine Adressen gescannt",
     "options": "Optionen",
     "hideZeroBalances": "Null-Guthaben ausblenden",
@@ -1050,6 +1051,11 @@
     "freezeAddress": "Adresse einfrieren",
     "unfreezeAddress": "Adresse auftauen",
     "freezeLimitNotify": "Diese Adresse kann nicht eingefroren werden, eine neue Adresse muss verfügbar bleiben. Empfange eine Zahlung, um weitere freizugeben.",
+    "pinOption": "Anpinnen-Buttons anzeigen",
+    "pinOptionLocked": "Löse alle Adressen, um dies auszuschalten",
+    "pinAddress": "Adresse anpinnen",
+    "unpinAddress": "Adresse lösen",
+    "pinLimitNotify": "Diese Adresse kann nicht angepinnt werden, eine neue Adresse muss verfügbar bleiben. Empfange eine Zahlung, um weitere freizugeben.",
     "freeze": {
       "title": "Diese Adresse einfrieren",
       "message": "UTXOs auf einer eingefrorenen Adresse bleiben in deinem Wallet, aber diese App lässt sie bei jeder Zahlung und jedem Token-Transfer aus und lehnt dApp-Anfragen ab, die sie ausgeben, auch UTXOs, die die Adresse später empfängt. Du kannst sie auf dieser Seite jederzeit auftauen.\n\nDas Einfrieren gilt nur hier: Wenn du diese Seed-Phrase in einer anderen Wallet-App verwendest, friere dieselbe Adresse auch dort ein.",
@@ -1485,7 +1491,7 @@
     "userOptions": {
       "darkMode": "Dark Mode",
       "confirmPayments": "Zahlungen vor dem Senden bestätigen",
-      "confirmPaymentsHint": "Nach dem Klicken auf Senden um Bestätigung bitten (empfohlen)",
+      "confirmPaymentsHint": "Zeigt Betrag und Adresse zur letzten Kontrolle, nachdem du auf Senden geklickt hast. Empfohlen, da eine Zahlung nicht rückgängig gemacht werden kann.",
       "showCauldronSwap": "Cauldron Swap-Button anzeigen",
       "showCauldronFTValue": "Fiat-Wert in der Token-Liste anzeigen",
       "showCauldronFTValueHint": "Zeigt den Fiat-Wert im Token-Tab für fungible Tokens mit mindestens 1 BCH kombinierter Liquidität über die Cauldron-DEX-Pools",

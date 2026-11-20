@@ -1019,6 +1019,7 @@
     "change": "Monnaie",
     "usedAddresses": "Utilisées",
     "unusedAddresses": "Non utilisées",
+    "pinnedAddresses": "Épinglées",
     "noAddresses": "Aucune adresse analysée pour le moment",
     "options": "Options",
     "hideZeroBalances": "Masquer les soldes nuls",
@@ -1050,6 +1051,11 @@
     "freezeAddress": "Geler l'adresse",
     "unfreezeAddress": "Dégeler l'adresse",
     "freezeLimitNotify": "Impossible de geler cette adresse, une nouvelle adresse doit rester disponible. Recevez un paiement pour en libérer d'autres.",
+    "pinOption": "Afficher les boutons d'épinglage",
+    "pinOptionLocked": "Désépinglez toutes les adresses pour désactiver ceci",
+    "pinAddress": "Épingler l'adresse",
+    "unpinAddress": "Désépingler l'adresse",
+    "pinLimitNotify": "Impossible d'épingler cette adresse, une nouvelle adresse doit rester disponible. Recevez un paiement pour en libérer d'autres.",
     "freeze": {
       "title": "Geler cette adresse",
       "message": "Les UTXO d'une adresse gelée restent dans votre portefeuille, mais cette app les exclut de tous les paiements et transferts de tokens et refuse les requêtes de dApp qui les dépensent, y compris les UTXO que l'adresse recevra plus tard. Dégelez-la depuis cette page à tout moment.\n\nLe gel ne s'applique qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y aussi la même adresse.",
@@ -1485,7 +1491,7 @@
     "userOptions": {
       "darkMode": "Mode sombre",
       "confirmPayments": "Confirmer les paiements avant l'envoi",
-      "confirmPaymentsHint": "Demander une confirmation après avoir cliqué sur envoyer (recommandé)",
+      "confirmPaymentsHint": "Affiche le montant et l'adresse pour une dernière vérification après avoir cliqué sur envoyer. Recommandé, car un paiement ne peut pas être annulé.",
       "showCauldronSwap": "Afficher le bouton Cauldron Swap",
       "showCauldronFTValue": "Afficher la valeur en devise dans la liste des tokens",
       "showCauldronFTValueHint": "Affiche la valeur en devise dans l'onglet Tokens pour les tokens fongibles avec au moins 1 BCH de liquidité combinée dans les pools de Cauldron DEX",

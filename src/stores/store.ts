@@ -87,6 +87,9 @@ import {
   loadFrozenAddresses,
   saveFrozenAddress,
   deleteFrozenAddress,
+  loadPinnedAddresses,
+  savePinnedAddress,
+  deletePinnedAddress,
   deriveFreshAddressIndex
 } from "src/utils/wallet/addressManagement"
 import {
@@ -214,6 +217,8 @@ export const useStore = defineStore('store', () => {
   const storedReservations = ref({} as ReservedUtxos);
   // HD addresses whose every coin is held back, the ones they receive later included
   const frozenAddresses = ref([] as string[]);
+  // Receive addresses the user keeps in use, listed apart and never handed out as the fresh one
+  const pinnedAddresses = ref([] as string[]);
   // Private labels on the wallet's coins, keyed by outpoint (see utils/wallet/utxoLabels.ts)
   const utxoLabels = ref({} as UtxoLabels);
   const tokenList = ref(null as (TokenList | null))
@@ -353,26 +358,28 @@ export const useStore = defineStore('store', () => {
   }
 
   // What the receive address skips: the frozen addresses, a payment to which could not be spent
-  // from here, and the marked ones while marking is on
+  // from here, the pinned ones, which are already given out, and the marked ones while marking is on
   function skippedReceiveAddresses() {
-    if (!settingsStore.enableAddressMarking) return frozenAddresses.value;
-    return [...addressMarks.value, ...frozenAddresses.value];
+    const skipped = [...frozenAddresses.value, ...pinnedAddresses.value];
+    if (settingsStore.enableAddressMarking) skipped.push(...addressMarks.value);
+    return skipped;
   }
 
-  // Index of the receive address shown on the wallet page. For HD wallets this skips the marked
-  // and frozen addresses; undefined for single-address wallets and when every address in the
+  // Index of the receive address shown on the wallet page. For HD wallets this skips the marked,
+  // pinned and frozen addresses; undefined for single-address wallets and when every address in the
   // discovery window is skipped, which marking and freezing refuse to bring about but another
   // open tab doing so at the same time still can
   const currentAddressIndex = computed(() => {
     // rawHistory and walletCache below sit outside Vue reactivity, walletUtxos is the
     // signal that they advanced (see walletHasAddress)
     void walletUtxos.value;
-    // marks are kept but ignored while the setting is off, so with nothing frozen the wallet
-    // hands out the same address it would have without either feature
-    if (!settingsStore.enableAddressMarking && !frozenAddresses.value.length) return undefined;
-    const index = freshReceiveIndex(skippedReceiveAddresses());
-    if (index !== undefined || !settingsStore.enableAddressMarking) return index;
-    // with every address in the window skipped, a marked one is still better than a frozen one
+    // marks are kept but ignored while the setting is off, so with nothing frozen or pinned the
+    // wallet hands out the same address it would have without these features
+    const skippedAddresses = skippedReceiveAddresses();
+    if (!settingsStore.enableAddressMarking && !skippedAddresses.length) return undefined;
+    const index = freshReceiveIndex(skippedAddresses);
+    if (index !== undefined) return index;
+    // with every address in the window skipped, a marked or pinned one is still better than a frozen one
     return freshReceiveIndex(frozenAddresses.value);
   })
 
@@ -583,6 +590,7 @@ export const useStore = defineStore('store', () => {
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
     storedReservations.value = loadReservedUtxos(newNetwork, newWallet.name);
     frozenAddresses.value = loadFrozenAddresses(newNetwork, newWallet.name);
+    pinnedAddresses.value = loadPinnedAddresses(newNetwork, newWallet.name);
     utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
     identitiesStore.loadForWallet(newNetwork, newWallet.name);
   }
@@ -619,7 +627,7 @@ export const useStore = defineStore('store', () => {
   function markAddressUsed(address: string) {
     const activeWallet = wallet.value;
     if (!(activeWallet instanceof HDWallet)) return;
-    const freshIndexAfterMark = freshReceiveIndex([...addressMarks.value, ...frozenAddresses.value, address]);
+    const freshIndexAfterMark = freshReceiveIndex([...skippedReceiveAddresses(), address]);
     if (freshIndexAfterMark === undefined) {
       Notify.create({
         message: t('addressManagement.markLimitNotify'),
@@ -641,10 +649,36 @@ export const useStore = defineStore('store', () => {
     addressMarks.value = deleteAddressMark(network.value, wallet.value.name, address);
   }
 
+  // Pinning takes a receive address out of the rotation, so like marking it refuses to leave no
+  // fresh address inside the discovery window. Returns whether it was pinned.
+  function pinAddress(address: string) {
+    const freshBefore = freshReceiveIndex(skippedReceiveAddresses());
+    const freshAfter = freshReceiveIndex([...skippedReceiveAddresses(), address]);
+    if (freshBefore !== undefined && freshAfter === undefined) {
+      Notify.create({
+        message: t('addressManagement.pinLimitNotify'),
+        icon: 'warning',
+        color: "red"
+      })
+      return false;
+    }
+    try {
+      pinnedAddresses.value = savePinnedAddress(network.value, wallet.value.name, address);
+    } catch (error) {
+      notifyIfStorageFull(error);
+      throw error;
+    }
+    return true;
+  }
+
+  function unpinAddress(address: string) {
+    pinnedAddresses.value = deletePinnedAddress(network.value, wallet.value.name, address);
+  }
+
   // A frozen address keeps receiving, but every coin on it is held back like a reserved one,
   // including the ones it receives later. Like marking, freezing refuses to leave no fresh receive
-  // address in the discovery window; marks are left out of that count, since the receive address
-  // falls back to a marked one before it would to a frozen one. Returns whether it was frozen.
+  // address in the discovery window; marks and pins are left out of that count, since the receive
+  // address falls back to one of those before it would to a frozen one. Returns whether it was frozen.
   async function freezeAddress(address: string) {
     const freshBefore = freshReceiveIndex(frozenAddresses.value);
     const freshAfter = freshReceiveIndex([...frozenAddresses.value, address]);
@@ -2126,6 +2160,9 @@ export const useStore = defineStore('store', () => {
     frozenLockingBytecodes,
     freezeAddress,
     unfreezeAddress,
+    pinnedAddresses,
+    pinAddress,
+    unpinAddress,
     setAddressLabel,
     walletInitFailed,
     pendingTokenSearch,

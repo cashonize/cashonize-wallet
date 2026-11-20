@@ -80,6 +80,7 @@
         </div>
         <div class="detailRow">
           <a :href="explorerLink" target="_blank">{{ t('alertDialog.linkExplorer') }}</a>
+          <img class="copyIcon icon value" :src="copyIconSrc" @click="copyToClipboard(explorerLink)">
         </div>
       </div>
 
