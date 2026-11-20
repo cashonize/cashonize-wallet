@@ -102,6 +102,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     unseenIdentities.value = loadIdentityList('unseen', network, walletName);
     watchedIdentities.value = loadIdentityList('watched', network, walletName);
     identities.value = undefined;
+    openChecksSettled.value = false;
     followedTokenIdentities.value = undefined;
     identityPublicationTxids.value = [];
     announcement.value = undefined;
@@ -548,6 +549,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // What went wrong in a pass the wallet ran on its own at open, shown on the page where the
   // result would be rather than toasted on every open; cleared by the next pass that runs
   const openCheckError = ref<string | undefined>(undefined);
+  // Whether this wallet's checks on open have run their course, found or failed: the extension
+  // judges a dApp request only after them, as a coin they reserve is ordinary until then
+  const openChecksSettled = ref(false);
 
   // Outside the wallet's own failure path: a lookup failing here, an electrum server refusing a
   // guard address say, must not flag a wallet that did load, so it is reported where the
@@ -555,6 +559,14 @@ export const useIdentitiesStore = defineStore('identities', () => {
   async function runChecksOnOpen() {
     const started = mainStore.currentInitializationToken();
     openCheckError.value = undefined;
+    try {
+      await runChecks(started);
+    } finally {
+      if (!mainStore.walletSwitchedSince(started)) openChecksSettled.value = true;
+    }
+  }
+
+  async function runChecks(started: number) {
     try {
       await refreshIdentities();
       const indexed = await mainStore.indexedTransactions();
@@ -741,6 +753,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     followTokenIdentities,
     startFollowingTokenIdentities,
     openCheckError,
+    openChecksSettled,
     runChecksOnOpen,
     fetchMetadataFor,
     detectWalletIdentities, // only runChecksOnOpen calls it; exposed so the tests can hand it a walk

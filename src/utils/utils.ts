@@ -58,12 +58,14 @@ export async function loadWalletFromId(walletId: string, network: AppNetwork): P
 }
 
 // Sanitize untrusted URLs (e.g. from dApp metadata) to prevent protocol abuse.
-// Only allows https: in production, plus http://localhost in dev.
+// Only allows https: in production, plus http://localhost in dev. The extension also serves local
+// dApps, whose browser-attested origin its dialogs must show rather than hide.
 export function sanitizeUrl(url: string): string | undefined {
   try {
     const parsed = new URL(url);
     if (parsed.protocol === 'https:') return parsed.href;
-    if (parsed.protocol === 'http:' && import.meta.env.QUASAR_DEV && parsed.hostname === 'localhost') return parsed.href;
+    const local = parsed.hostname === 'localhost' || (import.meta.env.QUASAR_BEX_MODE && parsed.hostname === '127.0.0.1');
+    if (parsed.protocol === 'http:' && (import.meta.env.QUASAR_DEV || import.meta.env.QUASAR_BEX_MODE) && local) return parsed.href;
   } catch {
     // invalid URL
   }

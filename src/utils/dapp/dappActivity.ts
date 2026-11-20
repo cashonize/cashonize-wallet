@@ -12,7 +12,7 @@ export type DappActivityOutcome = 'sent' | 'signed' | 'broadcastFailed' | 'messa
 export interface DappActivityEntry {
   /** Unix time in milliseconds */
   time: number;
-  protocol: 'walletconnect' | 'wizardconnect';
+  protocol: 'walletconnect' | 'wizardconnect' | 'extension';
   dappName: string;
   /** The icon URL the dapp's session showed, unverified like the session's own */
   dappIcon?: string | undefined;

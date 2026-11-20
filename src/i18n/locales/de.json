@@ -1,5 +1,6 @@
 {
   "common": {
+    "extensionImportNote": "Die Erweiterung speichert ihre eigenen Daten: eingefrorene Adressen, Flipstarter-Pledges, Labels und Notizen aus der Cashonize-Web-App sind nicht Teil der seed phrase. Richte sie hier erneut ein, bevor du dApps nutzt, damit die zurückgehaltenen Coins geschützt bleiben.",
     "actions": {
       "back": "Zurück",
       "send": "Senden",
@@ -477,6 +478,20 @@
     "title": "Mit dApp verbinden",
     "unavailableOnNetwork": "dApp-Verbindungen sind auf {network} nicht verfügbar: dApps benennen ein Testnetzwerk nur über das Adresspräfix bchtest oder die xpub-Version, die es mit Chipnet teilt.",
     "connectText": "Verbinde dich mit BCH-dApps über die unterstützten Verbindungsmethoden.",
+    "browserProvider": "Browser-Anbieter",
+    "browserProviderNote": "Websites können sich auch über den Cashonize-Browsererweiterungsanbieter (window.cashonize) verbinden.",
+    "disconnect": "Trennen",
+    "tiedChipnetCopy": "Dieses Chipnet-Wallet teilt seine Schlüssel mit deinem Mainnet-Wallet, daher könnte eine dApp-Signatur hier auch Mainnet-Coins ausgeben. Nutze für dApps ein eigenes Chipnet-Wallet: Entwicklereinstellungen, Entwicklungs-Wallet hinzufügen.",
+    "browserConnect": {
+      "title": "Mit Cashonize verbinden",
+      "app": "App:",
+      "origin": "Herkunft:",
+      "account": "Konto:",
+      "network": "Netzwerk:",
+      "notice": "Diese Website kann deine Adresse sehen und Signaturen anfordern, die deine Zustimmung brauchen, solange du für sie keine Auto-Genehmigungen aktivierst.",
+      "connectButton": "Verbinden",
+      "cancelButton": "Abbrechen"
+    },
     "supportedMethods": "WalletConnect, CashConnect und WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect und CashConnect",
     "supportedMethodsNote": "WizardConnect erfordert ein HD-Wallet",

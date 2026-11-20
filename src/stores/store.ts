@@ -595,6 +595,15 @@ export const useStore = defineStore('store', () => {
     identitiesStore.loadForWallet(newNetwork, newWallet.name);
   }
 
+  // The extension's pages share storage but nothing in memory: a reservation or a freeze another
+  // page made since this one opened the wallet is read before a dApp request is judged
+  function reloadReservations() {
+    if (!_wallet.value) return;
+    const network = appNetworkOf(_wallet.value.network);
+    storedReservations.value = loadReservedUtxos(network, _wallet.value.name);
+    frozenAddresses.value = loadFrozenAddresses(network, _wallet.value.name);
+  }
+
   // A wallet initialization this counter has moved past is stale, and its work is dropped. The
   // identities store's passes outlive a wallet switch just as easily: they note the token when
   // they start and ask before every write.
@@ -781,12 +790,21 @@ export const useStore = defineStore('store', () => {
           console.error("Electrum connect error:", error)
           return false;
         });
-      // WizardConnect initialization is synchronous (key derivation only, connections are fire-and-forget)
-      initializeWizardConnect();
-      // The relay inits are not awaited: wallet data does not depend on them and neither has a
-      // timeout. Code that needs the dapp stores waits on dappConnectionStoresInitDone instead
-      void initializeWalletConnect();
-      void initializeCashConnect();
+      // The extension page hosts the WalletConnect client itself, so a WC2 dApp pairs over the
+      // relay as on the web. CashConnect and WizardConnect are not set up in the extension; their
+      // init flags are set done so the Connect view does not wait on them.
+      if (import.meta.env.QUASAR_BEX_MODE) {
+        isCcInitDone.value = true;
+        isWizInitDone.value = true;
+        void initializeWalletConnect();
+      } else {
+        // WizardConnect initialization is synchronous (key derivation only, connections are fire-and-forget)
+        initializeWizardConnect();
+        // The relay inits are not awaited: wallet data does not depend on them and neither has a
+        // timeout. Code that needs the dapp stores waits on dappConnectionStoresInitDone instead
+        void initializeWalletConnect();
+        void initializeCashConnect();
+      }
       const electrumConnected = await electrumConnectionPromise;
       if (initialization !== currentInitialization) return;
       if (!electrumConnected) {
@@ -2165,6 +2183,7 @@ export const useStore = defineStore('store', () => {
     unpinAddress,
     setAddressLabel,
     walletInitFailed,
+    reloadReservations,
     pendingTokenSearch,
     pendingSettingsSection,
     pendingHistorySearch,

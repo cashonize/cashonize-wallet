@@ -1,7 +1,6 @@
 <script setup lang="ts">
   import { ref } from 'vue';
   import { useDialogPluginComponent } from 'quasar'
-  import { type WalletKitTypes } from '@reown/walletkit';
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { sanitizeUrl } from 'src/utils/utils'
   import { useI18n } from 'vue-i18n'
@@ -9,9 +8,13 @@
 
   const { t } = useI18n()
 
-  const props = defineProps<{
-    sessionProposalWC: WalletKitTypes.SessionProposal,
-  }>()
+  // Shared by the WalletConnect session proposal and the extension's bch_requestAccounts flow.
+  const props = withDefaults(defineProps<{
+    dappMetadata: DappMetadata,
+    allowChangeAddresses?: boolean,
+  }>(), {
+    allowChangeAddresses: true,
+  })
 
   defineEmits([
     ...useDialogPluginComponent.emits
@@ -19,8 +22,7 @@
 
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
-  const dappMetadata = props.sessionProposalWC.params.proposer.metadata as DappMetadata;
-  const safeUrl = sanitizeUrl(dappMetadata.url);
+  const safeUrl = sanitizeUrl(props.dappMetadata.url);
 
   const selectedAddresses = ref<string[]>([]);
 
@@ -39,16 +41,16 @@
       <fieldset class="dialogFieldset">
         <legend style="font-size: large;">{{ t('walletConnect.addressSelect.title') }}</legend>
         <div style="display: flex;">
-          <img :src="dappMetadata.icons?.[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
+          <img :src="props.dappMetadata.icons?.[0] ?? ''" style="display: flex; height: 55px; width: 55px;">
           <div style="margin-left: 10px;">
-            <div>{{ dappMetadata.name }}</div>
-            <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ dappMetadata.url }}</a>
+            <div>{{ props.dappMetadata.name }}</div>
+            <a v-if="safeUrl" :href="safeUrl" target="_blank">{{ props.dappMetadata.url }}</a>
             <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
           </div>
         </div>
 
         <div style="margin-top: 1rem; max-height: 350px; overflow-y: auto; overflow-x: hidden;">
-          <HdAddressSelect @selection-changed="onSelectionChanged" />
+          <HdAddressSelect :allow-change-addresses="allowChangeAddresses" @selection-changed="onSelectionChanged" />
         </div>
 
         <div style="margin-top: 1rem; display: flex; gap: 1rem;">

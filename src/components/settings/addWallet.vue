@@ -11,6 +11,8 @@
   const store = useStore()
   const $q = useQuasar()
   const { t } = useI18n()
+  // the extension starts without the web app's local data, which the import note points out
+  const isBex = import.meta.env.QUASAR_BEX_MODE
 
   // Step: 1 = name, 2 = choose type (create exits here), 3 = import details (import only)
   const step = ref<1 | 2 | 3>(1);
@@ -212,6 +214,7 @@
       </div>
       <div style="margin-bottom: 15px;">
         <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
+        <div v-if="isBex" style="font-size: smaller; color: grey; margin-top: 8px;">{{ t('common.extensionImportNote') }}</div>
         <div style="margin-top: 15px;">
           <derivationPathSelect v-model="selectedDerivationPath" :seed-phrase="seedPhrase" :seed-phrase-valid="seedPhraseValid" :wallet-type="walletType" :network="store.addWalletNetwork" />
         </div>

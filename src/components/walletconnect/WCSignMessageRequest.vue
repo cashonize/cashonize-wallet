@@ -1,8 +1,6 @@
 <script setup lang="ts">
-  import { toRefs } from 'vue';
   import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
-  import { type WalletKitTypes } from '@reown/walletkit'
   import { sanitizeUrl } from 'src/utils/utils'
   import { type WcSignMessageRequest } from '@bch-wc2/interfaces';
   import { useI18n } from 'vue-i18n'
@@ -10,17 +8,16 @@
 
   const props = defineProps<{
     dappMetadata: DappMetadata,
-    signMessageRequestWC: WalletKitTypes.SessionRequest,
+    messageRequest: WcSignMessageRequest,
     signerAddress: string,
   }>()
-  const { signMessageRequestWC } = toRefs(props);
 
   defineEmits([
     ...useDialogPluginComponent.emits
   ])
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
-  
-  const requestParams = signMessageRequestWC.value.params.request.params as WcSignMessageRequest
+
+  const requestParams = props.messageRequest
   const message = requestParams.message
   const safeUrl = sanitizeUrl(props.dappMetadata.url);
 </script>
