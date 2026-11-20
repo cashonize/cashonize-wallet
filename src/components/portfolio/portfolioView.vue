@@ -9,15 +9,17 @@
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { formatFiatAmount, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
-  import type { TapswapListing } from 'src/utils/defi/tapswapListings'
-  import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
+  import type { ContractPosition } from 'src/utils/contracts/runManifest'
+  import { heldManifestFor } from 'src/utils/contracts/builtins'
+  import { discoveryManifests } from 'src/utils/contracts/discoveryBundles'
+  import { readLoan, readStake, type ContractManifest } from 'src/utils/contracts/contractManifest'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
   import { sharedRun } from 'src/utils/concurrency'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
   import loanKeyItem from './loanKeyItem.vue'
   import stakingReceiptItem from './stakingReceiptItem.vue'
-  import cauldronPoolItem from './cauldronPoolItem.vue'
+  import liquidityPoolItem from './liquidityPoolItem.vue'
   import emeraldKeycardItem from './emeraldKeycardItem.vue'
   import badgerLocksItem from './badgerLocksItem.vue'
   import hodlLockItem from './hodlLockItem.vue'
@@ -46,14 +48,13 @@
   // minimum perceptual distance between chart colors (OKLab distance x100)
   const MIN_COLOR_DISTANCE = 15
 
-  // shared color for all ParyonUSD loan segments, loans don't get individual colors
+  // shared color for all loan segments, loans don't get individual colors
   const LOAN_COLOR = '#a231c1'
 
-  // ParyonUSD staking receipt category and shared segment color
-  const PARYON_STAKING_CATEGORY = '7708645a7f30e97003573d9322202960a560a87527bef3666a30044a0dfdfa81'
+  // shared color for all staking receipt segments
   const STAKING_COLOR = '#378df5'
 
-  // shared color for all Cauldron liquidity pool segments
+  // shared color for all liquidity pool segments
   const POOL_COLOR = '#d6336c'
 
   // Shared color for all Emerald DAO keycard segments. Every green light enough for the dark
@@ -68,6 +69,8 @@
   const HODL_COLOR = '#20c5f8'
   // blocks BCH aims for per day, for turning a wait in blocks into a rough number of days
   const BLOCKS_PER_DAY = 144
+  // nLockTime values below this are block heights, above it unix timestamps
+  const LOCKTIME_TIMESTAMP_THRESHOLD = 500_000_000
   const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
 
   const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
@@ -80,6 +83,7 @@
   const showSmallBalances = ref(false)
   const showUnpriced = ref(false)
   const showTapswapListings = ref(false)
+  const showDiscoveredPositions = ref(false)
   // Everything the wallet holds counts, except supply that was never issued: an identity's
   // reserve priced at the pool is a fiction, and selling it would empty the pool. A frozen or
   // pledged coin is an ordinary holding the user chose to protect, and counts.
@@ -115,14 +119,16 @@
     })
     // independent lookups, so the slowest sets the time rather than their sum
     await Promise.all([
-      store.fetchWalletCauldronPools(),
+      store.fetchWalletLiquidityPools(),
       store.fetchWalletBadgerLocks(),
+      store.fetchWalletDiscoveredPositions(),
       store.fetchCauldronPricesForTokens(true),
     ])
-    // a pool can hold a token the wallet does not, which needs a price of its own; the held
-    // tokens' prices come from cache on this second pass
+    // a pool or a discovered position can hold a token the wallet does not, which needs a price
+    // of its own; the held tokens' prices come from cache on this second pass
     const prices = store.cauldronPrices ?? {}
-    if (store.cauldronPools?.some(pool => !(pool.tokenId in prices))) {
+    const contractPositions = [...store.liquidityPools ?? [], ...store.discoveredPositions ?? []]
+    if (contractPositions.some(position => position.token && !position.token.nft && !(position.token.category in prices))) {
       await store.fetchCauldronPricesForTokens(true)
     }
   }
@@ -203,32 +209,45 @@
       .filter(loan => loan.netBch > 0)
   })
 
-  // Cauldron liquidity pools the wallet owns. Both sides of a pool are still the user's funds,
-  // the tokens in it are valued like held tokens are
+  // Guanaco's fee tier per manifest, since each tier is its own contract
+  const GUANACO_FEES: Record<string, string> = {
+    'guanaco-pool-1bp': '0.01%', 'guanaco-pool-5bp': '0.05%', 'guanaco-pool-30bp': '0.3%', 'guanaco-pool-100bp': '1%',
+  }
+
+  // Cauldron and Guanaco liquidity pools the wallet owns. Both sides of a pool are still the
+  // user's funds, the tokens in it are valued like held tokens are
   interface PoolAsset {
     id: string
     category: string
     name: string
+    protocol: 'cauldron' | 'guanaco'
+    feeDisplay: string | undefined
     bchDisplay: string
     tokenDisplay: string
     bchValue: number
   }
   const poolAssets = computed<PoolAsset[]>(() => {
-    return (store.cauldronPools ?? []).map(pool => {
-      const metadata = store.bcmrRegistries?.[pool.tokenId]
+    return (store.liquidityPools ?? []).flatMap(pool => {
+      // the manifest only keeps coins holding a fungible token
+      if (!pool.token) return []
+      const category = pool.token.category
+      const metadata = store.bcmrRegistries?.[category]
       const symbol = metadata?.token?.symbol
       const poolBch = satsToBch(pool.satoshis)
-      const priceInfo = store.cauldronPrices?.[pool.tokenId]
-      const tokenBchValue = priceInfo ? calculateTokenFiatValue(pool.tokenAmount, priceInfo, 1) : null
+      const priceInfo = store.cauldronPrices?.[category]
+      const tokenBchValue = priceInfo ? calculateTokenFiatValue(pool.token.amount, priceInfo, 1) : null
+      const feeDisplay = GUANACO_FEES[pool.manifestId]
       // a pool holds the same value on both sides at its own price, so where the Cauldron price
       // is missing the BCH side is the closest estimate of what the tokens in it are worth. The
       // liquidity minimum that leaves a held token unpriced therefore does not apply to pools.
       return {
         id: `${pool.txid}:${pool.vout}`,
-        category: pool.tokenId,
-        name: metadata?.name ?? pool.tokenId.slice(0, 8) + '...',
+        category,
+        name: metadata?.name ?? category.slice(0, 8) + '...',
+        protocol: feeDisplay ? 'guanaco' as const : 'cauldron' as const,
+        feeDisplay,
         bchDisplay: bchValueFormatter.format(poolBch) + ' ' + bchUnitName.value,
-        tokenDisplay: formatTokenAmount(pool.tokenAmount, metadata?.token?.decimals) + (symbol ? ' ' + symbol : ''),
+        tokenDisplay: formatTokenAmount(pool.token.amount, metadata?.token?.decimals) + (symbol ? ' ' + symbol : ''),
         bchValue: poolBch + (tokenBchValue ?? poolBch)
       }
     })
@@ -266,7 +285,7 @@
       id: `${lock.txid}:${lock.vout}`,
       bchValue: satsToBch(lock.satoshis),
       confirmedAtHeight: lock.confirmedAtHeight,
-      stakeBlocks: lock.stakeBlocks
+      stakeBlocks: Number(lock.fields.stakeBlocks)
     }))
   })
 
@@ -275,9 +294,9 @@
   // counts towards the total
   const hodlLocks = computed(() => {
     return (store.hodlContracts ?? []).map(contract => ({
-      id: contract.scriptHash,
+      id: contract.address,
       bchValue: satsToBch(contract.satoshis),
-      locktime: contract.locktime
+      locktime: Number(contract.fields.locktime)
     }))
   })
 
@@ -401,23 +420,28 @@
     return nftUtxoId(row.kind === 'loan' ? row.loan.utxo : row.receipt.utxo)
   }
 
-  // ParyonUSD loan key NFTs are listed with the priced assets, showing both
-  // collateral and debt, and are charted by their net value
-  const loanKeyNfts = computed(() => {
-    const loans: { category: string, utxo: Utxo, name: string }[] = []
+  // Held NFTs a manifest names as positions of the given kind: loan keys, or staking receipts.
+  // A manifest recognising positions by a registry extension only matches once the metadata is in.
+  interface HeldPosition { category: string, utxo: Utxo, name: string, manifest: ContractManifest }
+  function heldPositions(valueKind: 'loan' | 'stake') {
+    const positions: HeldPosition[] = []
     for (const token of store.tokenList ?? []) {
       if (!('nfts' in token)) continue
       const metadata = store.bcmrRegistries?.[token.category]
-      const extensions = metadata?.extensions
-      if (!extensions?.paryonusd) continue
-      // only owner loan keys (minting capability) control a loan, management keys don't
+      const registryExtensions = Object.keys(metadata?.extensions ?? {})
       for (const utxo of token.nfts) {
-        if (utxo.token?.nft?.capability !== 'minting') continue
-        loans.push({ category: token.category, utxo, name: metadata?.name ?? token.category.slice(0, 8) + '...' })
+        const nft = { category: token.category, capability: utxo.token?.nft?.capability }
+        const manifest = heldManifestFor(valueKind, nft, registryExtensions)
+        if (!manifest) continue
+        positions.push({ category: token.category, utxo, name: metadata?.name ?? manifest.name, manifest })
       }
     }
-    return loans
-  })
+    return positions
+  }
+
+  // Loan keys are listed with the priced assets, showing both collateral and debt, and are
+  // charted by their net value
+  const loanKeyNfts = computed(() => heldPositions('loan'))
 
   interface LoanState {
     collateralDisplay: string | undefined  // always in BCH, as formatted by the NFT parser
@@ -443,55 +467,42 @@
     return formatShare(assetShare(netBch))
   }
 
-  // Loan state lives on-chain and is fetched through the paryonusd BCMR extension.
+  // Loan state lives on-chain; for ParyonUSD a BCMR extension fetches it before the key is parsed.
   // Parsed as soon as the loan keys are known since the net values feed the chart
   watch(loanKeyNfts, (loans) => {
     for (const loan of loans) {
       const utxoId = nftUtxoId(loan.utxo)
       if (loanStates.value[utxoId]) continue
+      const value = loan.manifest.value
+      if (value?.kind !== 'loan') continue
       void store.parseNftCommitment(loan.category, loan.utxo).then(async result => {
         const namedFields = (result?.success ? result.namedFields : undefined) ?? []
-        const findField = (word: string) =>
-          namedFields.find(field => field.name?.toLowerCase().includes(word))
-        const collateralParsed = findField('collateral')?.parsedValue
-        const debtParsed = findField('debt')?.parsedValue
+        const reading = readLoan(value, namedFields)
 
-        // net position value: collateral (BCH) minus debt (PUSD, treated as USD)
+        // net position value: collateral (BCH) minus debt (a USD stablecoin, taken at its peg)
         let netBch: number | undefined
-        if (collateralParsed?.type === 'number' && debtParsed?.type === 'number') {
+        if (reading.collateralBch !== undefined && reading.debtUsd !== undefined) {
           try {
-            const collateralBch = Number(collateralParsed.value) / (10 ** (collateralParsed.decimals ?? 0))
-            const debtUsd = Number(debtParsed.value) / (10 ** (debtParsed.decimals ?? 0))
-            const debtBch = await convert(debtUsd, 'usd', 'bch')
-            netBch = collateralBch - Number(debtBch)
+            const debtBch = await convert(reading.debtUsd, 'usd', 'bch')
+            netBch = reading.collateralBch - Number(debtBch)
           } catch {
             // exchange rate unavailable, leave the net value out
           }
         }
         loanStates.value = {
           ...loanStates.value,
-          [utxoId]: { collateralDisplay: collateralParsed?.formatted, debtDisplay: debtParsed?.formatted, netBch }
+          [utxoId]: { collateralDisplay: reading.collateralDisplay, debtDisplay: reading.debtDisplay, netBch }
         }
       })
     }
   }, { immediate: true })
 
-  // ParyonUSD staking receipts. The commitment records the amount staked at an
-  // epoch, but the live stake can have been reduced since, so their value is an
-  // estimate, excluded from the chart and total unless the user opts in
+  // Staking receipts. A receipt records the amount staked at an epoch, but the live stake can
+  // have been reduced since, so their value is an estimate, excluded from the chart and total
+  // unless the user opts in
   const includeStaking = ref(false)
 
-  const stakingReceiptNfts = computed(() => {
-    const receipts: { category: string, utxo: Utxo, name: string }[] = []
-    for (const token of store.tokenList ?? []) {
-      if (!('nfts' in token) || token.category !== PARYON_STAKING_CATEGORY) continue
-      const metadata = store.bcmrRegistries?.[token.category]
-      for (const utxo of token.nfts) {
-        receipts.push({ category: token.category, utxo, name: metadata?.name ?? 'ParyonUSD Staking Receipt' })
-      }
-    }
-    return receipts
-  })
+  const stakingReceiptNfts = computed(() => heldPositions('stake'))
 
   interface StakingState {
     stakedDisplay: string | undefined
@@ -514,7 +525,7 @@
     return formatShare(assetShare(stakeBch))
   }
 
-  // receipt commitments parse locally (no extension), so this is cheap
+  // the receipts known today parse locally without an extension, so this is cheap
   watch(stakingReceiptNfts, (receipts) => {
     for (const receipt of receipts) {
       const utxoId = nftUtxoId(receipt.utxo)
@@ -523,24 +534,24 @@
       // parsing needs the metadata's parse info, so skip without recording a
       // result and let a later pass retry once the registries are in
       if (!store.bcmrRegistries?.[receipt.category]) continue
+      const value = receipt.manifest.value
+      if (value?.kind !== 'stake') continue
       void store.parseNftCommitment(receipt.category, receipt.utxo).then(async result => {
         const namedFields = (result?.success ? result.namedFields : undefined) ?? []
-        const stakedParsed = namedFields.find(field => field.fieldId === 'amountStakedReceipt')?.parsedValue
-        const epochParsed = namedFields.find(field => field.fieldId === 'epochReceipt')?.parsedValue
+        const reading = readStake(value, namedFields)
 
-        // estimated value: the staked PUSD amount, treated as USD
+        // estimated value: the staked stablecoin, taken at its USD peg
         let stakeBch: number | undefined
-        if (stakedParsed?.type === 'number') {
+        if (reading.stakedUsd !== undefined) {
           try {
-            const stakedUsd = Number(stakedParsed.value) / (10 ** (stakedParsed.decimals ?? 0))
-            stakeBch = Number(await convert(stakedUsd, 'usd', 'bch'))
+            stakeBch = Number(await convert(reading.stakedUsd, 'usd', 'bch'))
           } catch {
             // exchange rate unavailable, leave the estimated value out
           }
         }
         stakingStates.value = {
           ...stakingStates.value,
-          [utxoId]: { stakedDisplay: stakedParsed?.formatted, epochDisplay: epochParsed?.formatted, stakeBch }
+          [utxoId]: { stakedDisplay: reading.stakedDisplay, epochDisplay: reading.epochDisplay, stakeBch }
         }
       })
     }
@@ -549,22 +560,24 @@
   // Row data for one TapSwap listing. An NFT row shows the NFT's own name and icon, with the
   // collection name and commitment filling in when it has no metadata of its own; a fungible
   // row shows its amount.
-  function tapswapListingRow(listing: TapswapListing) {
-    const metadata = store.tapswapRegistries[listing.category]
-    const collectionName = metadata?.name ?? listing.category.slice(0, 8) + '...'
-    const nftMetadata = listing.commitment !== undefined ? metadata?.nfts?.[listing.commitment] : undefined
+  function tapswapListingRow(listing: ContractPosition) {
+    const category = listing.token?.category ?? ''
+    const commitment = listing.token?.nft?.commitment
+    const metadata = store.tapswapRegistries[category]
+    const collectionName = metadata?.name ?? category.slice(0, 8) + '...'
+    const nftMetadata = commitment !== undefined ? metadata?.nfts?.[commitment] : undefined
 
     let name = collectionName
     let detailDisplay
-    if (listing.commitment !== undefined) {
-      detailDisplay = '#' + listing.commitment
+    if (commitment !== undefined) {
+      detailDisplay = '#' + commitment
       const nftName = nftMetadata?.name
       if (nftName && nftName !== collectionName) {
         name = nftName
         detailDisplay = undefined
       }
     } else {
-      detailDisplay = formatTokenAmount(listing.tokenAmount, metadata?.token?.decimals)
+      detailDisplay = formatTokenAmount(listing.token?.amount ?? 0n, metadata?.token?.decimals)
       const symbol = metadata?.token?.symbol
       if (symbol) detailDisplay += ' ' + symbol
     }
@@ -576,15 +589,15 @@
 
     // the asking price is a term of the listing, so it always shows in BCH, with the
     // fiat value alongside
-    const priceBch = satsToBch(listing.priceSats)
+    const priceBch = satsToBch(BigInt(listing.fields.priceSats ?? 0))
     let priceDisplay = bchValueFormatter.format(priceBch) + ' ' + bchUnitName.value
     if (store.exchangeRate !== undefined) {
       priceDisplay += ` (${formatFiatAmount(priceBch * store.exchangeRate, settingsStore.currency)})`
     }
 
     return {
-      id: `${listing.txid}:0`,
-      category: listing.category,
+      id: `${listing.txid}:${listing.vout}`,
+      category,
       collectionName,
       name,
       detailDisplay,
@@ -604,6 +617,56 @@
       return a.category.localeCompare(b.category)
     })
     return rows
+  })
+
+  // Positions found by the discovery bundles the user added. Cashonize has not checked those
+  // bundles, and one can describe a position that is not what it claims, so these are shown in
+  // their own collapsed section and stay out of the chart and the total.
+  const discoveredRows = computed(() => {
+    let bundles = settingsStore.discoveryBundles
+    if (!settingsStore.contractDiscovery) bundles = []
+    const manifests = discoveryManifests(bundles, store.network)
+    return (store.discoveredPositions ?? []).flatMap(position => {
+      // a bundle removed since the lookup shows nothing
+      const entry = manifests.find(candidate => candidate.manifest.id === position.manifestId)
+      if (!entry) return []
+      const positionBch = satsToBch(position.satoshis)
+      const token = position.token
+      let tokenDisplay
+      let tokenBchValue = 0
+      if (token?.nft) {
+        tokenDisplay = `NFT ${token.category.slice(0, 8)}... #${token.nft.commitment}`
+      } else if (token) {
+        const metadata = store.bcmrRegistries?.[token.category]
+        const tokenName = metadata?.token?.symbol ?? metadata?.name ?? token.category.slice(0, 8) + '...'
+        tokenDisplay = formatTokenAmount(token.amount, metadata?.token?.decimals) + ' ' + tokenName
+        const priceInfo = store.cauldronPrices?.[token.category]
+        if (priceInfo) tokenBchValue = calculateTokenFiatValue(token.amount, priceInfo, 1) ?? 0
+      }
+      // the manifest's own icon, else the held token's, else a pattern drawn from the address
+      const icon = entry.manifest.icon
+      let iconId = token?.category ?? position.address
+      let iconUrl = token ? store.tokenIconUrl(token.category) : undefined
+      if (icon?.startsWith('ipfs://')) {
+        iconId = entry.manifest.id
+        iconUrl = gatewayUrl(icon, settingsStore.ipfsGateway)
+      } else if (icon) {
+        iconId = icon
+        iconUrl = store.tokenIconUrl(icon)
+      }
+      return [{
+        id: position.txid !== undefined ? `${position.txid}:${position.vout}` : `${position.manifestId}:${position.address}`,
+        name: entry.manifest.name,
+        bundleName: entry.bundleName,
+        iconId,
+        iconUrl,
+        bchDisplay: bchValueFormatter.format(positionBch) + ' ' + bchUnitName.value,
+        tokenDisplay,
+        bchValue: positionBch + tokenBchValue,
+        address: position.address,
+        fields: Object.entries(position.fields).map(([name, value]) => `${name}: ${value}`),
+      }]
+    })
   })
 
   const hasFungibleTokens = computed(() => (store.tokenList ?? []).some(token => 'amount' in token))
@@ -627,7 +690,7 @@
     if ((store.tokenList?.length ?? 0) > 0 && !store.tokenMetadataLoaded) return false
     if (hasFungibleTokens.value && store.cauldronPrices === null) return false
     // pools are looked up on entering the view and add to the total and the chart
-    if (store.cauldronPools === null) return false
+    if (store.liquidityPools === null) return false
     // locked BCH adds to the total and the chart, so wait for the lookup
     if (store.badgerLocks === null) return false
     if (!settingsStore.disableTokenIcons) {
@@ -890,10 +953,12 @@
               <div class="sub">{{ formatShare(assetShare(row.asset.bchValue)) }}</div>
             </div>
           </div>
-          <cauldronPoolItem
+          <liquidityPoolItem
             v-else-if="row.kind === 'pool'"
             :category="row.pool.category"
             :name="row.pool.name"
+            :protocol="row.pool.protocol"
+            :fee-display="row.pool.feeDisplay"
             :dot-color="POOL_COLOR"
             :bch-display="row.pool.bchDisplay"
             :token-display="row.pool.tokenDisplay"
@@ -1029,6 +1094,41 @@
               <a href="https://tapswap.cash" target="_blank" rel="noopener" class="manage-listings-link">TapSwap.cash</a>
             </template>
           </i18n-t>
+        </div>
+      </template>
+
+      <template v-if="discoveredRows.length">
+        <div class="section-label collapsible" @click="showDiscoveredPositions = !showDiscoveredPositions">
+          <q-icon name="expand_more" class="chevron" :class="{ open: showDiscoveredPositions }" />
+          {{ t('portfolio.discoveredPositions', { count: discoveredRows.length }) }}
+          <!-- click.stop so opening the popup by tap does not also toggle the section -->
+          <InfoPopup @click.stop>
+            <div style="max-width: 260px;">{{ t('portfolio.discoveredPositionsInfo') }}</div>
+          </InfoPopup>
+        </div>
+        <div v-if="showDiscoveredPositions" class="asset-list">
+          <div v-for="row in discoveredRows" :key="row.id" class="asset-row">
+            <span class="dot"></span>
+            <TokenIcon
+              :token-id="row.iconId"
+              :icon-url="!settingsStore.disableTokenIcons ? row.iconUrl : undefined"
+              :size="32"
+            />
+            <div class="asset-name">
+              <div>
+                {{ row.name }}
+                <InfoPopup>
+                  <div style="max-width: 280px; word-break: break-all;">
+                    <div>{{ row.address }}</div>
+                    <div v-for="field in row.fields" :key="field" class="sub">{{ field }}</div>
+                  </div>
+                </InfoPopup>
+              </div>
+              <div class="sub">{{ t('portfolio.discoveredBy', { bundle: row.bundleName }) }}</div>
+              <div class="sub">{{ row.bchDisplay }}<template v-if="row.tokenDisplay"> + {{ row.tokenDisplay }}</template></div>
+            </div>
+            <div class="asset-value">{{ formatBchValue(row.bchValue) }}</div>
+          </div>
         </div>
       </template>
 

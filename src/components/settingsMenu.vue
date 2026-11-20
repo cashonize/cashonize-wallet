@@ -155,6 +155,7 @@
   const disableTokenIcons = ref(settingsStore.disableTokenIcons);
   const strictWcSchema = ref(settingsStore.strictWcSchema);
   const showPrivateKeyWif = ref(settingsStore.showPrivateKeyWif);
+  const contractDiscovery = ref(settingsStore.contractDiscovery);
 
   const utxosWithBchAndTokens = computed(() => {
     return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n);
@@ -626,6 +627,10 @@
     localStorage.setItem("showPrivateKeyWif", showPrivateKeyWif.value ? "true" : "false");
     settingsStore.showPrivateKeyWif = showPrivateKeyWif.value;
   }
+  function changeContractDiscovery(){
+    localStorage.setItem("contractDiscovery", contractDiscovery.value ? "true" : "false");
+    settingsStore.contractDiscovery = contractDiscovery.value;
+  }
 
 </script>
 
@@ -1015,6 +1020,14 @@
           <div>{{ t('settings.developer.showPrivateKeyWifHint') }}</div>
         </InfoPopup>
         <q-toggle v-model="showPrivateKeyWif" @update:model-value="changeShowPrivateKeyWif()" dense />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.developer.contractDiscovery') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div>{{ t('settings.developer.contractDiscoveryHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="contractDiscovery" @update:model-value="changeContractDiscovery()" dense />
       </div>
     </div>
     <div v-else-if="settingsSection == 5">

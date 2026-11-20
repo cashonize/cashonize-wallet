@@ -1,5 +1,5 @@
 // The few transactions of the wallet's history its own features look for: the identity markers and
-// the authchain links after them, and the TapSwap and hodl announcements. Kept per wallet per
+// the authchain links after them, and the announcements the contract manifests read. Kept per wallet per
 // network, so an open decodes what arrived since the last one rather than the whole history, and
 // only their outputs and input outpoints, never the prevouts a history item is built from.
 
@@ -12,8 +12,10 @@ import {
 } from "@bitauth/libauth";
 import type { InOutput, TokenI, TxI } from "@cashonize/bch-wallet-lib";
 import { toHex } from "@cashonize/bch-wallet-lib";
-import { listingOffer } from "src/utils/defi/tapswapListings";
-import { hodlAnnouncement } from "src/utils/defi/hodlContracts";
+import { builtinBundle } from "src/utils/contracts/builtins";
+import { activeDiscoveryBundles, discoveryManifests } from "src/utils/contracts/discoveryBundles";
+import { announcementOutputCount, isAnnouncement } from "src/utils/contracts/runManifest";
+import type { ContractManifest } from "src/utils/contracts/contractManifest";
 import { continuesAuthchain, isIdentityMarker, isP2pkh } from "src/utils/tools/identityDetection";
 
 type Network = AppNetwork;
@@ -32,6 +34,17 @@ export interface TransactionIndex {
   announcements: ScannedTransaction[];
   // every txid of the history, which tells a genesis from a token passed on
   historyTxids: ReadonlySet<string>;
+}
+
+// The manifests whose announcements are kept: the built-in ones and those the user added
+function announcementManifests(network: Network) {
+  const added = discoveryManifests(activeDiscoveryBundles(), network).map(entry => entry.manifest);
+  return [...builtinBundle.contracts, ...added].filter(manifest => manifest.find.kind === 'announcement');
+}
+
+// What the manifests look for, so an index scanned for other manifests is scanned again
+function manifestsKey(manifests: ContractManifest[]) {
+  return manifests.map(manifest => JSON.stringify(manifest.find)).join();
 }
 
 // Raised when what is kept changes, so an index written by an earlier version is scanned again
@@ -53,6 +66,8 @@ interface StoredIndex {
   // the history's confirmed transactions at or below scannedHeight - REORG_DEPTH: another count
   // means old transactions came or went (a deeper reorg, addresses found late), so all is scanned
   settledCount: number;
+  // absent in an index written before bundles could be added, which scanned for the built-in ones
+  manifestsKey?: string;
   identityChain: ScannedTransaction[];
   announcements: ScannedTransaction[];
 }
@@ -171,6 +186,11 @@ export async function updateTransactionIndex(wallet: IndexedWallet, network: Net
 
   let stored = loadIndex(network, walletName);
   if (stored && settledCount(rawHistory, stored.scannedHeight - REORG_DEPTH) !== stored.settledCount) stored = undefined;
+  const manifests = announcementManifests(network);
+  const announcedOutputs = announcementOutputCount(manifests);
+  const scannedFor = manifestsKey(manifests);
+  // an added bundle may announce in transactions the last scan passed over
+  if (stored && (stored.manifestsKey ?? manifestsKey(builtinBundle.contracts.filter(manifest => manifest.find.kind === 'announcement'))) !== scannedFor) stored = undefined;
   const boundary = stored ? stored.scannedHeight - REORG_DEPTH : 0;
   // a transaction that left the history (a reorg, a replaced unconfirmed one) leaves the index
   const identityChain = new Map((stored?.identityChain ?? []).filter(tx => historyTxids.has(tx.hash)).map(tx => [tx.hash, tx]));
@@ -197,9 +217,9 @@ export async function updateTransactionIndex(wallet: IndexedWallet, network: Net
         identityChain.set(hash, transaction);
         markers.push(transaction);
       }
-      // both announce at output 0 or 1, and read nothing else
-      if (listingOffer(transaction) || hodlAnnouncement(transaction)) {
-        announcements.set(hash, { hash, inputs: [], outputs: transaction.outputs.slice(0, 2) });
+      // kept with the outputs the manifests read, and nothing else
+      if (isAnnouncement(transaction, manifests)) {
+        announcements.set(hash, { hash, inputs: [], outputs: transaction.outputs.slice(0, announcedOutputs) });
       }
     }
   }
@@ -257,6 +277,7 @@ export async function updateTransactionIndex(wallet: IndexedWallet, network: Net
     version: INDEX_VERSION,
     scannedHeight,
     settledCount: settledCount(rawHistory, scannedHeight - REORG_DEPTH),
+    manifestsKey: scannedFor,
     ...index,
   });
   return { ...index, historyTxids };

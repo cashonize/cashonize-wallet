@@ -2,17 +2,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
 import { localStorageMock, mockMainnetWallet } from './mocks/store.mocks'
-import type * as CauldronPools from '../src/utils/defi/cauldronPools'
+import type * as RunManifest from '../src/utils/contracts/runManifest'
 
-vi.mock('src/utils/defi/cauldronPools', async (importOriginal) => ({
-  ...await importOriginal<typeof CauldronPools>(),
-  fetchCauldronPools: vi.fn().mockResolvedValue([]),
+vi.mock('src/utils/contracts/runManifest', async (importOriginal) => ({
+  ...await importOriginal<typeof RunManifest>(),
+  runManifest: vi.fn().mockResolvedValue([]),
 }))
-vi.mock('src/utils/defi/badgersStake', () => ({ fetchBadgerLocks: vi.fn().mockResolvedValue([]) }))
 
-import { fetchCauldronPools } from '../src/utils/defi/cauldronPools'
-import { fetchBadgerLocks } from '../src/utils/defi/badgersStake'
+import { runManifest } from '../src/utils/contracts/runManifest'
+import { LIQUIDITY_POOL_MANIFESTS } from '../src/utils/contracts/builtins'
 import { useStore } from '../src/stores/store'
+
+// how often the manifests of one kind of position were run
+function lookups(manifestIds: string[]) {
+  return vi.mocked(runManifest).mock.calls.filter(([manifest]) => manifestIds.includes(manifest.id)).length
+}
+const poolLookups = () => lookups(LIQUIDITY_POOL_MANIFESTS) / LIQUIDITY_POOL_MANIFESTS.length
+const badgerLookups = () => lookups(['badgers-stake'])
 
 function createWallet() {
   return { ...mockMainnetWallet, getUtxos: vi.fn().mockResolvedValue([]) }
@@ -33,18 +39,18 @@ describe('the portfolio lookups', () => {
     const store = useStore()
     await store.setWallet(createWallet() as never)
 
-    await store.fetchWalletCauldronPools()
+    await store.fetchWalletLiquidityPools()
     await store.fetchWalletBadgerLocks()
-    await store.fetchWalletCauldronPools()
+    await store.fetchWalletLiquidityPools()
     await store.fetchWalletBadgerLocks()
-    expect(fetchCauldronPools).toHaveBeenCalledOnce()
-    expect(fetchBadgerLocks).toHaveBeenCalledOnce()
+    expect(poolLookups()).toBe(1)
+    expect(badgerLookups()).toBe(1)
 
     vi.advanceTimersByTime(60_000)
-    await store.fetchWalletCauldronPools()
+    await store.fetchWalletLiquidityPools()
     await store.fetchWalletBadgerLocks()
-    expect(fetchCauldronPools).toHaveBeenCalledTimes(2)
-    expect(fetchBadgerLocks).toHaveBeenCalledTimes(2)
+    expect(poolLookups()).toBe(2)
+    expect(badgerLookups()).toBe(2)
   })
 
   // creating or withdrawing a pool or a lock moves the wallet's coins
@@ -52,25 +58,25 @@ describe('the portfolio lookups', () => {
     const store = useStore()
     const wallet = createWallet()
     await store.setWallet(wallet as never)
-    await store.fetchWalletCauldronPools()
+    await store.fetchWalletLiquidityPools()
     await store.fetchWalletBadgerLocks()
 
     wallet.getUtxos.mockResolvedValue([{ txid: 'aa'.repeat(32), vout: 0, satoshis: 1000n, address: 'bitcoincash:q' }])
     await store.updateWalletUtxos()
-    await store.fetchWalletCauldronPools()
+    await store.fetchWalletLiquidityPools()
     await store.fetchWalletBadgerLocks()
-    expect(fetchCauldronPools).toHaveBeenCalledTimes(2)
-    expect(fetchBadgerLocks).toHaveBeenCalledTimes(2)
+    expect(poolLookups()).toBe(2)
+    expect(badgerLookups()).toBe(2)
   })
 
   it('looks up again for another wallet', async () => {
     const store = useStore()
     await store.setWallet(createWallet() as never)
-    await store.fetchWalletCauldronPools()
+    await store.fetchWalletLiquidityPools()
 
     await store.resetWalletState()
     await store.setWallet(createWallet() as never)
-    await store.fetchWalletCauldronPools()
-    expect(fetchCauldronPools).toHaveBeenCalledTimes(2)
+    await store.fetchWalletLiquidityPools()
+    expect(poolLookups()).toBe(2)
   })
 })

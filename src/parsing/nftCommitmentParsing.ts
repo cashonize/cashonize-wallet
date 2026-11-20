@@ -5,8 +5,7 @@ import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import { EMERALD_DAO_CATEGORY } from 'src/utils/defi/emeraldDao'
 import { emeraldKeycardParseResult } from 'src/parsing/emeraldKeycard'
-import { BADGERCOIN_CATEGORY } from 'src/utils/defi/badgersStake'
-import { parseHoneyBadgersNft } from 'src/parsing/honeyBadgers'
+import { BADGERCOIN_CATEGORY, parseHoneyBadgersNft } from 'src/parsing/honeyBadgers'
 
 // Vue composable for Parsable-NFT state.
 // Keeps parsing state and parses the NFT commitment on mount/when metadata becomes available.

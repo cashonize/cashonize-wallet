@@ -18,7 +18,7 @@
   }>()
 </script>
 
-<!-- One ParyonUSD loan key row in the portfolio asset list.
+<!-- One loan key row in the portfolio asset list.
   Row styling comes from portfolioView's asset-list :deep() rules. -->
 <template>
   <div class="asset-row">

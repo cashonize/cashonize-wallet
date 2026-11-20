@@ -4,8 +4,8 @@ import type { InOutput, TransactionHistoryItem, TxI } from '@cashonize/bch-walle
 import { localStorageMock } from './mocks/store.mocks'
 import { updateTransactionIndex } from '../src/utils/history/transactionIndex'
 import { detectIdentities } from '../src/utils/tools/identityDetection'
-import { listingsFromHistory } from '../src/utils/defi/tapswapListings'
-import { hodlContractsFromHistory } from '../src/utils/defi/hodlContracts'
+import { builtinManifest } from '../src/utils/contracts/builtins'
+import { runManifest, type WalletContext } from '../src/utils/contracts/runManifest'
 import { authGuardLockingBytecodes } from '../src/utils/tools/authGuard'
 import { p2pkhBytecode } from './mocks/history.mocks'
 
@@ -128,10 +128,39 @@ describe('transaction index', () => {
     const fromHistory = detectIdentities(items)
     expect(fromHistory.identities.map(identity => identity.authheadTxid).sort()).toEqual([L1, LB, 'd1'.repeat(32)].sort())
     expect(detectIdentities(index.identityChain, index.historyTxids)).toEqual(fromHistory)
-    expect(listingsFromHistory(index.announcements, [ownerPkh], 'bitcoincash')).toEqual(listingsFromHistory(items, [ownerPkh], 'bitcoincash'))
-    expect(listingsFromHistory(items, [ownerPkh], 'bitcoincash')).toHaveLength(1)
-    expect(hodlContractsFromHistory(index.announcements, [ownerPkh])).toEqual(hodlContractsFromHistory(items, [ownerPkh]))
-    expect(hodlContractsFromHistory(items, [ownerPkh])).toHaveLength(1)
+    // every contract address holds output 0 of each transaction, so a listing reads as live
+    const provider = { getUtxos: () => Promise.resolve(specs.map(spec => ({ txid: spec.hash, vout: 0, satoshis: 1000n }))) }
+    const positions = (manifestId: string, transactions: WalletContext['history']) => runManifest(builtinManifest(manifestId), {
+      provider: provider as unknown as WalletContext['provider'], ownerPkhs: [ownerPkh], history: transactions, networkPrefix: 'bitcoincash',
+    })
+    for (const manifestId of ['tapswap-listing', 'hodl-vault']) {
+      const fromItems = await positions(manifestId, items)
+      expect(fromItems).toHaveLength(1)
+      expect(await positions(manifestId, index.announcements)).toEqual(fromItems)
+    }
+  })
+
+  // a bundle added later can announce in transactions the earlier scan passed over
+  it('scans the history again for a discovery bundle added since', async () => {
+    const announcement = `6a045641554c${'01aa'}${'01bb'}`
+    const specs = [...fixture(), tx('d4', 1009, [{ txid: 'f8'.repeat(32), vout: 1 }], [{ lockingBytecode: announcement }, p2pkh()])]
+    const { wallet } = walletOver(specs)
+
+    const before = await updateTransactionIndex(wallet, 'mainnet', 'w')
+    expect(before.announcements.map(kept => kept.hash)).not.toContain('d4'.repeat(32))
+
+    localStorageMock.setItem('contractDiscovery', 'true')
+    localStorageMock.setItem('discoveryBundles', JSON.stringify([{
+      format: 1, name: 'Example bundle', contracts: [{
+        id: 'example-listing', name: 'Example listing',
+        find: { kind: 'announcement', output: 0, prefix: '6a045641554c', pushes: 3, fields: { makerPkh: { push: 1, as: 'hex' } }, position: { output: 1 } },
+        owner: { kind: 'field', field: 'makerPkh' },
+      }],
+    }]))
+    const after = await updateTransactionIndex(wallet, 'mainnet', 'w')
+    expect(after.announcements.map(kept => kept.hash)).toContain('d4'.repeat(32))
+    // and what the built-in manifests read is still kept
+    expect(after.announcements).toHaveLength(before.announcements.length + 1)
   })
 
   // a metadata update through an AuthGuard publishes, so it is kept as a marker, and the walk out of
