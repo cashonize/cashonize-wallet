@@ -383,9 +383,9 @@
         </template>
       </div>
 
-      <div class="tx-count">
-        <span v-if="store.isHistoryPartial">{{ t('history.transactionCountPartial', { count: transactionCount === undefined ? undefined : formatDecimal(transactionCount) }) }}</span>
-        <span v-else>{{ t('history.transactionCount', { count: transactionCount === undefined ? undefined : formatDecimal(transactionCount) }) }}</span>
+      <div v-if="transactionCount !== undefined" class="tx-count">
+        <span v-if="store.isHistoryPartial">{{ t('history.transactionCountPartial', { count: formatDecimal(transactionCount) }) }}</span>
+        <span v-else>{{ t('history.transactionCount', { count: formatDecimal(transactionCount) }) }}</span>
       </div>
 
       <q-pagination
