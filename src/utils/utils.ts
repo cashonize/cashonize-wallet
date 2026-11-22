@@ -5,6 +5,7 @@ import { libraryNetwork, type AppNetwork } from "src/utils/wallet/networks"
 import type { BcmrTokenMetadata, TokenList, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
+import { decimalMark, formatDecimal } from "src/utils/numberFormat"
 const { t } = i18n.global
 
 export function copyToClipboard(copyText:string|undefined){
@@ -220,13 +221,14 @@ export function formatTokenAmountFromBigInt(baseUnits: bigint, decimals: number)
   return fractionalPart ? `${wholePart}.${fractionalPart}` : `${wholePart}`;
 }
 
-// The same grouped for reading, the way the token list shows its amounts: a reserve is often billions
+// The same grouped for reading in the user's number format, the way the token list shows its amounts:
+// a reserve is often billions. Put together from the digit string, so no digit is lost to a float.
 export function formatTokenAmount(baseUnits: bigint, decimals: number | undefined): string {
   // the sign is put back here: grouping a whole part of "-0" through BigInt would lose it
   if (baseUnits < 0n) return `-${formatTokenAmount(-baseUnits, decimals)}`;
   const [whole, fraction] = formatTokenAmountFromBigInt(baseUnits, decimals ?? 0).split('.');
-  const grouped = BigInt(whole ?? '0').toLocaleString('en-US');
-  return fraction ? `${grouped}.${fraction}` : grouped;
+  const grouped = formatDecimal(BigInt(whole ?? '0'));
+  return fraction ? `${grouped}${decimalMark()}${fraction}` : grouped;
 }
 
 // An amount always says what it counts, since a bare number reads as satoshis or as NFTs just as
@@ -262,12 +264,12 @@ export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
 }
 
 export function formatFiatAmount(amount: number, currency: keyof typeof CurrencyShortNames): string {
-  return amount.toLocaleString('en', { style: "currency", currency });
+  return formatDecimal(amount, { style: "currency", currency });
 }
 
-// Formats with thousands separators, trailing zeros are stripped (no need to show them in the UI).
+// Formats in the user's number format, trailing zeros are stripped (no need to show them in the UI).
 export function formatNumber(value: number, maxDecimals: number): string {
-  return value.toLocaleString("en-US", { maximumFractionDigits: maxDecimals });
+  return formatDecimal(value, { maximumFractionDigits: maxDecimals });
 }
 
 export function satsToBch(satoshis: bigint | number) {
@@ -311,7 +313,7 @@ export function truncateHashForWidth(hash: string, windowWidth: number): string 
 }
 
 export function formatBchAmount(satoshis: number, signed = false, maxDecimals = 5): string {
-  const amount = (satoshis / 100_000_000).toLocaleString("en-US", { minimumFractionDigits: 5, maximumFractionDigits: maxDecimals });
+  const amount = formatDecimal(satoshis / 100_000_000, { minimumFractionDigits: 5, maximumFractionDigits: maxDecimals });
   return signed && satoshis > 0 ? `+${amount}` : amount;
 }
 

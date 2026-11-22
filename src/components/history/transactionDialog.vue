@@ -5,11 +5,12 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useWindowSize } from 'src/utils/composables'
   import { convert, type TransactionHistoryItem } from '@cashonize/bch-wallet-lib';
-  import { type BcmrNftMetadata, type BcmrTokenMetadata, CurrencySymbols } from 'src/interfaces/interfaces';
+  import { type BcmrNftMetadata, type BcmrTokenMetadata } from 'src/interfaces/interfaces';
   import DialogNftIcon from '../tokenItems/dialogNftIcon.vue';
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import TxNoteField from '../general/TxNoteField.vue';
+  import { formatDecimal } from 'src/utils/numberFormat';
   import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, formatTokenAmount, tokenChangeChips } from 'src/utils/utils';
   import { feeRate, isBelowRelayFee, minRelayFeeRate } from 'src/utils/history/txFeeRate';
   import { useI18n } from 'vue-i18n'
@@ -56,7 +57,8 @@
   // round a rate like 0.96 up to a reassuring 1.0
   const feeRateText = computed(() => {
     const rate = feeRate(props.historyItem);
-    return rate < minRelayFeeRate ? rate.toFixed(2) : rate.toFixed(1);
+    const decimals = rate < minRelayFeeRate ? 2 : 1;
+    return formatDecimal(rate, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   });
 
   function tokenAmountDisplay(amount: bigint, category: string) {
@@ -65,21 +67,23 @@
 
   // The fiat fee is cosmetic here (unlike the dapp signing dialogs), so a failed rate
   // fetch falls back to the last known rate and never blocks opening the dialog
-  // The '|| "< 0.005"' handles a zero result: both paths round to 2 decimals, so 0 means the real value is below 0.005
-  let feeIncurrency: string | number | undefined;
+  // Both paths round to 2 decimals, so a zero result means the real value is below 0.005
+  let feeIncurrency: number | undefined;
   try {
-    feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency) || "< 0.005";
+    feeIncurrency = await convert(props.historyItem.fee, "sat", settingsStore.currency);
   } catch {
     if (store.exchangeRate !== undefined) {
-      feeIncurrency = Number((satsToBch(props.historyItem.fee) * store.exchangeRate).toFixed(2)) || "< 0.005";
+      feeIncurrency = Number((satsToBch(props.historyItem.fee) * store.exchangeRate).toFixed(2));
     }
   }
-  const currencySymbol = CurrencySymbols[settingsStore.currency];
+  let feeFiat: string | undefined;
+  if (feeIncurrency !== undefined) feeFiat = formatFiatAmount(feeIncurrency, settingsStore.currency);
+  if (feeIncurrency === 0) feeFiat = `< ${formatFiatAmount(0.01, settingsStore.currency)}`;
 
-  const feeSats = props.historyItem.fee.toLocaleString("en-US");
-  const feeText = feeIncurrency === undefined
+  const feeSats = formatDecimal(props.historyItem.fee);
+  const feeText = feeFiat === undefined
     ? t('transactionDialog.feeSats', { sats: feeSats })
-    : t('transactionDialog.feeSatsWithFiat', { fiat: `${feeIncurrency}${currencySymbol}`, sats: feeSats });
+    : t('transactionDialog.feeSatsWithFiat', { fiat: feeFiat, sats: feeSats });
 
   // Opens the token's full-size image, so it does nothing while token images are disabled
   const loadTokenMetadata = async (category: string, commitment: string | undefined) => {
@@ -158,9 +162,9 @@
                 </InfoPopup>
               </span>
               <!-- under the customary 6 confirmations, show progress toward finality -->
-              <span v-else-if="confirmations < 6">{{ t('transactionDialog.confirmationsProgress', { count: confirmations, block: historyItem.blockHeight.toLocaleString("en-US") }) }}
+              <span v-else-if="confirmations < 6">{{ t('transactionDialog.confirmationsProgress', { count: confirmations, block: formatDecimal(historyItem.blockHeight) }) }}
               </span>
-              <span v-else>{{ t('transactionDialog.confirmations', { count: confirmations, block: historyItem.blockHeight.toLocaleString("en-US") }) }}
+              <span v-else>{{ t('transactionDialog.confirmations', { count: confirmations, block: formatDecimal(historyItem.blockHeight) }) }}
               </span>
           </div>
           <div v-if="historyItem.timestamp">
@@ -196,7 +200,7 @@
           <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
             <div>
               {{ t('transactionDialog.size') }}
-                <span>{{ t('transactionDialog.sizeValue', { bytes: historyItem.size.toLocaleString("en-US") }) }}</span>
+                <span>{{ t('transactionDialog.sizeValue', { bytes: formatDecimal(historyItem.size) }) }}</span>
             </div>
             <div v-if="!isCoinbase">
               {{ t('transactionDialog.fee') }}

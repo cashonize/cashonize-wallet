@@ -6,6 +6,7 @@
   import { useSearchShortcut } from 'src/utils/composables';
   import type { TransactionHistoryItem } from '@cashonize/bch-wallet-lib';
   import TransactionDialog from './transactionDialog.vue';
+  import { formatDecimal } from 'src/utils/numberFormat';
   import { formatTime, formatFiatAmount, formatBchAmount, tokenChangeChips, dayLabel, localDayStart } from 'src/utils/utils';
   import { historyToCsv } from 'src/utils/history/csvUtils';
   import { maxTxNoteLength } from 'src/utils/history/txNotes';
@@ -383,8 +384,8 @@
       </div>
 
       <div class="tx-count">
-        <span v-if="store.isHistoryPartial">{{ t('history.transactionCountPartial', { count: transactionCount?.toLocaleString("en-US") }) }}</span>
-        <span v-else>{{ t('history.transactionCount', { count: transactionCount?.toLocaleString("en-US") }) }}</span>
+        <span v-if="store.isHistoryPartial">{{ t('history.transactionCountPartial', { count: transactionCount === undefined ? undefined : formatDecimal(transactionCount) }) }}</span>
+        <span v-else>{{ t('history.transactionCount', { count: transactionCount === undefined ? undefined : formatDecimal(transactionCount) }) }}</span>
       </div>
 
       <q-pagination

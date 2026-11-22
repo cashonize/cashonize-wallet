@@ -18,6 +18,7 @@
   import { removeAllCashConnectSessions } from "src/utils/dapp/ccSessionStore";
   import { displayAndLogError } from "src/utils/errorHandling";
   import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
+  import { formatDecimal, numberFormats } from 'src/utils/numberFormat'
   import { curatedElectrumServers } from 'src/utils/wallet/electrumServers'
   import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
@@ -49,6 +50,7 @@
   const selectedUnit = ref(settingsStore.bchUnit);
   const qrAnimation = ref(settingsStore.qrAnimation);
   const dateFormat = ref(settingsStore.dateFormat);
+  const selectedNumberFormat = ref(settingsStore.numberFormat);
   const selectedExplorer = ref(store.explorerUrl);
   // user options
   const selectedDarkMode = ref(settingsStore.darkMode);
@@ -256,6 +258,10 @@
   function changeDateFormat(){
     settingsStore.dateFormat = dateFormat.value;
     localStorage.setItem("dateFormat", dateFormat.value);
+  }
+  function changeNumberFormat(){
+    settingsStore.numberFormat = selectedNumberFormat.value;
+    localStorage.setItem("numberFormat", selectedNumberFormat.value);
   }
   function changeBlockExplorer(){
     settingsStore.setExplorer(activeNetwork, selectedExplorer.value);
@@ -916,14 +922,14 @@
     <div v-else-if="settingsSection == 8">
       <div style="margin-bottom: 15px">
         {{ isMobile ? t('settings.advanced.clearHistoryCache') : t('settings.advanced.clearHistoryCacheFrom', { platform: platformString }) }}
-        <span v-if="indexedDbCacheSizeMB != undefined" class="nowrap">({{ indexedDbCacheSizeMB.toFixed(2) }} MB)</span>
+        <span v-if="indexedDbCacheSizeMB != undefined" class="nowrap">({{ formatDecimal(indexedDbCacheSizeMB, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} MB)</span>
         <div style="font-size: smaller; color: grey;">{{ t('settings.advanced.clearHistoryCacheHint') }}</div>
         <input @click="clearHistoryCache()" type="button" :value="t('settings.advanced.clearHistoryCacheButton')" class="button" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
         {{ isMobile ? t('settings.advanced.clearMetadataCache') : t('settings.advanced.clearMetadataCacheFrom', { platform: platformString }) }}
-        <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ localStorageSizeMB.toFixed(2) }} MB)</span>
+        <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ formatDecimal(localStorageSizeMB, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} MB)</span>
         <div style="font-size: smaller; color: grey;">{{ t('settings.advanced.clearMetadataCacheHint') }}</div>
         <input @click="clearMetadataCache()" type="button" :value="t('settings.advanced.clearMetadataCacheButton')" class="button" style="display: block;">
       </div>
@@ -1045,6 +1051,17 @@
           <option value="DD/MM/YY">DD/MM/YY</option>
           <option value="MM/DD/YY">MM/DD/YY</option>
           <option value="YY-MM-DD">YY-MM-DD</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label for="numberFormat">{{ t('settings.localization.numberFormat') }}</label>
+        <select id="numberFormat" v-model="selectedNumberFormat" @change="changeNumberFormat()">
+          <!-- each format shown by example, as Intl writes it, rather than by a country -->
+          <option v-for="format in numberFormats" :key="format" :value="format">
+            <template v-if="format === 'auto'">{{ t('settings.localization.numberFormatAuto', { example: formatDecimal(1234567.89, {}, format) }) }}</template>
+            <template v-else>{{ formatDecimal(1234567.89, {}, format) }}</template>
+          </option>
         </select>
       </div>
     </div>

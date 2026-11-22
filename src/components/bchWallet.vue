@@ -2,7 +2,7 @@
   import { ref, computed, watch, shallowRef, nextTick } from 'vue'
   import { convert } from '@cashonize/bch-wallet-lib'
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
-  import { copyToClipboard, formatFiatAmount, convertToCurrency, sendAmountToSatoshis } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount, formatNumber, convertToCurrency, sendAmountToSatoshis } from 'src/utils/utils';
   import { parseBip21Uri, isBip21Uri, formatSatoshisAsBch } from 'src/utils/payments/bip21';
   import { getCashAddressScanError } from 'src/utils/payments/recipientAddress';
   import { parsePayProParams, getPaymentRequestValidationError } from 'src/utils/payments/paymentRequest';
@@ -28,9 +28,6 @@
   const props = defineProps<{
     bchSendRequest: string | undefined
   }>()
-
-  const numberFormatter = new Intl.NumberFormat('en-US', {maximumFractionDigits: 8});
-
 
   // reactive state
   const displayBchQr = ref(!settingsStore.tokenAddressQrDefault);
@@ -250,7 +247,7 @@
       });
       destinationAddr.value = address;
 
-      const formattedAmount = numberFormatter.format(bchSendAmount.value)
+      const formattedAmount = formatNumber(bchSendAmount.value, 8)
       const sendInfo = {
         recipient: destinationAddr.value,
         amount: formattedAmount,
@@ -332,12 +329,12 @@
     <span>
       {{ t('wallet.balance', { currency: bchDisplayNetwork }) }}
       <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ balanceInBchUnit !== undefined ? numberFormatter.format(balanceInBchUnit) + displayUnitLong : "" }}
+        {{ balanceInBchUnit !== undefined ? formatNumber(balanceInBchUnit, 8) + displayUnitLong : "" }}
       </span>
     </span>
     <div v-if="reservedInBchUnit" style="color: grey;">
       {{ t('wallet.reservedBalance', {
-        amount: numberFormatter.format(reservedInBchUnit) + displayUnitLong
+        amount: formatNumber(reservedInBchUnit, 8) + displayUnitLong
       }) }}
     </div>
     <div style="word-break: break-all;">

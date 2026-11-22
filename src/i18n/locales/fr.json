@@ -1486,6 +1486,8 @@
       "language": "Langue :",
       "currency": "Devise :",
       "dateFormat": "Format de date :",
+      "numberFormat": "Format des nombres :",
+      "numberFormatAuto": "Automatique ({example})",
       "languageLoadFailed": "Impossible de charger cette langue. Vérifiez votre connexion ou rechargez la page."
     },
     "userOptions": {

@@ -1,6 +1,7 @@
 import { chaingraphGraphqlUrl, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sameTokenList, sendAmountToSatoshis, newTokenItems } from "../src/utils/utils";
 import type { Utxo } from "@cashonize/bch-wallet-lib";
 import type { BcmrTokenMetadata } from "../src/interfaces/interfaces";
+import { numberFormat, decimalMark, formatDecimal } from "../src/utils/numberFormat";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
 
 describe('test electrumWssUrl', () => {
@@ -56,6 +57,29 @@ describe('formatTokenAmount', () => {
   })
   it('treats absent decimals as none', () => {
     expect(formatTokenAmount(1234567n, undefined)).toBe('1,234,567');
+  })
+})
+
+describe('number format setting', () => {
+  afterEach(() => { numberFormat.value = 'en-US'; });
+
+  it('groups and marks decimals the way each format is shown in the settings', () => {
+    const shown = { 'en-US': '1,234,567.89', 'de-DE': '1.234.567,89', 'fr-FR': '1\u202f234\u202f567,89', 'de-CH': "1'234'567.89" };
+    for (const [format, expected] of Object.entries(shown)) {
+      expect(formatDecimal(1234567.89, {}, format as keyof typeof shown)).toBe(expected);
+    }
+  })
+  it('keeps every digit of a token amount, with the format\'s decimal mark', () => {
+    numberFormat.value = 'de-DE';
+    expect(decimalMark()).toBe(',');
+    expect(formatTokenAmount(90_071_992_547_409_931n, 2)).toBe('900.719.925.474.099,31');
+    expect(formatTokenAmount(-50n, 2)).toBe('-0,5');
+    numberFormat.value = 'de-CH';
+    expect(formatTokenAmount(123_456_789n, 4)).toBe("12'345.6789");
+  })
+  it('leaves the amounts machines read with a dot', () => {
+    numberFormat.value = 'de-DE';
+    expect(formatTokenAmountFromBigInt(150n, 2)).toBe('1.5');
   })
 })
 

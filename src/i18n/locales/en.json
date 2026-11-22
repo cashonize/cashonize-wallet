@@ -1486,6 +1486,8 @@
       "language": "Language:",
       "currency": "Currency:",
       "dateFormat": "Date format:",
+      "numberFormat": "Number format:",
+      "numberFormatAuto": "Automatic ({example})",
       "languageLoadFailed": "Could not load this language. Check your connection or reload the page."
     },
     "userOptions": {

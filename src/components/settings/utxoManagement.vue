@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { computed, nextTick, ref, watch } from 'vue';
+  import { formatDecimal } from 'src/utils/numberFormat';
   import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateHash } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
   import InfoPopup from 'src/components/general/InfoPopup.vue';
@@ -360,16 +361,16 @@
 
     <div class="stats-row">
       <div>
-        <span class="stat-value">{{ store.walletUtxos?.length?.toLocaleString('en-US')  ?? '...'}}</span> {{ t('utxoManagement.stats.totalUtxos') }}
+        <span class="stat-value">{{ store.walletUtxos ? formatDecimal(store.walletUtxos.length) : '...' }}</span> {{ t('utxoManagement.stats.totalUtxos') }}
       </div>
       <div>
-        <span class="stat-value">{{ bchUtxoCount?.toLocaleString('en-US') ?? '...' }}</span> {{ t('utxoManagement.stats.bchOnlyUtxos') }}
+        <span class="stat-value">{{ bchUtxoCount === undefined ? '...' : formatDecimal(bchUtxoCount) }}</span> {{ t('utxoManagement.stats.bchOnlyUtxos') }}
       </div>
       <div>
-        <span class="stat-value">{{ store.walletUtxos ? getTokenUtxos(store.walletUtxos).length.toLocaleString('en-US') : '...' }}</span> {{ t('utxoManagement.stats.tokenUtxos') }}
+        <span class="stat-value">{{ store.walletUtxos ? formatDecimal(getTokenUtxos(store.walletUtxos).length) : '...' }}</span> {{ t('utxoManagement.stats.tokenUtxos') }}
       </div>
       <div v-if="reservedUtxoCount">
-        <span class="stat-value">{{ reservedUtxoCount.toLocaleString('en-US') }}</span> {{ t('utxoManagement.stats.reservedUtxos') }}
+        <span class="stat-value">{{ formatDecimal(reservedUtxoCount) }}</span> {{ t('utxoManagement.stats.reservedUtxos') }}
       </div>
     </div>
 
@@ -398,7 +399,7 @@
       <div class="section">
         <div class="list-header" @click="toggleList('bch')">
           <strong>{{ t('utxoManagement.bchList.title') }}</strong>
-          <span v-if="bchUtxoCount !== undefined">({{ bchUtxoCount.toLocaleString('en-US') }})</span>
+          <span v-if="bchUtxoCount !== undefined">({{ formatDecimal(bchUtxoCount) }})</span>
           <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.bch }" />
         </div>
         <template v-if="!collapsedLists.bch">
@@ -621,7 +622,7 @@
       <div class="section divided">
         <div class="list-header" @click="toggleList('tokens')">
           <strong>{{ t('utxoManagement.tokenList.title') }}</strong>
-          <span v-if="tokenCategoryGroups">({{ tokenCategoryGroups.length.toLocaleString('en-US') }})</span>
+          <span v-if="tokenCategoryGroups">({{ formatDecimal(tokenCategoryGroups.length) }})</span>
           <EmojiItem
             v-if="collapsedLists.tokens && tokenCategoryGroups?.some(group => group.holdsSignificantBch)"
             class="warn-marker"
@@ -651,7 +652,7 @@
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.utxoCount') }}</span>
-                <span class="mono">{{ group.utxoCount.toLocaleString('en-US') }}</span>
+                <span class="mono">{{ formatDecimal(group.utxoCount) }}</span>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.bchHeld') }}</span>
@@ -665,7 +666,7 @@
       <div class="section divided">
         <div class="list-header" @click="toggleList('fungible')">
           <strong>{{ t('utxoManagement.fungibleList.title') }}</strong>
-          <span v-if="utxoLists">({{ utxoLists.fungible.length.toLocaleString('en-US') }})</span>
+          <span v-if="utxoLists">({{ formatDecimal(utxoLists.fungible.length) }})</span>
           <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.fungible }" />
         </div>
         <template v-if="!collapsedLists.fungible">
@@ -701,7 +702,7 @@
       <div class="section divided">
         <div class="list-header" @click="toggleList('nft')">
           <strong>{{ t('utxoManagement.nftList.title') }}</strong>
-          <span v-if="utxoLists">({{ utxoLists.nft.length.toLocaleString('en-US') }})</span>
+          <span v-if="utxoLists">({{ formatDecimal(utxoLists.nft.length) }})</span>
           <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.nft }" />
         </div>
         <template v-if="!collapsedLists.nft">
@@ -737,7 +738,7 @@
       <div class="section divided closing">
         <div class="list-header" @click="toggleList('ftNft')">
           <strong>{{ t('utxoManagement.ftNftList.title') }}</strong>
-          <span v-if="utxoLists">({{ utxoLists.ftNft.length.toLocaleString('en-US') }})</span>
+          <span v-if="utxoLists">({{ formatDecimal(utxoLists.ftNft.length) }})</span>
           <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.ftNft }" />
         </div>
         <template v-if="!collapsedLists.ftNft">

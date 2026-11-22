@@ -5,8 +5,8 @@ import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
 import { type TemplateSegment, type UTXOSnapshot, type UTXOBalanceChanges } from '@cashconnect-js/core/templates';
 import { type ExecuteActionRequest, type ExecuteActionResponse } from '@cashconnect-js/nostr';
 import { type WalletSession, formatSegment, formatOraclePrice, formatOracleNumeratorUnitCode, formatOracleDenominatorUnitCode, calculateBalanceChanges } from '@cashconnect-js/nostr/wallet';
-import { CurrencySymbols } from 'src/interfaces/interfaces';
-import { convertToCurrency, sanitizeUrl, satsToBch } from 'src/utils/utils';
+import { convertToCurrency, formatFiatAmount, sanitizeUrl, satsToBch } from 'src/utils/utils';
+import { formatDecimal } from 'src/utils/numberFormat';
 import { binToHex } from "@bitauth/libauth";
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
@@ -123,9 +123,9 @@ function formatSegmentCustom(segment: TemplateSegment) {
 }
 
 function addSignPrefixToNumber(value: number | bigint): string {
-  const formatted = Number(value).toLocaleString("en-US");
+  const formatted = formatDecimal(Number(value));
   if (Number(value) === 0) return formatted;
-  return Number(value) > 0 ? `+ ${formatted}` : `- ${Number(-(value)).toLocaleString("en-US")}`;
+  return Number(value) > 0 ? `+ ${formatted}` : `- ${formatDecimal(Number(-(value)))}`;
 };
 </script>
 
@@ -184,7 +184,7 @@ function addSignPrefixToNumber(value: number | bigint): string {
             {{ addSignPrefixToNumber(satsToBch(balanceChanges.bch)) + ' BCH ' }}
             <!-- Only show fiat equivalent if an exchange rate is available. -->
             <template v-if="exchangeRate">
-              ({{ convertToCurrency(balanceChanges.bch, exchangeRate) + ` ${CurrencySymbols[settingsStore.currency]}`}})
+              ({{ formatFiatAmount(convertToCurrency(balanceChanges.bch, exchangeRate), settingsStore.currency) }})
             </template>
           </div>
           <div v-for="(tokenChange, category) of balanceChanges.tokens" :key="category">

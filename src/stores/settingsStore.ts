@@ -3,6 +3,7 @@ import { Config } from "@cashonize/bch-wallet-lib";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import { BitpayRatesSchema, CoinGeckoRatesSchema, CoinbaseRatesSchema } from "src/utils/zodValidation";
+import { numberFormat as numberFormatSetting, isNumberFormat } from "src/utils/numberFormat";
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
 import { defaultWalletName } from "./constants";
@@ -80,7 +81,7 @@ export const settingsMenuKeys = [
   "allowDappIdentitySpends",
   // localization, except the language: reset to one the user cannot read, they could not find
   // their way back to the setting
-  "currency", "dateFormat",
+  "currency", "dateFormat", "numberFormat",
   // advanced settings
   "electrum-mainnet", "electrum-chipnet", "electrum-testnet4", "electrumMode-mainnet", "electrumMode-chipnet",
   "electrumMode-testnet4", "chaingraph-mainnet", "chaingraph-chipnet", "chaingraph-testnet4", "cauldronIndexer",
@@ -136,6 +137,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // on by default in the Android app, where tablets keep the top nav by being wider
   const bottomNavOnMobile = ref(Boolean(isCapacitor));
   const dateFormat = ref<DateFormat>("DD/MM/YY");
+  const numberFormat = numberFormatSetting;
   const confirmBeforeSending = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
   // The identities of the tokens the wallet holds, followed passively. Off by default: the lookups
@@ -381,6 +383,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if(readDateFormat && (readDateFormat=="DD/MM/YY" || readDateFormat=="MM/DD/YY" || readDateFormat=="YY-MM-DD")) {
     dateFormat.value = readDateFormat;
   }
+
+  const readNumberFormat = localStorage.getItem("numberFormat");
+  if (readNumberFormat && isNumberFormat(readNumberFormat)) numberFormat.value = readNumberFormat;
 
   const readConfirmBeforeSending = localStorage.getItem("confirmBeforeSending");
   if(readConfirmBeforeSending) confirmBeforeSending.value = readConfirmBeforeSending == "true";
@@ -654,6 +659,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     strictWcSchema,
     showPrivateKeyWif,
     dateFormat,
+    numberFormat,
     confirmBeforeSending,
     disableTokenIcons,
     exchangeRateProvider,

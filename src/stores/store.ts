@@ -31,13 +31,12 @@ import {
 } from "@cashonize/bch-wallet-lib"
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
 import {
-  CurrencySymbols,
   type BcmrTokenMetadata,
   type TokenList,
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, sameTokenList, STALE_TIP_SECONDS, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
+import { electrumWssUrl, formatFiatAmount, formatNumber, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, sameTokenList, STALE_TIP_SECONDS, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
 import { electrumServersOf, saveLastGoodElectrumServer } from "src/utils/wallet/electrumServers"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
@@ -864,9 +863,8 @@ export const useStore = defineStore('store', () => {
         maxFractionDigits = 0;
       }
       const currencyValue = await convert(amountInUnit, settingsStore.bchUnit, settingsStore.currency);
-      const formattedAmount = amountInUnit.toLocaleString("en-US", { maximumFractionDigits: maxFractionDigits })
-      const formattedCurrencyValue = currencyValue.toLocaleString("en-US", { maximumFractionDigits: 2 });
-      const formattedFiat = formattedCurrencyValue + CurrencySymbols[settingsStore.currency]
+      const formattedAmount = formatNumber(amountInUnit, maxFractionDigits)
+      const formattedFiat = formatFiatAmount(currencyValue, settingsStore.currency)
       Notify.create({
         type: 'positive',
         message: t('store.notifications.receivedBch', {

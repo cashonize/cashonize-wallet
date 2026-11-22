@@ -22,6 +22,7 @@
     formatTokenAmountWithSymbol,
     parseTokenAmountToBigInt,
   } from 'src/utils/utils'
+  import { formatDecimal } from 'src/utils/numberFormat'
   import { confirmDialog, notifySending } from 'src/utils/txHelpers'
   import { validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import {
@@ -528,7 +529,7 @@
     <div v-if="genesisSupplyLine">
       {{ genesisSupplyLine }}
       <InfoPopup v-if="identity.genesisSupply === maxTokenSupply">
-        <div style="max-width: 300px;">{{ t('identities.reserve.openEndedHelp', { max: maxTokenSupply.toLocaleString('en-US') }) }}</div>
+        <div style="max-width: 300px;">{{ t('identities.reserve.openEndedHelp', { max: formatDecimal(maxTokenSupply) }) }}</div>
       </InfoPopup>
     </div>
     <div
