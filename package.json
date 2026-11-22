@@ -12,7 +12,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "lint": "oxlint",
+    "lint": "oxlint && node scripts/lint/vueTemplates.js",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "check:i18n": "node scripts/checkI18n.ts",

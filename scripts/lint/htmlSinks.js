@@ -1,8 +1,7 @@
 // A wallet renders untrusted text (token metadata, dApp metadata, labels) next to its keys, so
 // markup only enters the DOM through an explicit, reviewed exception. oxlint has no
 // no-restricted-syntax, so the script-side sinks are matched here. A JS plugin sees only the
-// <script> block of a .vue file: v-html, :innerHTML and Quasar's *-html props in templates are
-// not checked by this plugin.
+// <script> block of a .vue file, so the template's sinks are checked by vueTemplates.js.
 const assignedSinks = ['innerHTML', 'outerHTML'];
 const insertingMethods = ['insertAdjacentHTML', 'createContextualFragment'];
 const documentWrites = ['write', 'writeln'];

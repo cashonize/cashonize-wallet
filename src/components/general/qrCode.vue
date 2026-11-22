@@ -62,8 +62,8 @@
           <slot />
         </div>
       </div>
-      <!-- safe as html: the generator interpolates only numbers, never the qr contents -->
-      <div v-html="qrCode.svg"></div> <!-- eslint-disable-line vue/no-v-html -->
+      <!-- lint-allow-html: the generator interpolates only numbers, never the qr contents -->
+      <div v-html="qrCode.svg"></div>
     </div>
   </div>
 </template>
