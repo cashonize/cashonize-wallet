@@ -12,6 +12,8 @@ const localeLoaders: Record<string, () => Promise<{ default: MessageSchema }>> =
   fr: () => import('./locales/fr.json'),
   de: () => import('./locales/de.json'),
   pt: () => import('./locales/pt.json'),
+  id: () => import('./locales/id.json'),
+  ru: () => import('./locales/ru.json'),
 };
 
 export const supportedLocales = [
@@ -19,7 +21,9 @@ export const supportedLocales = [
   { code: 'es', name: 'Español' },
   { code: 'fr', name: 'Français' },
   { code: 'de', name: 'Deutsch' },
-  { code: 'pt', name: 'Português' }
+  { code: 'pt', name: 'Português' },
+  { code: 'id', name: 'Bahasa Indonesia' },
+  { code: 'ru', name: 'Русский' },
 ];
 
 export function isSupportedLocale(locale: string): boolean {

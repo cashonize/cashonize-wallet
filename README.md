@@ -4,7 +4,7 @@
 
 **Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet.**
 
-It is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an installable web app, and comes in English, Spanish, French, German, and Portuguese.
+It is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an installable web app, and comes in English, Spanish, French, German, Portuguese, Indonesian and Russian.
 
 For users, the [Cashonize about page](https://about.cashonize.com) introduces the wallet and its features, while this readme goes into more detail.
 
@@ -36,7 +36,7 @@ Cashonize does not currently support password or pin locked wallets and encrypte
 - **Minimalist design** - Easy to use with a clean, modern interface
 - **Fast and lightweight** - Quick startup, fast data loading, and snappy navigation
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
-- **Localization** - Available in English, Spanish, French, German, and Portuguese
+- **Localization** - Available in English, Spanish, French, German, Portuguese, Indonesian and Russian
 - **Transaction history** - Filterable, searchable history with private transaction notes
 - **Minimal dependencies** - Fewer third-party packages means less code to trust and easier to audit
 - **HD address management** - Address overview with balances, labels and marking addresses as used
