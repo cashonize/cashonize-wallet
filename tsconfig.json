@@ -16,6 +16,13 @@
       }
     ]
   },
+  // Checks templates strictly, as TypeScript 7.1's Vue content mapper will: unknown props,
+  // attributes and events are errors. Our single-root components pass undeclared listeners and
+  // attributes through to their root element, so those count as known.
+  "vueCompilerOptions": {
+    "strictTemplates": true,
+    "fallthroughAttributes": true
+  },
   "exclude": [
     "dist",
     "node_modules",
