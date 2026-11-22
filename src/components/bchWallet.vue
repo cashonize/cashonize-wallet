@@ -1,12 +1,12 @@
 <script setup lang="ts">
   import { ref, computed, watch, shallowRef, nextTick } from 'vue'
   import { convert } from '@cashonize/bch-wallet-lib'
-  import { decodeCashAddress } from "@bitauth/libauth"
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
   import { copyToClipboard, formatFiatAmount, convertToCurrency, sendAmountToSatoshis } from 'src/utils/utils';
-  import { parseBip21Uri, isBip21Uri, addressFromUri, formatSatoshisAsBch } from 'src/utils/payments/bip21';
+  import { parseBip21Uri, isBip21Uri, formatSatoshisAsBch } from 'src/utils/payments/bip21';
+  import { getCashAddressScanError } from 'src/utils/payments/recipientAddress';
   import { parsePayProParams, getPaymentRequestValidationError } from 'src/utils/payments/paymentRequest';
-  import { isLegacyAddress, normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
+  import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
   import { useQuasar, type QMenu } from 'quasar'
@@ -280,15 +280,7 @@
     destinationAddr.value = content;
     parseAddrParams()
   }
-  const qrFilter = (content: string) => {
-    const address = addressFromUri(content);
-    if (isLegacyAddress(address)) return t('wallet.errors.legacyAddress');
-    const decoded = decodeCashAddress(address);
-    if (typeof decoded === "string" || decoded.prefix !== `${store.wallet.networkPrefix}`) {
-      return t('wallet.errors.notCashaddress');
-    }
-    return true;
-  }
+  const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true
 
   // we want to play the animation when the user updates the qrAnimation setting
   // @codeRendered does not trigger on 'qrAnimation' so we use a watcher for it

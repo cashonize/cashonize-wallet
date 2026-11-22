@@ -252,7 +252,7 @@ export function parseFieldValue(
           const date = new Date(locktime * 1000);
           return {
             type: "locktime",
-            formatted: `${date.toISOString()}`,
+            formatted: date.toISOString(),
             timestamp: locktime,
           };
         }

@@ -7,12 +7,11 @@
 
   const emit = defineEmits<{
     'update:modelValue': [value: string]
-    'update:isValid': [value: boolean]
+    validity: [valid: boolean]
   }>()
 
   const props = defineProps<{
     modelValue?: string
-    isValid?: boolean
   }>()
 
   const seedWords = ref<string[]>(Array(12).fill(''))
@@ -46,7 +45,7 @@
   })
 
   watch(seedPhraseValid, (value) => {
-    emit('update:isValid', value)
+    emit('validity', value)
   }, { immediate: true })
 
   function isValidBip39Word(word: string): boolean {

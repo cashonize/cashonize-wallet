@@ -232,7 +232,7 @@
           </div>
         </div>
         <div style="margin: 20px 0;">
-          <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
+          <seedPhraseInput v-model="seedPhrase" @validity="(valid) => seedPhraseValid = valid" />
         </div>
         <div style="margin: 15px 0;">
           <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>

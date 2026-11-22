@@ -95,6 +95,15 @@ export default defineConfigWithVueTs(
         { allowTernary: true } // Allow function calls and other expressions in ternaries
       ],
 
+      // a union switch must handle every member, unless it has a default branch
+      '@typescript-eslint/switch-exhaustiveness-check': ['error', { considerDefaultExhaustiveForUnions: true }],
+      '@typescript-eslint/no-unnecessary-template-expression': 'error',
+      // components declare what they use and use what they declare
+      'vue/no-unused-properties': 'error',
+      'vue/no-unused-refs': 'error',
+      'vue/no-unused-emit-declarations': 'error',
+      'vue/require-explicit-emits': 'error',
+
       // A wallet renders untrusted text (token metadata, dApp metadata, labels) next to its keys,
       // so markup only enters the DOM through an explicit, reviewed exception.
       'vue/no-v-html': 'error',
