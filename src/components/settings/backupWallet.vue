@@ -144,7 +144,7 @@
         .map(({ index }) => index)
         .sort((a, b) => a - b);
       verificationIndices.value = indices;
-      verificationWords.value = Array(4).fill('');
+      verificationWords.value = Array<string>(4).fill('');
       showBackupVerification.value = true;
     }
   }

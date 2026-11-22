@@ -37,7 +37,7 @@ export async function fetchCauldronPrices(
         `${indexerUrl}/cauldron/valuelocked/${tokenId}`,
         CAULDRON_CACHE_TTL_MS
       );
-      const json = await response.json();
+      const json: unknown = await response.json();
       const parsed = CauldronValueLockedSchema.safeParse(json);
       if (!parsed.success) {
         console.error(`Cauldron validation error for ${tokenId}:`, parsed.error);

@@ -397,11 +397,11 @@ export function getBalanceFromUtxos(utxos: Utxo[]) {
   return balanceSats
 }
 
-export function parseExtendedJson(jsonString: string){
+export function parseExtendedJson(jsonString: string): unknown {
   const uint8ArrayRegex = /^<Uint8Array: 0x(?<hex>[0-9a-f]*)>$/u;
   const bigIntRegex = /^<bigint: (?<bigint>-?[0-9]+)n>$/;
 
-  return JSON.parse(jsonString, (_key, value) => {
+  return JSON.parse(jsonString, (_key, value: unknown) => {
     if (typeof value === "string") {
       const bigintMatch = value.match(bigIntRegex);
       if (bigintMatch?.groups?.bigint !== undefined) {

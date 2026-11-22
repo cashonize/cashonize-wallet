@@ -4,6 +4,7 @@ import {
   binToHex,
   vmNumberToBigInt,
   type AuthenticationProgramCommon,
+  type AuthenticationProgramStateBch,
   type TransactionCommon,
   type Output,
 } from "@bitauth/libauth";
@@ -77,11 +78,11 @@ export type ParsedValue =
     };
 
 export interface ParsedField {
-  name?: string;
+  name?: string | undefined;
   value: string;
-  fieldId?: string;
-  description?: string;
-  parsedValue?: ParsedValue;
+  fieldId?: string | undefined;
+  description?: string | undefined;
+  parsedValue?: ParsedValue | undefined;
 }
 
 export interface ParseResult {
@@ -341,10 +342,10 @@ export function parseNft(
 
     // a VM is very cheap to create, so one per parse is simpler than sharing one
     const vm = createVirtualMachineBch();
-    let result;
+    let finalState: AuthenticationProgramStateBch;
 
     try {
-      result = vm.evaluate(program);
+      finalState = vm.evaluate(program);
     } catch (error) {
       // Handle BigInt and other VM-level errors
       const errorMessage =
@@ -361,17 +362,13 @@ export function parseNft(
       return { success: false, error: `VM Error: ${errorMessage}` };
     }
 
-    const finalState = Array.isArray(result)
-      ? result[result.length - 1]
-      : result;
-
     // Parse bytecodes may leave multiple items on the main stack, which the VM
     // reports as an error ("unexpected number of items on the stack").
     // This is expected — we only care about the altstack contents.
     // Only tolerate this specific benign error; treat all others as real
     // failures, since partial execution may leave unreliable data on the altstack.
     if (finalState.error) {
-      const isBenignStackDepthError = String(finalState.error).includes(
+      const isBenignStackDepthError = finalState.error.includes(
         "unexpected number of items on the stack",
       );
       if (!isBenignStackDepthError) {
@@ -379,18 +376,14 @@ export function parseNft(
       }
     }
 
-    if (finalState.alternateStack.length === 0) {
+    const altstack = finalState.alternateStack.map((item) => binToHex(item));
+    const [nftType, ...fields] = altstack;
+    if (nftType === undefined) {
       return {
         success: false,
         error: "Altstack is empty - parsing failed",
       };
     }
-
-    const altstack = finalState.alternateStack.map((item: Uint8Array) =>
-      binToHex(item),
-    );
-    const nftType = altstack[0];
-    const fields = altstack.slice(1);
 
     // Try to match against parse info types
     let nftTypeName = nftType;

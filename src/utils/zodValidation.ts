@@ -435,3 +435,9 @@ export const FlipstarterTemplateSchema = z.object({
   "Donation amount is larger than the outputs",
 );
 export type FlipstarterTemplate = z.infer<typeof FlipstarterTemplateSchema>;
+
+/* GithubReleaseSchema */
+// the latest release of the GitHub API, of which only the tag is read
+export const GithubReleaseSchema = z.object({
+  tag_name: z.string(),
+});

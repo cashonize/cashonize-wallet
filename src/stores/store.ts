@@ -59,6 +59,7 @@ import { useWizardconnectStore, removeWizardConnectSessions } from "./wizardconn
 import { ActionableError, displayAndLogError, isQuotaExceededError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
+import { GithubReleaseSchema } from "src/utils/zodValidation"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { appNetworkOf, appNetworks, dappsAvailableOn, libraryNetwork, storedAppNetwork, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
 import { removeEmptyChipnetCopy } from "src/utils/wallet/tiedWallets"
@@ -1792,9 +1793,9 @@ export const useStore = defineStore('store', () => {
       const response = await fetch('https://api.github.com/repos/cashonize/cashonize-wallet/releases/latest');
       if (!response.ok) throw new Error('Network response was not ok');
 
-      const releaseData = await response.json();
+      const releaseData: unknown = await response.json();
       // Extract the version tag (e.g. 'v0.2.4')
-      latestGithubRelease.value = releaseData.tag_name;
+      latestGithubRelease.value = GithubReleaseSchema.parse(releaseData).tag_name;
       console.log(latestGithubRelease.value)
     } catch (error) {
       console.error('Error fetching latest GitHub release:', error);

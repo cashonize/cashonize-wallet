@@ -138,7 +138,7 @@ Single-route SPA — views are switched via `store.displayView` in `WalletPage.v
 Two components sit outside their folder's protocol: `WC2TransactionRequest` is shared with wizardconnect, and the WizardConnect sign dialogs are opened from `wizardconnectStore` rather than from a session component.
 
 ### Validation
-Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect params, API responses, BCMR data).
+Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect params, API responses, BCMR data). External data is typed `unknown` until validated, and the lint keeps untyped values from flowing into typed code; the app's own localStorage is trusted and read with a cast.
 
 ### Quasar Framework
 Docs: https://quasar.dev/docs

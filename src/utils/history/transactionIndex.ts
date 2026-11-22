@@ -66,7 +66,7 @@ function loadIndex(network: Network, walletName: string): StoredIndex | undefine
   if (!stored) return undefined;
   try {
     // token amounts are stored as strings, JSON having no bigint
-    const index = JSON.parse(stored, (key, value) => key === 'amount' && typeof value === 'string' ? BigInt(value) : value) as StoredIndex;
+    const index = JSON.parse(stored, (key, value: unknown) => key === 'amount' && typeof value === 'string' ? BigInt(value) : value) as StoredIndex;
     return index.version === INDEX_VERSION ? index : undefined;
   } catch {
     return undefined;
@@ -76,7 +76,7 @@ function loadIndex(network: Network, walletName: string): StoredIndex | undefine
 // A full localStorage loses the index, not the result: the next open scans again
 function saveIndex(network: Network, walletName: string, index: StoredIndex) {
   try {
-    const json = JSON.stringify(index, (_, value) => typeof value === 'bigint' ? value.toString() : value);
+    const json = JSON.stringify(index, (_, value: unknown) => typeof value === 'bigint' ? value.toString() : value);
     if (json.length > MAX_STORED_INDEX) {
       // no stale copy left behind to be trusted at the next open
       localStorage.removeItem(indexKey(network, walletName));

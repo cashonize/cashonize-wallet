@@ -196,7 +196,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readWalletBackupStatus = localStorage.getItem("walletBackupStatus");
   if (readWalletBackupStatus) {
     try {
-      walletBackupStatus.value = JSON.parse(readWalletBackupStatus);
+      walletBackupStatus.value = JSON.parse(readWalletBackupStatus) as Record<string, BackupStatus>;
     } catch { /* ignore parse errors */ }
   }
   // Migration: convert old global 'seedBackedUp' to per-wallet status for defaultWalletName 'mywallet'
@@ -214,7 +214,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readWalletMetadata = localStorage.getItem("walletMetadata");
   if (readWalletMetadata) {
     try {
-      walletMetadata.value = JSON.parse(readWalletMetadata);
+      walletMetadata.value = JSON.parse(readWalletMetadata) as Record<string, WalletMetadata>;
     } catch { /* ignore parse errors */ }
   }
 
@@ -400,7 +400,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   async function getExchangeRateBitpay(symbol: string): Promise<number> {
     const response = await fetch(BITPAY_RATES_API);
-    const json = await response.json();
+    const json: unknown = await response.json();
     const parseResult = BitpayRatesSchema.safeParse(json);
     if (!parseResult.success) {
       console.error(`BitPay rates response validation error: ${parseResult.error.message}`);
@@ -419,7 +419,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   async function getExchangeRateCoinGecko(symbol: string): Promise<number> {
     const normalizedSymbol = symbol.toLowerCase();
     const response = await fetch(COINGECKO_RATES_API + normalizedSymbol);
-    const json = await response.json();
+    const json: unknown = await response.json();
     const parseResult = CoinGeckoRatesSchema.safeParse(json);
     if (!parseResult.success) {
       console.error(`CoinGecko rates response validation error: ${parseResult.error.message}`);
@@ -436,7 +436,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   async function getExchangeRateCoinbase(symbol: string): Promise<number> {
     const response = await fetch(COINBASE_RATES_API);
-    const json = await response.json();
+    const json: unknown = await response.json();
     const parseResult = CoinbaseRatesSchema.safeParse(json);
     if (!parseResult.success) {
       console.error(`Coinbase rates response validation error: ${parseResult.error.message}`);
@@ -486,15 +486,15 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   type AutoApproveSessionReq = ForeverAutoApproveSessionReq | TimeAutoApproveSessionReq | CountAutoApproveSessionReq;
 
   function getAutoApproveState(topic: string) {
-    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}");
-    return state?.[topic] as AutoApproveSessionReq || null;
+    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}") as Record<string, AutoApproveSessionReq>;
+    return state?.[topic] ?? null;
   }
 
   function setAutoApproveState(
     topic: string,
     newState: AutoApproveSessionReq | null
   ) {
-    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}");
+    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}") as Record<string, AutoApproveSessionReq>;
   
     if (!newState) {
       delete state[topic];

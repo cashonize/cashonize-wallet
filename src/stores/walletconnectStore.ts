@@ -509,7 +509,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   }
   function isValidSignTransactionRequest(transactionRequestWC: WalletKitTypes.SessionRequest) {
     // payload sent by the dapp over walletconnect
-    const wcSignTransactionParams = transactionRequestWC.params.request.params
+    const wcSignTransactionParams: unknown = transactionRequestWC.params.request.params
     // the wcSignTransactionParams is from an untrusted source, so we validate the schema with zod
     // Strict schema mirrors the WC2-BCH spec exactly; loose schema tolerates known dapp deviations (e.g. FundMe.cash).
     const schema = settingsStore.strictWcSchema ? StrictEncodedWcTransactionObjSchema : LooseEncodedWcTransactionObjSchema;
@@ -547,7 +547,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
 
   async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {
     // isValidSignTransactionRequest has checked the params already when this function is called
-    const wcSignTransactionParams = transactionRequestWC.params.request.params
+    const wcSignTransactionParams: unknown = transactionRequestWC.params.request.params
     // parse as extended JSON to handle Uint8Array and BigInt
     const wcTransactionObj = parseExtendedJson(JSON.stringify(wcSignTransactionParams)) as WcSignTransactionRequest;
     const { id, topic } = transactionRequestWC;
@@ -614,7 +614,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   function isValidSignMessageRequest(signMessageRequestWC: WalletKitTypes.SessionRequest) {
     try{
       // payload sent by the dapp over walletconnect
-      const wcSignMessageParams = signMessageRequestWC.params.request.params
+      const wcSignMessageParams: unknown = signMessageRequestWC.params.request.params
       // the wcSignMessageParams is from an untrusted source, so perform basic validation
       WcMessageObjSchema.parse(wcSignMessageParams);
       return true
