@@ -15,7 +15,7 @@
       "somethingWentWrong": "Une erreur s'est produite",
       "amountInvalid": "Saisissez le montant en chiffres, avec au plus un séparateur décimal",
       "amountGrouping": "Saisissez le montant sans séparateur de milliers ni espace",
-      "amountAmbiguous": "Ce montant peut se lire de deux façons : saisissez les milliers sans séparateur, comme 1000, et les décimales comme {example}",
+      "amountAmbiguous": "Ce montant peut se lire de deux façons : saisissez les milliers sans séparateur, comme 1000, et les décimales comme {example} (ou choisissez votre format des nombres dans Paramètres → Localisation)",
       "amountWholeOnly": "Saisissez un nombre entier, sans séparateur",
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
       "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dApp",

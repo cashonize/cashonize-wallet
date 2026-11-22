@@ -280,6 +280,7 @@
           <span class="amountField">
             <input
               v-model="tokenAmountInput"
+              inputmode="decimal"
               :disabled="!selectedCategory"
               :placeholder="t('requestPayment.amountPlaceholder')"
               name="tokenAmountInput"

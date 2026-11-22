@@ -15,7 +15,7 @@
       "somethingWentWrong": "Etwas ist schiefgelaufen",
       "amountInvalid": "Gib den Betrag in Ziffern ein, mit höchstens einem Dezimaltrennzeichen",
       "amountGrouping": "Gib den Betrag ohne Tausendertrennzeichen oder Leerzeichen ein",
-      "amountAmbiguous": "Dieser Betrag ist mehrdeutig: Tausender ohne Trennzeichen eingeben, z. B. 1000, und Dezimalstellen wie {example}",
+      "amountAmbiguous": "Dieser Betrag ist mehrdeutig: Tausender ohne Trennzeichen eingeben, z. B. 1000, und Dezimalstellen wie {example} (oder wähle dein Zahlenformat unter Einstellungen → Lokalisierung)",
       "amountWholeOnly": "Gib eine ganze Zahl ohne Trennzeichen ein",
       "needToInitializeWallet": "Zuerst muss ein Wallet initialisiert werden",
       "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, dApp-Anfrage wird abgelehnt",

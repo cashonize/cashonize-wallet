@@ -15,7 +15,7 @@
       "somethingWentWrong": "Algo deu errado",
       "amountInvalid": "Digite o valor em algarismos, com no máximo um separador decimal",
       "amountGrouping": "Digite o valor sem separadores de milhar nem espaços",
-      "amountAmbiguous": "Este valor pode ser lido de duas formas: digite os milhares sem separador, como 1000, e as casas decimais como {example}",
+      "amountAmbiguous": "Este valor pode ser lido de duas formas: digite os milhares sem separador, como 1000, e as casas decimais como {example} (ou escolha o seu formato de números em Configurações → Localização)",
       "amountWholeOnly": "Digite um número inteiro, sem separadores",
       "needToInitializeWallet": "É necessário inicializar uma carteira primeiro",
       "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dApp",

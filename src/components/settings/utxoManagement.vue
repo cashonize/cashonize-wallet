@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { computed, nextTick, ref, watch } from 'vue';
   import { formatDecimal } from 'src/utils/numberFormat';
-  import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, formatNumber, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateHash } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
   import InfoPopup from 'src/components/general/InfoPopup.vue';
   import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue';
@@ -539,7 +539,7 @@
           </div>
           <div class="description" v-if="satsToSplit !== undefined">
             {{ t('utxoManagement.combined.description') }}
-            {{ t('utxoManagement.combined.splittableAmount', { bch: satsToBch(satsToSplit) }) }}
+            {{ t('utxoManagement.combined.splittableAmount', { bch: formatNumber(satsToBch(satsToSplit), 8) }) }}
             <span v-if="store.exchangeRate">({{ formatFiatAmount(store.exchangeRate * satsToBch(satsToSplit), settingsStore.currency) }})</span>
           </div>
 

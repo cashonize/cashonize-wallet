@@ -276,14 +276,14 @@
   }
   const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true
 
-  // we want to play the animation when the user updates the qrAnimation setting
-  // @codeRendered does not trigger on 'qrAnimation' so we use a watcher for it
   // The view is kept alive, so a unit or currency changed in the settings re-expresses the typed amount
   watch(() => settingsStore.bchUnit, (newUnit, previousUnit) => {
     const typed = readTypedSatoshis(bchSendAmount.value, previousUnit);
     if ('satoshis' in typed) bchSendAmount.value = satoshisToTypedAmount(typed.satoshis, newUnit);
   });
   watch(() => settingsStore.currency, () => void setCurrencyAmount());
+  // we want to play the animation when the user updates the qrAnimation setting
+  // @codeRendered does not trigger on 'qrAnimation' so we use a watcher for it
   watch(() => settingsStore.qrAnimation, () => {
     if(!settingsStore.hasPlayedAnimation) animateQrCode()
   })

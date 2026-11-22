@@ -1058,7 +1058,8 @@
         <label for="numberFormat">{{ t('settings.localization.numberFormat') }}</label>
         <select id="numberFormat" v-model="selectedNumberFormat" @change="changeNumberFormat()">
           <!-- each format shown by example, as Intl writes it, rather than by a country -->
-          <option v-for="format in numberFormats" :key="format" :value="format">
+          <!-- the desktop app only ever reports en-US, so it has no system default to follow -->
+          <option v-for="format in numberFormats.filter(format => !(isDesktop && format === 'auto'))" :key="format" :value="format">
             <template v-if="format === 'auto'">{{ t('settings.localization.numberFormatAuto', { example: formatDecimal(1234567.89, {}, format) }) }}</template>
             <template v-else>{{ formatDecimal(1234567.89, {}, format) }}</template>
           </option>

@@ -87,7 +87,7 @@ export function toTypedAmount(dotAmount: string, format = numberFormat.value): s
   return dotAmount.replace(".", typingDecimalMark(format));
 }
 
-// a format whose decimal mark is neither (Arabic) is typed with a dot
+// a format whose decimal mark is neither is typed with a dot
 function typingDecimalMark(format = numberFormat.value): "." | "," {
   return decimalMark(format) === "," ? "," : ".";
 }

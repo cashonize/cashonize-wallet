@@ -15,7 +15,7 @@
       "somethingWentWrong": "Something went wrong",
       "amountInvalid": "Type the amount in digits, with at most one decimal mark",
       "amountGrouping": "Type the amount without thousands separators or spaces",
-      "amountAmbiguous": "This amount can be read two ways: type thousands without a separator, like 1000, and decimals like {example}",
+      "amountAmbiguous": "This amount can be read two ways: type thousands without a separator, like 1000, and decimals like {example} (or pick your number format under Settings → Localization)",
       "amountWholeOnly": "Type a whole number, without separators",
       "needToInitializeWallet": "Need to initialize a wallet first",
       "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dApp request",

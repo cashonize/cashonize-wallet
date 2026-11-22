@@ -1,6 +1,7 @@
 import { Notify } from "quasar";
 import { parseBip21Uri } from "../src/utils/payments/bip21";
 import { buildPaymentRequestUri, parsePayProParams, getPaymentRequestValidationError, parseTokenPaymentRequest } from "../src/utils/payments/paymentRequest";
+import { numberFormat } from "../src/utils/numberFormat";
 
 vi.mock("quasar", () => ({ Notify: { create: vi.fn() } }));
 
@@ -14,6 +15,17 @@ describe("buildPaymentRequestUri", () => {
   it("should add the amount in whole bch", () => {
     expect(buildPaymentRequestUri({ address: testAddress, satoshis: 5_000_000n }))
       .toBe(`${testAddress}?amount=0.05`);
+  });
+
+  // a machine format: the user's number format never reaches the uri
+  it("should keep a dot in a comma number format", () => {
+    numberFormat.value = "de-DE";
+    try {
+      expect(buildPaymentRequestUri({ address: testAddress, satoshis: 123_456_789_000n }))
+        .toBe(`${testAddress}?amount=1234.56789`);
+    } finally {
+      numberFormat.value = "en-US";
+    }
   });
 
   it("should leave out a zero amount", () => {

@@ -15,7 +15,7 @@
       "somethingWentWrong": "Algo salió mal",
       "amountInvalid": "Escribe el importe en cifras, con como máximo un separador decimal",
       "amountGrouping": "Escribe el importe sin separadores de miles ni espacios",
-      "amountAmbiguous": "Este importe se puede leer de dos maneras: escribe los miles sin separador, como 1000, y los decimales como {example}",
+      "amountAmbiguous": "Este importe se puede leer de dos maneras: escribe los miles sin separador, como 1000, y los decimales como {example} (o elige tu formato de números en Ajustes → Localización)",
       "amountWholeOnly": "Escribe un número entero, sin separadores",
       "needToInitializeWallet": "Necesitas inicializar una billetera primero",
       "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dApp",

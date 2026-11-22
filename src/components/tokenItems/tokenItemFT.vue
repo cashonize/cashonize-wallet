@@ -287,7 +287,7 @@
             </div>
             <div class="sendTokenAmount">
               <span style="width: 100%; position: relative;">
-                <input v-model="tokenSendAmount" :placeholder="t('tokenItem.sendTokens.amountPlaceholder')" name="tokenAmountInput">
+                <input v-model="tokenSendAmount" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountPlaceholder')" name="tokenAmountInput">
                 <i class="input-icon" style="width: min-content; padding-right: 15px;">
                   {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
                 </i>
@@ -301,7 +301,7 @@
           <div>{{ t('tokenItem.burn.description') }}</div>
           <div style="display: flex">
             <span style="width: 50%; position: relative; display: flex;">
-              <input v-model="burnAmountFTs" :placeholder="t('tokenItem.sendTokens.amountTokensPlaceholder')" name="tokenAmountInput">
+              <input v-model="burnAmountFTs" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountTokensPlaceholder')" name="tokenAmountInput">
               <i class="input-icon" style="width: min-content; padding-right: 15px;">
                 {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
               </i>

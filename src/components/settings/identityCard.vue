@@ -719,7 +719,7 @@
     <div v-if="isOpen('issue')" class="section">
       <div class="description">{{ t('identities.reserve.issue.hint', { amount: reserveDisplay }) }}</div>
       <div class="issue-amount">
-        <input v-model="issueAmount" :placeholder="t('identities.reserve.issue.amountPlaceholder')">
+        <input v-model="issueAmount" inputmode="decimal" :placeholder="t('identities.reserve.issue.amountPlaceholder')">
         <button @click="issueAmount = reserveInput">{{ t('tokenItem.actions.max') }}</button>
       </div>
       <div class="input-with-button">
@@ -738,7 +738,7 @@
     <div v-if="isOpen('addToReserve')" class="section">
       <div class="description">{{ t('identities.reserve.add.hint') }}</div>
       <div class="input-with-button">
-        <input v-model="addToReserveAmount" :placeholder="t('identities.reserve.add.amountPlaceholder')">
+        <input v-model="addToReserveAmount" inputmode="decimal" :placeholder="t('identities.reserve.add.amountPlaceholder')">
       </div>
       <input
         @click="addToReserve()"
