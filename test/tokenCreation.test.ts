@@ -21,12 +21,13 @@ describe('genesisAmounts', () => {
   it('names what the genesis would refuse', () => {
     expect(genesisAmounts('100', '0', '19')).toBe('invalidDecimals')
     expect(genesisAmounts('100', '0', '-1')).toBe('invalidDecimals')
-    expect(genesisAmounts('1.5', '0', '0')).toBe('tooManyDecimals')
+    expect(genesisAmounts('1.5', '0', '0')).toBe('wholeOnly')
     expect(genesisAmounts('1.123', '0', '2')).toBe('tooManyDecimals')
-    expect(genesisAmounts('abc', '0', '0')).toBe('invalidAmount')
-    // a comma is refused, not dropped: dropping it read a decimal comma as a far larger supply
-    expect(genesisAmounts('0,5', '0', '2')).toBe('commaInAmount')
-    expect(genesisAmounts('500,000', '0', '2')).toBe('commaInAmount')
+    expect(genesisAmounts('abc', '0', '0')).toBe('invalid')
+    // read as every typed amount: a decimal comma, never grouping
+    expect(genesisAmounts('0,5', '0', '2')).toEqual({ supply: 50n, circulating: 0n, reserve: 50n })
+    expect(genesisAmounts('1,000,000', '0', '2')).toBe('grouping')
+    expect(genesisAmounts('500,000', '0', '2')).toBe('ambiguous')
     expect(genesisAmounts('9223372036854775808', '0', '0')).toBe('overMaxSupply')
     expect(genesisAmounts('100', '101', '0')).toBe('overSupply')
   })

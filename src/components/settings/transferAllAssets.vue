@@ -7,7 +7,7 @@
   import { useI18n } from 'vue-i18n'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog } from 'src/utils/txHelpers'
-  import { satsToBch, formatFiatAmount, formatTokenAmount } from 'src/utils/utils'
+  import { satsToBch, formatFiatAmount, formatNumber, formatTokenAmount } from 'src/utils/utils'
   import { addressFromUri } from 'src/utils/payments/bip21'
   import { validateRecipientAddress, validateTokenRecipientAddress, getCashAddressScanError } from 'src/utils/payments/recipientAddress'
   import { toPlainAddress } from 'src/utils/addressValidation'
@@ -206,7 +206,7 @@
           <img src="images/bch-icon.svg" class="bch-icon">
           <span>{{ t('transferAllAssets.bchBalance') }}</span>
           <span class="transfer-asset-amount">
-            {{ balanceInBchUnit.toLocaleString('en-US', { maximumFractionDigits: settingsStore.bchUnit === 'sat' ? 0 : 8 }) }}
+            {{ formatNumber(balanceInBchUnit, settingsStore.bchUnit === 'sat' ? 0 : 8) }}
             {{ bchDisplayUnit }}
             <span v-if="fiatBalance" style="color: grey;">({{ fiatBalance }})</span>
           </span>

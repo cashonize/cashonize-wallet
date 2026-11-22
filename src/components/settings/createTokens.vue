@@ -14,7 +14,8 @@
     type CheckedRegistry,
     type CreatedToken,
   } from 'src/utils/tools/tokenCreation';
-  import { copyToClipboard, formatBch, formatTokenAmount, gatewayUrl, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, formatBch, formatTokenAmount, gatewayUrl, truncateHash } from 'src/utils/utils'
+  import { isTypedAmountProblem, typedAmountMessage } from 'src/utils/numberFormat';
   import { NFTCapability } from '@cashonize/bch-wallet-lib';
   import TokenIcon from '../general/TokenIcon.vue';
   import genesisInputPicker from './genesisInputPicker.vue';
@@ -100,11 +101,9 @@
         return t('createTokens.errors.overMaxSupply', { max: formatTokenAmount(maxTokenSupply, decimals.value) });
       }
       // the same wording as the token's send fields
-      if (amounts.value === 'commaInAmount') return t('common.errors.commaInAmount');
-      if (amounts.value === 'tooManyDecimals') {
-        if (!decimals.value) return t('tokenItem.errors.noDecimalsAllowed');
-        return t('tokenItem.errors.maxDecimalsAllowed', { decimals: decimals.value });
-      }
+      if (isTypedAmountProblem(amounts.value)) return typedAmountMessage(amounts.value);
+      // a token without decimals refuses any separator before this
+      if (amounts.value === 'tooManyDecimals') return t('tokenItem.errors.maxDecimalsAllowed', { decimals: decimals.value });
       return t(`createTokens.errors.${amounts.value}`);
     }
     // a token output carrying neither an amount nor an NFT is invalid, so without a minting NFT

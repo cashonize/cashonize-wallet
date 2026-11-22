@@ -259,5 +259,7 @@ vi.mock('src/utils/utils', async (importOriginal) => ({
   loadWalletFromId: (await importOriginal<typeof Utils>()).loadWalletFromId,
   newTokenItems: (await importOriginal<typeof Utils>()).newTokenItems,
   STALE_TIP_SECONDS: (await importOriginal<typeof Utils>()).STALE_TIP_SECONDS,
+  formatNumber: (await importOriginal<typeof Utils>()).formatNumber,
+  formatFiatAmount: (await importOriginal<typeof Utils>()).formatFiatAmount,
   electrumWssUrl: vi.fn((server: string) => server.includes(":") ? `wss://${server}` : `wss://${server}:50004`),
 }))

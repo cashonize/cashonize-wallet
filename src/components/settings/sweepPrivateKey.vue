@@ -12,7 +12,7 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import { useI18n } from 'vue-i18n'
-  import { convertToCurrency, formatFiatAmount } from 'src/utils/utils'
+  import { convertToCurrency, formatFiatAmount, formatNumber } from 'src/utils/utils'
   import { useUnverifiedTokenMetadata } from 'src/utils/unverifiedTokenMetadata'
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import { noHold, transferAllAssets, type TransferProgress } from 'src/utils/tools/transferAssets'
@@ -409,7 +409,7 @@
     <div v-if="previewReady && !isEmpty" style="margin-top: 12px;">
       <div style="margin-bottom: 8px;">
         <b>{{ t('sweepPrivateKey.preview.bchBalance') }}</b>
-        {{ balanceInBchUnit.toLocaleString('en-US', { maximumFractionDigits: balanceMaxFractionDigits }) }}
+        {{ formatNumber(balanceInBchUnit, balanceMaxFractionDigits) }}
         {{ bchDisplayUnit }}
         <span v-if="fiatBalance" style="color: grey;"> ({{ fiatBalance }})</span>
       </div>

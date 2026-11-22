@@ -5,7 +5,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
-  import { copyToClipboard, formatFiatAmount, formatTimeUntil, satsToBch } from 'src/utils/utils'
+  import { copyToClipboard, formatFiatAmount, formatNumber, formatTimeUntil, satsToBch } from 'src/utils/utils'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { resolvePrivateKeyForAddress } from 'src/utils/tools/messageSigning'
@@ -115,7 +115,7 @@
     if (store.exchangeRate === undefined) return undefined;
     return formatFiatAmount(satsToBch(satoshis) * store.exchangeRate, settingsStore.currency);
   };
-  const bchOf = (satoshis: bigint) => `${satsToBch(satoshis)} ${bchDisplayUnit.value}`;
+  const bchOf = (satoshis: bigint) => `${formatNumber(satsToBch(satoshis), 8)} ${bchDisplayUnit.value}`;
   const truncateAddress = (address: string) => `${address.slice(0, 22)}...${address.slice(-8)}`;
 
   function readTemplate() {

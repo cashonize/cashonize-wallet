@@ -6,6 +6,7 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import type { TokenDataFT, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount } from 'src/utils/utils';
+  import { toTypedAmount } from 'src/utils/numberFormat';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
@@ -79,7 +80,7 @@
     if(!tokenData.value?.amount) return // should never happen
     const decimals = tokenMetaData.value?.token?.decimals ?? 0;
     const targetState = tokenSend? tokenSendAmount : burnAmountFTs;
-    targetState.value = formatTokenAmountFromBigInt(tokenData.value.amount, decimals);
+    targetState.value = toTypedAmount(formatTokenAmountFromBigInt(tokenData.value.amount, decimals));
   }
   function parseAddrParams(){
     const parsed = parseTokenPaymentRequest(destinationAddr.value, tokenData.value.category);
@@ -89,7 +90,7 @@
     // Auto-fill the amount from a token payment request for this category
     if(parsed.category && parsed.fungibleAmount !== undefined){
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      tokenSendAmount.value = formatTokenAmountFromBigInt(parsed.fungibleAmount, decimals);
+      tokenSendAmount.value = toTypedAmount(formatTokenAmountFromBigInt(parsed.fungibleAmount, decimals));
     }
   }
   const qrDecode = (content: string) => {
@@ -107,7 +108,7 @@
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
       if(amountTokensInt <= 0n) throw new Error(t('tokenItem.errors.noValidAmount'));
-      const amountSentFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
+      const amountSentFormatted = formatTokenAmount(amountTokensInt, decimals)
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
 
       const category = tokenData.value.category;
@@ -155,7 +156,7 @@
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
 
-      const amountBurnFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
+      const amountBurnFormatted = formatTokenAmount(amountTokensInt, decimals)
       const tokenSymbol = tokenMetaData.value?.token?.symbol ?? t('tokenItem.tokens')
       const confirmed = await confirmDialog(
         t('tokenItem.dialogs.burnTokens.title'),
@@ -286,7 +287,7 @@
             </div>
             <div class="sendTokenAmount">
               <span style="width: 100%; position: relative;">
-                <input v-model="tokenSendAmount" :placeholder="t('tokenItem.sendTokens.amountPlaceholder')" name="tokenAmountInput">
+                <input v-model="tokenSendAmount" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountPlaceholder')" name="tokenAmountInput">
                 <i class="input-icon" style="width: min-content; padding-right: 15px;">
                   {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
                 </i>
@@ -300,7 +301,7 @@
           <div>{{ t('tokenItem.burn.description') }}</div>
           <div style="display: flex">
             <span style="width: 50%; position: relative; display: flex;">
-              <input v-model="burnAmountFTs" :placeholder="t('tokenItem.sendTokens.amountTokensPlaceholder')" name="tokenAmountInput">
+              <input v-model="burnAmountFTs" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountTokensPlaceholder')" name="tokenAmountInput">
               <i class="input-icon" style="width: min-content; padding-right: 15px;">
                 {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
               </i>

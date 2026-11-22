@@ -13,7 +13,10 @@
     },
     "errors": {
       "somethingWentWrong": "Something went wrong",
-      "commaInAmount": "Use a dot (.) for decimals, without thousands separators",
+      "amountInvalid": "Type the amount in digits, with at most one decimal mark",
+      "amountGrouping": "Type the amount without thousands separators or spaces",
+      "amountAmbiguous": "This amount can be read two ways: type thousands without a separator, like 1000, and decimals like {example} (or pick your number format under Settings → Localization)",
+      "amountWholeOnly": "Type a whole number, without separators",
       "needToInitializeWallet": "Need to initialize a wallet first",
       "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dApp request",
       "nothingToTransfer": "No BCH or tokens left to transfer",
@@ -454,9 +457,7 @@
       "insufficientBalance": "Insufficient token balance",
       "invalidAddress": "Invalid BCH address provided",
       "notTokenAddress": "Not a Token Address (should start with z...)",
-      "invalidNumberFormat": "Invalid number format",
       "enterValidAmount": "Enter a valid positive amount",
-      "noDecimalsAllowed": "This token does not allow for decimal places",
       "maxDecimalsAllowed": "This token only allows up to {decimals} decimal places",
       "differentTokenRequest": "This payment request is for a different token",
       "amountMustBeInteger": "Amount tokens to burn must be a valid integer",
@@ -819,7 +820,6 @@
       "note": "The reserve stays on the identity's UTXO; issue it later from the identities page."
     },
     "errors": {
-      "invalidAmount": "Enter amounts as a number of tokens, like 1000 or 0.5.",
       "overMaxSupply": "That is more than a token can hold. The most is {max}.",
       "overSupply": "That is more than the total supply.",
       "invalidDecimals": "Decimals must be a whole number from 0 to 18.",
@@ -1486,6 +1486,8 @@
       "language": "Language:",
       "currency": "Currency:",
       "dateFormat": "Date format:",
+      "numberFormat": "Number format:",
+      "numberFormatAuto": "System default ({example})",
       "languageLoadFailed": "Could not load this language. Check your connection or reload the page."
     },
     "userOptions": {

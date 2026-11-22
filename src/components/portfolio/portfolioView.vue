@@ -7,7 +7,8 @@
   import { convert } from '@cashonize/bch-wallet-lib'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
-  import { formatFiatAmount, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
+  import { formatFixed } from 'src/utils/numberFormat'
+  import { formatFiatAmount, formatNumber, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
   import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
@@ -69,9 +70,6 @@
   // blocks BCH aims for per day, for turning a wait in blocks into a rough number of days
   const BLOCKS_PER_DAY = 144
   const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
-
-  const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
-  const bchValueFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 5 })
 
   // holdings below this share of the total collapse into the 'small balances' section
   const SMALL_SHARE_THRESHOLD = 0.001
@@ -155,7 +153,6 @@
     amountDisplay: string
   }
 
-
   // undefined while the wallet balance or the token list has not loaded yet. Valued the way the
   // BCH balance is: everything held, a coin held back from spending included
   const assets = computed(() => {
@@ -165,7 +162,7 @@
     const bchEntry: PricedAsset = {
       name: 'Bitcoin Cash',
       symbol: bchUnitName.value,
-      amountDisplay: amountFormatter.format(bchBalance),
+      amountDisplay: formatNumber(bchBalance, 8),
       bchValue: bchBalance
     }
 
@@ -227,7 +224,7 @@
         id: `${pool.txid}:${pool.vout}`,
         category: pool.tokenId,
         name: metadata?.name ?? pool.tokenId.slice(0, 8) + '...',
-        bchDisplay: bchValueFormatter.format(poolBch) + ' ' + bchUnitName.value,
+        bchDisplay: formatNumber(poolBch, 5) + ' ' + bchUnitName.value,
         tokenDisplay: formatTokenAmount(pool.tokenAmount, metadata?.token?.decimals) + (symbol ? ' ' + symbol : ''),
         bchValue: poolBch + (tokenBchValue ?? poolBch)
       }
@@ -577,7 +574,7 @@
     // the asking price is a term of the listing, so it always shows in BCH, with the
     // fiat value alongside
     const priceBch = satsToBch(listing.priceSats)
-    let priceDisplay = bchValueFormatter.format(priceBch) + ' ' + bchUnitName.value
+    let priceDisplay = formatNumber(priceBch, 5) + ' ' + bchUnitName.value
     if (store.exchangeRate !== undefined) {
       priceDisplay += ` (${formatFiatAmount(priceBch * store.exchangeRate, settingsStore.currency)})`
     }
@@ -702,15 +699,15 @@
   }
 
   function formatShare(share: number) {
-    if (share > 0 && share < 0.001) return '<0.1%'
-    return (share * 100).toFixed(1) + '%'
+    if (share > 0 && share < 0.001) return `<${formatFixed(0.1, 1)}%`
+    return formatFixed(share * 100, 1) + '%'
   }
 
   function formatBchValue(bchValue: number) {
     if (effectiveUnit.value === 'currency' && store.exchangeRate !== undefined) {
       return formatFiatAmount(bchValue * store.exchangeRate, settingsStore.currency)
     }
-    return bchValueFormatter.format(bchValue) + ' ' + bchUnitName.value
+    return formatNumber(bchValue, 5) + ' ' + bchUnitName.value
   }
 
   // Custom hover tooltip for the chart, positioned relative to the donut wrapper
@@ -918,7 +915,7 @@
           <hodlLockItem
             v-else-if="row.kind === 'hodl'"
             :dot-color="HODL_COLOR"
-            :bch-display="bchValueFormatter.format(row.value) + ' ' + bchUnitName"
+            :bch-display="formatNumber(row.value, 5) + ' ' + bchUnitName"
             :unlock="hodlUnlockDisplay(row.lock)"
             :value-display="formatBchValue(row.value)"
             :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"

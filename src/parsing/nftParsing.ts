@@ -9,6 +9,7 @@ import {
   type Output,
 } from "@bitauth/libauth";
 import { i18n } from "src/boot/i18n";
+import { decimalMark } from "src/utils/numberFormat";
 
 const { t } = i18n.global;
 
@@ -165,6 +166,8 @@ export function parseFieldValue(
           formatted = `${integerPart}.${fractionalStr}`;
           formatted = formatted.replace(/\.?0+$/, "");
           if (formatted === "") formatted = "0";
+          // the user's decimal mark, but no grouping: a number field may as well be an id
+          formatted = formatted.replace(".", decimalMark());
           if (isNegative) formatted = `-${formatted}`;
         } else {
           formatted = bigintValue.toString();

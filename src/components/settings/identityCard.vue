@@ -22,6 +22,7 @@
     formatTokenAmountWithSymbol,
     parseTokenAmountToBigInt,
   } from 'src/utils/utils'
+  import { formatDecimal, toTypedAmount } from 'src/utils/numberFormat'
   import { confirmDialog, notifySending } from 'src/utils/txHelpers'
   import { validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import {
@@ -155,9 +156,9 @@
 
   const tokenDecimals = computed(() => identityMetadata.value?.token?.decimals ?? 0);
   const reserve = computed(() => identityUtxoOf(props.identity)?.token?.amount ?? 0n);
-  // the raw form for the Max button, since an amount field takes no grouping; every amount the
+  // the typed form for the Max button, since an amount field takes no grouping; every amount the
   // card only shows is grouped and carries its symbol
-  const reserveInput = computed(() => formatTokenAmountFromBigInt(reserve.value, tokenDecimals.value));
+  const reserveInput = computed(() => toTypedAmount(formatTokenAmountFromBigInt(reserve.value, tokenDecimals.value)));
   const reserveDisplay = computed(() => formatTokenAmountWithSymbol(reserve.value, identityMetadata.value));
 
   // An IPFS CID cannot serve content other than its own, so a mismatch there says something
@@ -528,7 +529,7 @@
     <div v-if="genesisSupplyLine">
       {{ genesisSupplyLine }}
       <InfoPopup v-if="identity.genesisSupply === maxTokenSupply">
-        <div style="max-width: 300px;">{{ t('identities.reserve.openEndedHelp', { max: maxTokenSupply.toLocaleString('en-US') }) }}</div>
+        <div style="max-width: 300px;">{{ t('identities.reserve.openEndedHelp', { max: formatDecimal(maxTokenSupply) }) }}</div>
       </InfoPopup>
     </div>
     <div
@@ -718,7 +719,7 @@
     <div v-if="isOpen('issue')" class="section">
       <div class="description">{{ t('identities.reserve.issue.hint', { amount: reserveDisplay }) }}</div>
       <div class="issue-amount">
-        <input v-model="issueAmount" :placeholder="t('identities.reserve.issue.amountPlaceholder')">
+        <input v-model="issueAmount" inputmode="decimal" :placeholder="t('identities.reserve.issue.amountPlaceholder')">
         <button @click="issueAmount = reserveInput">{{ t('tokenItem.actions.max') }}</button>
       </div>
       <div class="input-with-button">
@@ -737,7 +738,7 @@
     <div v-if="isOpen('addToReserve')" class="section">
       <div class="description">{{ t('identities.reserve.add.hint') }}</div>
       <div class="input-with-button">
-        <input v-model="addToReserveAmount" :placeholder="t('identities.reserve.add.amountPlaceholder')">
+        <input v-model="addToReserveAmount" inputmode="decimal" :placeholder="t('identities.reserve.add.amountPlaceholder')">
       </div>
       <input
         @click="addToReserve()"

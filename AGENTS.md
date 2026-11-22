@@ -156,7 +156,7 @@ Component styles are plain CSS by default; a few use `<style scoped lang="scss">
 ### Internationalization (i18n)
 Uses `vue-i18n`. In Vue components use `useI18n()` composable; in utility files use `i18n.global` from `src/boot/i18n.ts`.
 English is bundled as the fallback; every other language is its own chunk, so change the language only through `switchLocale` in `src/boot/i18n.ts`, which loads it first.
-Numbers are not localized: amounts are shown in English notation and typed with a dot as the only separator, in every language (`parseTokenAmountToBigInt` in `utils.ts`).
+Numbers follow the region, not the language: amounts are shown in the user's number format setting (English by default, or the system's locale) and typed with a dot or a comma as the decimal mark and no grouping, the format breaking the tie on `1,000` (`utils/numberFormat.ts`). Machine formats (BIP21, dApp payloads, CSV) always use a dot.
 
 ## Testing
 
