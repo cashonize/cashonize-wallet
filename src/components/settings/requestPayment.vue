@@ -6,8 +6,8 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  import { copyToClipboard, formatTokenAmount, parseTokenAmountToBigInt, satoshisToTypedAmount, typedAmountToSatoshis } from 'src/utils/utils'
-  import { readTypedAmount, toTypedAmount } from 'src/utils/numberFormat'
+  import { copyToClipboard, fiatToTypedAmount, formatTokenAmount, parseTokenAmountToBigInt, readTypedSatoshis, satoshisToTypedAmount } from 'src/utils/utils'
+  import { readTypedAmount, typedAmountMessage } from 'src/utils/numberFormat'
   import { buildPaymentRequestUri } from 'src/utils/payments/paymentRequest'
   import { toTokenAddress } from 'src/utils/addressValidation'
   import CharCounter from 'src/components/general/CharCounter.vue'
@@ -76,15 +76,15 @@
     return tokenMetadata.value?.name ?? shortCategory.value;
   });
 
-  const parsedBchAmount = computed<{ satoshis?: bigint, error?: string }>(() => {
-    if (!requestAmount.value.trim()) return {};
-    try {
-      return { satoshis: typedAmountToSatoshis(requestAmount.value, settingsStore.bchUnit) };
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : String(error) };
-    }
+  const typedBch = computed(() => readTypedSatoshis(requestAmount.value, settingsStore.bchUnit));
+  const requestSatoshis = computed(() => 'satoshis' in typedBch.value ? typedBch.value.satoshis : undefined);
+  const typedCurrency = computed(() => readTypedAmount(currencyAmount.value));
+  // a refused amount in either field, said under the fields rather than by an empty request
+  const amountError = computed(() => {
+    if (requestAmount.value.trim() && 'error' in typedBch.value) return typedBch.value.error;
+    if (currencyAmount.value.trim() && 'problem' in typedCurrency.value) return typedAmountMessage(typedCurrency.value.problem);
+    return undefined;
   });
-  const requestSatoshis = computed(() => parsedBchAmount.value.satoshis);
 
   // Amounts are requested in whole tokens and travel in base units, an amount with more
   // decimals than the token has is rejected rather than silently left out of the request
@@ -135,15 +135,14 @@
       return
     }
     const newCurrencyValue = await convert(Number(satoshis), "sat", settingsStore.currency);
-    currencyAmount.value = toTypedAmount(String(Number(newCurrencyValue.toFixed(2))));
+    currencyAmount.value = fiatToTypedAmount(newCurrencyValue);
   }
   async function setBchAmount() {
-    const typedCurrency = readTypedAmount(currencyAmount.value);
-    if('problem' in typedCurrency){
+    if('problem' in typedCurrency.value){
       requestAmount.value = ""
       return
     }
-    const newSatsValue = await convert(Number(typedCurrency.amount), settingsStore.currency, "sat");
+    const newSatsValue = await convert(Number(typedCurrency.value.amount), settingsStore.currency, "sat");
     requestAmount.value = satoshisToTypedAmount(BigInt(Math.round(newSatsValue)), settingsStore.bchUnit);
   }
 
@@ -192,13 +191,8 @@
   // expressed in change while the view sits in the background
   watch(() => settingsStore.currency, () => void setCurrencyAmount());
   watch(() => settingsStore.bchUnit, (newUnit, previousUnit) => {
-    let satoshis: bigint;
-    try {
-      satoshis = typedAmountToSatoshis(requestAmount.value, previousUnit);
-    } catch {
-      return;
-    }
-    requestAmount.value = satoshisToTypedAmount(satoshis, newUnit);
+    const typed = readTypedSatoshis(requestAmount.value, previousUnit);
+    if ('satoshis' in typed) requestAmount.value = satoshisToTypedAmount(typed.satoshis, newUnit);
   });
 </script>
 
@@ -276,7 +270,7 @@
             </i>
           </span>
         </div>
-        <div v-if="parsedBchAmount.error" style="color: red; margin-top: 6px;">{{ parsedBchAmount.error }}</div>
+        <div v-if="amountError" style="color: red; margin-top: 6px;">{{ amountError }}</div>
         <div class="amountNote">
           {{ t('requestPayment.amountNote', { network: bchDisplayNetwork, currency: currencyDisplayShortName }) }}
         </div>

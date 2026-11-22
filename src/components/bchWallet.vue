@@ -2,8 +2,8 @@
   import { ref, computed, watch, shallowRef, nextTick } from 'vue'
   import { convert } from '@cashonize/bch-wallet-lib'
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
-  import { copyToClipboard, formatFiatAmount, formatNumber, formatTokenAmount, convertToCurrency, satoshisToTypedAmount, typedAmountToSatoshis } from 'src/utils/utils';
-  import { readTypedAmount, toTypedAmount } from 'src/utils/numberFormat';
+  import { copyToClipboard, formatFiatAmount, formatNumber, formatTokenAmount, convertToCurrency, fiatToTypedAmount, readTypedSatoshis, satoshisToTypedAmount } from 'src/utils/utils';
+  import { readTypedAmount, typedAmountMessage } from 'src/utils/numberFormat';
   import { parseBip21Uri, isBip21Uri } from 'src/utils/payments/bip21';
   import { getCashAddressScanError } from 'src/utils/payments/recipientAddress';
   import { parsePayProParams, getPaymentRequestValidationError } from 'src/utils/payments/paymentRequest';
@@ -81,13 +81,12 @@
     const sats = Number(store.reservedBalance);
     return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
-  // the typed amount, undefined while it is not one
-  const typedSatoshis = computed(() => {
-    try {
-      return typedAmountToSatoshis(bchSendAmount.value, settingsStore.bchUnit);
-    } catch {
-      return undefined;
-    }
+  const typedBch = computed(() => readTypedSatoshis(bchSendAmount.value, settingsStore.bchUnit));
+  const typedCurrency = computed(() => readTypedAmount(currencySendAmount.value));
+  // the bch field empties when the fiat one is refused, so the reason shows under the fields
+  const currencyError = computed(() => {
+    if (!currencySendAmount.value.trim() || !('problem' in typedCurrency.value)) return undefined;
+    return typedAmountMessage(typedCurrency.value.problem);
   });
 
   // handle props
@@ -196,21 +195,19 @@
   }
 
   async function setCurrencyAmount() {
-    const amountSats = typedSatoshis.value;
-    if(amountSats === undefined){
+    if(!('satoshis' in typedBch.value)){
       currencySendAmount.value = ""
       return
     }
-    const newCurrencyValue = await convert(Number(amountSats), "sat", settingsStore.currency);
-    currencySendAmount.value = toTypedAmount(String(Number(newCurrencyValue.toFixed(2))));
+    const newCurrencyValue = await convert(Number(typedBch.value.satoshis), "sat", settingsStore.currency);
+    currencySendAmount.value = fiatToTypedAmount(newCurrencyValue);
   }
   async function setBchAmount() {
-    const typedCurrency = readTypedAmount(currencySendAmount.value);
-    if('problem' in typedCurrency){
+    if('problem' in typedCurrency.value){
       bchSendAmount.value = ""
       return
     }
-    const newSatsValue = await convert(Number(typedCurrency.amount), settingsStore.currency, "sat");
+    const newSatsValue = await convert(Number(typedCurrency.value.amount), settingsStore.currency, "sat");
     bchSendAmount.value = satoshisToTypedAmount(BigInt(Math.round(newSatsValue)), settingsStore.bchUnit);
   }
   function useMaxBchAmount() {
@@ -218,7 +215,7 @@
       bchSendAmount.value = satoshisToTypedAmount(store.maxAmountToSend, settingsStore.bchUnit);
       // update currency balance & set currency amount
       if (store.exchangeRate !== undefined) {
-        currencySendAmount.value = toTypedAmount(String(convertToCurrency(store.maxAmountToSend, store.exchangeRate)));
+        currencySendAmount.value = fiatToTypedAmount(convertToCurrency(store.maxAmountToSend, store.exchangeRate));
       }
     }
     else{
@@ -235,8 +232,10 @@
     try{
       // check for valid inputs
       if(!destinationAddr.value) throw new Error(t('wallet.errors.noDestination'))
+      if(currencyError.value) throw new Error(currencyError.value)
       if(!bchSendAmount.value.trim()) throw new Error(t('wallet.errors.noAmount'))
-      const amountSats = typedAmountToSatoshis(bchSendAmount.value, settingsStore.bchUnit)
+      if('error' in typedBch.value) throw new Error(typedBch.value.error)
+      const amountSats = typedBch.value.satoshis
       if(amountSats > (store.maxAmountToSend ?? 0n)) throw new Error(t('wallet.errors.insufficientFunds'))
       const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
         invalidAddress: t('wallet.errors.invalidAddress'),
@@ -246,12 +245,11 @@
       destinationAddr.value = address;
 
       const formattedAmount = formatTokenAmount(amountSats, settingsStore.bchUnit === 'sat' ? 0 : 8)
-      const typedCurrency = readTypedAmount(currencySendAmount.value)
       const sendInfo = {
         recipient: destinationAddr.value,
         amount: formattedAmount,
         unit: bchDisplayUnit.value.trim(),
-        fiat: 'amount' in typedCurrency ? formatFiatAmount(Number(typedCurrency.amount), settingsStore.currency) : undefined,
+        fiat: 'amount' in typedCurrency.value ? formatFiatAmount(Number(typedCurrency.value.amount), settingsStore.currency) : undefined,
       }
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
@@ -280,6 +278,12 @@
 
   // we want to play the animation when the user updates the qrAnimation setting
   // @codeRendered does not trigger on 'qrAnimation' so we use a watcher for it
+  // The view is kept alive, so a unit or currency changed in the settings re-expresses the typed amount
+  watch(() => settingsStore.bchUnit, (newUnit, previousUnit) => {
+    const typed = readTypedSatoshis(bchSendAmount.value, previousUnit);
+    if ('satoshis' in typed) bchSendAmount.value = satoshisToTypedAmount(typed.satoshis, newUnit);
+  });
+  watch(() => settingsStore.currency, () => void setCurrencyAmount());
   watch(() => settingsStore.qrAnimation, () => {
     if(!settingsStore.hasPlayedAnimation) animateQrCode()
   })
@@ -384,7 +388,8 @@
         </span>
             <button @click="useMaxBchAmount()" class="fillInMaxBch">{{ t('wallet.max') }}</button>
       </span>
-      <div v-if="typedSatoshis !== undefined && typedSatoshis > (store.maxAmountToSend ?? 0n)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
+      <div v-if="'satoshis' in typedBch && typedBch.satoshis > (store.maxAmountToSend ?? 0n)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
+      <div v-if="currencyError" style="color: red;">{{ currencyError }}</div>
 
     </div>
     <button @click="useMaxBchAmount()" class="fillInMaxBchSmallScreen">{{ t('wallet.max') }}</button>

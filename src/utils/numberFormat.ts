@@ -52,7 +52,7 @@ export function isTypedAmountProblem(value: string): value is TypedAmountProblem
   return (typedAmountProblems as readonly string[]).includes(value);
 }
 
-// A typed amount with a dot decimal mark: a dot or comma is accepted, grouping is not. A shape read two
+// Reads a typed amount into dot-decimal form: a dot or comma is accepted, grouping is not. A shape read two
 // ways (1,000 or 1.500) is accepted only with the format's own decimal mark, so it is never misread.
 export function readTypedAmount(
   text: string, wholeOnly = false, format = numberFormat.value,

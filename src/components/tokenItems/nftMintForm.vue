@@ -10,7 +10,7 @@
   import { validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
-  import { parseTypedAmount } from 'src/utils/numberFormat'
+  import { readTypedAmount } from 'src/utils/numberFormat'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -57,13 +57,15 @@
       }
       // The library's tokenMint refuses an empty list, but a mint from the identity UTXO is a plain
       // send, so an amount below one would broadcast a transaction that only moves the authhead
-      const mintAmount = Number(parseTypedAmount(mintQuantity.value ?? '', true));
+      const typedQuantity = readTypedAmount(mintQuantity.value ?? '', true);
+      const mintAmount = 'amount' in typedQuantity ? Number(typedQuantity.amount) : NaN;
       if(!Number.isInteger(mintAmount) || mintAmount < 1) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
       if(mintAmount > maxNftsPerMint) throw new Error(t('tokenItem.errors.tooManyNfts', { max: maxNftsPerMint }));
 
       let startingNumber = 0;
       if(mintMode.value === "collection") {
-        startingNumber = Number(parseTypedAmount(startingNumberNFTs.value ?? '', true));
+        const typedStart = readTypedAmount(startingNumberNFTs.value ?? '', true);
+        startingNumber = 'amount' in typedStart ? Number(typedStart.amount) : NaN;
         if(!Number.isInteger(startingNumber) || startingNumber < 0) {
           throw new Error(t('tokenItem.errors.invalidStartingNumber'));
         }

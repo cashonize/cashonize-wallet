@@ -5,7 +5,7 @@ import { libraryNetwork, type AppNetwork } from "src/utils/wallet/networks"
 import type { BcmrTokenMetadata, TokenList, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
-import { decimalMark, formatDecimal, parseTypedAmount, toTypedAmount } from "src/utils/numberFormat"
+import { decimalMark, formatDecimal, parseTypedAmount, readTypedAmount, toTypedAmount, typedAmountMessage } from "src/utils/numberFormat"
 const { t } = i18n.global
 
 export function copyToClipboard(copyText:string|undefined){
@@ -260,19 +260,26 @@ export function satsToBch(satoshis: bigint | number) {
   return Number(satoshis) / 100_000_000;
 };
 
-// A typed BCH amount in the user's unit, as satoshis. Throws a localized error when it is not a positive
-// amount the unit can express; string math, as for token amounts.
-export function typedAmountToSatoshis(text: string, unit: 'bch' | 'sat'): bigint {
-  const [whole = '', fraction = ''] = parseTypedAmount(text, unit === 'sat').split('.');
-  if (fraction.length > 8) throw new Error(t('wallet.errors.invalidAmount'));
+// A typed BCH amount in the user's unit as satoshis, or the localized reason it is not a positive amount
+// the unit can express; string math, as for token amounts
+export function readTypedSatoshis(text: string, unit: 'bch' | 'sat'): { satoshis: bigint } | { error: string } {
+  const read = readTypedAmount(text, unit === 'sat');
+  if ('problem' in read) return { error: typedAmountMessage(read.problem) };
+  const [whole = '', fraction = ''] = read.amount.split('.');
+  if (fraction.length > 8) return { error: t('wallet.errors.invalidAmount') };
   const satoshis = BigInt(whole + fraction.padEnd(unit === 'sat' ? 0 : 8, '0'));
-  if (satoshis <= 0n || satoshis > 21_000_000n * 100_000_000n) throw new Error(t('wallet.errors.invalidAmount'));
-  return satoshis;
+  if (satoshis <= 0n || satoshis > 21_000_000n * 100_000_000n) return { error: t('wallet.errors.invalidAmount') };
+  return { satoshis };
 }
 
 // The reverse, for an amount the app fills into a BCH field
 export function satoshisToTypedAmount(satoshis: bigint, unit: 'bch' | 'sat'): string {
   return toTypedAmount(formatTokenAmountFromBigInt(satoshis, unit === 'sat' ? 0 : 8));
+}
+
+// A fiat value the app fills into a fiat field, to the cent
+export function fiatToTypedAmount(value: number): string {
+  return toTypedAmount(String(Number(value.toFixed(2))));
 }
 
 // An amount with its unit, for a network's own name for the coin

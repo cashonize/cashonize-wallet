@@ -81,7 +81,7 @@
     return Number(typedValue.amount);
   });
   watch(valueFilterInput, () => {
-    if (tokenValueFilter.value) localStorage.setItem("tokenValueFilter", tokenValueFilter.value.toString());
+    if (tokenValueFilter.value) localStorage.setItem("tokenValueFilter", valueFilterInput.value);
     else localStorage.removeItem("tokenValueFilter");
   });
 
