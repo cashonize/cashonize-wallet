@@ -3,9 +3,10 @@ import { i18n } from "src/boot/i18n";
 
 const { t } = i18n.global;
 
-// The region's number format, apart from the language; 'auto' is the browser's locale (en-US on desktop).
+// The region's number format, apart from the language: English unless the user picks another or 'auto',
+// the browser's locale (en-US on desktop).
 // Machine formats (BIP21, dApp payloads, CSV) always keep a dot.
-export const numberFormats = ["auto", "en-US", "de-DE", "fr-FR", "de-CH"] as const;
+export const numberFormats = ["en-US", "de-DE", "fr-FR", "de-CH", "auto"] as const;
 export type NumberFormat = typeof numberFormats[number];
 
 export function isNumberFormat(value: string): value is NumberFormat {
@@ -13,7 +14,7 @@ export function isNumberFormat(value: string): value is NumberFormat {
 }
 
 // Loaded and exposed by settingsStore; kept here so the helpers read it without being passed it
-export const numberFormat = ref<NumberFormat>("auto");
+export const numberFormat = ref<NumberFormat>("en-US");
 
 const formatters = new Map<string, Intl.NumberFormat>();
 

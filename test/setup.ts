@@ -29,7 +29,3 @@ Object.defineProperty(globalThis, 'dispatchEvent', {
   value: eventTarget.dispatchEvent.bind(eventTarget),
   configurable: true,
 });
-
-// 'auto' follows the machine's locale, so the tests pin the format the app shows by default on desktop
-import { numberFormat } from '../src/utils/numberFormat';
-numberFormat.value = 'en-US';

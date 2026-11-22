@@ -1487,7 +1487,7 @@
       "currency": "Währung:",
       "dateFormat": "Datumsformat:",
       "numberFormat": "Zahlenformat:",
-      "numberFormatAuto": "Automatisch ({example})",
+      "numberFormatAuto": "Systemstandard ({example})",
       "languageLoadFailed": "Diese Sprache konnte nicht geladen werden. Prüfe deine Verbindung oder lade die Seite neu."
     },
     "userOptions": {
