@@ -11,8 +11,9 @@ export function isNumberFormat(value: string): value is NumberFormat {
   return (numberFormats as readonly string[]).includes(value);
 }
 
-// Owned by settingsStore, which exposes this ref. It lives here so the format helpers can read it
-// without importing the store, and reading it at render time makes every amount follow a change.
+// The setting itself, which settingsStore reads from localStorage and exposes. It lives here so the
+// format helpers read it without being handed it at each of their many call sites, and reading it at
+// render time makes every amount follow a change.
 export const numberFormat = ref<NumberFormat>("auto");
 
 const formatters = new Map<string, Intl.NumberFormat>();
@@ -32,6 +33,11 @@ function formatter(format: NumberFormat, options: Intl.NumberFormatOptions): Int
 // A number for display, grouped and with the decimal mark of the user's number format
 export function formatDecimal(value: number | bigint, options: Intl.NumberFormatOptions = {}, format = numberFormat.value): string {
   return formatter(format, options).format(value);
+}
+
+// Always the given number of decimals, as toFixed would, in the user's number format
+export function formatFixed(value: number, digits: number): string {
+  return formatDecimal(value, { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
 // The decimal mark of the user's number format, for amounts put together from digit strings

@@ -7,7 +7,7 @@
   import { convert } from '@cashonize/bch-wallet-lib'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
-  import { formatDecimal } from 'src/utils/numberFormat'
+  import { formatFixed } from 'src/utils/numberFormat'
   import { formatFiatAmount, formatNumber, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
@@ -70,7 +70,6 @@
   // blocks BCH aims for per day, for turning a wait in blocks into a rough number of days
   const BLOCKS_PER_DAY = 144
   const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
-
 
   // holdings below this share of the total collapse into the 'small balances' section
   const SMALL_SHARE_THRESHOLD = 0.001
@@ -153,7 +152,6 @@
     symbol: string | undefined
     amountDisplay: string
   }
-
 
   // undefined while the wallet balance or the token list has not loaded yet. Valued the way the
   // BCH balance is: everything held, a coin held back from spending included
@@ -701,9 +699,8 @@
   }
 
   function formatShare(share: number) {
-    const oneDecimal = { minimumFractionDigits: 1, maximumFractionDigits: 1 }
-    if (share > 0 && share < 0.001) return `<${formatDecimal(0.1, oneDecimal)}%`
-    return formatDecimal(share * 100, oneDecimal) + '%'
+    if (share > 0 && share < 0.001) return `<${formatFixed(0.1, 1)}%`
+    return formatFixed(share * 100, 1) + '%'
   }
 
   function formatBchValue(bchValue: number) {

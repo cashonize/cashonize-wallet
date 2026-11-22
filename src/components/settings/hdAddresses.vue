@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watchEffect } from 'vue';
-  import { copyToClipboard, satsToBch, formatFiatAmount } from 'src/utils/utils';
+  import { copyToClipboard, satsToBch, formatFiatAmount, formatNumber } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
@@ -294,7 +294,7 @@
                 <span v-if="isFrozen(row)" class="frozen-tag" :title="t('addressManagement.frozenTagInfo')">{{ t('addressManagement.frozenTag') }}</span>
               </div>
               <div class="address-sub">
-                <span class="mono">{{ satsToBch(row.spendableBalance) }} {{ bchDisplayUnit }}</span>
+                <span class="mono">{{ formatNumber(satsToBch(row.spendableBalance), 8) }} {{ bchDisplayUnit }}</span>
                 <template v-if="row.reservedBalance">{{ ' ' + t('hdAddresses.available') }}</template>
                 <span v-if="row.spendableBalance && store.exchangeRate !== undefined">
                   {{ ' (' + formatFiatAmount(satsToBch(row.spendableBalance) * store.exchangeRate, settingsStore.currency) + ')' }}
@@ -306,7 +306,7 @@
                   <template #trigger>
                     <span class="reserved-badge">
                       <q-icon name="lock" size="13px" />
-                      {{ t('hdAddresses.reservedAmount', { amount: satsToBch(row.reservedBalance) + ' ' + bchDisplayUnit }) }}
+                      {{ t('hdAddresses.reservedAmount', { amount: formatNumber(satsToBch(row.reservedBalance), 8) + ' ' + bchDisplayUnit }) }}
                     </span>
                   </template>
                   <div style="max-width: 300px;">{{ t('hdAddresses.reservedDappWarning') }}</div>

@@ -107,7 +107,7 @@
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
       const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
       if(amountTokensInt <= 0n) throw new Error(t('tokenItem.errors.noValidAmount'));
-      const amountSentFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
+      const amountSentFormatted = formatTokenAmount(amountTokensInt, decimals)
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
 
       const category = tokenData.value.category;
@@ -155,7 +155,7 @@
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
 
-      const amountBurnFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
+      const amountBurnFormatted = formatTokenAmount(amountTokensInt, decimals)
       const tokenSymbol = tokenMetaData.value?.token?.symbol ?? t('tokenItem.tokens')
       const confirmed = await confirmDialog(
         t('tokenItem.dialogs.burnTokens.title'),

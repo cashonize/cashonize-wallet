@@ -10,8 +10,8 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import InfoPopup from '../general/InfoPopup.vue';
   import TxNoteField from '../general/TxNoteField.vue';
-  import { formatDecimal } from 'src/utils/numberFormat';
-  import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, formatTokenAmount, tokenChangeChips } from 'src/utils/utils';
+  import { formatDecimal, formatFixed } from 'src/utils/numberFormat';
+  import { formatReadableDate, formatRelativeTime, satsToBch, formatBchAmount, formatFiatAmount, formatNumber, formatTokenAmount, tokenChangeChips } from 'src/utils/utils';
   import { feeRate, isBelowRelayFee, minRelayFeeRate } from 'src/utils/history/txFeeRate';
   import { useI18n } from 'vue-i18n'
 
@@ -57,8 +57,7 @@
   // round a rate like 0.96 up to a reassuring 1.0
   const feeRateText = computed(() => {
     const rate = feeRate(props.historyItem);
-    const decimals = rate < minRelayFeeRate ? 2 : 1;
-    return formatDecimal(rate, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    return formatFixed(rate, rate < minRelayFeeRate ? 2 : 1);
   });
 
   function tokenAmountDisplay(amount: bigint, category: string) {
@@ -218,7 +217,7 @@
             <span>{{ index }}: </span>
             <span class="break" :class="store.walletHasAddress(input.address) ? 'thisWalletTag' : ''">{{ isCoinbase ? t('transactionDialog.coinbase') : input.address.split(":")[1] }}</span>
             <div style="margin-left: 25px;">
-              <div v-if="input.value > 10_000">{{ satsToBch(input.value) }} {{ bchDisplayUnit }}</div>
+              <div v-if="input.value > 10_000">{{ formatNumber(satsToBch(input.value), 8) }} {{ bchDisplayUnit }}</div>
               <span v-if="input.token" @click="loadTokenMetadata(input.token!.category, input.token?.nft?.commitment)" :style="{ cursor: settingsStore.disableTokenIcons ? 'default' : 'pointer' }">
                 <span v-if="input.token.amount > 0n"> {{ " " + tokenAmountDisplay(input.token.amount, input.token.category) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[input.token.category]?.token?.symbol ?? input.token.category.slice(0, 8)) }}</span>
@@ -240,7 +239,7 @@
             <span v-if="output.value === 0" class="break">{{ index }}: {{ output.address }}</span>
             <span v-else>{{ index }}: <span class="break" :class="store.walletHasAddress(output.address) ? 'thisWalletTag' : ''">{{ output.address.split(":")[1] }}</span></span>
             <div style="margin-left: 25px;">
-              <div v-if="output.value > 10_000">{{ satsToBch(output.value) }} {{ bchDisplayUnit }}</div>
+              <div v-if="output.value > 10_000">{{ formatNumber(satsToBch(output.value), 8) }} {{ bchDisplayUnit }}</div>
               <span v-if="output.token" @click="loadTokenMetadata(output.token!.category, output.token?.nft?.commitment)" :style="{ cursor: settingsStore.disableTokenIcons ? 'default' : 'pointer' }">
                 <span v-if="output.token.amount > 0n"> {{ " " + tokenAmountDisplay(output.token.amount, output.token.category) }}</span>
                 <span> {{ " " + (store.bcmrRegistries?.[output.token.category]?.token?.symbol ?? output.token.category.slice(0, 8)) }}</span>

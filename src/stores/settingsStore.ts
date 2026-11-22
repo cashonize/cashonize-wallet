@@ -3,7 +3,7 @@ import { Config } from "@cashonize/bch-wallet-lib";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import { BitpayRatesSchema, CoinGeckoRatesSchema, CoinbaseRatesSchema } from "src/utils/zodValidation";
-import { numberFormat as numberFormatSetting, isNumberFormat } from "src/utils/numberFormat";
+import { numberFormat, isNumberFormat } from "src/utils/numberFormat";
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
 import { defaultWalletName } from "./constants";
@@ -137,7 +137,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // on by default in the Android app, where tablets keep the top nav by being wider
   const bottomNavOnMobile = ref(Boolean(isCapacitor));
   const dateFormat = ref<DateFormat>("DD/MM/YY");
-  const numberFormat = numberFormatSetting;
   const confirmBeforeSending = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
   // The identities of the tokens the wallet holds, followed passively. Off by default: the lookups

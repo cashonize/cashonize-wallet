@@ -5,7 +5,7 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import type { IdentityCarry, ReturningIdentity } from 'src/utils/dapp/reservedInputs'
-  import { formatDecimal } from 'src/utils/numberFormat'
+  import { formatDecimal, formatFixed } from 'src/utils/numberFormat'
   import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
   import { useUnverifiedTokenMetadata } from 'src/utils/unverifiedTokenMetadata'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -53,7 +53,7 @@
       const bchAmount = numberAmount * (10 ** -8)
       return `${formatNumber(bchAmount, 8)} BCH`
     } else {
-      return `${numberAmount} sat`
+      return `${formatDecimal(numberAmount)} sat`
     }
   };
 
@@ -72,8 +72,7 @@
   const paysExcessiveFee = transactionFee > BigInt(transactionSize * excessiveFeeRate);
   // below the relay fee the exact rate is what matters, and a single decimal would round
   // a rate like 0.96 up to a reassuring 1.0
-  const feeRateDecimals = transactionFeeRate < minRelayFeeRate ? 2 : 1;
-  const feeRateText = formatDecimal(transactionFeeRate, { minimumFractionDigits: feeRateDecimals, maximumFractionDigits: feeRateDecimals });
+  const feeRateText = formatFixed(transactionFeeRate, transactionFeeRate < minRelayFeeRate ? 2 : 1);
 
   // Fetch metadata for all tokens in the transaction (stored locally, not in global store),
   // including tokens on third-party inputs/outputs which only show in the full transaction details

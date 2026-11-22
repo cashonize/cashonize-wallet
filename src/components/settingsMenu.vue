@@ -18,7 +18,7 @@
   import { removeAllCashConnectSessions } from "src/utils/dapp/ccSessionStore";
   import { displayAndLogError } from "src/utils/errorHandling";
   import { chaingraphGraphqlUrl, electrumWssUrl } from 'src/utils/utils'
-  import { formatDecimal, numberFormats } from 'src/utils/numberFormat'
+  import { formatDecimal, formatFixed, numberFormats } from 'src/utils/numberFormat'
   import { curatedElectrumServers } from 'src/utils/wallet/electrumServers'
   import { queryBlockHeight } from 'src/queryChainGraph'
   import { confirmDialog } from 'src/utils/txHelpers'
@@ -922,14 +922,14 @@
     <div v-else-if="settingsSection == 8">
       <div style="margin-bottom: 15px">
         {{ isMobile ? t('settings.advanced.clearHistoryCache') : t('settings.advanced.clearHistoryCacheFrom', { platform: platformString }) }}
-        <span v-if="indexedDbCacheSizeMB != undefined" class="nowrap">({{ formatDecimal(indexedDbCacheSizeMB, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} MB)</span>
+        <span v-if="indexedDbCacheSizeMB != undefined" class="nowrap">({{ formatFixed(indexedDbCacheSizeMB, 2) }} MB)</span>
         <div style="font-size: smaller; color: grey;">{{ t('settings.advanced.clearHistoryCacheHint') }}</div>
         <input @click="clearHistoryCache()" type="button" :value="t('settings.advanced.clearHistoryCacheButton')" class="button" style="display: block;">
       </div>
 
       <div style="margin-top:15px; margin-bottom: 15px">
         {{ isMobile ? t('settings.advanced.clearMetadataCache') : t('settings.advanced.clearMetadataCacheFrom', { platform: platformString }) }}
-        <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ formatDecimal(localStorageSizeMB, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} MB)</span>
+        <span v-if="localStorageSizeMB != undefined" class="nowrap">({{ formatFixed(localStorageSizeMB, 2) }} MB)</span>
         <div style="font-size: smaller; color: grey;">{{ t('settings.advanced.clearMetadataCacheHint') }}</div>
         <input @click="clearMetadataCache()" type="button" :value="t('settings.advanced.clearMetadataCacheButton')" class="button" style="display: block;">
       </div>

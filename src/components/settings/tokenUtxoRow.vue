@@ -9,7 +9,7 @@
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue'
-  import { copyToClipboard, formatBch, formatTokenAmountFromBigInt, truncateHash } from 'src/utils/utils'
+  import { copyToClipboard, formatBch, formatTokenAmount, truncateHash } from 'src/utils/utils'
   import { isFeatureReservation, outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels'
   import { useStore } from 'src/stores/store'
@@ -54,7 +54,7 @@
     const token = props.utxo.token
     if (!token) return '' // should never happen
     const decimals = metadata.value?.token?.decimals ?? 0
-    return formatTokenAmountFromBigInt(token.amount, decimals)
+    return formatTokenAmount(token.amount, decimals)
   })
 
   const nftCapability = computed(() => {
