@@ -403,7 +403,7 @@
         <div class="iconWithBadge">
           <video
             v-if="!settingsStore.disableTokenIcons && httpsUrlTokenIcon?.endsWith('.mp4')"
-            class="tokenIcon" width="48" height="48" loading="lazy"
+            class="tokenIcon" width="48" height="48"
             style="cursor: pointer;"
             @click="() => showNftImage = true"
           >
@@ -423,7 +423,7 @@
             :src="httpsUrlTokenIcon"
             @error="() => imageLoadFailed = true"
           >
-          <div v-else id="genericTokenIcon" loading="lazy" class="tokenIcon"></div>
+          <div v-else id="genericTokenIcon" class="tokenIcon"></div>
           <img v-if="isIdentityKey" class="authKeyBadge" src="images/keyWhite.svg">
         </div>
 

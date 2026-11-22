@@ -274,7 +274,6 @@
         class="scanner-video"
         :class="{ 'video-ready': videoPlaying }"
         autoplay muted playsinline
-        webkit-playsinline
         @playing="videoPlaying = true"
         @pause="videoPlaying = false"
       />

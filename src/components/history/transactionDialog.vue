@@ -44,8 +44,6 @@
 
 
   const tokenMetadata = ref(undefined as undefined | BcmrTokenMetadata | BcmrNftMetadata);
-  const selectedTokenId = ref("");
-  const selectedTokenCommitment = ref("");
 
   const bchDisplayUnit = computed(() => {
     return store.network === "mainnet" ? "BCH" : "tBCH";
@@ -96,7 +94,6 @@
       return;
     }
 
-    selectedTokenId.value = category;
     if (commitment === undefined) {
       tokenMetadata.value = store.bcmrRegistries[category];
       return;
@@ -107,7 +104,6 @@
     }
     // a wallet switch or indexer change during the lookup replaces the registries
     tokenMetadata.value = store.bcmrRegistries[category]?.nfts?.[commitment];
-    selectedTokenCommitment.value = commitment;
   }
 </script>
 
@@ -118,8 +114,6 @@
         <DialogNftIcon
           :srcNftImage="tokenMetadata.uris?.image ? tokenMetadata.uris.image : (tokenMetadata.uris.icon as string)"
           :nftName="tokenMetadata.name"
-          :token-id="selectedTokenId"
-          :commitment="selectedTokenCommitment"
           @close-dialog="() => tokenMetadata = undefined"
         />
       </div>
@@ -130,7 +124,7 @@
         <div style="display: flex; flex-direction: column; gap: 1rem">
           <div>
             {{ isMobilePhone? t('transactionDialog.txIdShort') : t('transactionDialog.txIdFull') }}
-            <span :href="store.explorerTxUrl(historyItem.hash)" @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer; color: var(--color-grey);">
+            <span @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer; color: var(--color-grey);">
               {{ historyItem.hash.slice(0, 12) + "..." + historyItem.hash.slice(52) }}
             </span>
             <span @click="() => copyToClipboard(historyItem.hash)" style="cursor:pointer;">

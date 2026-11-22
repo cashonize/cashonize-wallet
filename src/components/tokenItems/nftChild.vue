@@ -209,7 +209,7 @@
       <div class="tokenInfo">
         <video
           v-if="!settingsStore.disableTokenIcons && httpsUrlTokenIcon?.endsWith('.mp4')"
-          class="tokenIcon" width="48" height="48" loading="lazy"
+          class="tokenIcon" width="48" height="48"
           style="cursor: pointer;"
           @click="() => showNftImage = true"
         >
