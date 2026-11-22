@@ -13,7 +13,10 @@
     },
     "errors": {
       "somethingWentWrong": "Algo salió mal",
-      "commaInAmount": "Usa un punto (.) para los decimales, sin separadores de miles",
+      "amountInvalid": "Escribe el importe en cifras, con como máximo un separador decimal",
+      "amountGrouping": "Escribe el importe sin separadores de miles ni espacios",
+      "amountAmbiguous": "Este importe se puede leer de dos maneras: escribe los miles sin separador, como 1000, y los decimales como {example}",
+      "amountWholeOnly": "Escribe un número entero, sin separadores",
       "needToInitializeWallet": "Necesitas inicializar una billetera primero",
       "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dApp",
       "nothingToTransfer": "No queda BCH ni tokens para transferir",
@@ -454,9 +457,7 @@
       "insufficientBalance": "Saldo de tokens insuficiente",
       "invalidAddress": "Se proporcionó una dirección BCH inválida",
       "notTokenAddress": "No es una dirección de token (debe comenzar con z...)",
-      "invalidNumberFormat": "Formato de número inválido",
       "enterValidAmount": "Ingresa un monto positivo válido",
-      "noDecimalsAllowed": "Este token no permite decimales",
       "maxDecimalsAllowed": "Este token solo permite hasta {decimals} decimales",
       "differentTokenRequest": "Esta solicitud de pago es para un token diferente",
       "amountMustBeInteger": "La cantidad de tokens a quemar debe ser un número entero válido",
@@ -819,7 +820,6 @@
       "note": "La reserva se queda en el UTXO de la identidad; emítela después desde la página de identidades."
     },
     "errors": {
-      "invalidAmount": "Escribe las cantidades como número de tokens, p. ej. 1000 o 0.5.",
       "overMaxSupply": "Eso es más de lo que un token puede contener. El máximo es {max}.",
       "overSupply": "Eso es más que el suministro total.",
       "invalidDecimals": "Los decimales deben ser un número entero de 0 a 18.",

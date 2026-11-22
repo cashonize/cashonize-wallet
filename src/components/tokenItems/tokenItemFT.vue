@@ -6,6 +6,7 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import type { TokenDataFT, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount } from 'src/utils/utils';
+  import { toTypedAmount } from 'src/utils/numberFormat';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
@@ -79,7 +80,7 @@
     if(!tokenData.value?.amount) return // should never happen
     const decimals = tokenMetaData.value?.token?.decimals ?? 0;
     const targetState = tokenSend? tokenSendAmount : burnAmountFTs;
-    targetState.value = formatTokenAmountFromBigInt(tokenData.value.amount, decimals);
+    targetState.value = toTypedAmount(formatTokenAmountFromBigInt(tokenData.value.amount, decimals));
   }
   function parseAddrParams(){
     const parsed = parseTokenPaymentRequest(destinationAddr.value, tokenData.value.category);
@@ -89,7 +90,7 @@
     // Auto-fill the amount from a token payment request for this category
     if(parsed.category && parsed.fungibleAmount !== undefined){
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      tokenSendAmount.value = formatTokenAmountFromBigInt(parsed.fungibleAmount, decimals);
+      tokenSendAmount.value = toTypedAmount(formatTokenAmountFromBigInt(parsed.fungibleAmount, decimals));
     }
   }
   const qrDecode = (content: string) => {

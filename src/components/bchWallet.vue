@@ -2,8 +2,9 @@
   import { ref, computed, watch, shallowRef, nextTick } from 'vue'
   import { convert } from '@cashonize/bch-wallet-lib'
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
-  import { copyToClipboard, formatFiatAmount, formatNumber, convertToCurrency, sendAmountToSatoshis } from 'src/utils/utils';
-  import { parseBip21Uri, isBip21Uri, formatSatoshisAsBch } from 'src/utils/payments/bip21';
+  import { copyToClipboard, formatFiatAmount, formatNumber, formatTokenAmount, convertToCurrency, satoshisToTypedAmount, typedAmountToSatoshis } from 'src/utils/utils';
+  import { readTypedAmount, toTypedAmount } from 'src/utils/numberFormat';
+  import { parseBip21Uri, isBip21Uri } from 'src/utils/payments/bip21';
   import { getCashAddressScanError } from 'src/utils/payments/recipientAddress';
   import { parsePayProParams, getPaymentRequestValidationError } from 'src/utils/payments/paymentRequest';
   import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
@@ -31,8 +32,8 @@
 
   // reactive state
   const displayBchQr = ref(!settingsStore.tokenAddressQrDefault);
-  const bchSendAmount = ref(undefined as (number | undefined));
-  const currencySendAmount = ref(undefined as (number | undefined));
+  const bchSendAmount = ref("");
+  const currencySendAmount = ref("");
   const destinationAddr = ref("");
   const showQrCodeDialog = ref(false);
   const isSending = ref(false);
@@ -80,10 +81,13 @@
     const sats = Number(store.reservedBalance);
     return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
-  const maxAmountToSendInBchUnit = computed(() => {
-    if (store.maxAmountToSend === undefined) return undefined;
-    const sats = Number(store.maxAmountToSend);
-    return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
+  // the typed amount, undefined while it is not one
+  const typedSatoshis = computed(() => {
+    try {
+      return typedAmountToSatoshis(bchSendAmount.value, settingsStore.bchUnit);
+    } catch {
+      return undefined;
+    }
   });
 
   // handle props
@@ -155,9 +159,7 @@
 
       // Set the amount if present
       if(requestedSatoshis !== undefined){
-        let bchAmount = Number(formatSatoshisAsBch(requestedSatoshis));
-        if(settingsStore.bchUnit == "sat") bchAmount = Number(requestedSatoshis);
-        bchSendAmount.value = bchAmount;
+        bchSendAmount.value = satoshisToTypedAmount(requestedSatoshis, settingsStore.bchUnit);
         void setCurrencyAmount();
       }
     } catch {
@@ -194,32 +196,29 @@
   }
 
   async function setCurrencyAmount() {
-    if(typeof bchSendAmount.value != 'number'){
-      currencySendAmount.value = undefined
-      return
-    }
-    const amountSats = sendAmountToSatoshis(bchSendAmount.value, settingsStore.bchUnit);
+    const amountSats = typedSatoshis.value;
     if(amountSats === undefined){
-      currencySendAmount.value = undefined
+      currencySendAmount.value = ""
       return
     }
     const newCurrencyValue = await convert(Number(amountSats), "sat", settingsStore.currency);
-    currencySendAmount.value = Number(newCurrencyValue.toFixed(2));
+    currencySendAmount.value = toTypedAmount(String(Number(newCurrencyValue.toFixed(2))));
   }
   async function setBchAmount() {
-    if(typeof currencySendAmount.value != 'number'){
-      bchSendAmount.value = undefined
+    const typedCurrency = readTypedAmount(currencySendAmount.value);
+    if('problem' in typedCurrency){
+      bchSendAmount.value = ""
       return
     }
-    const newBchValue = await convert(currencySendAmount.value, settingsStore.currency, settingsStore.bchUnit);
-    bchSendAmount.value = Number(newBchValue);
+    const newSatsValue = await convert(Number(typedCurrency.amount), settingsStore.currency, "sat");
+    bchSendAmount.value = satoshisToTypedAmount(BigInt(Math.round(newSatsValue)), settingsStore.bchUnit);
   }
-  async function useMaxBchAmount() {
+  function useMaxBchAmount() {
     if(store.maxAmountToSend && store.balance){
-      bchSendAmount.value = await convert(Number(store.maxAmountToSend), "sat", settingsStore.bchUnit);
+      bchSendAmount.value = satoshisToTypedAmount(store.maxAmountToSend, settingsStore.bchUnit);
       // update currency balance & set currency amount
       if (store.exchangeRate !== undefined) {
-        currencySendAmount.value = convertToCurrency(store.maxAmountToSend, store.exchangeRate);
+        currencySendAmount.value = toTypedAmount(String(convertToCurrency(store.maxAmountToSend, store.exchangeRate)));
       }
     }
     else{
@@ -236,9 +235,8 @@
     try{
       // check for valid inputs
       if(!destinationAddr.value) throw new Error(t('wallet.errors.noDestination'))
-      if(!bchSendAmount.value) throw new Error(t('wallet.errors.noAmount'))
-      const amountSats = sendAmountToSatoshis(bchSendAmount.value, settingsStore.bchUnit)
-      if(amountSats === undefined) throw new Error(t('wallet.errors.invalidAmount'))
+      if(!bchSendAmount.value.trim()) throw new Error(t('wallet.errors.noAmount'))
+      const amountSats = typedAmountToSatoshis(bchSendAmount.value, settingsStore.bchUnit)
       if(amountSats > (store.maxAmountToSend ?? 0n)) throw new Error(t('wallet.errors.insufficientFunds'))
       const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
         invalidAddress: t('wallet.errors.invalidAddress'),
@@ -247,12 +245,13 @@
       });
       destinationAddr.value = address;
 
-      const formattedAmount = formatNumber(bchSendAmount.value, 8)
+      const formattedAmount = formatTokenAmount(amountSats, settingsStore.bchUnit === 'sat' ? 0 : 8)
+      const typedCurrency = readTypedAmount(currencySendAmount.value)
       const sendInfo = {
         recipient: destinationAddr.value,
         amount: formattedAmount,
         unit: bchDisplayUnit.value.trim(),
-        fiat: currencySendAmount.value ? formatFiatAmount(currencySendAmount.value, settingsStore.currency) : undefined,
+        fiat: 'amount' in typedCurrency ? formatFiatAmount(Number(typedCurrency.amount), settingsStore.currency) : undefined,
       }
       // confirm payment if setting is enabled
       if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
@@ -262,8 +261,8 @@
       const { txId } = await store.spend.send([ sendBchOutput ]);
       const alertMessage = t('wallet.sent', { amount: formattedAmount + displayUnitLong.value, address: destinationAddr.value })
       // reset fields
-      bchSendAmount.value = undefined;
-      currencySendAmount.value = undefined;
+      bchSendAmount.value = "";
+      currencySendAmount.value = "";
       destinationAddr.value = "";
       await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'), sendInfo);
     } catch(error){
@@ -374,18 +373,18 @@
       </div>
       <span class="sendAmountGroup">
         <span style="position: relative; width: 50%;">
-          <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="number" :placeholder="t('wallet.amountPlaceholder')" name="currencyInput">
+          <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="currencyInput">
           <i class="input-icon">{{ bchDisplayUnit }}</i>
         </span>
         <span class="sendCurrencyInput">
-          <input v-model="currencySendAmount" @input="setBchAmount()" type="number" :placeholder="t('wallet.amountPlaceholder')" name="bchAmountInput">
+          <input v-model="currencySendAmount" @input="setBchAmount()" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="bchAmountInput">
           <i class="input-icon">
             {{`${currencyDisplayShortName} ${CurrencySymbols[settingsStore.currency]}`}}
           </i>
         </span>
             <button @click="useMaxBchAmount()" class="fillInMaxBch">{{ t('wallet.max') }}</button>
       </span>
-      <div v-if="(maxAmountToSendInBchUnit ?? 0) < (bchSendAmount ?? 0)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
+      <div v-if="typedSatoshis !== undefined && typedSatoshis > (store.maxAmountToSend ?? 0n)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
 
     </div>
     <button @click="useMaxBchAmount()" class="fillInMaxBchSmallScreen">{{ t('wallet.max') }}</button>

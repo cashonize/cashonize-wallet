@@ -13,7 +13,10 @@
     },
     "errors": {
       "somethingWentWrong": "Une erreur s'est produite",
-      "commaInAmount": "Utilisez un point (.) pour les décimales, sans séparateur de milliers",
+      "amountInvalid": "Saisissez le montant en chiffres, avec au plus un séparateur décimal",
+      "amountGrouping": "Saisissez le montant sans séparateur de milliers ni espace",
+      "amountAmbiguous": "Ce montant peut se lire de deux façons : saisissez les milliers sans séparateur, comme 1000, et les décimales comme {example}",
+      "amountWholeOnly": "Saisissez un nombre entier, sans séparateur",
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
       "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dApp",
       "nothingToTransfer": "Il ne reste aucun BCH ni token à transférer",
@@ -454,9 +457,7 @@
       "insufficientBalance": "Solde de tokens insuffisant",
       "invalidAddress": "Adresse BCH invalide fournie",
       "notTokenAddress": "Ce n'est pas une adresse de token (doit commencer par z...)",
-      "invalidNumberFormat": "Format de nombre invalide",
       "enterValidAmount": "Entrez un montant positif valide",
-      "noDecimalsAllowed": "Ce token n'autorise pas les décimales",
       "maxDecimalsAllowed": "Ce token n'autorise que {decimals} décimales maximum",
       "differentTokenRequest": "Cette demande de paiement concerne un token différent",
       "amountMustBeInteger": "La quantité de tokens à brûler doit être un nombre entier valide",
@@ -819,7 +820,6 @@
       "note": "La réserve reste sur l'UTXO de l'identité ; émettez-la plus tard depuis la page des identités."
     },
     "errors": {
-      "invalidAmount": "Saisissez les montants en nombre de tokens, par ex. 1000 ou 0.5.",
       "overMaxSupply": "C'est plus qu'un token ne peut contenir. Le maximum est {max}.",
       "overSupply": "C'est plus que l'offre totale.",
       "invalidDecimals": "Les décimales doivent être un nombre entier de 0 à 18.",

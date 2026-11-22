@@ -1,4 +1,4 @@
-import { chaingraphGraphqlUrl, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sameTokenList, sendAmountToSatoshis, newTokenItems } from "../src/utils/utils";
+import { chaingraphGraphqlUrl, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sameTokenList, typedAmountToSatoshis, satoshisToTypedAmount, newTokenItems } from "../src/utils/utils";
 import type { Utxo } from "@cashonize/bch-wallet-lib";
 import type { BcmrTokenMetadata } from "../src/interfaces/interfaces";
 import { numberFormat, decimalMark, formatDecimal } from "../src/utils/numberFormat";
@@ -120,11 +120,17 @@ describe('parseTokenAmountToBigInt', () => {
     expect(parseTokenAmountToBigInt('.5', 2)).toBe(50n);
     expect(parseTokenAmountToBigInt(' 12 ', 0)).toBe(12n);
   })
-  // dropping the comma read "0,5" as 5 whole tokens
-  it('refuses a comma instead of dropping it, as decimal or as grouping', () => {
-    for (const input of ['0,5', '1,5', '1,000', '1,234.5']) {
-      expect(() => parseTokenAmountToBigInt(input, 8)).toThrow('Use a dot');
+  // dropping the comma once read "0,5" as 5 whole tokens
+  it('reads a comma as the decimal mark, never as grouping', () => {
+    expect(parseTokenAmountToBigInt('0,5', 8)).toBe(50_000_000n);
+    expect(parseTokenAmountToBigInt('1,5', 2)).toBe(150n);
+    for (const input of ['1,000', '1,234.5']) {
+      expect(() => parseTokenAmountToBigInt(input, 8)).toThrow();
     }
+  })
+  it('takes no separator at all for a token without decimals', () => {
+    expect(() => parseTokenAmountToBigInt('5.0', 0)).toThrow('whole number');
+    expect(() => parseTokenAmountToBigInt('1.000', 0)).toThrow('whole number');
   })
 })
 
@@ -170,38 +176,45 @@ describe('staleTipHours', () => {
   })
 })
 
-describe('sendAmountToSatoshis', () => {
-  it('converts bch amounts exactly, including those a float product rounds badly', () => {
-    expect(sendAmountToSatoshis(1, 'bch')).toBe(100_000_000n);
-    expect(sendAmountToSatoshis(0.3, 'bch')).toBe(30_000_000n);
-    expect(sendAmountToSatoshis(0.00000001, 'bch')).toBe(1n);
-    expect(sendAmountToSatoshis(1.23456789, 'bch')).toBe(123_456_789n);
-    expect(sendAmountToSatoshis(20999999.99999999, 'bch')).toBe(2_099_999_999_999_999n);
+describe('typedAmountToSatoshis', () => {
+  it('converts bch amounts exactly, with either decimal mark', () => {
+    expect(typedAmountToSatoshis('1', 'bch')).toBe(100_000_000n);
+    expect(typedAmountToSatoshis('0.3', 'bch')).toBe(30_000_000n);
+    expect(typedAmountToSatoshis('0,3', 'bch')).toBe(30_000_000n);
+    expect(typedAmountToSatoshis('0.00000001', 'bch')).toBe(1n);
+    expect(typedAmountToSatoshis('20999999.99999999', 'bch')).toBe(2_099_999_999_999_999n);
   });
 
   it('refuses a bch amount with more than 8 decimals instead of rounding it', () => {
-    expect(sendAmountToSatoshis(0.000000015, 'bch')).toBeUndefined();
-    expect(sendAmountToSatoshis(1.123456789, 'bch')).toBeUndefined();
+    expect(() => typedAmountToSatoshis('0.000000015', 'bch')).toThrow();
+    expect(() => typedAmountToSatoshis('1.123456789', 'bch')).toThrow();
   });
 
   it('refuses more bch than will ever exist', () => {
-    expect(sendAmountToSatoshis(21_000_001, 'bch')).toBeUndefined();
-    expect(sendAmountToSatoshis(1e21, 'bch')).toBeUndefined();
+    expect(() => typedAmountToSatoshis('21000001', 'bch')).toThrow();
   });
 
-  it('takes whole satoshis and refuses a fraction of one', () => {
-    expect(sendAmountToSatoshis(1500, 'sat')).toBe(1500n);
-    expect(sendAmountToSatoshis(1.5, 'sat')).toBeUndefined();
-    expect(sendAmountToSatoshis(2 ** 53, 'sat')).toBeUndefined();
+  // in sats a separator can only be grouping, so 1.000 is never read as one satoshi
+  it('takes whole satoshis without any separator', () => {
+    expect(typedAmountToSatoshis('1500', 'sat')).toBe(1500n);
+    expect(() => typedAmountToSatoshis('1.5', 'sat')).toThrow();
+    expect(() => typedAmountToSatoshis('1.000', 'sat')).toThrow();
   });
 
-  it('refuses zero, negative and non-finite amounts in either unit', () => {
+  it('refuses zero, a sign and empty input in either unit', () => {
     for (const unit of ['bch', 'sat'] as const) {
-      expect(sendAmountToSatoshis(0, unit)).toBeUndefined();
-      expect(sendAmountToSatoshis(-1, unit)).toBeUndefined();
-      expect(sendAmountToSatoshis(NaN, unit)).toBeUndefined();
-      expect(sendAmountToSatoshis(Infinity, unit)).toBeUndefined();
+      for (const input of ['0', '-1', '', '1e5']) expect(() => typedAmountToSatoshis(input, unit)).toThrow();
     }
+  });
+
+  it('round-trips what the app fills into the field, in a comma format too', () => {
+    for (const format of ['en-US', 'de-DE'] as const) {
+      numberFormat.value = format;
+      for (const satoshis of [150_000_000n, 1_234n, 123_456_789n]) {
+        expect(typedAmountToSatoshis(satoshisToTypedAmount(satoshis, 'bch'), 'bch')).toBe(satoshis);
+      }
+    }
+    numberFormat.value = 'en-US';
   });
 });
 

@@ -22,7 +22,7 @@
     formatTokenAmountWithSymbol,
     parseTokenAmountToBigInt,
   } from 'src/utils/utils'
-  import { formatDecimal } from 'src/utils/numberFormat'
+  import { formatDecimal, toTypedAmount } from 'src/utils/numberFormat'
   import { confirmDialog, notifySending } from 'src/utils/txHelpers'
   import { validateRecipientAddress, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import {
@@ -156,9 +156,9 @@
 
   const tokenDecimals = computed(() => identityMetadata.value?.token?.decimals ?? 0);
   const reserve = computed(() => identityUtxoOf(props.identity)?.token?.amount ?? 0n);
-  // the raw form for the Max button, since an amount field takes no grouping; every amount the
+  // the typed form for the Max button, since an amount field takes no grouping; every amount the
   // card only shows is grouped and carries its symbol
-  const reserveInput = computed(() => formatTokenAmountFromBigInt(reserve.value, tokenDecimals.value));
+  const reserveInput = computed(() => toTypedAmount(formatTokenAmountFromBigInt(reserve.value, tokenDecimals.value)));
   const reserveDisplay = computed(() => formatTokenAmountWithSymbol(reserve.value, identityMetadata.value));
 
   // An IPFS CID cannot serve content other than its own, so a mismatch there says something

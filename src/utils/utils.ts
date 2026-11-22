@@ -5,7 +5,7 @@ import { libraryNetwork, type AppNetwork } from "src/utils/wallet/networks"
 import type { BcmrTokenMetadata, TokenList, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
-import { decimalMark, formatDecimal } from "src/utils/numberFormat"
+import { decimalMark, formatDecimal, parseTypedAmount, toTypedAmount } from "src/utils/numberFormat"
 const { t } = i18n.global
 
 export function copyToClipboard(copyText:string|undefined){
@@ -181,32 +181,16 @@ export function formatTimestamp(timestamp: number | undefined, dateFormat: DateF
   return short ? dateStr : `${dateStr} ${time}`;
 }
 
-// A typed amount takes a dot as its only separator, in every language: a comma is refused rather than
-// dropped, since a decimal comma read as grouping turns "0,5" into 5. Machine formats are dot anyway.
-function validateTokenAmountString(tokenAmount: string, decimals: number){
-  if (tokenAmount.includes(',')) throw new Error(t('common.errors.commaInAmount'));
-  if (!/^\d*\.?\d*$/.test(tokenAmount)) throw new Error(t('tokenItem.errors.invalidNumberFormat'));
-
-  // Validate if the input can be converted to a number
-  const number = parseFloat(tokenAmount);
-  if (isNaN(number) || number <= 0) throw new Error(t('tokenItem.errors.enterValidAmount'));
-
-  // check number of decimal places
-  const decimalPart = tokenAmount.split('.')[1];
-  const decimalPlaces = decimalPart ? decimalPart.length : 0;
-  const validInput = decimalPlaces <= decimals
-  if(!validInput && !decimals) throw new Error(t('tokenItem.errors.noDecimalsAllowed'));
-  if(!validInput) throw new Error(t('tokenItem.errors.maxDecimalsAllowed', { decimals }));
-}
-
-// Parses a user-entered token amount into base units.
+// Parses a user-entered token amount into base units, read as every typed amount is (readTypedAmount).
 // Throws a localized error on invalid input; uses string math instead of
 // float multiplication so large amounts don't lose precision.
 export function parseTokenAmountToBigInt(input: string, decimals: number): bigint {
-  const sanitizedInput = input.trim();
-  validateTokenAmountString(sanitizedInput, decimals);
-  const [integerPart = '', fractionalPart = ''] = sanitizedInput.split('.');
-  return BigInt(integerPart + fractionalPart.padEnd(decimals, '0'));
+  const amount = parseTypedAmount(input, decimals === 0);
+  const [integerPart = '', fractionalPart = ''] = amount.split('.');
+  if (fractionalPart.length > decimals) throw new Error(t('tokenItem.errors.maxDecimalsAllowed', { decimals }));
+  const baseUnits = BigInt(integerPart + fractionalPart.padEnd(decimals, '0'));
+  if (baseUnits <= 0n) throw new Error(t('tokenItem.errors.enterValidAmount'));
+  return baseUnits;
 }
 
 // Inverse of parseTokenAmountToBigInt: turns base units back into a whole-token amount
@@ -276,17 +260,19 @@ export function satsToBch(satoshis: bigint | number) {
   return Number(satoshis) / 100_000_000;
 };
 
-// The send form's number input in the user's unit, as satoshis, or undefined when it is not a positive
-// amount the unit can express. BCH goes through its 8-decimal string, not a float product.
-export function sendAmountToSatoshis(amount: number, unit: 'bch' | 'sat'): bigint | undefined {
-  if (!Number.isFinite(amount) || amount <= 0) return undefined;
-  if (unit === 'sat') return Number.isSafeInteger(amount) ? BigInt(amount) : undefined;
-  if (amount > 21_000_000) return undefined;
-  const fixed = amount.toFixed(8);
-  // an amount with more than 8 decimals does not survive the round trip
-  if (Number(fixed) !== amount) return undefined;
-  const [whole = '', fraction = ''] = fixed.split('.');
-  return BigInt(whole) * 100_000_000n + BigInt(fraction);
+// A typed BCH amount in the user's unit, as satoshis. Throws a localized error when it is not a positive
+// amount the unit can express; string math, as for token amounts.
+export function typedAmountToSatoshis(text: string, unit: 'bch' | 'sat'): bigint {
+  const [whole = '', fraction = ''] = parseTypedAmount(text, unit === 'sat').split('.');
+  if (fraction.length > 8) throw new Error(t('wallet.errors.invalidAmount'));
+  const satoshis = BigInt(whole + fraction.padEnd(unit === 'sat' ? 0 : 8, '0'));
+  if (satoshis <= 0n || satoshis > 21_000_000n * 100_000_000n) throw new Error(t('wallet.errors.invalidAmount'));
+  return satoshis;
+}
+
+// The reverse, for an amount the app fills into a BCH field
+export function satoshisToTypedAmount(satoshis: bigint, unit: 'bch' | 'sat'): string {
+  return toTypedAmount(formatTokenAmountFromBigInt(satoshis, unit === 'sat' ? 0 : 8));
 }
 
 // An amount with its unit, for a network's own name for the coin

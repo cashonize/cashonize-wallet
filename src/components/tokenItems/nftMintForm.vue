@@ -10,6 +10,7 @@
   import { validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
+  import { parseTypedAmount } from 'src/utils/numberFormat'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -56,13 +57,13 @@
       }
       // The library's tokenMint refuses an empty list, but a mint from the identity UTXO is a plain
       // send, so an amount below one would broadcast a transaction that only moves the authhead
-      const mintAmount = Number(mintQuantity.value);
+      const mintAmount = Number(parseTypedAmount(mintQuantity.value ?? '', true));
       if(!Number.isInteger(mintAmount) || mintAmount < 1) throw new Error(t('tokenItem.errors.invalidAmountNfts'));
       if(mintAmount > maxNftsPerMint) throw new Error(t('tokenItem.errors.tooManyNfts', { max: maxNftsPerMint }));
 
       let startingNumber = 0;
       if(mintMode.value === "collection") {
-        startingNumber = Number(startingNumberNFTs.value);
+        startingNumber = Number(parseTypedAmount(startingNumberNFTs.value ?? '', true));
         if(!Number.isInteger(startingNumber) || startingNumber < 0) {
           throw new Error(t('tokenItem.errors.invalidStartingNumber'));
         }
@@ -164,14 +165,14 @@
 
     <span class="grouped" style="align-items: center; margin-bottom: 5px;">
       <input v-if="mintMode === 'single'" v-model="mintCommitment" :placeholder="t('tokenItem.mint.commitmentPlaceholder')">
-      <input v-if="mintMode === 'collection'" v-model="mintQuantity" type="number" :placeholder="t('tokenItem.mint.collectionSizePlaceholder')">
-      <input v-if="mintMode === 'collection'" v-model="startingNumberNFTs" type="number" :placeholder="t('tokenItem.mint.startingNumberPlaceholder')">
+      <input v-if="mintMode === 'collection'" v-model="mintQuantity" type="text" inputmode="numeric" :placeholder="t('tokenItem.mint.collectionSizePlaceholder')">
+      <input v-if="mintMode === 'collection'" v-model="startingNumberNFTs" type="text" inputmode="numeric" :placeholder="t('tokenItem.mint.startingNumberPlaceholder')">
       <select v-model="mintCapability" style="max-width: 130px;">
         <option value="none">{{ t('tokenItem.mint.capabilityImmutable') }}</option>
         <option value="mutable">{{ t('tokenItem.mint.capabilityMutable') }}</option>
         <option value="minting">{{ t('tokenItem.mint.capabilityMinting') }}</option>
       </select>
-      <input v-if="mintMode === 'single'" v-model="mintQuantity" type="number" :placeholder="t('tokenItem.mint.quantityPlaceholder')" style="max-width: 122px;">
+      <input v-if="mintMode === 'single'" v-model="mintQuantity" type="text" inputmode="numeric" :placeholder="t('tokenItem.mint.quantityPlaceholder')" style="max-width: 122px;">
     </span>
     <span class="grouped">
       <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('tokenItem.mint.destinationPlaceholder')">

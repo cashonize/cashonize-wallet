@@ -6,7 +6,8 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useQuasar } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  import { copyToClipboard, formatNumber, formatTokenAmount, parseTokenAmountToBigInt } from 'src/utils/utils'
+  import { copyToClipboard, formatTokenAmount, parseTokenAmountToBigInt, satoshisToTypedAmount, typedAmountToSatoshis } from 'src/utils/utils'
+  import { readTypedAmount, toTypedAmount } from 'src/utils/numberFormat'
   import { buildPaymentRequestUri } from 'src/utils/payments/paymentRequest'
   import { toTokenAddress } from 'src/utils/addressValidation'
   import CharCounter from 'src/components/general/CharCounter.vue'
@@ -28,10 +29,9 @@
 
   const mode = ref<'bch' | 'token'>('bch');
 
-  // The bch amount is held in the user's display unit, like the send form on the wallet page.
-  // The token amount stays a string, so its decimals are parsed with string math.
-  const requestAmount = ref(undefined as number | undefined);
-  const currencyAmount = ref(undefined as number | undefined);
+  // The bch amount is typed in the user's display unit, like the send form on the wallet page
+  const requestAmount = ref("");
+  const currencyAmount = ref("");
   const tokenAmountInput = ref("");
   const selectedCategory = ref("");
   const requestMessage = ref("");
@@ -76,12 +76,15 @@
     return tokenMetadata.value?.name ?? shortCategory.value;
   });
 
-  const requestSatoshis = computed(() => {
-    const amount = requestAmount.value;
-    if(typeof amount != 'number' || !(amount > 0)) return undefined;
-    const satoshis = settingsStore.bchUnit == "sat" ? amount : amount * 100_000_000;
-    return BigInt(Math.round(satoshis));
+  const parsedBchAmount = computed<{ satoshis?: bigint, error?: string }>(() => {
+    if (!requestAmount.value.trim()) return {};
+    try {
+      return { satoshis: typedAmountToSatoshis(requestAmount.value, settingsStore.bchUnit) };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : String(error) };
+    }
   });
+  const requestSatoshis = computed(() => parsedBchAmount.value.satoshis);
 
   // Amounts are requested in whole tokens and travel in base units, an amount with more
   // decimals than the token has is rejected rather than silently left out of the request
@@ -115,8 +118,8 @@
       if (baseUnits === undefined) return undefined;
       return `${formatTokenAmount(baseUnits, tokenDecimals.value)} ${tokenSymbol.value || tokenName.value}`;
     }
-    if(requestSatoshis.value === undefined || requestAmount.value === undefined) return undefined;
-    return formatNumber(requestAmount.value, 8) + displayUnitLong.value;
+    if(requestSatoshis.value === undefined) return undefined;
+    return formatTokenAmount(requestSatoshis.value, settingsStore.bchUnit === 'sat' ? 0 : 8) + displayUnitLong.value;
   });
 
   // Nothing to request yet, the qr code is still the plain receive address
@@ -126,20 +129,22 @@
   });
 
   async function setCurrencyAmount() {
-    if(typeof requestAmount.value != 'number'){
-      currencyAmount.value = undefined
+    const satoshis = requestSatoshis.value;
+    if(satoshis === undefined){
+      currencyAmount.value = ""
       return
     }
-    const newCurrencyValue = await convert(requestAmount.value, settingsStore.bchUnit, settingsStore.currency);
-    currencyAmount.value = Number(newCurrencyValue.toFixed(2));
+    const newCurrencyValue = await convert(Number(satoshis), "sat", settingsStore.currency);
+    currencyAmount.value = toTypedAmount(String(Number(newCurrencyValue.toFixed(2))));
   }
   async function setBchAmount() {
-    if(typeof currencyAmount.value != 'number'){
-      requestAmount.value = undefined
+    const typedCurrency = readTypedAmount(currencyAmount.value);
+    if('problem' in typedCurrency){
+      requestAmount.value = ""
       return
     }
-    const newBchValue = await convert(currencyAmount.value, settingsStore.currency, settingsStore.bchUnit);
-    requestAmount.value = Number(newBchValue);
+    const newSatsValue = await convert(Number(typedCurrency.amount), settingsStore.currency, "sat");
+    requestAmount.value = satoshisToTypedAmount(BigInt(Math.round(newSatsValue)), settingsStore.bchUnit);
   }
 
   function openAddressSelectDialog() {
@@ -186,9 +191,14 @@
   // Both bch amounts are entered by hand, so they need a nudge when the units they are
   // expressed in change while the view sits in the background
   watch(() => settingsStore.currency, () => void setCurrencyAmount());
-  watch(() => settingsStore.bchUnit, async (newUnit, previousUnit) => {
-    if(typeof requestAmount.value != 'number') return;
-    requestAmount.value = Number(await convert(requestAmount.value, previousUnit, newUnit));
+  watch(() => settingsStore.bchUnit, (newUnit, previousUnit) => {
+    let satoshis: bigint;
+    try {
+      satoshis = typedAmountToSatoshis(requestAmount.value, previousUnit);
+    } catch {
+      return;
+    }
+    requestAmount.value = satoshisToTypedAmount(satoshis, newUnit);
   });
 </script>
 
@@ -244,7 +254,8 @@
             <input
               v-model="requestAmount"
               @input="setCurrencyAmount()"
-              type="number"
+              type="text"
+              inputmode="decimal"
               :placeholder="t('requestPayment.amountPlaceholder')"
               name="bchAmountInput"
             >
@@ -255,7 +266,8 @@
             <input
               v-model="currencyAmount"
               @input="setBchAmount()"
-              type="number"
+              type="text"
+              inputmode="decimal"
               :placeholder="t('requestPayment.amountPlaceholder')"
               name="currencyInput"
             >
@@ -264,6 +276,7 @@
             </i>
           </span>
         </div>
+        <div v-if="parsedBchAmount.error" style="color: red; margin-top: 6px;">{{ parsedBchAmount.error }}</div>
         <div class="amountNote">
           {{ t('requestPayment.amountNote', { network: bchDisplayNetwork, currency: currencyDisplayShortName }) }}
         </div>
