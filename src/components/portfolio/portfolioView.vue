@@ -82,7 +82,12 @@
   // reserve priced at the pool is a fiction, and selling it would empty the pool. A frozen or
   // pledged coin is an ordinary holding the user chose to protect, and counts.
   const includeReserves = ref(false)
-  const hasReserves = computed(() => (store.tokenList ?? []).some(token => 'amount' in token && token.inReserve))
+  // an unpriced reserve never reaches the total, so the toggle only shows when one has a price
+  const hasPricedReserves = computed(() => (store.tokenList ?? []).some(token => {
+    if (!('amount' in token) || !token.inReserve) return false
+    const poolInfo = store.cauldronPrices?.[token.category]
+    return poolInfo !== undefined && calculateTokenFiatValue(token.inReserve, poolInfo, 1) !== null
+  }))
   // a first lookup or a retry after a failure, not a silent refresh of rows already shown; each
   // part shows as loading in its own place until it lands
   const announcedAssetsLoading = ref(false)
@@ -860,7 +865,7 @@
         {{ t('portfolio.checkingHodlContracts') }} <q-spinner-dots size="1.2em" />
       </div>
 
-      <div v-if="hasReserves" class="include-staking">
+      <div v-if="hasPricedReserves" class="include-staking">
         {{ t('portfolio.includeReserves') }} <q-toggle v-model="includeReserves" dense />
       </div>
       <div v-if="stakingReceiptNfts.length" class="include-staking">
