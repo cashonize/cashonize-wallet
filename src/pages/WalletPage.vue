@@ -45,8 +45,8 @@
   import { useI18n } from 'vue-i18n'
   const { t, locale } = useI18n()
 
-  // French and Portuguese tab labels are long enough to overflow small phone screens
-  const compactNavTabs = computed(() => ['fr', 'pt'].includes(locale.value))
+  // French, Portuguese and Russian tab labels are long enough to overflow small phone screens
+  const compactNavTabs = computed(() => ['fr', 'pt', 'ru'].includes(locale.value))
 
   // Below the width where Addresses leaves the nav, so the bottom bar holds five tabs
   const navAtBottom = computed(() =>
