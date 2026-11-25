@@ -24,7 +24,7 @@ Because of its minimalist design and modern look, Cashonize is a user-friendly w
 
 Cashonize lets you create and switch between multiple wallets. There are two wallet types supported: single-address wallet and HD wallet. HD wallets use a new address for each transaction, providing basic privacy for everyday payments.
 
-On the web and on Android, Cashonize can be locked with a PIN: an app lock asked when the wallet opens and before sending. It does not yet encrypt seed phrases, and the desktop app has no lock yet.
+Cashonize can be locked with a PIN: an app lock asked when the wallet opens and before sending. It does not yet encrypt seed phrases.
 
 ### Features
 

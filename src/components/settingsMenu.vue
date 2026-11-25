@@ -1081,7 +1081,7 @@
           <MenuRow icon="sym_o_account_balance_wallet" :label="t('settings.menu.manageWallets')" @click="settingsSection = 5">
             <span class="description">{{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? t('common.wallet') : t('common.wallets') }}</span>
           </MenuRow>
-          <MenuRow v-if="appLock.isSupported" icon="lock" :label="t('appLock.title')" @click="store.changeView(22)">
+          <MenuRow icon="lock" :label="t('appLock.title')" @click="store.changeView(22)">
             <span class="description">{{ appLock.enabled ? t('appLock.on') : t('appLock.off') }}</span>
           </MenuRow>
           <MenuRow v-if="isHdWallet && width <= addressesNavTabMinWidth" icon="view_list" :label="t('settings.menu.hdAddresses')" @click="store.changeView(10)" />

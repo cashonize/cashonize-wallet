@@ -1,5 +1,5 @@
 // The app lock: an optional PIN asked when the app opens, after it sat in the background, and
-// before what moves funds or shows the seed phrase. Android and web only; the desktop app has none.
+// before what moves funds or shows the seed phrase.
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Dialog } from 'quasar'
@@ -10,11 +10,9 @@ const attemptsKey = 'appLockAttempts'
 interface Attempts { failed: number, retryAt: number }
 
 export const useAppLockStore = defineStore('appLock', () => {
-  const isSupported = !import.meta.env.QUASAR_ELECTRON_MODE
-
   const pinRecord = ref<PinRecord | undefined>()
   const storedPin = localStorage.getItem(pinKey)
-  if (isSupported && storedPin) pinRecord.value = JSON.parse(storedPin) as PinRecord
+  if (storedPin) pinRecord.value = JSON.parse(storedPin) as PinRecord
 
   const enabled = computed(() => pinRecord.value !== undefined)
   const locked = ref(enabled.value)
@@ -87,5 +85,5 @@ export const useAppLockStore = defineStore('appLock', () => {
     })
   }
 
-  return { isSupported, enabled, locked, retryAt, checkPin, setPin, removePin, lock, unlock, confirmPin }
+  return { enabled, locked, retryAt, checkPin, setPin, removePin, lock, unlock, confirmPin }
 })

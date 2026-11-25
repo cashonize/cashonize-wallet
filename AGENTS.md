@@ -131,7 +131,7 @@ The portfolio view (`components/portfolio/`) charts the wallet's total value acr
 The More page (the fifth tab, `settingsMenu`) carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves an identity's UTXO, or the AuthKey that opens its covenant, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. The identities page also holds back what the user never listed; its detection and following paths are described in `docs/bcmr-identities.md`.
 
 ### App Lock
-An optional PIN (`stores/appLockStore.ts`, Android and web, never desktop) gates the interface: the wallet is not loaded until the first unlock, and `confirmPin()` is asked before a spend (inside `store.spend.*`), a dApp transaction signature and a seed reveal; message signing asks none. It is not encryption; the seed at rest is unchanged, and anything that spends past `store.spend` has to ask for the PIN itself.
+An optional PIN (`stores/appLockStore.ts`) gates the interface: the wallet is not loaded until the first unlock, and `confirmPin()` is asked before a spend (inside `store.spend.*`), a dApp transaction signature and a seed reveal; message signing asks none. It is not encryption; the seed at rest is unchanged, and anything that spends past `store.spend` has to ask for the PIN itself.
 
 ### Component Organization
 Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`.
