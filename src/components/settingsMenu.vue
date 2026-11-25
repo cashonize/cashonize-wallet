@@ -9,6 +9,7 @@
   import EmojiItem from './general/emojiItem.vue'
   import InfoPopup from './general/InfoPopup.vue'
   import MenuRow from './general/MenuRow.vue'
+  import { CurrencyShortNames, type Currency } from 'src/interfaces/interfaces'
   import BackRow from './general/BackRow.vue'
   import backupWallet from './settings/backupWallet.vue'
   import walletsOverview from './settings/walletsOverview.vue'
@@ -67,6 +68,7 @@
   
   // basic settings
   const selectedCurrency = ref(settingsStore.currency);
+  const currencies = Object.keys(CurrencyShortNames) as Currency[];
   const selectedUnit = ref(settingsStore.bchUnit);
   const qrAnimation = ref(settingsStore.qrAnimation);
   const dateFormat = ref(settingsStore.dateFormat);
@@ -1028,13 +1030,7 @@
       <div style="margin-bottom:15px">
         <label for="selectCurrency">{{ t('settings.localization.currency') }}</label>
         <select v-model="selectedCurrency" @change="changeCurrency()">
-          <option value="usd">USD</option>
-          <option value="eur">EUR</option>
-          <option value="gbp">GBP</option>
-          <option value="cad">CAD</option>
-          <option value="aud">AUD</option>
-          <option value="chf">CHF</option>
-          <option value="brl">BRL</option>
+          <option v-for="currency in currencies" :key="currency" :value="currency">{{ t(`onboarding.preferences.currency.${currency}`) }}</option>
         </select>
       </div>
 

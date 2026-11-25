@@ -12,7 +12,7 @@
   import LanguageSelector from './general/LanguageSelector.vue'
   import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet } from 'src/utils/wallet/walletUtils'
   import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
-  import type { Currency } from 'src/interfaces/interfaces'
+  import { CurrencyShortNames, type Currency } from 'src/interfaces/interfaces'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
@@ -35,6 +35,7 @@
 
   // Preferences - initialize from settingsStore (which reads from localStorage/system preferences)
   const selectedCurrency = ref<Currency>(settingsStore.currency);
+  const currencies = Object.keys(CurrencyShortNames) as Currency[];
   const selectedNumberFormat = ref(settingsStore.numberFormat);
   const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 
@@ -254,13 +255,7 @@
       <div style="margin-bottom: 20px;">
         <label for="selectCurrency" style="display: block; margin-bottom: 8px;">{{ t('onboarding.preferences.currency.label') }}</label>
         <select v-model="selectedCurrency" id="selectCurrency" style="padding: 8px; min-width: 150px;">
-          <option value="usd">{{ t('onboarding.preferences.currency.usd') }}</option>
-          <option value="eur">{{ t('onboarding.preferences.currency.eur') }}</option>
-          <option value="gbp">{{ t('onboarding.preferences.currency.gbp') }}</option>
-          <option value="cad">{{ t('onboarding.preferences.currency.cad') }}</option>
-          <option value="aud">{{ t('onboarding.preferences.currency.aud') }}</option>
-          <option value="chf">{{ t('onboarding.preferences.currency.chf') }}</option>
-          <option value="brl">{{ t('onboarding.preferences.currency.brl') }}</option>
+          <option v-for="currency in currencies" :key="currency" :value="currency">{{ t(`onboarding.preferences.currency.${currency}`) }}</option>
         </select>
       </div>
 
