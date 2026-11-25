@@ -991,12 +991,13 @@
   },
   "aboutCashonize": {
     "title": "Tentang Cashonize",
-    "description": "Cashonize adalah dompet Bitcoin Cash multi-platform yang mudah digunakan.",
+    "description": "Pintu masuk Anda ke CashTokens dan DeFi Bitcoin Cash.",
     "tagline": "Sumber terbuka · Non-kustodial · Sejak 2023",
     "learnMore": "Kunjungi situs web Cashonize",
     "downloadPage": "Kunjungi halaman unduhan Cashonize",
     "viewSource": "Lihat kode sumber",
     "followOnX": "Ikuti kabar terbaru di X",
+    "joinTelegram": "Bergabung di Telegram",
     "logoHintTaps": "Bosan? Ketuk logonya beberapa kali dengan cepat.",
     "logoHintClicks": "Psst... coba klik logonya beberapa kali."
   },

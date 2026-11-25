@@ -11,7 +11,9 @@ import {
   matCheckCircle,
   matChevronRight,
   matClose,
+  matCode,
   matDelete,
+  matDownload,
   matEdit,
   matError,
   matExpandMore,
@@ -24,6 +26,7 @@ import {
   matKey,
   matKeyboardArrowDown,
   matKeyboardArrowUp,
+  matLanguage,
   matLock,
   matLockOpen,
   matMoreHoriz,
@@ -44,6 +47,7 @@ import {
   matWarning,
   matWifiOff,
 } from '@quasar/extras/material-icons'
+import { fabTelegram, fabXTwitter } from '@quasar/extras/fontawesome-v7'
 import { outlinedInfo } from '@quasar/extras/material-icons-outlined'
 import {
   symOutlinedAccountBalanceWallet,
@@ -66,10 +70,14 @@ const appIcons: Record<string, string> = {
   check_circle: matCheckCircle,
   chevron_right: matChevronRight,
   close: matClose,
+  code: matCode,
   delete: matDelete,
+  download: matDownload,
   edit: matEdit,
   error: matError,
   expand_more: matExpandMore,
+  fab_telegram: fabTelegram,
+  fab_x: fabXTwitter,
   generating_tokens: matGeneratingTokens,
   help_outline: matHelpOutline,
   history: matHistory,
@@ -80,6 +88,7 @@ const appIcons: Record<string, string> = {
   key: matKey,
   keyboard_arrow_down: matKeyboardArrowDown,
   keyboard_arrow_up: matKeyboardArrowUp,
+  language: matLanguage,
   lock: matLock,
   lock_open: matLockOpen,
   more_horiz: matMoreHoriz,

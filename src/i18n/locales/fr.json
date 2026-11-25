@@ -991,12 +991,13 @@
   },
   "aboutCashonize": {
     "title": "À propos de Cashonize",
-    "description": "Cashonize est un portefeuille Bitcoin Cash facile à utiliser et multiplateforme.",
+    "description": "Votre porte d'entrée vers les CashTokens et la DeFi de Bitcoin Cash.",
     "tagline": "Open source · Non-custodial · Depuis 2023",
     "learnMore": "Visitez le site web de Cashonize",
     "downloadPage": "Visitez la page de téléchargement de Cashonize",
     "viewSource": "Voir le code source",
     "followOnX": "Suivez les actualités sur X",
+    "joinTelegram": "Rejoignez-nous sur Telegram",
     "logoHintTaps": "Vous vous ennuyez ? Tapotez rapidement le logo quelques fois.",
     "logoHintClicks": "Psst... essayez de cliquer plusieurs fois sur le logo."
   },

@@ -991,12 +991,13 @@
   },
   "aboutCashonize": {
     "title": "Sobre o Cashonize",
-    "description": "Cashonize é uma carteira de Bitcoin Cash fácil de usar e multiplataforma.",
+    "description": "A sua porta de entrada para CashTokens e o DeFi do Bitcoin Cash.",
     "tagline": "Código aberto · Sem custódia · Desde 2023",
     "learnMore": "Visite o site do Cashonize",
     "downloadPage": "Visite a página de downloads do Cashonize",
     "viewSource": "Ver o código-fonte",
     "followOnX": "Acompanhe as novidades no X",
+    "joinTelegram": "Junte-se a nós no Telegram",
     "logoHintTaps": "Bateu o tédio? Dê alguns toques rápidos no logo.",
     "logoHintClicks": "Psst... tente clicar no logo algumas vezes."
   },

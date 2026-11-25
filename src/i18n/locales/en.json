@@ -991,12 +991,13 @@
   },
   "aboutCashonize": {
     "title": "About Cashonize",
-    "description": "Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet.",
+    "description": "Your entry point to CashTokens and Bitcoin Cash DeFi.",
     "tagline": "Open-source · Non-custodial · Since 2023",
     "learnMore": "Visit the Cashonize website",
     "downloadPage": "Visit the Cashonize download page",
     "viewSource": "View source code",
     "followOnX": "Follow updates on X",
+    "joinTelegram": "Join us on Telegram",
     "logoHintTaps": "Bored? Give the logo a few quick taps.",
     "logoHintClicks": "Psst... try clicking the logo a few times."
   },

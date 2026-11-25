@@ -991,12 +991,13 @@
   },
   "aboutCashonize": {
     "title": "О Cashonize",
-    "description": "Cashonize — простой в использовании мультиплатформенный кошелёк Bitcoin Cash.",
+    "description": "Ваш вход в мир CashTokens и DeFi на Bitcoin Cash.",
     "tagline": "Открытый исходный код · Без посредников · С 2023 года",
     "learnMore": "Посетить сайт Cashonize",
     "downloadPage": "Открыть страницу загрузки Cashonize",
     "viewSource": "Посмотреть исходный код",
     "followOnX": "Следить за новостями в X",
+    "joinTelegram": "Присоединиться в Telegram",
     "logoHintTaps": "Скучно? Быстро коснитесь логотипа несколько раз.",
     "logoHintClicks": "Псс... попробуйте несколько раз кликнуть по логотипу."
   },
