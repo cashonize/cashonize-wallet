@@ -2,12 +2,13 @@
   import { ref, onMounted, toRefs, computed, watch, nextTick } from 'vue';
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftChild from './nftChild.vue'
+  import tokenInfoPanel from './tokenInfoPanel.vue'
   import nftMintForm from './nftMintForm.vue'
   import { TokenSendRequest, type TokenI } from "@cashonize/bch-wallet-lib"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import type { TokenDataNFT, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, gatewayUrl, sanitizeUrl, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, gatewayUrl, truncateHash } from 'src/utils/utils';
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import { hexToBin, lockingBytecodeToCashAddress } from '@bitauth/libauth'
   import { useStore } from 'src/stores/store'
@@ -436,7 +437,7 @@
                 <span class="identity-key-line">· {{ keyControls.text }}</span> <span v-if="keyControls.more" class="identity-key-link" @click="displayAuthKeyInfo = true">{{ keyControls.more }}</span>
               </template>
             </div>
-            <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
+            <div v-if="tokenName" class="tokenTitle">{{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
               <span @click="copyToClipboard(tokenData.category)" style="cursor: pointer;">
@@ -533,38 +534,19 @@
           </div>
           <div class="indentText">{{ t('tokenItem.authKey.heldBack') }}</div>
         </div>
-        <div v-if="displayTokenInfo" class="tokenAction">
-          <div></div>
-          <div v-if="tokenDescription" class="indentText">{{ t('tokenItem.info.tokenDescription') }} {{ tokenDescription }} </div>
-          <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 2">
-            <div>{{ hasParyonUsdExtension ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
-            <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
-              {{ field.name ?? field.fieldId ?? t('tokenItem.info.field', { index }) }}: {{ field.parsedValue?.formatted ?? field.value }}
-            </div>
-          </div>
-          <div v-if="isSingleNft">
-            {{ t('tokenItem.info.nftType') }} {{ nftTypeText }}
-          </div>
-          <div v-if="isSingleNft">
-            {{ t('tokenItem.info.nftCommitment') }} {{ commitmentDisplay }}
-          </div>
-          <div v-if="tokenMetaData?.uris?.web">
-            {{ t('tokenItem.info.tokenWebLink') }}
-            <a v-if="sanitizeUrl(tokenMetaData.uris.web)" :href="sanitizeUrl(tokenMetaData.uris.web)" target="_blank">{{ tokenMetaData.uris.web }}</a>
-            <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
-          </div>
-          <div>
-            <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">
-              {{ t('tokenItem.info.seeDetailsOnExplorer') }} <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
-            </a>
-          </div>
-          <details v-if="isSingleNft && nftMetadata?.extensions?.attributes" style="cursor:pointer;">
-            <summary style="display: list-item">{{ t('tokenItem.info.nftAttributes') }}</summary>
-            <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="attributeKey" style="white-space: pre-wrap; margin-left:15px">
-              {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.empty') }}
-            </div>
-          </details>
-        </div>
+        <tokenInfoPanel
+          v-if="displayTokenInfo"
+          :description="tokenDescription"
+          :facts="isSingleNft ? [
+            { label: t('tokenItem.info.type'), value: nftTypeText },
+            { label: t('tokenItem.info.commitment'), value: commitmentDisplay, mono: true },
+          ] : []"
+          :parsed-fields="parseResult?.success && (parseResult.namedFields?.length ?? 0) > 2 ? parseResult.namedFields : undefined"
+          :parsed-title="hasParyonUsdExtension ? t('tokenItem.info.extensionNote') : undefined"
+          :attributes="isSingleNft ? nftMetadata?.extensions?.attributes : undefined"
+          :web-url="tokenMetaData?.uris?.web"
+          :category="tokenData.category"
+        />
 
         <div v-if="displaySendNft" class="tokenAction">
           {{ t('tokenItem.sendNft.title') }}

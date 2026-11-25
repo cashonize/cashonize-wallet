@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import dialogNftIcon from './dialogNftIcon.vue'
   import nftMintForm from './nftMintForm.vue'
+  import tokenInfoPanel from './tokenInfoPanel.vue'
   import { ref, onMounted, toRefs, computed, watch, nextTick } from 'vue';
   import { TokenSendRequest, type TokenI } from "@cashonize/bch-wallet-lib"
   import { type Utxo } from "@cashonize/bch-wallet-lib"
@@ -227,7 +228,7 @@
 
         <div class="tokenBaseInfo">
           <div>
-            <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
+            <div v-if="tokenName" class="tokenTitle">{{ tokenName }}</div>
             <div v-if="heldBackNft" style="color: grey;">{{ t('tokenItem.heldBack') }}</div>
             <div v-if="parsingNft && hasParyonUsdExtension">{{ t('tokenItem.loadingLoanData') }}</div>
             <div v-else-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length <= 3">
@@ -261,22 +262,14 @@
             {{ isSelected ? t('tokenItem.actions.selected') + ' ✓' : t('tokenItem.actions.select') }}
           </span>
         </div>
-        <div v-if="displayNftInfo" class="tokenAction">
-          <div v-if="nftDescription" class="indentText"> {{ t('tokenItem.info.nftDescription') }} {{ nftDescription }} </div>
-          <div v-if="parseResult?.success && parseResult.namedFields?.length && parseResult.namedFields.length > 3">
-            <div>{{ hasParyonUsdExtension ? t('tokenItem.info.extensionNote') : t('tokenItem.info.parsedFields') }}</div>
-            <div v-for="(field, index) in parseResult.namedFields" :key="'parsed-field-' + index" style="white-space: pre-wrap; margin-left:15px">
-              {{ field.name ?? field.fieldId ?? t('tokenItem.info.field', { index }) }}: {{ field.parsedValue?.formatted ?? field.value }}
-            </div>
-          </div>
-          <div style="word-break: break-all;"> {{ t('tokenItem.commitment') }} {{ commitmentDisplay }}</div>
-          <details v-if="nftMetadata?.extensions?.attributes" style="cursor:pointer;">
-            <summary style="display: list-item">{{ t('tokenItem.info.nftAttributes') }}</summary>
-            <div v-for="(attributeValue, attributeKey) in nftMetadata?.extensions?.attributes" :key="attributeKey" style="white-space: pre-wrap; margin-left:15px">
-              {{ attributeKey }}: {{ attributeValue ? attributeValue : t('tokenItem.empty') }}
-            </div>
-          </details>
-        </div>
+        <tokenInfoPanel
+          v-if="displayNftInfo"
+          :description="nftDescription"
+          :facts="[{ label: t('tokenItem.info.commitment'), value: commitmentDisplay, mono: true }]"
+          :parsed-fields="parseResult?.success && (parseResult.namedFields?.length ?? 0) > 3 ? parseResult.namedFields : undefined"
+          :parsed-title="hasParyonUsdExtension ? t('tokenItem.info.extensionNote') : undefined"
+          :attributes="nftMetadata?.extensions?.attributes"
+        />
         <div v-if="displaySendNft" class="tokenAction">
           {{ t('tokenItem.sendNft.title') }}
           <div class="inputGroup">

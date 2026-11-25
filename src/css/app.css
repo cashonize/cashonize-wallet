@@ -473,7 +473,7 @@ body.dark .identity-card {
    yet has no minimum width, so it would grow back a few px on load and push the text over */
 .tokenIcon {
   flex-shrink: 0;
-  margin-right: 10px;
+  margin-right: 14px;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -577,6 +577,10 @@ body.dark .identity-card {
 }
 .actionBar :first-of-type {
   margin-left: 0;
+}
+/* the token's name, the card's title */
+.tokenTitle {
+  font-weight: 600;
 }
 .tokenAction {
   margin-top: 10px;
