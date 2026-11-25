@@ -15,7 +15,7 @@
       "somethingWentWrong": "Etwas ist schiefgelaufen",
       "amountInvalid": "Gib den Betrag in Ziffern ein, mit höchstens einem Dezimaltrennzeichen",
       "amountGrouping": "Gib den Betrag ohne Tausendertrennzeichen oder Leerzeichen ein",
-      "amountAmbiguous": "Dieser Betrag ist mehrdeutig: Tausender ohne Trennzeichen eingeben, z. B. 1000, und Dezimalstellen wie {example} (oder wähle dein Zahlenformat unter Einstellungen → Lokalisierung)",
+      "amountAmbiguous": "Dieser Betrag ist mehrdeutig: Tausender ohne Trennzeichen eingeben, z. B. 1000, und Dezimalstellen wie {example} (oder wähle dein Zahlenformat unter Mehr → Lokalisierung)",
       "amountWholeOnly": "Gib eine ganze Zahl ohne Trennzeichen ein",
       "needToInitializeWallet": "Zuerst muss ein Wallet initialisiert werden",
       "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, dApp-Anfrage wird abgelehnt",
@@ -31,7 +31,6 @@
       }
     },
     "attention": "Achtung:",
-    "backToSettings": "Zurück zu den Einstellungen",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Das führt Eingaben aller deiner Adressen zusammen und verknüpft sie öffentlich als ein Wallet, was die Privatsphäre-Vorteile eines HD-Wallets aufgibt.",
     "copied": "Kopiert!",
@@ -46,7 +45,8 @@
     "addresses": "Adressen",
     "tokens": "Tokens",
     "history": "Historie",
-    "connect": "Verbinden"
+    "connect": "Verbinden",
+    "more": "Mehr"
   },
   "networkBadge": {
     "intro": "Diese Wallet ist auf {network}, einem Testnetzwerk: Ihre Coins haben keinen Wert.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Gib eine seed phrase ein, um ein Wallet zu importieren",
       "fixInvalidWords": "Bitte korrigiere ungültige Wörter in deiner seed phrase",
       "invalidSeedPhrase": "Keine gültige seed phrase",
-      "convertTiedCopy": "Wallet \"{name}\" hat noch eine Kopie auf {network}. Entferne zuerst seine Chipnet-Kopie unter Einstellungen > Entwicklereinstellungen und wandle es dann um.",
+      "convertTiedCopy": "Wallet \"{name}\" hat noch eine Kopie auf {network}. Entferne zuerst seine Chipnet-Kopie unter Mehr > Entwicklereinstellungen und wandle es dann um.",
       "cannotConvert": "Wallet \"{name}\" ist nicht als umwandelbares Wallet mit Einzeladresse gespeichert, daher wurde nichts geändert",
       "conversionRunning": "Das Wallet wird bereits umgewandelt",
       "failedToConvert": "Wallet \"{name}\" konnte nicht umgewandelt werden",
@@ -1455,7 +1455,6 @@
     "version": "Version Cashonize App: {version}",
     "latest": "(aktuellste)",
     "latestRelease": "(neueste Version ist {version})",
-    "allSettings": "Alle Einstellungen",
     "currentWallet": "Aktuelles Wallet:",
     "menu": {
       "backupWallet": "Wallet sichern",
@@ -1480,7 +1479,8 @@
       "aboutCashonize": "Über Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identitäten",
-      "newCount": "({count} neu) | ({count} neu)"
+      "newCount": "({count} neu) | ({count} neu)",
+      "tokenCreation": "Token-Erstellung"
     },
     "localization": {
       "language": "Sprache:",

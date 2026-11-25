@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import BackRow from 'src/components/general/BackRow.vue'
   import { ref, computed, watch } from 'vue'
   import { HDWallet, convert } from '@cashonize/bch-wallet-lib'
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
@@ -199,6 +200,7 @@
 <template>
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('requestPayment.title') }}</legend>
+    <BackRow @click="store.goBack()" />
 
     <div class="type-filter" style="margin-top: 10px;">
       <button :class="{ active: mode === 'bch' }" @click="mode = 'bch'">

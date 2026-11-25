@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import BackRow from 'src/components/general/BackRow.vue'
   import { ref, computed, watch } from 'vue'
   import { HDWallet } from '@cashonize/bch-wallet-lib'
   import { useStore } from 'src/stores/store'
@@ -26,6 +27,7 @@
 <template>
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('exportXpub.title') }}</legend>
+    <BackRow @click="store.goBack()" />
 
     <div>
       {{ t('exportXpub.description') }}

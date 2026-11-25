@@ -15,7 +15,7 @@
       "somethingWentWrong": "Algo deu errado",
       "amountInvalid": "Digite o valor em algarismos, com no máximo um separador decimal",
       "amountGrouping": "Digite o valor sem separadores de milhar nem espaços",
-      "amountAmbiguous": "Este valor pode ser lido de duas formas: digite os milhares sem separador, como 1000, e as casas decimais como {example} (ou escolha o seu formato de números em Configurações → Localização)",
+      "amountAmbiguous": "Este valor pode ser lido de duas formas: digite os milhares sem separador, como 1000, e as casas decimais como {example} (ou escolha o seu formato de números em Mais → Localização)",
       "amountWholeOnly": "Digite um número inteiro, sem separadores",
       "needToInitializeWallet": "É necessário inicializar uma carteira primeiro",
       "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dApp",
@@ -31,7 +31,6 @@
       }
     },
     "attention": "Atenção:",
-    "backToSettings": "Voltar às configurações",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Isso combina entradas de todos os seus endereços, vinculando-os publicamente como uma única carteira, o que sacrifica os benefícios de privacidade de usar uma carteira HD.",
     "copied": "Copiado!",
@@ -46,7 +45,8 @@
     "addresses": "Endereços",
     "tokens": "Tokens",
     "history": "Histórico",
-    "connect": "Conectar"
+    "connect": "Conectar",
+    "more": "Mais"
   },
   "networkBadge": {
     "intro": "Esta carteira está na {network}, uma rede de teste: as suas moedas não têm valor.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Insira uma seed phrase para importar a carteira",
       "fixInvalidWords": "Por favor, corrija as palavras inválidas na sua seed phrase",
       "invalidSeedPhrase": "Seed phrase inválida",
-      "convertTiedCopy": "A carteira \"{name}\" também tem uma cópia na {network}. Remova primeiro a cópia dela na chipnet em Configurações > Configurações de desenvolvedor e depois converta.",
+      "convertTiedCopy": "A carteira \"{name}\" também tem uma cópia na {network}. Remova primeiro a cópia dela na chipnet em Mais > Configurações de desenvolvedor e depois converta.",
       "cannotConvert": "A carteira \"{name}\" não está salva como uma carteira de endereço único convertível, então nada foi alterado",
       "conversionRunning": "A carteira já está sendo convertida",
       "failedToConvert": "Falha ao converter a carteira \"{name}\"",
@@ -1455,7 +1455,6 @@
     "version": "Versão do Cashonize: {version}",
     "latest": "(mais recente)",
     "latestRelease": "(versão mais recente é {version})",
-    "allSettings": "Todas as configurações",
     "currentWallet": "Carteira atual:",
     "menu": {
       "backupWallet": "Backup da carteira",
@@ -1480,7 +1479,8 @@
       "aboutCashonize": "Sobre o Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identidades",
-      "newCount": "({count} nova) | ({count} novas)"
+      "newCount": "({count} nova) | ({count} novas)",
+      "tokenCreation": "Criação de tokens"
     },
     "localization": {
       "language": "Idioma:",

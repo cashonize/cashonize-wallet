@@ -15,7 +15,7 @@
       "somethingWentWrong": "Something went wrong",
       "amountInvalid": "Type the amount in digits, with at most one decimal mark",
       "amountGrouping": "Type the amount without thousands separators or spaces",
-      "amountAmbiguous": "This amount can be read two ways: type thousands without a separator, like 1000, and decimals like {example} (or pick your number format under Settings → Localization)",
+      "amountAmbiguous": "This amount can be read two ways: type thousands without a separator, like 1000, and decimals like {example} (or pick your number format under More → Localization)",
       "amountWholeOnly": "Type a whole number, without separators",
       "needToInitializeWallet": "Need to initialize a wallet first",
       "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dApp request",
@@ -31,7 +31,6 @@
       }
     },
     "attention": "Attention:",
-    "backToSettings": "Back to settings",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "This combines inputs from all your addresses, publicly linking them as one wallet, which sacrifices the privacy benefits of using an HD wallet.",
     "copied": "Copied!",
@@ -46,7 +45,8 @@
     "addresses": "Addresses",
     "tokens": "Tokens",
     "history": "History",
-    "connect": "Connect"
+    "connect": "Connect",
+    "more": "More"
   },
   "networkBadge": {
     "intro": "This wallet is on {network}, a test network: its coins have no value.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Enter a seed phrase to import wallet",
       "fixInvalidWords": "Please fix invalid words in your seed phrase",
       "invalidSeedPhrase": "Not a valid seed phrase",
-      "convertTiedCopy": "Wallet \"{name}\" also has a copy on {network}. Remove its chipnet copy under Settings > Developer settings first, then convert.",
+      "convertTiedCopy": "Wallet \"{name}\" also has a copy on {network}. Remove its chipnet copy under More > Developer settings first, then convert.",
       "cannotConvert": "Wallet \"{name}\" is not stored as a single address wallet that can be converted, so nothing was changed",
       "conversionRunning": "The wallet is already being converted",
       "failedToConvert": "Failed to convert wallet \"{name}\"",
@@ -1455,7 +1455,6 @@
     "version": "Version Cashonize App: {version}",
     "latest": "(latest)",
     "latestRelease": "(latest release is {version})",
-    "allSettings": "All settings",
     "currentWallet": "Current wallet:",
     "menu": {
       "backupWallet": "Backup wallet",
@@ -1480,7 +1479,8 @@
       "aboutCashonize": "About Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identities",
-      "newCount": "({count} new) | ({count} new)"
+      "newCount": "({count} new) | ({count} new)",
+      "tokenCreation": "Token creation"
     },
     "localization": {
       "language": "Language:",

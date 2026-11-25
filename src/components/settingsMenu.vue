@@ -1,11 +1,19 @@
+<script lang="ts">
+  import { ref } from 'vue'
+  // which group of the More page is open; kept across visits, so coming back from a tool finds it open
+  const openMenuGroup = ref(undefined as undefined | 'tools' | 'tokens' | 'settings');
+</script>
+
 <script setup lang="ts">
   import { appNetworks, walletDbName, type AppNetwork } from 'src/utils/wallet/networks'
   import EmojiItem from './general/emojiItem.vue'
   import InfoPopup from './general/InfoPopup.vue'
+  import MenuRow from './general/MenuRow.vue'
+  import BackRow from './general/BackRow.vue'
   import backupWallet from './settings/backupWallet.vue'
   import walletsOverview from './settings/walletsOverview.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
-  import { computed, ref, watch } from 'vue'
+  import { computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from '../stores/store'
   import { useIdentitiesStore } from '../stores/identitiesStore'
@@ -25,6 +33,7 @@
   import { chipnetCopyState, tiedChipnetCopy, type ChipnetCopyState } from 'src/utils/wallet/tiedWallets'
   import { maxWallets } from 'src/utils/wallet/walletUtils'
   import { Notify } from 'quasar'
+  import { useWindowSize, addressesNavTabMinWidth } from 'src/utils/composables'
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
@@ -32,7 +41,6 @@
   const cashconnectStore = useCashconnectStore()
   const wizardconnectStore = useWizardconnectStore()
   const { t } = useI18n()
-  import { useWindowSize, addressesNavTabMinWidth } from 'src/utils/composables'
   const { width } = useWindowSize();
   const isMobile = computed(() => width.value < 480)
 
@@ -42,6 +50,14 @@
   const applicationVersion = import.meta.env.version
 
   const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(0);
+  const sectionTitleKeys = ['nav.more', 'settings.menu.backupWallet', 'settings.menu.userOptions',
+    'settings.menu.advancedSettings', 'settings.menu.developerSettings', 'settings.menu.manageWallets',
+    'settings.menu.localization', 'settings.menu.tokenSettings', 'settings.menu.dataAndStorage'] as const;
+  const sectionTitle = computed(() => t(sectionTitleKeys[settingsSection.value]));
+  function toggleMenuGroup(group: 'tools' | 'tokens' | 'settings') {
+    openMenuGroup.value = openMenuGroup.value === group ? undefined : group;
+  }
+  const isHdWallet = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'hd');
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
   
@@ -637,24 +653,8 @@
 
 <template>
   <fieldset class="item">
-    <legend>{{ t('settings.title') }}</legend>
-    <div v-if="!isBrowser" style="margin-bottom: 15px;">
-      {{ t('settings.version', { version: applicationVersion }) }}
-      <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease == 'v'+applicationVersion">{{ t('settings.latest') }}</span>
-      <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion">
-        <i18n-t keypath="settings.latestRelease" tag="span">
-          <template #version>
-            <a href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">{{store.latestGithubRelease}}</a>
-          </template>
-        </i18n-t>
-      </span>
-    </div>
-
-    <div v-if="settingsSection != 0">
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 0">
-        ↲ {{ t('settings.allSettings') }}
-      </div>
-    </div>
+    <legend>{{ sectionTitle }}</legend>
+    <BackRow v-if="settingsSection != 0" @click="settingsSection = 0" />
 
     <backupWallet v-if="settingsSection == 1" />
     <div v-else-if="settingsSection == 2">
@@ -1066,76 +1066,107 @@
         </select>
       </div>
     </div>
-    <!-- settingsSection === 0: main settings menu -->
-    <div v-else>
-      <div style="margin-bottom: 15px;">
-        {{ t('settings.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
+    <!-- settingsSection === 0: the More page -->
+    <div v-else class="menu-groups">
+      <div class="menu-group">
+        <div class="menu-heading">
+          {{ t('settings.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
+        </div>
+        <div class="menu-rows">
+          <MenuRow icon="key" :label="t('settings.menu.backupWallet')" @click="settingsSection = 1">
+            <span v-if="settingsStore.getBackupStatus(store.activeWalletName) === 'none'" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
+          </MenuRow>
+          <MenuRow icon="sym_o_account_balance_wallet" :label="t('settings.menu.manageWallets')" @click="settingsSection = 5">
+            <span class="description">{{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? t('common.wallet') : t('common.wallets') }}</span>
+          </MenuRow>
+          <MenuRow v-if="isHdWallet && width <= addressesNavTabMinWidth" icon="view_list" :label="t('settings.menu.hdAddresses')" @click="store.changeView(10)" />
+        </div>
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 1">
-        ↳ {{ t('settings.menu.backupWallet') }} <span v-if="settingsStore.getBackupStatus(store.activeWalletName) === 'none'" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
+      <div class="menu-group menu-rows">
+        <MenuRow icon="build" :label="t('settings.menu.tools')" :expanded="openMenuGroup === 'tools'" @click="toggleMenuGroup('tools')">
+          <span v-if="utxosWithBchAndTokens?.length && openMenuGroup !== 'tools'" style="color: orange">{{ t('settings.menu.important') }}</span>
+        </MenuRow>
+        <template v-if="openMenuGroup === 'tools'">
+          <MenuRow :label="t('settings.menu.requestPayment')" @click="store.changeView(17)" />
+          <MenuRow :label="t('settings.menu.utxoManagement')" @click="store.changeView(7)">
+            <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
+          </MenuRow>
+          <MenuRow :label="t('settings.menu.sweepPrivateKey')" @click="store.changeView(8)" />
+          <MenuRow :label="t('settings.menu.transferAllAssets')" @click="store.changeView(16)" />
+          <MenuRow :label="t('settings.menu.flipstarter')" @click="store.changeView(18)" />
+          <MenuRow :label="t('settings.menu.signVerifyMessage')" @click="store.changeView(13)" />
+          <MenuRow v-if="isHdWallet" :label="t('settings.menu.exportXpub')" @click="store.changeView(15)" />
+          <MenuRow :label="t('settings.menu.addressConverter')" @click="store.changeView(20)" />
+        </template>
+
+        <MenuRow icon="generating_tokens" :label="t('settings.menu.tokenCreation')" :expanded="openMenuGroup === 'tokens'" @click="toggleMenuGroup('tokens')">
+          <span v-if="identitiesStore.unseenIdentities.length && openMenuGroup !== 'tokens'" class="description">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
+        </MenuRow>
+        <template v-if="openMenuGroup === 'tokens'">
+          <MenuRow :label="t('settings.menu.identities')" @click="store.changeView(19)">
+            <span v-if="identitiesStore.unseenIdentities.length" class="description">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
+          </MenuRow>
+          <MenuRow :label="t('settings.menu.createTokens')" @click="store.changeView(6)" />
+        </template>
+
+        <MenuRow icon="settings" :label="t('settings.title')" :expanded="openMenuGroup === 'settings'" @click="toggleMenuGroup('settings')" />
+        <template v-if="openMenuGroup === 'settings'">
+          <MenuRow :label="t('settings.menu.userOptions')" @click="settingsSection = 2" />
+          <MenuRow :label="t('settings.menu.tokenSettings')" @click="settingsSection = 7" />
+          <MenuRow :label="t('settings.menu.localization')" @click="settingsSection = 6" />
+          <MenuRow :label="t('settings.menu.advancedSettings')" @click="settingsSection = 3" />
+          <MenuRow :label="t('settings.menu.dataAndStorage')" @click="settingsSection = 8" />
+          <MenuRow :label="t('settings.menu.developerSettings')" @click="settingsSection = 4" />
+        </template>
       </div>
 
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 5">
-        ↳ {{ t('settings.menu.manageWallets') }}
-        <span style="color: grey; font-size: smaller;">
-          ({{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? t('common.wallet') : t('common.wallets') }})
-        </span>
+      <div class="menu-group">
+        <div class="menu-rows">
+          <MenuRow icon="info_outline" :label="t('settings.menu.aboutCashonize')" @click="store.changeView(11)" />
+        </div>
+        <div class="description" style="margin-top: 12px; font-size: smaller;">
+          <div v-if="!isBrowser">
+            {{ t('settings.version', { version: applicationVersion }) }}
+            <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease == 'v'+applicationVersion">{{ t('settings.latest') }}</span>
+            <span v-if="isDesktop && store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion">
+              <i18n-t keypath="settings.latestRelease" tag="span">
+                <template #version>
+                  <a href="https://github.com/cashonize/cashonize-wallet/releases/latest" target="_blank">{{store.latestGithubRelease}}</a>
+                </template>
+              </i18n-t>
+            </span>
+          </div>
+          <a style="color: inherit; cursor: pointer;" href="https://x.com/GeukensMathieu" target="_blank">
+            <i18n-t keypath="settings.madeWith" tag="span">
+              <template #heart>
+                <EmojiItem emoji="💚" :sizePx="16" style="vertical-align: sub;" />
+              </template>
+            </i18n-t>
+          </a>
+        </div>
       </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 2">
-        ↳ {{ t('settings.menu.userOptions') }}
-      </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 7">
-        ↳ {{ t('settings.menu.tokenSettings') }}
-      </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 6">
-        ↳ {{ t('settings.menu.localization') }}
-      </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 3">
-        ↳ {{ t('settings.menu.advancedSettings') }}
-      </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 8">
-        ↳ {{ t('settings.menu.dataAndStorage') }}
-      </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => settingsSection = 4">
-        ↳ {{ t('settings.menu.developerSettings') }}
-      </div>
-
-      <div v-if="settingsStore.getWalletType(store.activeWalletName) === 'hd' && width <= addressesNavTabMinWidth" style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(10)">
-        → {{ t('settings.menu.hdAddresses') }}
-      </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(14)">
-        → {{ t('settings.menu.tools') }}
-        <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
-        <span v-else-if="identitiesStore.unseenIdentities.length" style="color: grey">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
-      </div>
-
-      <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(11)">
-        → {{ t('settings.menu.aboutCashonize') }}
-      </div>
-
-      <div style="margin-bottom:15px;">
-        <a style="color: var(--font-color); cursor: pointer;" href="https://x.com/GeukensMathieu" target="_blank">
-          <i18n-t keypath="settings.madeWith" tag="span">
-            <template #heart>
-              <EmojiItem emoji="💚" :sizePx="18" style="vertical-align: sub;" />
-            </template>
-          </i18n-t>
-        </a>
-      </div>
-
     </div>
   </fieldset>
 </template>
 
 <style scoped>
+/* one column, kept narrow enough that a label and its chevron read as one row */
+.menu-groups {
+  max-width: 560px;
+}
+.menu-group {
+  margin-bottom: 22px;
+}
+.menu-heading {
+  margin: 4px 0 14px 2px;
+  font-weight: 600;
+}
+.menu-rows {
+  border: 1px solid var(--surface-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
 .nowrap {
   white-space: nowrap;
 }

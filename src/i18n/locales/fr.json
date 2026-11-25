@@ -15,7 +15,7 @@
       "somethingWentWrong": "Une erreur s'est produite",
       "amountInvalid": "Saisissez le montant en chiffres, avec au plus un séparateur décimal",
       "amountGrouping": "Saisissez le montant sans séparateur de milliers ni espace",
-      "amountAmbiguous": "Ce montant peut se lire de deux façons : saisissez les milliers sans séparateur, comme 1000, et les décimales comme {example} (ou choisissez votre format des nombres dans Paramètres → Localisation)",
+      "amountAmbiguous": "Ce montant peut se lire de deux façons : saisissez les milliers sans séparateur, comme 1000, et les décimales comme {example} (ou choisissez votre format des nombres dans Plus → Localisation)",
       "amountWholeOnly": "Saisissez un nombre entier, sans séparateur",
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
       "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dApp",
@@ -31,7 +31,6 @@
       }
     },
     "attention": "Attention :",
-    "backToSettings": "Retour aux paramètres",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Cela combine des entrées de toutes vos adresses, les liant publiquement comme un seul portefeuille, ce qui sacrifie les avantages de confidentialité d'un portefeuille HD.",
     "copied": "Copié !",
@@ -46,7 +45,8 @@
     "addresses": "Adresses",
     "tokens": "Tokens",
     "history": "Historique",
-    "connect": "Connecter"
+    "connect": "Connecter",
+    "more": "Plus"
   },
   "networkBadge": {
     "intro": "Ce portefeuille est sur {network}, un réseau de test : ses pièces n'ont aucune valeur.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Entrez une phrase de récupération pour importer le portefeuille",
       "fixInvalidWords": "Veuillez corriger les mots invalides dans votre phrase de récupération",
       "invalidSeedPhrase": "Phrase de récupération invalide",
-      "convertTiedCopy": "Le portefeuille « {name} » a aussi une copie sur {network}. Supprimez d'abord sa copie chipnet dans Paramètres > Paramètres développeur, puis convertissez.",
+      "convertTiedCopy": "Le portefeuille « {name} » a aussi une copie sur {network}. Supprimez d'abord sa copie chipnet dans Plus > Paramètres développeur, puis convertissez.",
       "cannotConvert": "Le portefeuille « {name} » n'est pas enregistré comme un portefeuille à adresse unique convertible, rien n'a donc été modifié",
       "conversionRunning": "Le portefeuille est déjà en cours de conversion",
       "failedToConvert": "Échec de la conversion du portefeuille « {name} »",
@@ -1455,7 +1455,6 @@
     "version": "Version de l'app Cashonize : {version}",
     "latest": "(dernière)",
     "latestRelease": "(la dernière version est {version})",
-    "allSettings": "Tous les paramètres",
     "currentWallet": "Portefeuille actuel :",
     "menu": {
       "backupWallet": "Sauvegarder le portefeuille",
@@ -1480,7 +1479,8 @@
       "aboutCashonize": "À propos de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identités",
-      "newCount": "({count} nouvelle) | ({count} nouvelles)"
+      "newCount": "({count} nouvelle) | ({count} nouvelles)",
+      "tokenCreation": "Création de tokens"
     },
     "localization": {
       "language": "Langue :",

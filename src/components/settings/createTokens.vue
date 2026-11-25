@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import BackRow from 'src/components/general/BackRow.vue'
   import { ref, computed, watch } from 'vue';
   import type { Utxo } from '@cashonize/bch-wallet-lib';
   import { filledLocations, locationBudgetLeft, publicationOutput, tokenOutputValue } from 'src/utils/tools/authchainIdentity';
@@ -286,6 +287,7 @@
   <div>
     <fieldset class="item" style="padding-bottom: 20px;">
       <legend>{{ t('createTokens.title') }}</legend>
+      <BackRow @click="store.goBack()" />
 
       <tokenCreated v-if="created" :created="created" @start-over="startOver()" />
 

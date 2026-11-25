@@ -15,7 +15,7 @@
       "somethingWentWrong": "Algo salió mal",
       "amountInvalid": "Escribe el importe en cifras, con como máximo un separador decimal",
       "amountGrouping": "Escribe el importe sin separadores de miles ni espacios",
-      "amountAmbiguous": "Este importe se puede leer de dos maneras: escribe los miles sin separador, como 1000, y los decimales como {example} (o elige tu formato de números en Ajustes → Localización)",
+      "amountAmbiguous": "Este importe se puede leer de dos maneras: escribe los miles sin separador, como 1000, y los decimales como {example} (o elige tu formato de números en Más → Localización)",
       "amountWholeOnly": "Escribe un número entero, sin separadores",
       "needToInitializeWallet": "Necesitas inicializar una billetera primero",
       "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dApp",
@@ -31,7 +31,6 @@
       }
     },
     "attention": "Atención:",
-    "backToSettings": "Volver a las configuraciones",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Esto combina entradas de todas tus direcciones, vinculándolas públicamente como una sola billetera, lo que sacrifica los beneficios de privacidad de usar una billetera HD.",
     "copied": "¡Copiado!",
@@ -46,7 +45,8 @@
     "addresses": "Direcciones",
     "tokens": "Tokens",
     "history": "Historial",
-    "connect": "Conectar"
+    "connect": "Conectar",
+    "more": "Más"
   },
   "networkBadge": {
     "intro": "Esta billetera está en {network}, una red de prueba: sus monedas no tienen valor.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Ingresa una frase de recuperación para importar la billetera",
       "fixInvalidWords": "Por favor corrige las palabras inválidas en tu frase de recuperación",
       "invalidSeedPhrase": "Frase de recuperación no válida",
-      "convertTiedCopy": "La billetera \"{name}\" también tiene una copia en {network}. Primero elimina su copia de chipnet en Configuración > Configuración de desarrollador y luego conviértela.",
+      "convertTiedCopy": "La billetera \"{name}\" también tiene una copia en {network}. Primero elimina su copia de chipnet en Más > Configuración de desarrollador y luego conviértela.",
       "cannotConvert": "La billetera \"{name}\" no está guardada como una billetera de dirección única convertible, así que no se cambió nada",
       "conversionRunning": "La billetera ya se está convirtiendo",
       "failedToConvert": "Error al convertir la billetera \"{name}\"",
@@ -1455,7 +1455,6 @@
     "version": "Versión de la app Cashonize: {version}",
     "latest": "(última)",
     "latestRelease": "(la última versión es {version})",
-    "allSettings": "Todas las configuraciones",
     "currentWallet": "Billetera actual:",
     "menu": {
       "backupWallet": "Respaldar billetera",
@@ -1480,7 +1479,8 @@
       "aboutCashonize": "Acerca de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identidades",
-      "newCount": "({count} nueva) | ({count} nuevas)"
+      "newCount": "({count} nueva) | ({count} nuevas)",
+      "tokenCreation": "Creación de tokens"
     },
     "localization": {
       "language": "Idioma:",

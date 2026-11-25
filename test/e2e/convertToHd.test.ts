@@ -44,7 +44,7 @@ async function openSingleAddressWallet(page: Page) {
 }
 
 async function openManageWallets(page: Page) {
-  await page.locator('nav img[src*="settings"]').click()
+  await page.locator('nav').getByLabel('More').click()
   await page.getByText('Manage wallets').click()
 }
 

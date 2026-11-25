@@ -15,7 +15,7 @@
       "somethingWentWrong": "Terjadi kesalahan",
       "amountInvalid": "Ketik jumlah dalam angka, dengan paling banyak satu tanda desimal",
       "amountGrouping": "Ketik jumlah tanpa pemisah ribuan atau spasi",
-      "amountAmbiguous": "Jumlah ini bisa dibaca dengan dua cara: ketik ribuan tanpa pemisah, seperti 1000, dan desimal seperti {example} (atau pilih format angka Anda di Pengaturan → Lokalisasi)",
+      "amountAmbiguous": "Jumlah ini bisa dibaca dengan dua cara: ketik ribuan tanpa pemisah, seperti 1000, dan desimal seperti {example} (atau pilih format angka Anda di Lainnya → Lokalisasi)",
       "amountWholeOnly": "Ketik bilangan bulat, tanpa pemisah",
       "needToInitializeWallet": "Dompet harus diinisialisasi terlebih dahulu",
       "exchangeRateUnavailable": "Tidak dapat mengambil kurs, permintaan dApp ditolak",
@@ -31,7 +31,6 @@
       }
     },
     "attention": "Perhatian:",
-    "backToSettings": "Kembali ke pengaturan",
     "nftCount": "{count} NFT | {count} NFT",
     "hdPrivacyWarning": "Ini menggabungkan input dari semua alamat Anda, sehingga secara publik menautkannya sebagai satu dompet, yang mengorbankan manfaat privasi dari dompet HD.",
     "copied": "Disalin!",
@@ -46,7 +45,8 @@
     "addresses": "Alamat",
     "tokens": "Token",
     "history": "Riwayat",
-    "connect": "Hubungkan"
+    "connect": "Hubungkan",
+    "more": "Lainnya"
   },
   "networkBadge": {
     "intro": "Dompet ini berada di {network}, jaringan uji: koinnya tidak bernilai.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Masukkan frasa pemulihan untuk mengimpor dompet",
       "fixInvalidWords": "Perbaiki kata yang tidak valid dalam frasa pemulihan Anda",
       "invalidSeedPhrase": "Bukan frasa pemulihan yang valid",
-      "convertTiedCopy": "Dompet \"{name}\" juga memiliki salinan di {network}. Hapus dulu salinan chipnet-nya di Pengaturan > Pengaturan pengembang, lalu konversi.",
+      "convertTiedCopy": "Dompet \"{name}\" juga memiliki salinan di {network}. Hapus dulu salinan chipnet-nya di Lainnya > Pengaturan pengembang, lalu konversi.",
       "cannotConvert": "Dompet \"{name}\" tidak tersimpan sebagai dompet satu alamat yang dapat dikonversi, jadi tidak ada yang diubah",
       "conversionRunning": "Dompet sedang dikonversi",
       "failedToConvert": "Gagal mengonversi dompet \"{name}\"",
@@ -1455,7 +1455,6 @@
     "version": "Versi Aplikasi Cashonize: {version}",
     "latest": "(terbaru)",
     "latestRelease": "(rilis terbaru adalah {version})",
-    "allSettings": "Semua pengaturan",
     "currentWallet": "Dompet saat ini:",
     "menu": {
       "backupWallet": "Cadangkan dompet",
@@ -1480,7 +1479,8 @@
       "aboutCashonize": "Tentang Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identitas",
-      "newCount": "({count} baru) | ({count} baru)"
+      "newCount": "({count} baru) | ({count} baru)",
+      "tokenCreation": "Pembuatan token"
     },
     "localization": {
       "language": "Bahasa:",
