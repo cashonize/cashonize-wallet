@@ -12,7 +12,7 @@
   import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from '../stores/store'
-  import { moreSectionViewBase } from '../stores/constants'
+  import { menuSectionViewBase } from '../stores/constants'
   import { useIdentitiesStore } from '../stores/identitiesStore'
   import { useAppLockStore } from '../stores/appLockStore'
   import { useSettingsStore, removeSettingsMenuKeys } from '../stores/settingsStore'
@@ -48,15 +48,15 @@
   const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
   const applicationVersion = import.meta.env.version
 
-  // Which page under the More page shows, 0 for the page itself. Each is a view of its own, so the
+  // Which page under the menu page shows, 0 for the page itself. Each is a view of its own, so the
   // browser's and the phone's back button lead up a level, as the back row does.
-  type MoreSection = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+  type MenuSection = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   const settingsSection = computed(() => {
     const view = store.displayView ?? 0;
-    return (view >= moreSectionViewBase ? view - moreSectionViewBase : 0) as MoreSection;
+    return (view >= menuSectionViewBase ? view - menuSectionViewBase : 0) as MenuSection;
   });
-  const openSection = (section: MoreSection) => store.changeView(moreSectionViewBase + section);
-  const sectionTitleKeys = ['nav.more', 'settings.menu.backupWallet', 'settings.menu.userOptions',
+  const openSection = (section: MenuSection) => store.changeView(menuSectionViewBase + section);
+  const sectionTitleKeys = ['nav.menu', 'settings.menu.backupWallet', 'settings.menu.userOptions',
     'settings.menu.advancedSettings', 'settings.menu.developerSettings', 'settings.menu.manageWallets',
     'settings.menu.localization', 'settings.menu.tokenSettings', 'settings.menu.dataAndStorage',
     'settings.menu.appearance', 'settings.title', 'settings.menu.tools',
@@ -1095,7 +1095,7 @@
         <MenuRow icon="add_circle" :label="t('settings.menu.createTokens')" :description="t('settings.menu.createTokensDescription')" @click="store.changeView(6)" />
       </div>
     </div>
-    <!-- settingsSection === 0: the More page -->
+    <!-- settingsSection === 0: the menu page -->
     <div v-else class="menu-groups">
       <div class="menu-group">
         <div class="menu-heading">

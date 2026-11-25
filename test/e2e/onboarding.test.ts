@@ -51,7 +51,7 @@ test.afterEach(async () => {
 })
 
 async function shownSeedPhrase(page: Page) {
-  await page.locator('nav').getByLabel('More').click()
+  await page.locator('nav').getByLabel('Menu').click()
   await page.getByText('Backup wallet').click()
   await page.getByRole('button', { name: 'Show seed phrase' }).click()
   const words = await page.locator('.seedphrase-word').evaluateAll(spans =>

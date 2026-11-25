@@ -7,7 +7,7 @@
   import { Notify } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
-  import { moreSectionViewBase } from 'src/stores/constants'
+  import { menuSectionViewBase } from 'src/stores/constants'
   import { useAppLockStore } from 'src/stores/appLockStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { isValidPin, pinMaxLength, pinMinLength } from 'src/utils/appLock'
@@ -22,8 +22,8 @@
     .map(wallet => wallet.name)
     .filter(name => settingsStore.getBackupStatus(name) === 'none'))
   function openBackup() {
-    // the backup page is section 1 of the More page
-    store.changeView(moreSectionViewBase + 1)
+    // the backup page is section 1 of the menu page
+    store.changeView(menuSectionViewBase + 1)
   }
 
   const newPin = ref('')

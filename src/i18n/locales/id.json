@@ -15,7 +15,7 @@
       "somethingWentWrong": "Terjadi kesalahan",
       "amountInvalid": "Ketik jumlah dalam angka, dengan paling banyak satu tanda desimal",
       "amountGrouping": "Ketik jumlah tanpa pemisah ribuan atau spasi",
-      "amountAmbiguous": "Jumlah ini bisa dibaca dengan dua cara: ketik ribuan tanpa pemisah, seperti 1000, dan desimal seperti {example} (atau pilih format angka Anda di Lainnya → Lokalisasi)",
+      "amountAmbiguous": "Jumlah ini bisa dibaca dengan dua cara: ketik ribuan tanpa pemisah, seperti 1000, dan desimal seperti {example} (atau pilih format angka Anda di Menu → Pengaturan → Lokalisasi)",
       "amountWholeOnly": "Ketik bilangan bulat, tanpa pemisah",
       "needToInitializeWallet": "Dompet harus diinisialisasi terlebih dahulu",
       "exchangeRateUnavailable": "Tidak dapat mengambil kurs, permintaan dApp ditolak",
@@ -46,7 +46,7 @@
     "tokens": "Token",
     "history": "Riwayat",
     "connect": "Hubungkan",
-    "more": "Lainnya"
+    "menu": "Menu"
   },
   "networkBadge": {
     "intro": "Dompet ini berada di {network}, jaringan uji: koinnya tidak bernilai.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Masukkan frasa pemulihan untuk mengimpor dompet",
       "fixInvalidWords": "Perbaiki kata yang tidak valid dalam frasa pemulihan Anda",
       "invalidSeedPhrase": "Bukan frasa pemulihan yang valid",
-      "convertTiedCopy": "Dompet \"{name}\" juga memiliki salinan di {network}. Hapus dulu salinan chipnet-nya di Lainnya > Pengaturan pengembang, lalu konversi.",
+      "convertTiedCopy": "Dompet \"{name}\" juga memiliki salinan di {network}. Hapus dulu salinan chipnet-nya di Menu > Pengaturan > Pengaturan pengembang, lalu konversi.",
       "cannotConvert": "Dompet \"{name}\" tidak tersimpan sebagai dompet satu alamat yang dapat dikonversi, jadi tidak ada yang diubah",
       "conversionRunning": "Dompet sedang dikonversi",
       "failedToConvert": "Gagal mengonversi dompet \"{name}\"",
@@ -1223,15 +1223,15 @@
       "losingDevice": {
         "browser": {
           "question": "Apa yang terjadi jika data browser saya dihapus atau perangkat ini hilang?",
-          "answer": "Dompet Anda hanya tersimpan di browser ini. Menghapus data situs di browser akan menghapusnya, begitu juga jika perangkat hilang. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" pada halaman Lainnya."
+          "answer": "Dompet Anda hanya tersimpan di browser ini. Menghapus data situs di browser akan menghapusnya, begitu juga jika perangkat hilang. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" di menu."
         },
         "mobile": {
           "question": "Apa yang terjadi jika ponsel saya hilang atau aplikasinya saya hapus?",
-          "answer": "Dompet Anda hanya tersimpan di ponsel ini. Kehilangan ponsel atau menghapus aplikasi berarti kehilangan dompet. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" pada halaman Lainnya."
+          "answer": "Dompet Anda hanya tersimpan di ponsel ini. Kehilangan ponsel atau menghapus aplikasi berarti kehilangan dompet. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" di menu."
         },
         "desktop": {
           "question": "Apa yang terjadi jika komputer saya rusak atau diganti?",
-          "answer": "Dompet Anda hanya tersimpan di komputer ini. Jika komputer hilang, rusak, atau dihapus isinya, dompet ikut hilang. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" pada halaman Lainnya."
+          "answer": "Dompet Anda hanya tersimpan di komputer ini. Jika komputer hilang, rusak, atau dihapus isinya, dompet ikut hilang. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" di menu."
         }
       },
       "twoAddresses": {
@@ -1614,7 +1614,7 @@
       "navigationHeading": "Navigasi",
       "qrHeading": "Kode QR",
       "addressesInNav": "Tampilkan tab Alamat di navigasi atas",
-      "addressesInNavHint": "Untuk dompet HD, di layar yang cukup lebar. Tanpa tab, halaman Alamat dibuka dari halaman ⋯.",
+      "addressesInNavHint": "Untuk dompet HD, di layar yang cukup lebar. Tanpa tab, halaman Alamat dibuka dari menu ⋯.",
       "followTokenIdentities": "Ikuti identitas token di dompet ini",
       "followTokenIdentitiesHint": "Daftar token di dompet ini dikirim ke server Chaingraph sebagai satu kumpulan, sehingga identitas token yang masuk ke dompet ini terdeteksi dan ditahan. Nonaktif secara default: maka hanya token yang AuthKey-nya dimiliki dompet ini yang identitasnya dicari. Mengaktifkannya akan mencari setiap token di dompet setiap kali dompet dibuka.",
       "allowDappIdentitySpends": "Izinkan aplikasi terhubung membelanjakan UTXO identitas",

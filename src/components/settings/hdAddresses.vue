@@ -233,7 +233,7 @@
 <template>
   <fieldset class="item" style="padding-bottom: 1.5rem;">
     <legend>{{ t('hdAddresses.title') }}</legend>
-    <!-- opened from the More page unless the layout settings make it a tab -->
+    <!-- opened from the menu page unless the layout settings make it a tab -->
     <BackRow v-if="!(settingsStore.addressesInNav && width > addressesNavTabMinWidth)" @click="store.goBack()" />
 
     <div class="control-row">

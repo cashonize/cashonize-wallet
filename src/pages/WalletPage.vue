@@ -32,7 +32,7 @@
   import { appNetworks, storedAppNetwork, walletDbName, type AppNetwork } from 'src/utils/wallet/networks'
   import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
   import { useStore } from 'src/stores/store'
-  import { moreSectionViewBase } from 'src/stores/constants'
+  import { menuSectionViewBase } from 'src/stores/constants'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { Dialog } from 'quasar'
@@ -91,10 +91,10 @@
   // KeepAlive stays mounted permanently so the views are cached regardless of navigation.
   // Settings View re-renders on navigation, a placeholder component used for the KeepAlive
   const emptyView = defineComponent({ render: () => null })
-  // the More page and the pages under it, which the settings menu component renders all of
-  const onMorePage = computed(() => store.displayView === 5 || (store.displayView ?? 0) >= moreSectionViewBase);
+  // the menu page and the pages under it, which the settings menu component renders all of
+  const onMenuPage = computed(() => store.displayView === 5 || (store.displayView ?? 0) >= menuSectionViewBase);
   const currentView = computed(() => {
-    if (onMorePage.value) return emptyView;
+    if (onMenuPage.value) return emptyView;
     switch (store.displayView) {
       case 1: return bchWalletView;
       case 2: return myTokensView;
@@ -286,7 +286,7 @@
       <div v-if="settingsStore.dappActivityInNav" class="nav-dapp-activity">
         <DappActivityButton icon-only />
       </div>
-      <div @click="store.changeView(5)" :class="{ active: onMorePage }" :aria-label="t('nav.more')" style="width: max-content; position: relative;">
+      <div @click="store.changeView(5)" :class="{ active: onMenuPage }" :aria-label="t('nav.menu')" style="width: max-content; position: relative;">
         <q-icon name="more_horiz" size="22px" />
         <span v-if="showNotificationIcon" class="notification-dot" style="top: 8px; right: 6px;"></span>
       </div>
@@ -296,7 +296,7 @@
     <KeepAlive>
       <component :is="currentView" v-bind="viewSpecificProps"/>
     </KeepAlive>
-    <settingsMenu v-if="onMorePage" />
+    <settingsMenu v-if="onMenuPage" />
   </main>
   <nav v-if="navAtBottom" v-show="!textFieldFocused" class="bottom-nav">
     <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }">
@@ -315,12 +315,12 @@
       <q-icon name="sym_o_link" size="24px" style="transform: rotate(-45deg);" />
       <span>{{ t('nav.connect') }}</span>
     </div>
-    <div @click="store.changeView(5)" :class="{ active: onMorePage }">
+    <div @click="store.changeView(5)" :class="{ active: onMenuPage }">
       <span style="position: relative;">
         <q-icon name="more_horiz" size="24px" />
         <span v-if="showNotificationIcon" class="notification-dot" style="top: 0; right: -2px;"></span>
       </span>
-      <span>{{ t('nav.more') }}</span>
+      <span>{{ t('nav.menu') }}</span>
     </div>
   </nav>
 </template>

@@ -15,7 +15,7 @@
       "somethingWentWrong": "Algo deu errado",
       "amountInvalid": "Digite o valor em algarismos, com no máximo um separador decimal",
       "amountGrouping": "Digite o valor sem separadores de milhar nem espaços",
-      "amountAmbiguous": "Este valor pode ser lido de duas formas: digite os milhares sem separador, como 1000, e as casas decimais como {example} (ou escolha o seu formato de números em Mais → Localização)",
+      "amountAmbiguous": "Este valor pode ser lido de duas formas: digite os milhares sem separador, como 1000, e as casas decimais como {example} (ou escolha o seu formato de números em Menu → Configurações → Localização)",
       "amountWholeOnly": "Digite um número inteiro, sem separadores",
       "needToInitializeWallet": "É necessário inicializar uma carteira primeiro",
       "exchangeRateUnavailable": "Não foi possível obter a taxa de câmbio, rejeitando a solicitação da dApp",
@@ -46,7 +46,7 @@
     "tokens": "Tokens",
     "history": "Histórico",
     "connect": "Conectar",
-    "more": "Mais"
+    "menu": "Menu"
   },
   "networkBadge": {
     "intro": "Esta carteira está na {network}, uma rede de teste: as suas moedas não têm valor.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Insira uma seed phrase para importar a carteira",
       "fixInvalidWords": "Por favor, corrija as palavras inválidas na sua seed phrase",
       "invalidSeedPhrase": "Seed phrase inválida",
-      "convertTiedCopy": "A carteira \"{name}\" também tem uma cópia na {network}. Remova primeiro a cópia dela na chipnet em Mais > Configurações de desenvolvedor e depois converta.",
+      "convertTiedCopy": "A carteira \"{name}\" também tem uma cópia na {network}. Remova primeiro a cópia dela na chipnet em Menu > Configurações > Configurações de desenvolvedor e depois converta.",
       "cannotConvert": "A carteira \"{name}\" não está salva como uma carteira de endereço único convertível, então nada foi alterado",
       "conversionRunning": "A carteira já está sendo convertida",
       "failedToConvert": "Falha ao converter a carteira \"{name}\"",
@@ -1223,15 +1223,15 @@
       "losingDevice": {
         "browser": {
           "question": "O que acontece se eu limpar os dados do navegador ou perder este dispositivo?",
-          "answer": "Sua carteira fica guardada apenas neste navegador. Limpar os dados do site no navegador a apaga, assim como perder o dispositivo. A frase semente é a única forma de recuperá-la: ninguém pode redefini-la ou recuperá-la por você, nem a Cashonize. Anote-a agora, em \"Backup da carteira\" na página Mais."
+          "answer": "Sua carteira fica guardada apenas neste navegador. Limpar os dados do site no navegador a apaga, assim como perder o dispositivo. A frase semente é a única forma de recuperá-la: ninguém pode redefini-la ou recuperá-la por você, nem a Cashonize. Anote-a agora, em \"Backup da carteira\" no menu."
         },
         "mobile": {
           "question": "O que acontece se eu perder o celular ou desinstalar o app?",
-          "answer": "Sua carteira fica guardada apenas neste celular. Perder o celular ou desinstalar o app significa perder a carteira. A frase semente é a única forma de recuperá-la: ninguém pode redefini-la ou recuperá-la por você, nem a Cashonize. Anote-a agora, em \"Backup da carteira\" na página Mais."
+          "answer": "Sua carteira fica guardada apenas neste celular. Perder o celular ou desinstalar o app significa perder a carteira. A frase semente é a única forma de recuperá-la: ninguém pode redefini-la ou recuperá-la por você, nem a Cashonize. Anote-a agora, em \"Backup da carteira\" no menu."
         },
         "desktop": {
           "question": "O que acontece se meu computador quebrar ou for trocado?",
-          "answer": "Sua carteira fica guardada apenas neste computador. Se o computador for perdido, quebrar ou for formatado, a carteira vai junto. A frase semente é a única forma de recuperá-la: ninguém pode redefini-la ou recuperá-la por você, nem a Cashonize. Anote-a agora, em \"Backup da carteira\" na página Mais."
+          "answer": "Sua carteira fica guardada apenas neste computador. Se o computador for perdido, quebrar ou for formatado, a carteira vai junto. A frase semente é a única forma de recuperá-la: ninguém pode redefini-la ou recuperá-la por você, nem a Cashonize. Anote-a agora, em \"Backup da carteira\" no menu."
         }
       },
       "twoAddresses": {
@@ -1614,7 +1614,7 @@
       "navigationHeading": "Navegação",
       "qrHeading": "Código QR",
       "addressesInNav": "Mostrar a aba Endereços na navegação superior",
-      "addressesInNavHint": "Para carteiras HD, em ecrãs com largura suficiente. Sem a aba, a página Endereços abre a partir da página ⋯.",
+      "addressesInNavHint": "Para carteiras HD, em ecrãs com largura suficiente. Sem a aba, a página Endereços abre a partir do menu ⋯.",
       "followTokenIdentities": "Seguir as identidades dos tokens desta carteira",
       "followTokenIdentitiesHint": "A lista de tokens desta carteira vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligado por defeito: então só é consultada a identidade de um token cuja AuthKey esta carteira tem. Ligar consulta todos os tokens da carteira em cada abertura da carteira.",
       "allowDappIdentitySpends": "Permitir que apps ligadas gastem UTXOs de identidade",

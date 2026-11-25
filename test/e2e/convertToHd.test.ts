@@ -44,7 +44,7 @@ async function openSingleAddressWallet(page: Page) {
 }
 
 async function openManageWallets(page: Page) {
-  await page.locator('nav').getByLabel('More').click()
+  await page.locator('nav').getByLabel('Menu').click()
   await page.getByText('Manage wallets').click()
 }
 
@@ -59,10 +59,10 @@ test('converts the single address wallet into the HD wallet on the same seed, ke
   await expect(page.locator('.q-notification').getByText('is now an HD wallet')).toBeVisible()
 
   // the Addresses page is there for HD wallets only, and the address stays the single address
-  // its row is on the More page itself, which leaving and coming back to opens
+  // its row is on the menu page itself, which leaving and coming back to opens
   const addressesRow = page.getByRole('button', { name: 'HD Addresses' })
   await page.locator('nav').getByText('Wallet', { exact: true }).click()
-  await page.locator('nav').getByLabel('More').click()
+  await page.locator('nav').getByLabel('Menu').click()
   await expect(addressesRow).toBeVisible()
   await page.locator('nav').getByText('Wallet', { exact: true }).click()
   await expect(page.locator('.depositAddr').first()).toHaveText(firstAddress(MNEMONIC), { timeout: 30_000 })
@@ -70,7 +70,7 @@ test('converts the single address wallet into the HD wallet on the same seed, ke
   // stored as HD: still HD, and still the same address, after a reload
   await page.reload()
   await expect(page.locator('.depositAddr').first()).toHaveText(firstAddress(MNEMONIC), { timeout: 30_000 })
-  await page.locator('nav').getByLabel('More').click()
+  await page.locator('nav').getByLabel('Menu').click()
   await expect(addressesRow).toBeVisible()
   await openManageWallets(page)
   await expect(page.getByText('Current wallet:')).toBeVisible()

@@ -15,7 +15,7 @@
       "somethingWentWrong": "Algo salió mal",
       "amountInvalid": "Escribe el importe en cifras, con como máximo un separador decimal",
       "amountGrouping": "Escribe el importe sin separadores de miles ni espacios",
-      "amountAmbiguous": "Este importe se puede leer de dos maneras: escribe los miles sin separador, como 1000, y los decimales como {example} (o elige tu formato de números en Más → Localización)",
+      "amountAmbiguous": "Este importe se puede leer de dos maneras: escribe los miles sin separador, como 1000, y los decimales como {example} (o elige tu formato de números en Menú → Configuración → Localización)",
       "amountWholeOnly": "Escribe un número entero, sin separadores",
       "needToInitializeWallet": "Necesitas inicializar una billetera primero",
       "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dApp",
@@ -46,7 +46,7 @@
     "tokens": "Tokens",
     "history": "Historial",
     "connect": "Conectar",
-    "more": "Más"
+    "menu": "Menú"
   },
   "networkBadge": {
     "intro": "Esta billetera está en {network}, una red de prueba: sus monedas no tienen valor.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Ingresa una frase de recuperación para importar la billetera",
       "fixInvalidWords": "Por favor corrige las palabras inválidas en tu frase de recuperación",
       "invalidSeedPhrase": "Frase de recuperación no válida",
-      "convertTiedCopy": "La billetera \"{name}\" también tiene una copia en {network}. Primero elimina su copia de chipnet en Más > Configuración de desarrollador y luego conviértela.",
+      "convertTiedCopy": "La billetera \"{name}\" también tiene una copia en {network}. Primero elimina su copia de chipnet en Menú > Configuración > Configuración de desarrollador y luego conviértela.",
       "cannotConvert": "La billetera \"{name}\" no está guardada como una billetera de dirección única convertible, así que no se cambió nada",
       "conversionRunning": "La billetera ya se está convirtiendo",
       "failedToConvert": "Error al convertir la billetera \"{name}\"",
@@ -1223,15 +1223,15 @@
       "losingDevice": {
         "browser": {
           "question": "¿Qué pasa si borro los datos del navegador o pierdo este dispositivo?",
-          "answer": "Tu billetera se guarda solo en este navegador. Borrar los datos del sitio en el navegador la elimina, igual que perder el dispositivo. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en la página Más."
+          "answer": "Tu billetera se guarda solo en este navegador. Borrar los datos del sitio en el navegador la elimina, igual que perder el dispositivo. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en el menú."
         },
         "mobile": {
           "question": "¿Qué pasa si pierdo el teléfono o desinstalo la app?",
-          "answer": "Tu billetera se guarda solo en este teléfono. Perder el teléfono o desinstalar la app significa perder la billetera. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en la página Más."
+          "answer": "Tu billetera se guarda solo en este teléfono. Perder el teléfono o desinstalar la app significa perder la billetera. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en el menú."
         },
         "desktop": {
           "question": "¿Qué pasa si mi ordenador se estropea o lo cambio?",
-          "answer": "Tu billetera se guarda solo en este ordenador. Si el ordenador se pierde, se estropea o se borra, la billetera se va con él. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en la página Más."
+          "answer": "Tu billetera se guarda solo en este ordenador. Si el ordenador se pierde, se estropea o se borra, la billetera se va con él. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en el menú."
         }
       },
       "twoAddresses": {
@@ -1614,7 +1614,7 @@
       "navigationHeading": "Navegación",
       "qrHeading": "Código QR",
       "addressesInNav": "Mostrar la pestaña Direcciones en la navegación superior",
-      "addressesInNavHint": "Para billeteras HD, en pantallas lo bastante anchas. Sin la pestaña, la página Direcciones se abre desde la página ⋯.",
+      "addressesInNavHint": "Para billeteras HD, en pantallas lo bastante anchas. Sin la pestaña, la página Direcciones se abre desde el menú ⋯.",
       "followTokenIdentities": "Seguir las identidades de los tokens de esta billetera",
       "followTokenIdentitiesHint": "La lista de tokens de esta billetera se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivado por defecto: entonces solo se consulta la identidad de un token cuya AuthKey tiene esta billetera. Activarlo consulta todos los tokens de la billetera en cada apertura de la billetera.",
       "allowDappIdentitySpends": "Permitir que las apps conectadas gasten UTXOs de identidad",

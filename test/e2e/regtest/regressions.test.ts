@@ -16,7 +16,7 @@ test('transfer all moves every asset of an HD wallet in its consecutive sends', 
   for (let i = 0; i < 3; i++) await createToken(await tokenDepositAddress(page), { amount: 100n })
   await expectBalance(page, '0.002')
 
-  await page.locator('nav').getByLabel('More').click()
+  await page.locator('nav').getByLabel('Menu').click()
   await page.getByText('Wallet tools').click()
   await page.getByText('Transfer All Assets').first().click()
   await page.getByPlaceholder('Token address to transfer everything to').fill(randomAddress('p2pkhWithTokens'))

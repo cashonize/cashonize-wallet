@@ -15,7 +15,7 @@
       "somethingWentWrong": "Something went wrong",
       "amountInvalid": "Type the amount in digits, with at most one decimal mark",
       "amountGrouping": "Type the amount without thousands separators or spaces",
-      "amountAmbiguous": "This amount can be read two ways: type thousands without a separator, like 1000, and decimals like {example} (or pick your number format under More → Localization)",
+      "amountAmbiguous": "This amount can be read two ways: type thousands without a separator, like 1000, and decimals like {example} (or pick your number format under Menu → Settings → Localization)",
       "amountWholeOnly": "Type a whole number, without separators",
       "needToInitializeWallet": "Need to initialize a wallet first",
       "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dApp request",
@@ -46,7 +46,7 @@
     "tokens": "Tokens",
     "history": "History",
     "connect": "Connect",
-    "more": "More"
+    "menu": "Menu"
   },
   "networkBadge": {
     "intro": "This wallet is on {network}, a test network: its coins have no value.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Enter a seed phrase to import wallet",
       "fixInvalidWords": "Please fix invalid words in your seed phrase",
       "invalidSeedPhrase": "Not a valid seed phrase",
-      "convertTiedCopy": "Wallet \"{name}\" also has a copy on {network}. Remove its chipnet copy under More > Developer settings first, then convert.",
+      "convertTiedCopy": "Wallet \"{name}\" also has a copy on {network}. Remove its chipnet copy under Menu > Settings > Developer settings first, then convert.",
       "cannotConvert": "Wallet \"{name}\" is not stored as a single address wallet that can be converted, so nothing was changed",
       "conversionRunning": "The wallet is already being converted",
       "failedToConvert": "Failed to convert wallet \"{name}\"",
@@ -1223,15 +1223,15 @@
       "losingDevice": {
         "browser": {
           "question": "What happens if I clear my browser data or lose this device?",
-          "answer": "Your wallet is stored only in this browser. Clearing the browser's site data deletes it, and so does losing the device. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" on the More page."
+          "answer": "Your wallet is stored only in this browser. Clearing the browser's site data deletes it, and so does losing the device. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" in the menu."
         },
         "mobile": {
           "question": "What happens if I lose my phone or uninstall the app?",
-          "answer": "Your wallet is stored only on this phone. Losing the phone or uninstalling the app means losing the wallet. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" on the More page."
+          "answer": "Your wallet is stored only on this phone. Losing the phone or uninstalling the app means losing the wallet. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" in the menu."
         },
         "desktop": {
           "question": "What happens if my computer breaks or gets replaced?",
-          "answer": "Your wallet is stored only on this computer. If the computer is lost, broken or wiped, the wallet goes with it. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" on the More page."
+          "answer": "Your wallet is stored only on this computer. If the computer is lost, broken or wiped, the wallet goes with it. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" in the menu."
         }
       },
       "twoAddresses": {
@@ -1614,7 +1614,7 @@
       "navigationHeading": "Navigation",
       "qrHeading": "QR code",
       "addressesInNav": "Show the Addresses tab in the top navigation",
-      "addressesInNavHint": "For HD wallets, on screens wide enough for it. Without the tab, the Addresses page opens from the ⋯ page.",
+      "addressesInNavHint": "For HD wallets, on screens wide enough for it. Without the tab, the Addresses page opens from the ⋯ menu.",
       "followTokenIdentities": "Follow the identities of the tokens in this wallet",
       "followTokenIdentitiesHint": "The list of tokens in this wallet goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every token in the wallet at every wallet open.",
       "allowDappIdentitySpends": "Let connected apps spend identity UTXOs",

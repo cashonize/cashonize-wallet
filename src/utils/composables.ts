@@ -7,7 +7,7 @@ interface UseWindowSizeReturn {
 }
 
 // Above this window width the nav has room for an Addresses tab for HD wallets, which the layout
-// settings turn on; without the tab the More page links to the same view
+// settings turn on; without the tab the menu page links to the same view
 export const addressesNavTabMinWidth = 450;
 
 // Minimal useWindowSize, adapted from @vueuse/core

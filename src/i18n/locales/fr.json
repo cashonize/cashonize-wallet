@@ -15,7 +15,7 @@
       "somethingWentWrong": "Une erreur s'est produite",
       "amountInvalid": "Saisissez le montant en chiffres, avec au plus un séparateur décimal",
       "amountGrouping": "Saisissez le montant sans séparateur de milliers ni espace",
-      "amountAmbiguous": "Ce montant peut se lire de deux façons : saisissez les milliers sans séparateur, comme 1000, et les décimales comme {example} (ou choisissez votre format des nombres dans Plus → Localisation)",
+      "amountAmbiguous": "Ce montant peut se lire de deux façons : saisissez les milliers sans séparateur, comme 1000, et les décimales comme {example} (ou choisissez votre format des nombres dans Menu → Paramètres → Localisation)",
       "amountWholeOnly": "Saisissez un nombre entier, sans séparateur",
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
       "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dApp",
@@ -46,7 +46,7 @@
     "tokens": "Tokens",
     "history": "Historique",
     "connect": "Connecter",
-    "more": "Plus"
+    "menu": "Menu"
   },
   "networkBadge": {
     "intro": "Ce portefeuille est sur {network}, un réseau de test : ses pièces n'ont aucune valeur.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Entrez une phrase de récupération pour importer le portefeuille",
       "fixInvalidWords": "Veuillez corriger les mots invalides dans votre phrase de récupération",
       "invalidSeedPhrase": "Phrase de récupération invalide",
-      "convertTiedCopy": "Le portefeuille « {name} » a aussi une copie sur {network}. Supprimez d'abord sa copie chipnet dans Plus > Paramètres développeur, puis convertissez.",
+      "convertTiedCopy": "Le portefeuille « {name} » a aussi une copie sur {network}. Supprimez d'abord sa copie chipnet dans Menu > Paramètres > Paramètres développeur, puis convertissez.",
       "cannotConvert": "Le portefeuille « {name} » n'est pas enregistré comme un portefeuille à adresse unique convertible, rien n'a donc été modifié",
       "conversionRunning": "Le portefeuille est déjà en cours de conversion",
       "failedToConvert": "Échec de la conversion du portefeuille « {name} »",
@@ -1223,15 +1223,15 @@
       "losingDevice": {
         "browser": {
           "question": "Que se passe-t-il si j'efface les données de mon navigateur ou si je perds cet appareil ?",
-          "answer": "Votre portefeuille n'est stocké que dans ce navigateur. Effacer les données de site du navigateur le supprime, tout comme la perte de l'appareil. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » sur la page Plus."
+          "answer": "Votre portefeuille n'est stocké que dans ce navigateur. Effacer les données de site du navigateur le supprime, tout comme la perte de l'appareil. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » dans le menu."
         },
         "mobile": {
           "question": "Que se passe-t-il si je perds mon téléphone ou si je désinstalle l'application ?",
-          "answer": "Votre portefeuille n'est stocké que sur ce téléphone. Perdre le téléphone ou désinstaller l'application, c'est perdre le portefeuille. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » sur la page Plus."
+          "answer": "Votre portefeuille n'est stocké que sur ce téléphone. Perdre le téléphone ou désinstaller l'application, c'est perdre le portefeuille. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » dans le menu."
         },
         "desktop": {
           "question": "Que se passe-t-il si mon ordinateur tombe en panne ou est remplacé ?",
-          "answer": "Votre portefeuille n'est stocké que sur cet ordinateur. Si l'ordinateur est perdu, en panne ou réinitialisé, le portefeuille disparaît avec lui. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » sur la page Plus."
+          "answer": "Votre portefeuille n'est stocké que sur cet ordinateur. Si l'ordinateur est perdu, en panne ou réinitialisé, le portefeuille disparaît avec lui. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » dans le menu."
         }
       },
       "twoAddresses": {
@@ -1614,7 +1614,7 @@
       "navigationHeading": "Navigation",
       "qrHeading": "Code QR",
       "addressesInNav": "Afficher l'onglet Adresses dans la navigation supérieure",
-      "addressesInNavHint": "Pour les portefeuilles HD, sur les écrans assez larges. Sans l'onglet, la page Adresses s'ouvre depuis la page ⋯.",
+      "addressesInNavHint": "Pour les portefeuilles HD, sur les écrans assez larges. Sans l'onglet, la page Adresses s'ouvre depuis le menu ⋯.",
       "followTokenIdentities": "Suivre les identités des tokens de ce portefeuille",
       "followTokenIdentitiesHint": "La liste des tokens de ce portefeuille est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens du portefeuille à chaque ouverture du portefeuille.",
       "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",

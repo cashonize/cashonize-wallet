@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  // One row of the More page and the pages under it: where it leads, with an optional line on
+  // One row of the menu page and the pages under it: where it leads, with an optional line on
   // what is there. The slot carries what needs attention there.
   defineProps<{ label: string, icon: string, description?: string }>()
 </script>

@@ -135,7 +135,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const enableAddressMarking = ref(false);
   // the dapp activity log opens from the dapp sessions; this adds its icon to the top nav as well
   const dappActivityInNav = ref(false);
-  // an HD wallet's Addresses page as a tab of the top nav; without it the page opens from the More page
+  // an HD wallet's Addresses page as a tab of the top nav; without it the page opens from the menu page
   const addressesInNav = ref(false);
   // the main tabs in a bar at the bottom of the screen, within thumb reach, on narrow screens only;
   // on by default in the Android app, where tablets keep the top nav by being wider

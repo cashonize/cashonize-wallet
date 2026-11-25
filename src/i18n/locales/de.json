@@ -15,7 +15,7 @@
       "somethingWentWrong": "Etwas ist schiefgelaufen",
       "amountInvalid": "Gib den Betrag in Ziffern ein, mit höchstens einem Dezimaltrennzeichen",
       "amountGrouping": "Gib den Betrag ohne Tausendertrennzeichen oder Leerzeichen ein",
-      "amountAmbiguous": "Dieser Betrag ist mehrdeutig: Tausender ohne Trennzeichen eingeben, z. B. 1000, und Dezimalstellen wie {example} (oder wähle dein Zahlenformat unter Mehr → Lokalisierung)",
+      "amountAmbiguous": "Dieser Betrag ist mehrdeutig: Tausender ohne Trennzeichen eingeben, z. B. 1000, und Dezimalstellen wie {example} (oder wähle dein Zahlenformat unter Menü → Einstellungen → Lokalisierung)",
       "amountWholeOnly": "Gib eine ganze Zahl ohne Trennzeichen ein",
       "needToInitializeWallet": "Zuerst muss ein Wallet initialisiert werden",
       "exchangeRateUnavailable": "Wechselkurs konnte nicht abgerufen werden, dApp-Anfrage wird abgelehnt",
@@ -46,7 +46,7 @@
     "tokens": "Tokens",
     "history": "Historie",
     "connect": "Verbinden",
-    "more": "Mehr"
+    "menu": "Menü"
   },
   "networkBadge": {
     "intro": "Diese Wallet ist auf {network}, einem Testnetzwerk: Ihre Coins haben keinen Wert.",
@@ -68,7 +68,7 @@
       "enterSeedPhrase": "Gib eine seed phrase ein, um ein Wallet zu importieren",
       "fixInvalidWords": "Bitte korrigiere ungültige Wörter in deiner seed phrase",
       "invalidSeedPhrase": "Keine gültige seed phrase",
-      "convertTiedCopy": "Wallet \"{name}\" hat noch eine Kopie auf {network}. Entferne zuerst seine Chipnet-Kopie unter Mehr > Entwicklereinstellungen und wandle es dann um.",
+      "convertTiedCopy": "Wallet \"{name}\" hat noch eine Kopie auf {network}. Entferne zuerst seine Chipnet-Kopie unter Menü > Einstellungen > Entwicklereinstellungen und wandle es dann um.",
       "cannotConvert": "Wallet \"{name}\" ist nicht als umwandelbares Wallet mit Einzeladresse gespeichert, daher wurde nichts geändert",
       "conversionRunning": "Das Wallet wird bereits umgewandelt",
       "failedToConvert": "Wallet \"{name}\" konnte nicht umgewandelt werden",
@@ -1223,15 +1223,15 @@
       "losingDevice": {
         "browser": {
           "question": "Was passiert, wenn ich meine Browserdaten lösche oder dieses Gerät verliere?",
-          "answer": "Dein Wallet ist nur in diesem Browser gespeichert. Das Löschen der Websitedaten des Browsers löscht es, ebenso der Verlust des Geräts. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ auf der Seite „Mehr“."
+          "answer": "Dein Wallet ist nur in diesem Browser gespeichert. Das Löschen der Websitedaten des Browsers löscht es, ebenso der Verlust des Geräts. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ im Menü."
         },
         "mobile": {
           "question": "Was passiert, wenn ich mein Handy verliere oder die App deinstalliere?",
-          "answer": "Dein Wallet ist nur auf diesem Handy gespeichert. Wer das Handy verliert oder die App deinstalliert, verliert das Wallet. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ auf der Seite „Mehr“."
+          "answer": "Dein Wallet ist nur auf diesem Handy gespeichert. Wer das Handy verliert oder die App deinstalliert, verliert das Wallet. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ im Menü."
         },
         "desktop": {
           "question": "Was passiert, wenn mein Computer kaputtgeht oder ersetzt wird?",
-          "answer": "Dein Wallet ist nur auf diesem Computer gespeichert. Geht der Computer verloren, kaputt oder wird er zurückgesetzt, ist auch das Wallet weg. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ auf der Seite „Mehr“."
+          "answer": "Dein Wallet ist nur auf diesem Computer gespeichert. Geht der Computer verloren, kaputt oder wird er zurückgesetzt, ist auch das Wallet weg. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ im Menü."
         }
       },
       "twoAddresses": {
@@ -1614,7 +1614,7 @@
       "navigationHeading": "Navigation",
       "qrHeading": "QR-Code",
       "addressesInNav": "Den Tab „Adressen“ in der oberen Navigation anzeigen",
-      "addressesInNavHint": "Für HD-Wallets, auf ausreichend breiten Bildschirmen. Ohne den Tab öffnet sich die Adressen-Seite über die ⋯-Seite.",
+      "addressesInNavHint": "Für HD-Wallets, auf ausreichend breiten Bildschirmen. Ohne den Tab öffnet sich die Adressen-Seite über das ⋯-Menü.",
       "followTokenIdentities": "Die Identitäten der Tokens in diesem Wallet verfolgen",
       "followTokenIdentitiesHint": "Die Liste der Tokens in diesem Wallet geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Standardmäßig aus: dann wird nur die Identität eines Tokens nachgeschlagen, dessen AuthKey dieses Wallet hält. Einschalten schlägt bei jedem Öffnen des Wallets jeden Token im Wallet nach.",
       "allowDappIdentitySpends": "Verbundene Apps dürfen Identitäts-UTXOs ausgeben",

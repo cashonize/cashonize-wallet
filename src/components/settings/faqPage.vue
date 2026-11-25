@@ -13,7 +13,7 @@
   if (import.meta.env.QUASAR_CAPACITOR_MODE) losingDeviceVariant = 'losingDevice.mobile'
   if (import.meta.env.QUASAR_ELECTRON_MODE) losingDeviceVariant = 'losingDevice.desktop'
 
-  // `tool` is the view an answer sends the reader to, named by its More page label
+  // `tool` is the view an answer sends the reader to, named by its menu page label
   const questions = [
     { id: losingDeviceVariant },
     { id: 'twoAddresses' },

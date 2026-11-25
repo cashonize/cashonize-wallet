@@ -74,7 +74,7 @@
 </template>
 
 <style scoped>
-/* the same narrow column as the More page it is opened from */
+/* the same narrow column as the menu page it is opened from */
 .about {
   max-width: 560px;
 }
@@ -98,7 +98,7 @@
   border-radius: 8px;
   overflow: hidden;
 }
-/* rows like the More page's, as links out of the app */
+/* rows like the menu page's, as links out of the app */
 .about-links a {
   display: flex;
   align-items: center;
