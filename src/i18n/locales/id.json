@@ -911,18 +911,8 @@
       "title": "Ikhtisar: UTXO token per kategori",
       "empty": "Dompet ini tidak memiliki UTXO token."
     },
-    "fungibleList": {
-      "title": "UTXO token fungible",
-      "empty": "Dompet ini tidak memiliki UTXO token fungible."
-    },
-    "nftList": {
-      "title": "UTXO NFT",
-      "empty": "Dompet ini tidak memiliki UTXO NFT."
-    },
-    "ftNftList": {
-      "title": "UTXO token fungible + NFT",
-      "empty": "Dompet ini tidak memiliki UTXO yang sekaligus menyimpan jumlah fungible dan NFT."
-    },
+    "searchPlaceholder": "Cari UTXO...",
+    "noMatch": "Tidak ada UTXO yang cocok dengan pencarian",
     "reservedSummary": "{count} UTXO ditahan, tidak dihitung dalam saldo yang dapat dibelanjakan | {count} UTXO ditahan, tidak dihitung dalam saldo yang dapat dibelanjakan",
     "reservedTokenSummary": "{count} UTXO token ditahan, tidak diikutkan dalam setiap transfer yang dibuat aplikasi ini | {count} UTXO token ditahan, tidak diikutkan dalam setiap transfer yang dibuat aplikasi ini",
     "freeze": {
@@ -963,7 +953,6 @@
       "oneUtxo": "hanya 1"
     },
     "combined": {
-      "title": "UTXO Gabungan BCH + Token",
       "description": "Beberapa dApp mengembalikan UTXO yang menggabungkan BCH dengan token, sehingga BCH tersebut tidak muncul di saldo Anda.",
       "warningCount": "{count} UTXO dengan gabungan BCH + Token | {count} UTXO dengan gabungan BCH + Token",
       "warningCountSingle": "{count} UTXO dengan gabungan BCH + Token",
@@ -971,7 +960,6 @@
       "splittableAmount": "Anda memiliki {bch} BCH yang dapat dipisahkan dari UTXO token.",
       "nftNote": "Catatan: Alat ini hanya dapat memisahkan BCH dari UTXO token fungible, bukan NFT.",
       "viewAffected": "Lihat UTXO yang terdampak",
-      "noIssues": "Anda tidak memiliki UTXO seperti itu",
       "splittingButton": "Memisahkan...",
       "splitButton": "Pisahkan BCH dari Token"
     },
@@ -987,7 +975,11 @@
       "label": "Label",
       "address": "Alamat",
       "utxoCount": "UTXO",
-      "bchHeld": "BCH disimpan"
+      "bchHeld": "BCH disimpan",
+      "tokenId": "Id token",
+      "commitment": "Commitment",
+      "outpoint": "Outpoint",
+      "outpointHint": "Id transaksi dan nomor output (txid:vout) yang mengidentifikasi UTXO ini"
     },
     "notifications": {
       "consolidating": "Mengonsolidasi UTXO BCH...",

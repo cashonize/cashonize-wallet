@@ -2,7 +2,7 @@
   import BackRow from 'src/components/general/BackRow.vue'
   import { computed, nextTick, ref, watch } from 'vue';
   import { formatDecimal } from 'src/utils/numberFormat';
-  import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, formatNumber, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateHash } from 'src/utils/utils';
+  import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, formatNumber, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateAddressBody, truncateHash } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
   import InfoPopup from 'src/components/general/InfoPopup.vue';
   import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue';
@@ -11,6 +11,7 @@
   import { HDWallet, TokenSendRequest } from '@cashonize/bch-wallet-lib';
   import type { Utxo } from '@cashonize/bch-wallet-lib';
   import { isFeatureReservation, outpointOf } from 'src/utils/wallet/reservedUtxos';
+  import { toTokenAddress } from 'src/utils/addressValidation';
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels';
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { displayAndLogError } from 'src/utils/errorHandling';
@@ -39,21 +40,63 @@
   // Consolidating spends utxos from every address at once, which only links addresses on HD wallets
   const isHdWallet = computed(() => store._wallet instanceof HDWallet);
 
-  // The utxos are listed per kind, because what there is to see about one differs per kind: a
-  // fungible amount, an NFT capability and commitment, or both at once. Largest BCH amount first
-  // throughout, so every list reads as what a spend would reach for and what holds the BCH.
+  // One list per half. Largest BCH amount first, so each reads as what a spend would reach for
+  // and what holds the BCH; token coins mostly hold the same dust, so those of one token follow
+  // each other after that.
   const utxoLists = computed(() => {
     if (!store.walletUtxos) return undefined;
     // safe to sort in place, every array here is a fresh result of filter()
-    const largestFirst = (utxos: Utxo[]) => utxos.sort((left, right) => Number(right.satoshis - left.satoshis));
-    return {
-      bch: largestFirst(store.walletUtxos.filter(utxo => !utxo.token)),
-      fungible: largestFirst(store.walletUtxos.filter(utxo => utxo.token?.amount && !utxo.token.nft)),
-      nft: largestFirst(store.walletUtxos.filter(utxo => utxo.token?.nft && !utxo.token.amount)),
-      ftNft: largestFirst(store.walletUtxos.filter(utxo => utxo.token?.amount && utxo.token.nft)),
-    };
+    const bch = store.walletUtxos.filter(utxo => !utxo.token)
+      .sort((left, right) => Number(right.satoshis - left.satoshis));
+    const tokens = store.walletUtxos.filter(utxo => utxo.token).sort((left, right) =>
+      Number(right.satoshis - left.satoshis) || tokenName(left.token!.category).localeCompare(tokenName(right.token!.category))
+    );
+    return { bch, tokens };
   });
   type UtxoList = keyof NonNullable<typeof utxoLists.value>;
+
+  // The search runs over both halves, the kind filter over the token coins only. A coin holding
+  // a fungible amount and an NFT at once is listed under both kinds.
+  const searchQuery = ref('');
+  const tokenKindFilter = ref<'all' | 'fungibles' | 'nfts'>('all');
+  const tokenKindOptions = [
+    { value: 'all', label: 'tokens.typeFilter.all' },
+    { value: 'fungibles', label: 'tokens.typeFilter.fungibles' },
+    { value: 'nfts', label: 'tokens.typeFilter.nfts' },
+  ] as const;
+
+  // What a coin can be found by: where it is, what it holds and what the user called it. Built
+  // once per set of coins rather than on every keystroke.
+  const searchTexts = computed(() => {
+    const texts = new Map<string, string>();
+    for (const utxo of store.walletUtxos ?? []) {
+      const outpoint = outpointOf(utxo);
+      const fields = [utxo.address, toTokenAddress(utxo.address), outpoint, store.utxoLabels[outpoint]];
+      if (utxo.token) {
+        const metadata = store.bcmrRegistries?.[utxo.token.category];
+        fields.push(utxo.token.category, metadata?.name, metadata?.token?.symbol, utxo.token.nft?.commitment);
+      }
+      texts.set(outpoint, fields.filter(Boolean).join(' ').toLowerCase());
+    }
+    return texts;
+  });
+
+  const shownLists = computed(() => {
+    if (!utxoLists.value) return undefined;
+    let tokens = utxoLists.value.tokens;
+    if (tokenKindFilter.value === 'fungibles') tokens = tokens.filter(utxo => utxo.token?.amount);
+    if (tokenKindFilter.value === 'nfts') tokens = tokens.filter(utxo => utxo.token?.nft);
+    const query = searchQuery.value.toLowerCase().trim();
+    if (!query) return { bch: utxoLists.value.bch, tokens };
+    const matches = (utxo: Utxo) => searchTexts.value.get(outpointOf(utxo))?.includes(query);
+    return { bch: utxoLists.value.bch.filter(matches), tokens: tokens.filter(matches) };
+  });
+
+  // The row's first line differs per kind: a fungible amount, an NFT, or both
+  function tokenKind(utxo: Utxo) {
+    if (utxo.token?.amount && utxo.token.nft) return 'ftNft';
+    return utxo.token?.amount ? 'fungible' : 'nft';
+  }
 
   const bchUtxoCount = computed(() => utxoLists.value?.bch.length);
 
@@ -66,8 +109,7 @@
   const heldBchCount = computed(() => utxoLists.value?.bch.filter(reservationReason).length);
   const heldTokenCount = computed(() => {
     if (!utxoLists.value) return undefined;
-    const tokenUtxos = [...utxoLists.value.fungible, ...utxoLists.value.nft, ...utxoLists.value.ftNft];
-    return tokenUtxos.filter(reservationReason).length;
+    return utxoLists.value.tokens.filter(reservationReason).length;
   });
   const heldByFeature = (utxo: Utxo) => isFeatureReservation(reservationReason(utxo));
 
@@ -90,7 +132,7 @@
 
   // A row's label line only exists while it has a label or its editor is open, so the menu
   // action first brings the line into the DOM and then opens its editor by ref: the editor
-  // itself on a grid row, the token row on the two-line lists, which forwards to its editor
+  // itself on a grid row, the token row on the two-line list, which forwards to its editor
   const labelEditingOutpoint = ref<string | null>(null);
   interface LabelEditor { startEdit: () => Promise<void> }
   const labelEditRefs: Record<string, LabelEditor | null> = {};
@@ -157,30 +199,34 @@
   // fetched after the utxos, and it carries the decimals a fungible amount is shown in
   const loadingTokenData = computed(() => !store.tokenMetadataLoaded);
 
-  // the per-category overview has nothing to act on, so it opens closed like the token lists
-  const collapsedLists = ref({ bch: false, tokens: true, fungible: true, nft: true, ftNft: true });
-  const listPages = ref<Record<UtxoList, number>>({ bch: 1, fungible: 1, nft: 1, ftNft: 1 });
+  // the per-category overview has nothing to act on, so it opens closed
+  const collapsedLists = ref({ bch: false, tokens: true });
+  const listPages = ref<Record<UtxoList, number>>({ bch: 1, tokens: 1 });
 
   function toggleList(key: keyof typeof collapsedLists.value) {
     collapsedLists.value[key] = !collapsedLists.value[key];
   }
 
   function pageCount(list: UtxoList) {
-    return Math.ceil((utxoLists.value?.[list].length ?? 0) / utxosPerPage);
+    return Math.ceil((shownLists.value?.[list].length ?? 0) / utxosPerPage);
   }
   function pageOf(list: UtxoList) {
     const start = (listPages.value[list] - 1) * utxosPerPage;
-    return utxoLists.value?.[list].slice(start, start + utxosPerPage);
+    return shownLists.value?.[list].slice(start, start + utxosPerPage);
   }
   function rowNumber(list: UtxoList, index: number) {
     return (listPages.value[list] - 1) * utxosPerPage + index + 1;
   }
 
   // Consolidating or splitting shortens a list, which can leave its pager past the last page
-  watch(utxoLists, () => {
+  watch(shownLists, () => {
     for (const list of Object.keys(listPages.value) as UtxoList[]) {
       if (listPages.value[list] > pageCount(list)) listPages.value[list] = 1;
     }
+  });
+  // a narrowed list is read from its start
+  watch([searchQuery, tokenKindFilter], () => {
+    listPages.value = { bch: 1, tokens: 1 };
   });
 
   const utxosWithBchAndTokens = computed(() => {
@@ -245,12 +291,6 @@
     // Categories holding the most BCH first, those are the ones worth acting on
     return Object.values(groups).sort((a, b) => Number(b.satoshis - a.satoshis) || b.utxoCount - a.utxoCount);
   });
-
-  // The prefix is the same for every row, only the body distinguishes the addresses
-  function truncateAddress(address: string) {
-    const body = address.split(':')[1] ?? address;
-    return body.slice(0, 6) + '...' + body.slice(-6);
-  }
 
   function tokenName(category: string) {
     return store.bcmrRegistries?.[category]?.name || truncateHash(category, 8, 6);
@@ -377,14 +417,25 @@
     </div>
 
     <!-- Asset kind, each half carries its own maintenance action and lists -->
-    <div class="type-filter">
-      <button :class="{ active: activeFilter === 'bch' }" @click="activeFilter = 'bch'">
-        {{ t('utxoManagement.filters.bch') }}
-      </button>
-      <button :class="{ active: activeFilter === 'tokens' }" @click="activeFilter = 'tokens'">
-        {{ t('utxoManagement.filters.tokens') }}
-        <span v-if="utxosWithBchAndTokens?.length" class="pill-marker">!</span>
-      </button>
+    <div class="control-row">
+      <div class="type-filter">
+        <button :class="{ active: activeFilter === 'bch' }" @click="activeFilter = 'bch'">
+          {{ t('utxoManagement.filters.bch') }}
+        </button>
+        <button :class="{ active: activeFilter === 'tokens' }" @click="activeFilter = 'tokens'">
+          {{ t('utxoManagement.filters.tokens') }}
+          <span v-if="utxosWithBchAndTokens?.length" class="pill-marker">!</span>
+        </button>
+      </div>
+      <input
+        v-model="searchQuery"
+        type="text"
+        class="search-input"
+        :placeholder="t('utxoManagement.searchPlaceholder')"
+        autocomplete="off"
+        autocapitalize="none"
+        spellcheck="false"
+      >
     </div>
 
     <div v-if="activeFilter === 'bch' && loadingUtxos" class="loading-state">
@@ -401,11 +452,12 @@
       <div class="section">
         <div class="list-header" @click="toggleList('bch')">
           <strong>{{ t('utxoManagement.bchList.title') }}</strong>
-          <span v-if="bchUtxoCount !== undefined">({{ formatDecimal(bchUtxoCount) }})</span>
+          <span v-if="shownLists">({{ formatDecimal(shownLists.bch.length) }})</span>
           <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.bch }" />
         </div>
         <template v-if="!collapsedLists.bch">
           <div v-if="bchUtxoCount === 0" class="description">{{ t('utxoManagement.bchList.empty') }}</div>
+          <div v-else-if="shownLists?.bch.length === 0" class="description">{{ t('utxoManagement.noMatch') }}</div>
           <div v-else class="utxo-grid" :class="isHdWallet ? 'grid-bch-hd' : 'grid-bch'">
             <div class="utxo-row heading">
               <span>{{ t('utxoManagement.tableHeaders.number') }}</span>
@@ -428,11 +480,14 @@
               </div>
               <div v-if="isHdWallet" class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.address') }}</span>
-                <span class="mono muted">{{ truncateAddress(utxo.address) }}</span>
+                <!-- .stop so copying does not also open the row's actions -->
+                <span class="copy-target" :title="utxo.address" @click.stop="copyToClipboard(utxo.address)">
+                  <span class="mono muted">{{ truncateAddressBody(utxo.address) }}</span>
+                  <img class="copyIcon" src="images/copyGrey.svg">
+                </span>
               </div>
               <div class="cell">
                 <span class="cell-label">{{ t('utxoManagement.tableHeaders.txId') }}</span>
-                <!-- .stop so copying the txid does not also open the row's actions -->
                 <span class="copy-target" :title="utxo.txid" @click.stop="copyToClipboard(utxo.txid)">
                   <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}</span>
                   <img class="copyIcon" src="images/copyGrey.svg">
@@ -533,8 +588,10 @@
     </template>
 
     <template v-else>
-      <div class="section">
-        <div v-if="affectedUtxos?.length">
+      <!-- BCH sitting on token coins is the one thing to act on here, so the warning and the
+           per-token overview that shows where it sits only appear when there is some -->
+      <div v-if="affectedUtxos?.length" class="section">
+        <div>
           <div class="status-line text-warning">
             <span class="status-icon">!</span>
             <span>{{ affectedUtxos.length > 1 ? t('utxoManagement.combined.warningCountPlural', { count: affectedUtxos.length }) : t('utxoManagement.combined.warningCountSingle', { count: affectedUtxos.length }) }}</span>
@@ -609,19 +666,9 @@
           >
         </div>
 
-        <div v-else-if="store.walletUtxos">
-          <div><strong>{{ t('utxoManagement.combined.title') }}</strong></div>
-          <div class="description">
-            {{ t('utxoManagement.combined.description') }}
-          </div>
-          <div class="status-line text-verified">
-            <span class="status-icon">✓</span>
-            <span>{{ t('utxoManagement.combined.noIssues') }}</span>
-          </div>
-        </div>
       </div>
 
-      <div class="section divided">
+      <div v-if="affectedUtxos?.length" class="section divided">
         <div class="list-header" @click="toggleList('tokens')">
           <strong>{{ t('utxoManagement.tokenList.title') }}</strong>
           <span v-if="tokenCategoryGroups">({{ formatDecimal(tokenCategoryGroups.length) }})</span>
@@ -665,113 +712,48 @@
         </template>
       </div>
 
-      <div class="section divided">
-        <div class="list-header" @click="toggleList('fungible')">
-          <strong>{{ t('utxoManagement.fungibleList.title') }}</strong>
-          <span v-if="utxoLists">({{ formatDecimal(utxoLists.fungible.length) }})</span>
-          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.fungible }" />
-        </div>
-        <template v-if="!collapsedLists.fungible">
-          <div v-if="utxoLists?.fungible.length === 0" class="description">{{ t('utxoManagement.fungibleList.empty') }}</div>
-          <div v-else class="utxo-lines">
-            <tokenUtxoRow
-              v-for="utxo in pageOf('fungible')"
-              :key="utxo.txid + ':' + utxo.vout"
-              :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
-              :utxo="utxo"
-              kind="fungible"
-              :holds-significant-bch="utxo.satoshis > significantBchOnTokenUtxo"
-              :editing-label="labelEditingOutpoint === outpointOf(utxo)"
-              @toggle-freeze="toggleFreeze(utxo)"
-              @edit-label="queueLabelEdit(utxo)"
-              @menu-hidden="onMenuHidden"
-              @save-label="(label) => saveLabel(utxo, label)"
-              @cancel-label="labelEditingOutpoint = null"
-            />
+      <div class="section closing" :class="{ divided: affectedUtxos?.length }">
+        <div class="token-list-header">
+          <strong>{{ t('utxoManagement.stats.tokenUtxos') }}</strong>
+          <span v-if="shownLists">({{ formatDecimal(shownLists.tokens.length) }})</span>
+          <div class="type-filter kind-filter">
+            <button
+              v-for="option in tokenKindOptions"
+              :key="option.value"
+              :class="{ active: tokenKindFilter === option.value }"
+              @click="tokenKindFilter = option.value"
+            >{{ t(option.label) }}</button>
           </div>
-          <q-pagination
-            v-if="pageCount('fungible') > 1"
-            v-model="listPages.fungible"
-            :max="pageCount('fungible')"
-            input
-            direction-links
-            color="primary"
-            class="pager"
-          />
-        </template>
-      </div>
-
-      <div class="section divided">
-        <div class="list-header" @click="toggleList('nft')">
-          <strong>{{ t('utxoManagement.nftList.title') }}</strong>
-          <span v-if="utxoLists">({{ formatDecimal(utxoLists.nft.length) }})</span>
-          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.nft }" />
         </div>
-        <template v-if="!collapsedLists.nft">
-          <div v-if="utxoLists?.nft.length === 0" class="description">{{ t('utxoManagement.nftList.empty') }}</div>
-          <div v-else class="utxo-lines">
-            <tokenUtxoRow
-              v-for="utxo in pageOf('nft')"
-              :key="utxo.txid + ':' + utxo.vout"
-              :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
-              :utxo="utxo"
-              kind="nft"
-              :holds-significant-bch="utxo.satoshis > significantBchOnTokenUtxo"
-              :editing-label="labelEditingOutpoint === outpointOf(utxo)"
-              @toggle-freeze="toggleFreeze(utxo)"
-              @edit-label="queueLabelEdit(utxo)"
-              @menu-hidden="onMenuHidden"
-              @save-label="(label) => saveLabel(utxo, label)"
-              @cancel-label="labelEditingOutpoint = null"
-            />
-          </div>
-          <q-pagination
-            v-if="pageCount('nft') > 1"
-            v-model="listPages.nft"
-            :max="pageCount('nft')"
-            input
-            direction-links
-            color="primary"
-            class="pager"
+        <div v-if="utxoLists?.tokens.length === 0" class="description">{{ t('utxoManagement.tokenList.empty') }}</div>
+        <div v-else-if="shownLists?.tokens.length === 0" class="description">{{ t('utxoManagement.noMatch') }}</div>
+        <div v-else class="utxo-lines">
+          <tokenUtxoRow
+            v-for="utxo in pageOf('tokens')"
+            :key="utxo.txid + ':' + utxo.vout"
+            :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
+            :utxo="utxo"
+            :show-address="isHdWallet"
+            :kind="tokenKind(utxo)"
+            :holds-significant-bch="utxo.satoshis > significantBchOnTokenUtxo"
+            :editing-label="labelEditingOutpoint === outpointOf(utxo)"
+            @toggle-freeze="toggleFreeze(utxo)"
+            @edit-label="queueLabelEdit(utxo)"
+            @menu-hidden="onMenuHidden"
+            @save-label="(label) => saveLabel(utxo, label)"
+            @cancel-label="labelEditingOutpoint = null"
           />
-        </template>
-      </div>
-
-      <div class="section divided closing">
-        <div class="list-header" @click="toggleList('ftNft')">
-          <strong>{{ t('utxoManagement.ftNftList.title') }}</strong>
-          <span v-if="utxoLists">({{ formatDecimal(utxoLists.ftNft.length) }})</span>
-          <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.ftNft }" />
         </div>
-        <template v-if="!collapsedLists.ftNft">
-          <div v-if="utxoLists?.ftNft.length === 0" class="description">{{ t('utxoManagement.ftNftList.empty') }}</div>
-          <div v-else class="utxo-lines">
-            <tokenUtxoRow
-              v-for="utxo in pageOf('ftNft')"
-              :key="utxo.txid + ':' + utxo.vout"
-              :ref="(componentInstance) => setLabelEditRef(outpointOf(utxo), componentInstance)"
-              :utxo="utxo"
-              kind="ftNft"
-              :holds-significant-bch="utxo.satoshis > significantBchOnTokenUtxo"
-              :editing-label="labelEditingOutpoint === outpointOf(utxo)"
-              @toggle-freeze="toggleFreeze(utxo)"
-              @edit-label="queueLabelEdit(utxo)"
-              @menu-hidden="onMenuHidden"
-              @save-label="(label) => saveLabel(utxo, label)"
-              @cancel-label="labelEditingOutpoint = null"
-            />
-          </div>
-          <q-pagination
-            v-if="pageCount('ftNft') > 1"
-            v-model="listPages.ftNft"
-            :max="pageCount('ftNft')"
-            input
-            direction-links
-            color="primary"
-            class="pager"
-          />
-        </template>
-        <!-- counts every held token coin across the three lists, not only this one's -->
+        <q-pagination
+          v-if="pageCount('tokens') > 1"
+          v-model="listPages.tokens"
+          :max="pageCount('tokens')"
+          input
+          direction-links
+          color="primary"
+          class="pager"
+        />
+        <!-- counts every held token coin, not only the ones a search or filter leaves -->
         <div v-if="heldTokenCount" class="reserved-summary">
           <span>{{ t('utxoManagement.reservedTokenSummary', heldTokenCount) }}</span>
         </div>
@@ -841,6 +823,41 @@
   color: #888;
   font-size: 13px;
   margin-top: 8px;
+}
+
+/* the half pills with the search beside them, on its own line once they no longer fit */
+.control-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+/* the width the token page's search has */
+.search-input {
+  width: 180px;
+  margin: 0 0 0 auto;
+  padding: 4px 10px;
+}
+.token-list-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.kind-filter {
+  margin-left: auto;
+}
+.kind-filter button {
+  padding: 3px 12px;
+  font-size: 0.85em;
+}
+@media (max-width: 600px) {
+  .search-input {
+    flex-basis: 100%;
+    width: 100%;
+    margin-left: 0;
+  }
 }
 
 .loading-state {
@@ -924,7 +941,7 @@ $col-count: 5.5em;
 /* token utxos hold dust, the BCH-only list sizes its own column wider */
 $col-bch: 6em;
 $col-txid: 12em;
-$col-address: 9.5em;
+$col-address: 11.5em;
 /* the BCH-only list holds real balances rather than dust, so its amounts run longer */
 $col-bch-amount: 8.5em;
 /* these three shorten in css instead, so they only need to stay readable */
@@ -978,7 +995,7 @@ $col-name: 7em;
 .grid-affected .utxo-row {
   grid-template-columns: $col-number minmax($col-name, 1fr) $col-type $col-bch $col-txid $col-vout;
 }
-/* A token coin on two lines: what it is, then where it is and what can be done with it. Table
+/* A token coin on two lines: what it is and what can be done with it, then where it is. Table
    density with card readability, and it stacks on a phone where the table could not. The row is
    a child component, so the rules for its insides are :deep, as the status cell's are. */
 .utxo-lines {
@@ -1000,6 +1017,25 @@ $col-name: 7em;
   color: grey;
   font-size: 0.9em;
   flex-wrap: wrap;
+  /* wider than the first line's: each value here ends in its copy icon, which a narrow gap
+     would read as belonging to the next one */
+  gap: 2px 20px;
+}
+/* a label and its value stay together when the line wraps */
+:deep(.meta-field) {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+:deep(.meta-label) {
+  opacity: 0.75;
+}
+:deep(.utxo-line-meta .mono) {
+  color: var(--font-color);
+}
+:deep(.line-spacer) {
+  flex: 1;
 }
 :deep(.utxo-line-meta .copy-target) {
   display: inline-flex;
@@ -1122,13 +1158,15 @@ $card-label-width: 90px;
   white-space: nowrap;
 }
 
-/* a value that outgrows its column ends in an ellipsis rather than being cut mid character.
-   The token amount leaves its symbol to its title, the token column already shows it */
+/* a value that outgrows its column ends in an ellipsis rather than being cut mid character */
 :deep(.bch-value),
-:deep(.amount-value),
-:deep(.commitment-value) {
+:deep(.amount-value) {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:deep(.nft-type) {
   white-space: nowrap;
 }
 
@@ -1232,7 +1270,7 @@ $card-label-width: 90px;
 @container bch-grid (max-width: 32.1em) {
   @include stacked-card;
 }
-@container bch-hd-grid (max-width: 42.3em) {
+@container bch-hd-grid (max-width: 44.3em) {
   @include stacked-card;
 }
 @container affected-grid (max-width: 39.3em) {
