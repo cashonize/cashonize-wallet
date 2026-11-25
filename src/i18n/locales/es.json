@@ -190,7 +190,10 @@
         "cad": "CAD - Dólar canadiense",
         "aud": "AUD - Dólar australiano",
         "chf": "CHF - Franco suizo",
-        "brl": "BRL - Real brasileño"
+        "brl": "BRL - Real brasileño",
+        "mxn": "MXN - Peso mexicano",
+        "ars": "ARS - Peso argentino",
+        "rub": "RUB - Rublo ruso"
       },
       "finishButton": "Finalizar configuración"
     }

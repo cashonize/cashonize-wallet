@@ -11,10 +11,14 @@ export const CurrencySymbols = {
   cad: "C$",
   aud: "A$",
   chf: "Fr.",
-  brl: "R$"
+  brl: "R$",
+  mxn: "MX$",
+  ars: "AR$",
+  rub: "₽"
 } as const
 
-// Must be valid Intl API currency codes (used by formatFiatAmount).
+// Must be valid Intl API currency codes (used by formatFiatAmount), and served by every exchange
+// rate provider the settings offer. The order is the order of the currency lists.
 export const CurrencyShortNames = {
   usd: "USD",
   eur: "EUR",
@@ -22,7 +26,10 @@ export const CurrencyShortNames = {
   cad: "CAD",
   aud: "AUD",
   chf: "CHF",
-  brl: "BRL"
+  brl: "BRL",
+  mxn: "MXN",
+  ars: "ARS",
+  rub: "RUB"
 } as const
 
 export type Currency = keyof typeof CurrencySymbols;
