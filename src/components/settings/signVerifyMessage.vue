@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import BackRow from 'src/components/general/BackRow.vue'
   import { ref, computed, watch } from 'vue'
   import { HDWallet, SignedMessage } from '@cashonize/bch-wallet-lib'
   import { useStore } from 'src/stores/store'
@@ -90,6 +91,7 @@
 <template>
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('signVerifyMessage.title') }}</legend>
+    <BackRow @click="store.goBack()" />
 
     <div class="type-filter" style="margin-top: 10px;">
       <button :class="{ active: mode === 'sign' }" @click="mode = 'sign'">

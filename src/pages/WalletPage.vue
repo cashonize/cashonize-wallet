@@ -12,7 +12,6 @@
   import utxoManagement from 'src/components/settings/utxoManagement.vue'
   import sweepPrivateKey from 'src/components/settings/sweepPrivateKey.vue'
   import signVerifyMessageView from 'src/components/settings/signVerifyMessage.vue'
-  import walletToolsView from 'src/components/settings/walletTools.vue'
   import exportXpubView from 'src/components/settings/exportXpub.vue'
   import transferAllAssetsView from 'src/components/settings/transferAllAssets.vue'
   import flipstarterView from 'src/components/settings/flipstarterPledge.vue'
@@ -104,7 +103,6 @@
       case 11: return aboutCashonizeView;
       case 12: return portfolioView;
       case 13: return signVerifyMessageView;
-      case 14: return walletToolsView;
       case 15: return exportXpubView;
       case 16: return transferAllAssetsView;
       case 17: return requestPaymentView;
@@ -281,10 +279,9 @@
       <div v-if="settingsStore.dappActivityInNav" class="nav-dapp-activity">
         <DappActivityButton icon-only />
       </div>
-      <div @click="store.changeView(5)" style="width: max-content; position: relative;">
-        <img style="vertical-align: text-bottom;" :src="store.displayView == 5 ? 'images/settingsGreen.svg' : (
-          settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg')">
-        <span v-if="showNotificationIcon" class="notification-dot"></span>
+      <div @click="store.changeView(5)" :class="{ active: store.displayView == 5 }" :aria-label="t('nav.more')" style="width: max-content; position: relative;">
+        <q-icon name="more_horiz" size="22px" />
+        <span v-if="showNotificationIcon" class="notification-dot" style="top: 8px; right: 6px;"></span>
       </div>
     </nav>
   </header>
@@ -313,10 +310,10 @@
     </div>
     <div @click="store.changeView(5)" :class="{ active: store.displayView == 5 }">
       <span style="position: relative;">
-        <q-icon name="ion_settings_outline" size="24px" style="transform: scale(0.875);" />
+        <q-icon name="more_horiz" size="24px" />
         <span v-if="showNotificationIcon" class="notification-dot" style="top: 0; right: -2px;"></span>
       </span>
-      <span>{{ t('settings.title') }}</span>
+      <span>{{ t('nav.more') }}</span>
     </div>
   </nav>
 </template>

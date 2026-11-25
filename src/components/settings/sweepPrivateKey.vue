@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import BackRow from 'src/components/general/BackRow.vue'
   import { ref, computed, watch } from 'vue'
   import { NetworkType, Wallet, convert, decodeWif } from '@cashonize/bch-wallet-lib';
   import { libraryNetwork } from 'src/utils/wallet/networks';
@@ -331,6 +332,7 @@
 <template>
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('sweepPrivateKey.title') }}</legend>
+    <BackRow @click="store.goBack()" />
 
     {{ t('sweepPrivateKey.description') }}
     <!-- Encrypted keys are only recognisable once entered, so say up front that they work -->

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import BackRow from 'src/components/general/BackRow.vue'
   import { computed, ref, watch } from 'vue'
   import type { Utxo } from '@cashonize/bch-wallet-lib'
   import { useStore } from 'src/stores/store'
@@ -246,6 +247,7 @@
 <template>
   <fieldset class="item" style="padding-bottom: 20px;">
     <legend>{{ t('flipstarter.title') }}</legend>
+    <BackRow @click="store.goBack()" />
 
     <div class="type-filter" style="margin-top: 10px;">
       <button :class="{ active: mode === 'new' }" @click="mode = 'new'">

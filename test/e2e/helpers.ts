@@ -56,7 +56,8 @@ export async function importWalletOnboarding(page: Page, options: ImportOptions)
 // A wallet lives on one network, and onboarding makes mainnet ones: a chipnet wallet is added from
 // the developer settings, which open it once it is made. Creates one, or imports the seed phrase.
 export async function addChipnetWallet(page: Page, options: { seedPhrase?: string, walletType?: 'single' | 'hd', walletName?: string } = {}) {
-  await page.locator('nav img[src*="settings"]').click()
+  await page.locator('nav').getByLabel('More').click()
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
   await page.getByText('Developer settings').click()
   await page.getByText('Add development wallet').click()
   await expect(page.locator('#addWalletNetwork')).toHaveValue('chipnet')

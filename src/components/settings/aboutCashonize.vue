@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import BackRow from 'src/components/general/BackRow.vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -15,10 +16,7 @@
 <template>
   <fieldset class="item">
     <legend>{{ t('aboutCashonize.title') }}</legend>
-
-    <div style="margin-bottom: 15px; cursor: pointer;" @click="() => store.changeView(5)">
-      ← {{ t('common.backToSettings') }}
-    </div>
+    <BackRow @click="store.goBack()" />
 
     <p style="margin-bottom: 8px;">{{ t('aboutCashonize.description') }}</p>
     <p style="color: grey; margin: 0 0 15px;">{{ t('aboutCashonize.tagline') }}</p>

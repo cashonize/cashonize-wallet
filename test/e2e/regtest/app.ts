@@ -40,7 +40,8 @@ export async function openRegtestWallet(page: Page, options: WalletOptions = {})
 
 // Switches the chipnet electrum server the way a user does: a custom server in the advanced settings
 export async function switchChipnetServer(page: Page, server: string) {
-  await page.locator('nav img[src*="settings"]').click()
+  await page.locator('nav').getByLabel('More').click()
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
   await page.getByText('Advanced settings').click()
   await page.locator('div:has(> label:text-is("Electrum server chipnet:")) > select').selectOption('custom')
   const input = page.getByPlaceholder('e.g. 127.0.0.1 or fulcrum.example.com:443')

@@ -488,6 +488,11 @@ export const useStore = defineStore('store', () => {
   });
 
   const canGoBack = computed(() => viewStack.length > 1);
+  // back to the view this one was opened from, as the browser's back button goes
+  function goBack() {
+    if (canGoBack.value) history.back();
+    else changeView(1);
+  }
 
   // The provider of each network's electrum servers, which fails over between them itself (the
   // library's createFailoverProvider). It is also the library's global provider of that network,
@@ -2186,6 +2191,7 @@ export const useStore = defineStore('store', () => {
     exchangeRate,
     currentBlockHeight,
     canGoBack,
+    goBack,
     changeView,
     setWallet,
     selectElectrumProvider,

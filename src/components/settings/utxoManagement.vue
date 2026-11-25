@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import BackRow from 'src/components/general/BackRow.vue'
   import { computed, nextTick, ref, watch } from 'vue';
   import { formatDecimal } from 'src/utils/numberFormat';
   import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, formatNumber, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateHash } from 'src/utils/utils';
@@ -351,6 +352,7 @@
 <template>
   <fieldset class="item" :class="{ dark: settingsStore.darkMode }">
     <legend>{{ t('utxoManagement.title') }}</legend>
+    <BackRow @click="store.goBack()" />
 
     <div style="margin-bottom: 20px;">
       {{ t('utxoManagement.description') }}
