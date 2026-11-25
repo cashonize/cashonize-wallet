@@ -1291,6 +1291,7 @@
     "confirmTitle": "Introduce tu PIN",
     "confirmButton": "Confirmar",
     "wrongPin": "PIN incorrecto",
+    "wrongPinTriesLeft": "PIN incorrecto. Queda {count} intento antes de la espera. | PIN incorrecto. Quedan {count} intentos antes de la espera.",
     "tooManyAttempts": "Demasiados intentos fallidos. Inténtalo de nuevo en {time}.",
     "forgotPin": "¿Olvidaste tu PIN?",
     "forgotPinHint": "Un PIN no se puede restablecer. Borra los datos de esta app o sitio y luego restaura tus billeteras con sus frases semilla. Una billetera sin copia de seguridad se pierde."

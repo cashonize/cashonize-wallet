@@ -71,7 +71,10 @@
       >
     </div>
     <div v-if="waitSeconds > 0" class="pin-message">{{ t('appLock.tooManyAttempts', { time: waitTime }) }}</div>
-    <div v-else-if="wrong" class="pin-message">{{ t('appLock.wrongPin') }}</div>
+    <div v-else-if="wrong" class="pin-message">
+      <!-- the last free tries are counted down, so the wait does not come as a surprise -->
+      {{ appLock.triesLeft <= 2 ? t('appLock.wrongPinTriesLeft', appLock.triesLeft) : t('appLock.wrongPin') }}
+    </div>
     <div class="pin-buttons">
       <input v-if="cancellable" type="button" :value="t('appLock.cancel')" @click="emit('cancel')">
       <input type="submit" class="primaryButton" :value="submitLabel" :disabled="checking || waitSeconds > 0 || pin.length < pinMinLength">

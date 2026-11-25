@@ -1291,6 +1291,7 @@
     "confirmTitle": "Masukkan PIN Anda",
     "confirmButton": "Konfirmasi",
     "wrongPin": "PIN salah",
+    "wrongPinTriesLeft": "PIN salah. Tersisa {count} percobaan sebelum harus menunggu. | PIN salah. Tersisa {count} percobaan sebelum harus menunggu.",
     "tooManyAttempts": "Terlalu banyak percobaan yang salah. Coba lagi dalam {time}.",
     "forgotPin": "Lupa PIN?",
     "forgotPinHint": "PIN tidak dapat diatur ulang. Hapus data aplikasi atau situs ini, lalu pulihkan dompet Anda dari frasa seed-nya. Dompet tanpa cadangan akan hilang."

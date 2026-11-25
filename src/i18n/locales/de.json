@@ -1291,6 +1291,7 @@
     "confirmTitle": "Gib deine PIN ein",
     "confirmButton": "Bestätigen",
     "wrongPin": "Falsche PIN",
+    "wrongPinTriesLeft": "Falsche PIN. Noch {count} Versuch bis zur Wartezeit. | Falsche PIN. Noch {count} Versuche bis zur Wartezeit.",
     "tooManyAttempts": "Zu viele falsche Versuche. Versuche es in {time} erneut.",
     "forgotPin": "PIN vergessen?",
     "forgotPinHint": "Eine PIN lässt sich nicht zurücksetzen. Lösche die Daten dieser App oder Website und stelle deine Wallets dann aus ihren Seed-Phrasen wieder her. Eine Wallet ohne Backup ist verloren."

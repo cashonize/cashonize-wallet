@@ -1291,6 +1291,7 @@
     "confirmTitle": "Enter your PIN",
     "confirmButton": "Confirm",
     "wrongPin": "Wrong PIN",
+    "wrongPinTriesLeft": "Wrong PIN. {count} try left before a wait. | Wrong PIN. {count} tries left before a wait.",
     "tooManyAttempts": "Too many wrong tries. Try again in {time}.",
     "forgotPin": "Forgot your PIN?",
     "forgotPinHint": "A PIN cannot be reset. Clear the data of this app or site, then restore your wallets from their seed phrases. A wallet without a backup is lost."

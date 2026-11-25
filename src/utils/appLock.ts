@@ -37,7 +37,7 @@ export async function pinMatches(pin: string, record: PinRecord) {
   return hash === record.hash
 }
 
-const freeAttempts = 5
+export const freeAttempts = 5
 const firstDelayMs = 30_000
 export const maxDelayMs = 15 * 60_000
 

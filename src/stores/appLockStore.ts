@@ -3,7 +3,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Dialog } from 'quasar'
-import { makePinRecord, maxDelayMs, pinMatches, retryDelayMs, type PinRecord } from 'src/utils/appLock'
+import { freeAttempts, makePinRecord, maxDelayMs, pinMatches, retryDelayMs, type PinRecord } from 'src/utils/appLock'
 
 const pinKey = 'appLock'
 const attemptsKey = 'appLockAttempts'
@@ -32,6 +32,8 @@ export const useAppLockStore = defineStore('appLock', () => {
     localStorage.setItem(attemptsKey, JSON.stringify(next))
   }
   const retryAt = computed(() => attempts.value.retryAt)
+  // the wrong tries still free of a wait
+  const triesLeft = computed(() => Math.max(0, freeAttempts - attempts.value.failed))
 
   // False for a wrong PIN and during the wait after too many of them
   async function checkPin(pin: string) {
@@ -85,5 +87,5 @@ export const useAppLockStore = defineStore('appLock', () => {
     })
   }
 
-  return { enabled, locked, retryAt, checkPin, setPin, removePin, lock, unlock, confirmPin }
+  return { enabled, locked, retryAt, triesLeft, checkPin, setPin, removePin, lock, unlock, confirmPin }
 })
