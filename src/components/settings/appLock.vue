@@ -1,6 +1,8 @@
 <script setup lang="ts">
   // Turning the app lock on and off and changing its PIN
   import BackRow from 'src/components/general/BackRow.vue'
+  import MenuRow from 'src/components/general/MenuRow.vue'
+  import InfoPopup from 'src/components/general/InfoPopup.vue'
   import { computed, ref } from 'vue'
   import { Notify } from 'quasar'
   import { useI18n } from 'vue-i18n'
@@ -63,30 +65,53 @@
     <BackRow @click="store.goBack()" />
 
     <div class="app-lock">
-      <p>{{ t('appLock.description') }}</p>
-      <p class="description">{{ t('appLock.notEncryption') }}</p>
-
-      <template v-if="appLock.enabled && !changing">
-        <p style="font-weight: 600;">{{ t('appLock.isOn') }}</p>
-        <div class="app-lock-buttons">
-          <input type="button" class="button" :value="t('appLock.lockNow')" @click="appLock.lock()">
-          <input type="button" class="button" :value="t('appLock.changePin')" @click="startChange()">
-          <input type="button" class="button" :value="t('appLock.turnOff')" @click="turnOff()">
+      <div class="lock-head">
+        <span class="lock-badge" :class="{ on: appLock.enabled }">
+          <q-icon :name="appLock.enabled ? 'lock' : 'lock_open'" size="26px" />
+        </span>
+        <div>
+          <div class="lock-state">
+            {{ appLock.enabled ? t('appLock.isOn') : t('appLock.description') }}
+            <InfoPopup><div style="max-width: 300px;">{{ t('appLock.notEncryption') }}</div></InfoPopup>
+          </div>
+          <div class="description" style="font-size: smaller;">{{ t('appLock.askedWhen') }}:</div>
         </div>
-      </template>
+      </div>
 
-      <form v-else @submit.prevent="savePin">
-        <div class="warning-box" style="margin-bottom: 15px;">{{ t('appLock.backupFirst') }}</div>
-        <label for="newPin">{{ changing ? t('appLock.newPin') : t('appLock.choosePin') }}</label>
-        <input id="newPin" v-model="newPin" class="pin-field" type="text" inputmode="numeric" autocomplete="off" :maxlength="pinMaxLength">
-        <label for="repeatPin" style="margin-top: 10px;">{{ t('appLock.repeatPin') }}</label>
-        <input id="repeatPin" v-model="repeatPin" class="pin-field" type="text" inputmode="numeric" autocomplete="off" :maxlength="pinMaxLength">
-        <div v-if="pinError" style="color: red; font-size: smaller; margin-top: 6px;">{{ pinError }}</div>
-        <div class="app-lock-buttons" style="margin-top: 15px;">
+      <ul class="lock-asks">
+        <li v-for="ask in ['askOpen', 'askSpend', 'askSeed']" :key="ask">
+          <q-icon name="check" size="18px" class="lock-check" />
+          <span>{{ t(`appLock.${ask}`) }}</span>
+        </li>
+      </ul>
+
+      <div v-if="appLock.enabled && !changing" class="lock-rows">
+        <MenuRow icon="lock" :label="t('appLock.lockNow')" @click="appLock.lock()" />
+        <MenuRow icon="edit" :label="t('appLock.changePin')" @click="startChange()" />
+        <MenuRow icon="lock_open" :label="t('appLock.turnOff')" @click="turnOff()" />
+      </div>
+
+      <form v-else class="lock-form" @submit.prevent="savePin">
+        <div class="pin-fields">
+          <div>
+            <label for="newPin">{{ changing ? t('appLock.newPin') : t('appLock.choosePin') }}</label>
+            <input id="newPin" v-model="newPin" class="pin-field" type="text" inputmode="numeric" autocomplete="off" :maxlength="pinMaxLength">
+          </div>
+          <div>
+            <label for="repeatPin">{{ t('appLock.repeatPin') }}</label>
+            <input id="repeatPin" v-model="repeatPin" class="pin-field" type="text" inputmode="numeric" autocomplete="off" :maxlength="pinMaxLength">
+          </div>
+        </div>
+        <div class="pin-hint" :class="{ error: pinError }">{{ pinError ?? t('appLock.pinRule', { min: pinMinLength, max: pinMaxLength }) }}</div>
+        <div class="lock-buttons">
           <input type="submit" class="primaryButton" :value="changing ? t('appLock.changePin') : t('appLock.turnOn')" :disabled="!canSave">
           <input v-if="changing" type="button" class="button" :value="t('appLock.cancel')" @click="resetForm()">
         </div>
       </form>
+
+      <div class="lock-notes">
+        <div><q-icon name="info_outline" size="16px" /> <span>{{ t('appLock.backupFirst') }}</span></div>
+      </div>
     </div>
   </fieldset>
 </template>
@@ -95,20 +120,99 @@
 .app-lock {
   max-width: 560px;
 }
-.app-lock label {
+.lock-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 14px;
+}
+.lock-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--surface-strong);
+}
+.lock-badge.on {
+  background: var(--color-primary);
+  color: #fff;
+}
+.lock-state {
+  font-size: 1.15em;
+  font-weight: 600;
+}
+.lock-asks {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+.lock-asks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.lock-check {
+  flex: none;
+  margin-top: 3px;
+  color: var(--color-primary);
+}
+.lock-rows, .lock-form {
+  border: 1px solid var(--surface-line);
+  border-radius: 8px;
+}
+.lock-rows {
+  overflow: hidden;
+}
+.lock-form {
+  padding: 14px;
+}
+.pin-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.pin-fields label {
   display: block;
+  font-size: smaller;
 }
 .pin-field {
-  max-width: 220px;
   letter-spacing: 0.3em;
   -webkit-text-security: disc;
 }
-.app-lock-buttons {
+.pin-hint {
+  margin-top: 6px;
+  color: grey;
+  font-size: smaller;
+}
+.pin-hint.error {
+  color: red;
+}
+.lock-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-top: 14px;
 }
-.app-lock-buttons input {
+.lock-buttons input {
   margin: 0;
+}
+.lock-notes {
+  margin-top: 16px;
+  color: grey;
+  font-size: smaller;
+}
+.lock-notes div {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.lock-notes .q-icon {
+  flex: none;
+  margin-top: 2px;
 }
 </style>
