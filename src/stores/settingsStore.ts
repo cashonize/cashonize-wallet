@@ -91,7 +91,7 @@ export const settingsMenuKeys = [
   "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
 ] as const;
 
-export type ThemeMode = 'system' | 'light' | 'dark';
+export type ThemeMode = 'system' | 'light' | 'dim' | 'dark';
 
 export type BackupStatus = 'verified' | 'imported' | 'dismissed' | 'none';
 
@@ -266,29 +266,33 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readBottomNavOnMobile = localStorage.getItem("bottomNavOnMobile");
   if(readBottomNavOnMobile) bottomNavOnMobile.value = readBottomNavOnMobile == "true";
 
+  // "true" and "false" from when the setting was a toggle, "dim" for the softer dark theme since
   const readDarkMode = localStorage.getItem("darkMode");
-  if(readDarkMode == "true"){
+  if(readDarkMode == "true" || readDarkMode == "dim"){
     document.body.classList.add("dark");
     darkMode.value = true;
   }
+  if(readDarkMode == "dim") document.body.classList.add("dim");
   const systemDarkMode = window.matchMedia("(prefers-color-scheme: dark)")
   if(readDarkMode == null && systemDarkMode.matches){
     document.body.classList.add("dark");
     darkMode.value = true;
   }
-  // The theme the user chose: light, dark, or the system's, which is no stored value at all, so a
-  // wallet that never chose keeps following the system as it always did
-  let initialThemeMode: ThemeMode = 'system';
-  if (readDarkMode != null) initialThemeMode = readDarkMode == "true" ? 'dark' : 'light';
-  const themeMode = ref<ThemeMode>(initialThemeMode);
+  // The theme the user chose: light, dim, dark, or the system's, which is no stored value at all,
+  // so a wallet that never chose keeps following the system as it always did. Dim is the dark
+  // theme on softer colours, so everything that asks for darkMode holds for it too.
+  const storedThemes: Record<string, ThemeMode> = { true: 'dark', false: 'light', dim: 'dim' };
+  const themeMode = ref<ThemeMode>(storedThemes[readDarkMode ?? ''] ?? 'system');
   function applyTheme() {
-    darkMode.value = themeMode.value === 'system' ? systemDarkMode.matches : themeMode.value === 'dark';
+    darkMode.value = themeMode.value === 'system' ? systemDarkMode.matches : themeMode.value !== 'light';
     document.body.classList.toggle("dark", darkMode.value);
+    document.body.classList.toggle("dim", themeMode.value === 'dim');
   }
   function setThemeMode(mode: ThemeMode) {
     themeMode.value = mode;
-    if (mode === 'system') localStorage.removeItem("darkMode");
-    else localStorage.setItem("darkMode", mode === 'dark' ? "true" : "false");
+    const stored = Object.keys(storedThemes).find(value => storedThemes[value] === mode);
+    if (stored) localStorage.setItem("darkMode", stored);
+    else localStorage.removeItem("darkMode");
     applyTheme();
   }
   // following the system means following it when it changes, at dusk say

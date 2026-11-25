@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  // The theme choice of the settings and of onboarding: the system's, light or dark, applied at once
+  // The theme choice of the settings and of onboarding: the system's, light, dim or dark, applied at once
   import { useI18n } from 'vue-i18n'
   import { useSettingsStore, type ThemeMode } from 'src/stores/settingsStore'
   const settingsStore = useSettingsStore()
@@ -8,6 +8,7 @@
   const themeModes = [
     { mode: 'system', icon: undefined, label: 'settings.userOptions.themeSystem' },
     { mode: 'light', icon: 'light_mode', label: 'settings.userOptions.themeLight' },
+    { mode: 'dim', icon: 'brightness_medium', label: 'settings.userOptions.themeDim' },
     { mode: 'dark', icon: 'dark_mode', label: 'settings.userOptions.themeDark' },
   ] as const
 
@@ -28,10 +29,20 @@
 </template>
 
 <style scoped>
+/* four choices on one line: a phone has no room for their icons too, and a language with long
+   words wraps */
+.theme-modes {
+  flex-wrap: wrap;
+}
+@media (max-width: 480px) {
+  .theme-modes .q-icon {
+    display: none;
+  }
+}
 .theme-modes button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
+  gap: 5px;
+  padding: 6px 12px;
 }
 </style>

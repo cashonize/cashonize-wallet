@@ -60,6 +60,17 @@ body.dark {
      deliberately stronger than the subtle lightGrey control outlines */
   --color-strongOutline: #d2d6dd;
 }
+/* The dim theme: the dark one on a slate grey instead of black, with softer text and outlines.
+   It only swaps the colours, so every dark mode rule below holds for it as well. */
+body.dark.dim {
+  --bg-color: #22272e;
+  --bg-secondary-color: #2d333b;
+  --font-color: #dbe2ea;
+  --color-grey: #adbac7;
+  --color-darkGrey: #dfe5ec;
+  --color-lightGrey: #414851;
+  --color-strongOutline: #768390;
+}
 /* Dark form controls: chota sets no input background (browser default white),
    give them proper dark surfaces instead */
 body.dark input:not([type="checkbox"], [type="radio"], [type="submit"], [type="color"], [type="button"], [type="reset"]),
