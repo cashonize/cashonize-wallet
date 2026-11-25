@@ -2,13 +2,16 @@
   // One row of the More page: a destination, or with `expanded` set a group that opens in place.
   // The slot carries what needs attention there.
   // the default keeps `expanded` undefined for a plain row, where Vue would make a missing boolean false
-  withDefaults(defineProps<{ label: string, icon?: string, expanded?: boolean | undefined }>(), { expanded: undefined })
+  withDefaults(defineProps<{ label: string, icon?: string, description?: string, expanded?: boolean | undefined }>(), { expanded: undefined })
 </script>
 
 <template>
   <button type="button" class="menu-row" :class="{ nested: !icon }" :aria-expanded="expanded">
     <q-icon v-if="icon" :name="icon" size="20px" class="menu-row-icon" />
-    <span class="menu-row-label">{{ label }}</span>
+    <span class="menu-row-label">
+      {{ label }}
+      <span v-if="description" class="menu-row-description">{{ description }}</span>
+    </span>
     <span class="menu-row-trailing"><slot /></span>
     <q-icon v-if="expanded === undefined" name="chevron_right" size="20px" class="menu-row-icon" />
     <q-icon v-else :name="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" size="20px" class="menu-row-icon" />
@@ -52,6 +55,12 @@
 }
 .menu-row-label {
   flex: 1;
+}
+/* what the row leads to, on a line of its own under its name */
+.menu-row-description {
+  display: block;
+  color: grey;
+  font-size: smaller;
 }
 .menu-row-trailing {
   font-size: smaller;

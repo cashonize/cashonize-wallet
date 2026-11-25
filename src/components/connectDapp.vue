@@ -5,6 +5,7 @@
   import { storeToRefs } from 'pinia';
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
+  import { moreSectionViewBase } from 'src/stores/constants'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore';
@@ -113,9 +114,8 @@
       t('dapp.wizardConnectNeedsHd.goButton')
     );
     if (!goToManageWallets) return;
-    // Manage wallets is settings section 5
-    store.pendingSettingsSection = 5;
-    store.changeView(5);
+    // Manage wallets is section 5 of the More page
+    store.changeView(moreSectionViewBase + 5);
   }
 
   // Handle Props.

@@ -4,6 +4,10 @@
 
 export const defaultWalletName = 'mywallet';
 
+// The More page is view 5. Each page under it, the settings menu and every section, is a view of
+// its own from this number up, so that going back leads up one level instead of out of the page.
+export const moreSectionViewBase = 100;
+
 // WalletConnect configuration used by walletconnectStore.ts.
 // (CashConnect no longer uses WalletConnect since its move to the Nostr transport.)
 export const walletConnectProjectId = '3fd234b8e2cd0e1da4bc08a0011bbf64';

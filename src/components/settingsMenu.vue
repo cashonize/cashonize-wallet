@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ref } from 'vue'
   // which group of the More page is open; kept across visits, so coming back from a tool finds it open
-  const openMenuGroup = ref(undefined as undefined | 'tools' | 'tokens' | 'settings');
+  const openMenuGroup = ref(undefined as undefined | 'tools' | 'tokens');
 </script>
 
 <script setup lang="ts">
@@ -18,6 +18,7 @@
   import { computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from '../stores/store'
+  import { moreSectionViewBase } from '../stores/constants'
   import { useIdentitiesStore } from '../stores/identitiesStore'
   import { useAppLockStore } from '../stores/appLockStore'
   import { useSettingsStore, removeSettingsMenuKeys } from '../stores/settingsStore'
@@ -53,13 +54,29 @@
   const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
   const applicationVersion = import.meta.env.version
 
-  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9>(0);
+  // Which page under the More page shows, 0 for the page itself. Each is a view of its own, so the
+  // browser's and the phone's back button lead up a level, as the back row does.
+  type MoreSection = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+  const settingsSection = computed(() => {
+    const view = store.displayView ?? 0;
+    return (view >= moreSectionViewBase ? view - moreSectionViewBase : 0) as MoreSection;
+  });
+  const openSection = (section: MoreSection) => store.changeView(moreSectionViewBase + section);
   const sectionTitleKeys = ['nav.more', 'settings.menu.backupWallet', 'settings.menu.userOptions',
     'settings.menu.advancedSettings', 'settings.menu.developerSettings', 'settings.menu.manageWallets',
     'settings.menu.localization', 'settings.menu.tokenSettings', 'settings.menu.dataAndStorage',
-    'settings.menu.appearance'] as const;
+    'settings.menu.appearance', 'settings.title'] as const;
   const sectionTitle = computed(() => t(sectionTitleKeys[settingsSection.value]));
-  function toggleMenuGroup(group: 'tools' | 'tokens' | 'settings') {
+  const settingsSections = [
+    { section: 2, name: 'userOptions', icon: 'tune' },
+    { section: 9, name: 'appearance', icon: 'palette' },
+    { section: 7, name: 'tokenSettings', icon: 'sym_o_toll' },
+    { section: 6, name: 'localization', icon: 'language' },
+    { section: 3, name: 'advancedSettings', icon: 'dns' },
+    { section: 8, name: 'dataAndStorage', icon: 'folder' },
+    { section: 4, name: 'developerSettings', icon: 'code' },
+  ] as const;
+  function toggleMenuGroup(group: 'tools' | 'tokens') {
     openMenuGroup.value = openMenuGroup.value === group ? undefined : group;
   }
   const isHdWallet = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'hd');
@@ -251,13 +268,7 @@
 
   // Measured when the 'data and storage' submenu opens rather than on every visit to Settings, as
   // it reads the whole electrum cache
-  watch(settingsSection, (section) => { if (section === 8) void loadCacheSizes(); });
-  // after the section watchers, so a section opened from elsewhere loads what it shows
-  watch(() => store.pendingSettingsSection, (section) => {
-    if (section === undefined) return;
-    settingsSection.value = section;
-    store.pendingSettingsSection = undefined;
-  }, { immediate: true });
+  watch(settingsSection, (section) => { if (section === 8) void loadCacheSizes(); }, { immediate: true });
 
   // store watches settingsStore.currency and refetches the exchange rate automatically
   function changeCurrency(){
@@ -644,7 +655,7 @@
 <template>
   <fieldset class="item">
     <legend>{{ sectionTitle }}</legend>
-    <BackRow v-if="settingsSection != 0" @click="settingsSection = 0" />
+    <BackRow v-if="settingsSection != 0" @click="store.goBack()" />
 
     <backupWallet v-if="settingsSection == 1" />
     <div v-else-if="settingsSection == 2">
@@ -1055,6 +1066,13 @@
         </select>
       </div>
     </div>
+    <!-- the settings menu: what each section holds is said under its name, as the names alone do not -->
+    <div v-else-if="settingsSection == 10" class="menu-groups">
+      <div class="menu-group menu-rows">
+        <MenuRow v-for="section in settingsSections" :key="section.section" :icon="section.icon" :label="t(`settings.menu.${section.name}`)"
+          :description="t(`settings.menu.${section.name}Description`)" @click="openSection(section.section)" />
+      </div>
+    </div>
     <!-- settingsSection === 0: the More page -->
     <div v-else class="menu-groups">
       <div class="menu-group">
@@ -1062,10 +1080,10 @@
           {{ t('settings.currentWallet') }} <span class="wallet-name-styled">{{ store.activeWalletName }}</span>
         </div>
         <div class="menu-rows">
-          <MenuRow icon="key" :label="t('settings.menu.backupWallet')" @click="settingsSection = 1">
+          <MenuRow icon="key" :label="t('settings.menu.backupWallet')" @click="openSection(1)">
             <span v-if="settingsStore.getBackupStatus(store.activeWalletName) === 'none'" style="color: var(--color-primary)">{{ t('settings.menu.important') }}</span>
           </MenuRow>
-          <MenuRow icon="sym_o_account_balance_wallet" :label="t('settings.menu.manageWallets')" @click="settingsSection = 5">
+          <MenuRow icon="sym_o_account_balance_wallet" :label="t('settings.menu.manageWallets')" @click="openSection(5)">
             <span class="description">{{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? t('common.wallet') : t('common.wallets') }}</span>
           </MenuRow>
           <MenuRow icon="lock" :label="t('appLock.title')" @click="store.changeView(22)">
@@ -1103,16 +1121,7 @@
           <MenuRow :label="t('settings.menu.createTokens')" @click="store.changeView(6)" />
         </template>
 
-        <MenuRow icon="settings" :label="t('settings.title')" :expanded="openMenuGroup === 'settings'" @click="toggleMenuGroup('settings')" />
-        <template v-if="openMenuGroup === 'settings'">
-          <MenuRow :label="t('settings.menu.userOptions')" @click="settingsSection = 2" />
-          <MenuRow :label="t('settings.menu.appearance')" @click="settingsSection = 9" />
-          <MenuRow :label="t('settings.menu.tokenSettings')" @click="settingsSection = 7" />
-          <MenuRow :label="t('settings.menu.localization')" @click="settingsSection = 6" />
-          <MenuRow :label="t('settings.menu.advancedSettings')" @click="settingsSection = 3" />
-          <MenuRow :label="t('settings.menu.dataAndStorage')" @click="settingsSection = 8" />
-          <MenuRow :label="t('settings.menu.developerSettings')" @click="settingsSection = 4" />
-        </template>
+        <MenuRow icon="settings" :label="t('settings.title')" @click="openSection(10)" />
       </div>
 
       <div class="menu-group">
