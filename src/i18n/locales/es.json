@@ -1213,6 +1213,50 @@
       "addressNotInWallet": "Firmar requiere una dirección de la billetera activa"
     }
   },
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "description": "Respuestas breves sobre Bitcoin Cash y sobre cómo funciona Cashonize.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "¿Qué pasa si borro los datos del navegador o pierdo este dispositivo?",
+          "answer": "Tu billetera se guarda solo en este navegador. Borrar los datos del sitio en el navegador la elimina, igual que perder el dispositivo. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en la página Más."
+        },
+        "mobile": {
+          "question": "¿Qué pasa si pierdo el teléfono o desinstalo la app?",
+          "answer": "Tu billetera se guarda solo en este teléfono. Perder el teléfono o desinstalar la app significa perder la billetera. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en la página Más."
+        },
+        "desktop": {
+          "question": "¿Qué pasa si mi ordenador se estropea o lo cambio?",
+          "answer": "Tu billetera se guarda solo en este ordenador. Si el ordenador se pierde, se estropea o se borra, la billetera se va con él. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en la página Más."
+        }
+      },
+      "twoAddresses": {
+        "question": "¿Por qué la página de la billetera muestra dos direcciones y cuál debo dar?",
+        "answer": "Son dos formas de la misma dirección. Si te fijas, solo cambian el primer carácter y los ocho últimos: ambas apuntan al mismo lugar de la blockchain, con las mismas claves detrás. La dirección de token (empieza por z) indica al remitente que tu billetera admite CashTokens, así que dásela a quien te envíe tokens o NFT. Para BCH normal da siempre la normal (empieza por q): los exchanges y las billeteras sin soporte de tokens solo aceptan esa forma. El código QR muestra una de las dos; el botón de cambio que tiene al lado lo pasa a la otra."
+      },
+      "addressChanged": {
+        "question": "Mi dirección de recepción cambió. ¿Sigue funcionando la que ya compartí?",
+        "answer": "Sí. Una billetera HD muestra una dirección nueva después de cada pago, por privacidad, pero todas las anteriores siguen siendo tuyas y siguen funcionando. Una billetera de dirección única muestra siempre la misma."
+      },
+      "bchForTokens": {
+        "question": "Solo tengo tokens. ¿Por qué necesito BCH para enviarlos?",
+        "answer": "Toda transacción paga una pequeña comisión en BCH, también cuando solo mueve tokens. Una cantidad muy pequeña de BCH alcanza para muchos envíos. Pide que te lo envíen a tu dirección BCH normal."
+      },
+      "tokenSupport": {
+        "question": "¿Puedo enviar tokens a una dirección BCH normal?",
+        "answer": "No, para enviar tokens se pide una dirección de token (empieza por z). Esa forma se introdujo para que el remitente sepa que la billetera receptora admite CashTokens. Los tokens enviados a una billetera sin ese soporte no se destruyen, pero esa billetera no puede verlos ni enviarlos. Por ahora ningún exchange admite CashTokens, así que no envíes tokens a uno. Si tienes la certeza de que la billetera receptora admite CashTokens pero solo tienes su dirección normal, el Conversor de direcciones te da la forma de token."
+      },
+      "imposterToken": {
+        "question": "¿Cómo detecto un token impostor?",
+        "answer": "Cualquiera puede crear un token y ponerle el nombre y el icono que quiera, así que un nombre o logotipo conocido no prueba nada. Lo que identifica a un token es su id de token, que no se puede copiar. Compara el id de token que muestra la billetera con el de una fuente de confianza fuera de la billetera, como el sitio web oficial del emisor. Un token sin nombre ni imagen no es falso solo por eso: su creador simplemente no publicó metadatos."
+      },
+      "utxos": {
+        "question": "¿Qué es un UTXO y por qué una dApp me pide consolidar?",
+        "answer": "Tu saldo está formado por monedas separadas, llamadas UTXO, una por cada pago recibido. Algunas dApps necesitan una sola moneda lo bastante grande, aunque tu total alcance. Consolidar en Gestión de UTXO une tus monedas de BCH en una."
+      }
+    }
+  },
   "addressConverter": {
     "title": "Conversor de direcciones",
     "description": "Introduce una dirección para ver todas sus formas.",
@@ -1468,6 +1512,7 @@
       "signVerifyMessage": "Firmar / Verificar mensaje",
       "exportXpub": "Exportar Xpub",
       "addressConverter": "Conversor de direcciones",
+      "faq": "Preguntas frecuentes",
       "aboutCashonize": "Acerca de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identidades",

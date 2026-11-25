@@ -17,6 +17,7 @@
   import flipstarterView from 'src/components/settings/flipstarterPledge.vue'
   import identitiesView from 'src/components/settings/identitiesPage.vue'
   import addressConverterView from 'src/components/settings/addressConverter.vue'
+  import faqPageView from 'src/components/settings/faqPage.vue'
   import requestPaymentView from 'src/components/settings/requestPayment.vue'
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
@@ -109,6 +110,7 @@
       case 18: return flipstarterView;
       case 19: return identitiesView;
       case 20: return addressConverterView;
+      case 21: return faqPageView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });

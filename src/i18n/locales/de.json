@@ -1213,6 +1213,50 @@
       "addressNotInWallet": "Zum Signieren wird eine Adresse des aktiven Wallets benötigt"
     }
   },
+  "faq": {
+    "title": "FAQ",
+    "description": "Kurze Antworten zu Bitcoin Cash und dazu, wie Cashonize funktioniert.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "Was passiert, wenn ich meine Browserdaten lösche oder dieses Gerät verliere?",
+          "answer": "Dein Wallet ist nur in diesem Browser gespeichert. Das Löschen der Websitedaten des Browsers löscht es, ebenso der Verlust des Geräts. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ auf der Seite „Mehr“."
+        },
+        "mobile": {
+          "question": "Was passiert, wenn ich mein Handy verliere oder die App deinstalliere?",
+          "answer": "Dein Wallet ist nur auf diesem Handy gespeichert. Wer das Handy verliert oder die App deinstalliert, verliert das Wallet. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ auf der Seite „Mehr“."
+        },
+        "desktop": {
+          "question": "Was passiert, wenn mein Computer kaputtgeht oder ersetzt wird?",
+          "answer": "Dein Wallet ist nur auf diesem Computer gespeichert. Geht der Computer verloren, kaputt oder wird er zurückgesetzt, ist auch das Wallet weg. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ auf der Seite „Mehr“."
+        }
+      },
+      "twoAddresses": {
+        "question": "Warum zeigt die Wallet-Seite zwei Adressen, und welche gebe ich weiter?",
+        "answer": "Es sind zwei Formen derselben Adresse. Schau genau hin: Nur das erste und die letzten acht Zeichen unterscheiden sich. Beide zeigen auf dieselbe Stelle in der Blockchain, mit denselben Schlüsseln dahinter. Die Token-Adresse (beginnt mit z) zeigt dem Absender, dass dein Wallet CashTokens unterstützt; gib sie jedem, der dir Tokens oder NFTs schickt. Für reines BCH gib immer die normale Adresse (beginnt mit q) weiter: Börsen und Wallets ohne Token-Unterstützung akzeptieren nur diese Form. Der QR-Code zeigt eine der beiden; der Wechsel-Button daneben schaltet auf die andere um."
+      },
+      "addressChanged": {
+        "question": "Meine Empfangsadresse hat sich geändert. Funktioniert die bereits weitergegebene noch?",
+        "answer": "Ja. Ein HD-Wallet zeigt nach jeder Zahlung eine neue Adresse, für mehr Privatsphäre, aber jede frühere Adresse bleibt deine und funktioniert weiter. Ein Wallet mit einer einzelnen Adresse zeigt immer dieselbe."
+      },
+      "bchForTokens": {
+        "question": "Ich habe nur Tokens. Warum brauche ich BCH, um sie zu senden?",
+        "answer": "Jede Transaktion zahlt eine kleine Gebühr in BCH, auch wenn sie nur Tokens bewegt. Ein sehr kleiner BCH-Betrag reicht für viele Sendungen. Lass ihn an deine normale BCH-Adresse schicken."
+      },
+      "tokenSupport": {
+        "question": "Kann ich Tokens an eine normale BCH-Adresse senden?",
+        "answer": "Nein, zum Senden von Tokens wird eine Token-Adresse (beginnt mit z) verlangt. Diese Form wurde eingeführt, damit der Absender erkennt, dass das empfangende Wallet CashTokens unterstützt. Tokens, die an ein Wallet ohne diese Unterstützung gehen, werden nicht zerstört, aber dieses Wallet kann sie weder sehen noch senden. Derzeit unterstützt keine Börse CashTokens, sende also keine Tokens dorthin. Wenn du sicher bist, dass das empfangende Wallet CashTokens unterstützt, du aber nur seine normale Adresse hast, liefert der Adresskonverter die Token-Form."
+      },
+      "imposterToken": {
+        "question": "Wie erkenne ich einen gefälschten Token?",
+        "answer": "Jeder kann einen Token erstellen und ihm beliebigen Namen und Icon geben; ein bekannter Name oder ein bekanntes Logo beweist also nichts. Was einen Token eindeutig macht, ist seine Token-ID, die sich nicht kopieren lässt. Vergleiche die Token-ID, die das Wallet anzeigt, mit der einer vertrauenswürdigen Quelle außerhalb des Wallets, etwa der offiziellen Website des Herausgebers. Ein Token ohne Namen oder Bild ist nicht allein deshalb gefälscht: Sein Ersteller hat lediglich keine Metadaten veröffentlicht."
+      },
+      "utxos": {
+        "question": "Was ist ein UTXO, und warum bittet mich eine dApp zu konsolidieren?",
+        "answer": "Dein Guthaben besteht aus einzelnen Coins, UTXOs genannt, einer für jede erhaltene Zahlung. Manche dApps brauchen einen einzelnen Coin, der groß genug ist, auch wenn dein Gesamtguthaben reicht. Das Konsolidieren in der UTXO-Verwaltung fasst deine BCH-Coins zu einem zusammen."
+      }
+    }
+  },
   "addressConverter": {
     "title": "Adresskonverter",
     "description": "Gib eine Adresse ein, um all ihre Formen zu sehen.",
@@ -1468,6 +1512,7 @@
       "signVerifyMessage": "Nachricht signieren / verifizieren",
       "exportXpub": "Xpub exportieren",
       "addressConverter": "Adresskonverter",
+      "faq": "FAQ",
       "aboutCashonize": "Über Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identitäten",

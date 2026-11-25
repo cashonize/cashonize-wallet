@@ -1213,6 +1213,50 @@
       "addressNotInWallet": "Signing requires an address of the active wallet"
     }
   },
+  "faq": {
+    "title": "FAQ",
+    "description": "Short answers about Bitcoin Cash and how Cashonize works.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "What happens if I clear my browser data or lose this device?",
+          "answer": "Your wallet is stored only in this browser. Clearing the browser's site data deletes it, and so does losing the device. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" on the More page."
+        },
+        "mobile": {
+          "question": "What happens if I lose my phone or uninstall the app?",
+          "answer": "Your wallet is stored only on this phone. Losing the phone or uninstalling the app means losing the wallet. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" on the More page."
+        },
+        "desktop": {
+          "question": "What happens if my computer breaks or gets replaced?",
+          "answer": "Your wallet is stored only on this computer. If the computer is lost, broken or wiped, the wallet goes with it. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" on the More page."
+        }
+      },
+      "twoAddresses": {
+        "question": "Why does the wallet page show two addresses, and which one do I give people?",
+        "answer": "They are two forms of the same address. Look closely and only the first character and the last eight differ: both point to the same place on the blockchain, with the same keys behind it. The token address (starting with z) tells the sender your wallet supports CashTokens, so give that one to anyone sending tokens or NFTs. For plain BCH, always give the regular one (starting with q): exchanges and wallets without token support only accept that form. The QR code shows one of the two; the switch button next to it flips it to the other."
+      },
+      "addressChanged": {
+        "question": "My receive address changed. Does the one I already shared still work?",
+        "answer": "Yes. An HD wallet shows a fresh address after each payment for privacy, but every earlier address stays yours and keeps working. A single address wallet always shows the same address."
+      },
+      "bchForTokens": {
+        "question": "I only have tokens. Why do I need BCH to send them?",
+        "answer": "Every transaction pays a small fee in BCH, also when it only moves tokens. A very small amount of BCH is enough for many sends. Have it sent to your regular BCH address."
+      },
+      "tokenSupport": {
+        "question": "Can I send tokens to a normal BCH address?",
+        "answer": "No, sending tokens asks for a token address (starting with z). That form was introduced so the sender can tell the receiving wallet supports CashTokens. Tokens sent to a wallet without that support are not destroyed, but that wallet cannot see or send them. At the moment no exchange supports CashTokens, so don't send tokens to one. If you are sure the receiving wallet supports CashTokens but you only have its regular address, the Address Converter gives you the token form."
+      },
+      "imposterToken": {
+        "question": "How do I spot an imposter token?",
+        "answer": "Anyone can create a token and give it any name and icon, so a familiar name or logo proves nothing. What identifies a token is its token id, which cannot be copied. Compare the token id the wallet shows with the one on a source you trust outside the wallet, such as the issuer's official website. A token with no name or picture is not fake for that reason alone: its creator just published no metadata."
+      },
+      "utxos": {
+        "question": "What is a UTXO, and why does a dApp ask me to consolidate?",
+        "answer": "Your balance is made of separate coins, called UTXOs, one for each payment you received. Some dApps need a single coin large enough for what you're doing, even when your total is enough. Consolidating in UTXO Management merges your BCH coins into one."
+      }
+    }
+  },
   "addressConverter": {
     "title": "Address Converter",
     "description": "Enter an address to see all its forms.",
@@ -1468,6 +1512,7 @@
       "signVerifyMessage": "Sign / Verify Message",
       "exportXpub": "Export Xpub",
       "addressConverter": "Address Converter",
+      "faq": "FAQ",
       "aboutCashonize": "About Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identities",

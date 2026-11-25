@@ -1123,6 +1123,7 @@
 
       <div class="menu-group">
         <div class="menu-rows">
+          <MenuRow icon="help_outline" :label="t('settings.menu.faq')" @click="store.changeView(21)" />
           <MenuRow icon="info_outline" :label="t('settings.menu.aboutCashonize')" @click="store.changeView(11)" />
         </div>
         <div class="description" style="margin-top: 12px; font-size: smaller;">

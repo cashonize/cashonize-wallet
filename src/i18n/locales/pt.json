@@ -1213,6 +1213,50 @@
       "addressNotInWallet": "Assinar requer um endereço da carteira ativa"
     }
   },
+  "faq": {
+    "title": "Perguntas frequentes",
+    "description": "Respostas curtas sobre Bitcoin Cash e sobre como a Cashonize funciona.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "O que acontece se eu limpar os dados do navegador ou perder este dispositivo?",
+          "answer": "Sua carteira fica guardada apenas neste navegador. Limpar os dados do site no navegador a apaga, assim como perder o dispositivo. A frase semente é a única forma de recuperá-la: ninguém pode redefini-la ou recuperá-la por você, nem a Cashonize. Anote-a agora, em \"Backup da carteira\" na página Mais."
+        },
+        "mobile": {
+          "question": "O que acontece se eu perder o celular ou desinstalar o app?",
+          "answer": "Sua carteira fica guardada apenas neste celular. Perder o celular ou desinstalar o app significa perder a carteira. A frase semente é a única forma de recuperá-la: ninguém pode redefini-la ou recuperá-la por você, nem a Cashonize. Anote-a agora, em \"Backup da carteira\" na página Mais."
+        },
+        "desktop": {
+          "question": "O que acontece se meu computador quebrar ou for trocado?",
+          "answer": "Sua carteira fica guardada apenas neste computador. Se o computador for perdido, quebrar ou for formatado, a carteira vai junto. A frase semente é a única forma de recuperá-la: ninguém pode redefini-la ou recuperá-la por você, nem a Cashonize. Anote-a agora, em \"Backup da carteira\" na página Mais."
+        }
+      },
+      "twoAddresses": {
+        "question": "Por que a página da carteira mostra dois endereços, e qual devo passar?",
+        "answer": "São duas formas do mesmo endereço. Olhando de perto, só o primeiro caractere e os oito últimos mudam: os dois apontam para o mesmo lugar na blockchain, com as mesmas chaves por trás. O endereço de token (começa com z) mostra a quem envia que sua carteira aceita CashTokens, então passe esse a quem for enviar tokens ou NFTs. Para BCH comum, passe sempre o normal (começa com q): exchanges e carteiras sem suporte a tokens só aceitam essa forma. O código QR mostra um dos dois; o botão de troca ao lado alterna para o outro."
+      },
+      "addressChanged": {
+        "question": "Meu endereço de recebimento mudou. O que já compartilhei ainda funciona?",
+        "answer": "Sim. Uma carteira HD mostra um endereço novo após cada pagamento, por privacidade, mas todo endereço anterior continua sendo seu e continua funcionando. Uma carteira de endereço único mostra sempre o mesmo."
+      },
+      "bchForTokens": {
+        "question": "Só tenho tokens. Por que preciso de BCH para enviá-los?",
+        "answer": "Toda transação paga uma pequena taxa em BCH, mesmo quando só movimenta tokens. Uma quantia muito pequena de BCH basta para muitos envios. Peça que enviem para o seu endereço BCH normal."
+      },
+      "tokenSupport": {
+        "question": "Posso enviar tokens para um endereço BCH normal?",
+        "answer": "Não, o envio de tokens pede um endereço de token (começa com z). Essa forma foi criada para que quem envia saiba que a carteira de destino aceita CashTokens. Tokens enviados a uma carteira sem esse suporte não são destruídos, mas essa carteira não consegue vê-los nem enviá-los. No momento nenhuma exchange aceita CashTokens, então não envie tokens para uma. Se você tem certeza de que a carteira de destino aceita CashTokens, mas só tem o endereço normal, o Conversor de endereços fornece a forma de token."
+      },
+      "imposterToken": {
+        "question": "Como identifico um token impostor?",
+        "answer": "Qualquer pessoa pode criar um token e dar a ele qualquer nome e ícone, então um nome ou logotipo conhecido não prova nada. O que identifica um token é o seu id de token, que não pode ser copiado. Compare o id de token que a carteira mostra com o de uma fonte confiável fora da carteira, como o site oficial do emissor. Um token sem nome nem imagem não é falso só por isso: o criador apenas não publicou metadados."
+      },
+      "utxos": {
+        "question": "O que é um UTXO, e por que uma dApp pede para consolidar?",
+        "answer": "Seu saldo é feito de moedas separadas, chamadas UTXOs, uma para cada pagamento recebido. Algumas dApps precisam de uma única moeda grande o bastante, mesmo quando o total é suficiente. Consolidar no Gerenciamento de UTXOs junta suas moedas de BCH em uma."
+      }
+    }
+  },
   "addressConverter": {
     "title": "Conversor de endereços",
     "description": "Insira um endereço para ver todas as suas formas.",
@@ -1468,6 +1512,7 @@
       "signVerifyMessage": "Assinar / Verificar mensagem",
       "exportXpub": "Exportar Xpub",
       "addressConverter": "Conversor de endereços",
+      "faq": "Perguntas frequentes",
       "aboutCashonize": "Sobre o Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identidades",

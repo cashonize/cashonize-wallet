@@ -1213,6 +1213,50 @@
       "addressNotInWallet": "La signature nécessite une adresse du portefeuille actif"
     }
   },
+  "faq": {
+    "title": "FAQ",
+    "description": "Des réponses courtes sur Bitcoin Cash et sur le fonctionnement de Cashonize.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "Que se passe-t-il si j'efface les données de mon navigateur ou si je perds cet appareil ?",
+          "answer": "Votre portefeuille n'est stocké que dans ce navigateur. Effacer les données de site du navigateur le supprime, tout comme la perte de l'appareil. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » sur la page Plus."
+        },
+        "mobile": {
+          "question": "Que se passe-t-il si je perds mon téléphone ou si je désinstalle l'application ?",
+          "answer": "Votre portefeuille n'est stocké que sur ce téléphone. Perdre le téléphone ou désinstaller l'application, c'est perdre le portefeuille. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » sur la page Plus."
+        },
+        "desktop": {
+          "question": "Que se passe-t-il si mon ordinateur tombe en panne ou est remplacé ?",
+          "answer": "Votre portefeuille n'est stocké que sur cet ordinateur. Si l'ordinateur est perdu, en panne ou réinitialisé, le portefeuille disparaît avec lui. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » sur la page Plus."
+        }
+      },
+      "twoAddresses": {
+        "question": "Pourquoi la page du portefeuille affiche-t-elle deux adresses, et laquelle donner ?",
+        "answer": "Ce sont deux formes de la même adresse. En regardant de près, seuls le premier caractère et les huit derniers diffèrent : les deux désignent le même endroit sur la blockchain, avec les mêmes clés derrière. L'adresse de token (commençant par z) indique à l'expéditeur que votre portefeuille prend en charge les CashTokens : donnez-la à quiconque vous envoie des jetons ou des NFT. Pour du BCH simple, donnez toujours l'adresse normale (commençant par q) : les plateformes d'échange et les portefeuilles sans prise en charge des jetons n'acceptent que cette forme. Le code QR affiche l'une des deux ; le bouton de bascule à côté passe à l'autre."
+      },
+      "addressChanged": {
+        "question": "Mon adresse de réception a changé. Celle que j'ai déjà partagée fonctionne-t-elle encore ?",
+        "answer": "Oui. Un portefeuille HD affiche une nouvelle adresse après chaque paiement, pour la confidentialité, mais chaque adresse précédente reste la vôtre et continue de fonctionner. Un portefeuille à adresse unique affiche toujours la même."
+      },
+      "bchForTokens": {
+        "question": "Je n'ai que des jetons. Pourquoi faut-il du BCH pour les envoyer ?",
+        "answer": "Chaque transaction paie de petits frais en BCH, même si elle ne déplace que des jetons. Une très petite quantité de BCH suffit pour de nombreux envois. Faites-la envoyer à votre adresse BCH normale."
+      },
+      "tokenSupport": {
+        "question": "Puis-je envoyer des jetons à une adresse BCH normale ?",
+        "answer": "Non, l'envoi de jetons demande une adresse de token (commençant par z). Cette forme a été introduite pour que l'expéditeur sache que le portefeuille destinataire prend en charge les CashTokens. Les jetons envoyés à un portefeuille sans cette prise en charge ne sont pas détruits, mais ce portefeuille ne peut ni les voir ni les envoyer. Pour l'instant aucune plateforme d'échange ne prend en charge les CashTokens : ne leur envoyez donc pas de jetons. Si vous êtes certain que le portefeuille destinataire prend en charge les CashTokens mais n'avez que son adresse normale, le Convertisseur d'adresses vous donne l'adresse de token."
+      },
+      "imposterToken": {
+        "question": "Comment repérer un jeton imposteur ?",
+        "answer": "N'importe qui peut créer un jeton et lui donner le nom et l'icône de son choix : un nom ou un logo familier ne prouve donc rien. Ce qui identifie un jeton, c'est son id de jeton, qui ne peut pas être copié. Comparez l'id de jeton affiché par le portefeuille avec celui d'une source de confiance extérieure au portefeuille, comme le site officiel de l'émetteur. Un jeton sans nom ni image n'est pas faux pour cette seule raison : son créateur n'a simplement pas publié de métadonnées."
+      },
+      "utxos": {
+        "question": "Qu'est-ce qu'un UTXO, et pourquoi une dApp me demande-t-elle de consolider ?",
+        "answer": "Votre solde est fait de pièces séparées, appelées UTXO, une par paiement reçu. Certaines dApps ont besoin d'une seule pièce assez grande, même si votre total suffit. Consolider dans la Gestion des UTXO fusionne vos pièces de BCH en une seule."
+      }
+    }
+  },
   "addressConverter": {
     "title": "Convertisseur d'adresses",
     "description": "Saisissez une adresse pour voir toutes ses formes.",
@@ -1468,6 +1512,7 @@
       "signVerifyMessage": "Signer / Vérifier un message",
       "exportXpub": "Exporter la xpub",
       "addressConverter": "Convertisseur d'adresses",
+      "faq": "FAQ",
       "aboutCashonize": "À propos de Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identités",

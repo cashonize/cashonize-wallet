@@ -1213,6 +1213,50 @@
       "addressNotInWallet": "Penandatanganan memerlukan alamat dari dompet yang aktif"
     }
   },
+  "faq": {
+    "title": "FAQ",
+    "description": "Jawaban singkat tentang Bitcoin Cash dan cara kerja Cashonize.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "Apa yang terjadi jika data browser saya dihapus atau perangkat ini hilang?",
+          "answer": "Dompet Anda hanya tersimpan di browser ini. Menghapus data situs di browser akan menghapusnya, begitu juga jika perangkat hilang. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" pada halaman Lainnya."
+        },
+        "mobile": {
+          "question": "Apa yang terjadi jika ponsel saya hilang atau aplikasinya saya hapus?",
+          "answer": "Dompet Anda hanya tersimpan di ponsel ini. Kehilangan ponsel atau menghapus aplikasi berarti kehilangan dompet. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" pada halaman Lainnya."
+        },
+        "desktop": {
+          "question": "Apa yang terjadi jika komputer saya rusak atau diganti?",
+          "answer": "Dompet Anda hanya tersimpan di komputer ini. Jika komputer hilang, rusak, atau dihapus isinya, dompet ikut hilang. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" pada halaman Lainnya."
+        }
+      },
+      "twoAddresses": {
+        "question": "Mengapa halaman dompet menampilkan dua alamat, dan mana yang saya berikan?",
+        "answer": "Keduanya adalah dua bentuk dari alamat yang sama. Jika diperhatikan, hanya karakter pertama dan delapan karakter terakhir yang berbeda: keduanya menunjuk ke tempat yang sama di blockchain, dengan kunci yang sama di baliknya. Alamat token (diawali z) memberi tahu pengirim bahwa dompet Anda mendukung CashTokens, jadi berikan alamat itu kepada siapa pun yang mengirim token atau NFT. Untuk BCH biasa, selalu berikan alamat biasa (diawali q): bursa dan dompet tanpa dukungan token hanya menerima bentuk itu. Kode QR menampilkan salah satunya; tombol tukar di sebelahnya menggantinya ke yang lain."
+      },
+      "addressChanged": {
+        "question": "Alamat penerimaan saya berubah. Apakah alamat yang sudah saya bagikan masih berfungsi?",
+        "answer": "Ya. Dompet HD menampilkan alamat baru setelah setiap pembayaran demi privasi, tetapi setiap alamat sebelumnya tetap milik Anda dan tetap berfungsi. Dompet alamat tunggal selalu menampilkan alamat yang sama."
+      },
+      "bchForTokens": {
+        "question": "Saya hanya punya token. Mengapa perlu BCH untuk mengirimnya?",
+        "answer": "Setiap transaksi membayar biaya kecil dalam BCH, juga saat hanya memindahkan token. Sedikit sekali BCH sudah cukup untuk banyak pengiriman. Mintalah BCH dikirim ke alamat BCH biasa Anda."
+      },
+      "tokenSupport": {
+        "question": "Bisakah saya mengirim token ke alamat BCH biasa?",
+        "answer": "Tidak, pengiriman token meminta alamat token (diawali z). Bentuk itu diperkenalkan agar pengirim tahu bahwa dompet penerima mendukung CashTokens. Token yang dikirim ke dompet tanpa dukungan itu tidak hancur, tetapi dompet tersebut tidak bisa melihat atau mengirimnya. Saat ini belum ada bursa yang mendukung CashTokens, jadi jangan kirim token ke bursa. Jika Anda yakin dompet penerima mendukung CashTokens tetapi hanya punya alamat biasanya, Konverter Alamat memberi Anda bentuk tokennya."
+      },
+      "imposterToken": {
+        "question": "Bagaimana cara mengenali token tiruan?",
+        "answer": "Siapa pun bisa membuat token dan memberinya nama serta ikon apa saja, jadi nama atau logo yang dikenal tidak membuktikan apa pun. Yang mengidentifikasi sebuah token adalah id tokennya, yang tidak bisa ditiru. Bandingkan id token yang ditampilkan dompet dengan id dari sumber tepercaya di luar dompet, misalnya situs web resmi penerbitnya. Token tanpa nama atau gambar tidak palsu hanya karena itu: pembuatnya hanya tidak menerbitkan metadata."
+      },
+      "utxos": {
+        "question": "Apa itu UTXO, dan mengapa dApp meminta saya melakukan konsolidasi?",
+        "answer": "Saldo Anda terdiri dari koin-koin terpisah yang disebut UTXO, satu untuk setiap pembayaran yang diterima. Beberapa dApp butuh satu koin yang cukup besar, meski total Anda cukup. Konsolidasi di Manajemen UTXO menggabungkan koin BCH Anda menjadi satu."
+      }
+    }
+  },
   "addressConverter": {
     "title": "Konverter Alamat",
     "description": "Masukkan alamat untuk melihat semua bentuknya.",
@@ -1468,6 +1512,7 @@
       "signVerifyMessage": "Tanda Tangani / Verifikasi Pesan",
       "exportXpub": "Ekspor Xpub",
       "addressConverter": "Konverter Alamat",
+      "faq": "FAQ",
       "aboutCashonize": "Tentang Cashonize",
       "flipstarter": "Flipstarter",
       "identities": "Identitas",
