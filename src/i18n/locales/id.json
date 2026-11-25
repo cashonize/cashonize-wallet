@@ -1587,8 +1587,8 @@
       "enableAddressMarkingHint": "Menandai alamat sebagai terpakai membuat dompet memberikan alamat berikutnya, sehingga Anda dapat membagikan alamat baru kepada setiap pembayar. Berlaku untuk dompet HD.",
       "bottomNavOnMobile": "Tampilkan tab navigasi di bagian bawah pada layar kecil",
       "dappActivityInNav": "Tampilkan ikon aktivitas dApp di navigasi atas",
-      "followTokenIdentities": "Ikuti identitas token yang Anda miliki",
-      "followTokenIdentitiesHint": "Daftar token yang Anda miliki dikirim ke server Chaingraph sebagai satu kumpulan, sehingga identitas token yang masuk ke dompet ini terdeteksi dan ditahan. Nonaktif secara default: maka hanya token yang AuthKey-nya dimiliki dompet ini yang identitasnya dicari. Mengaktifkannya akan mencari setiap token yang dimiliki setiap kali dompet dibuka.",
+      "followTokenIdentities": "Ikuti identitas token di dompet ini",
+      "followTokenIdentitiesHint": "Daftar token di dompet ini dikirim ke server Chaingraph sebagai satu kumpulan, sehingga identitas token yang masuk ke dompet ini terdeteksi dan ditahan. Nonaktif secara default: maka hanya token yang AuthKey-nya dimiliki dompet ini yang identitasnya dicari. Mengaktifkannya akan mencari setiap token di dompet setiap kali dompet dibuka.",
       "allowDappIdentitySpends": "Izinkan aplikasi terhubung membelanjakan UTXO identitas",
       "allowDappIdentitySpendsHint": "Nonaktif: permintaan WalletConnect atau WizardConnect yang membelanjakan UTXO salah satu identitas dompet ini ditolak, sama seperti UTXO yang dijanjikan. Aktif: permintaan sampai ke dialog persetujuan, yang menyebutkan identitasnya dan apa yang dibawa UTXO-nya sebelum dan sesudah. Permintaan yang akan memindahkan identitas keluar dari dompet ini tetap ditolak. AuthKey tidak terpengaruh: permintaan yang menggunakan AuthKey ditandatangani jika AuthKey tersebut kembali, seperti cara kerja CashTokens Studio.",
       "disableTokenIcons": "Nonaktifkan pemuatan gambar token",
@@ -1812,8 +1812,10 @@
     "ownedCount": "{count} identitas dimiliki dan dikelola oleh dompet ini | {count} identitas dimiliki dan dikelola oleh dompet ini",
     "watchedHeader": "{count} identitas hanya dipantau, tidak dipegang oleh dompet ini | {count} identitas hanya dipantau, tidak dipegang oleh dompet ini",
     "follow": {
-      "header": "{count} identitas yang diikuti dari token yang Anda pegang | {count} identitas yang diikuti dari token yang Anda pegang",
-      "resolving": "Mencari identitas token yang Anda pegang"
+      "header": "{count} identitas yang diikuti dari token di dompet ini | {count} identitas yang diikuti dari token di dompet ini",
+      "resolving": "Mencari identitas token di dompet ini",
+      "searchPlaceholder": "Cari identitas...",
+      "noMatch": "Tidak ada identitas yang cocok dengan pencarian"
     },
     "unnamedIdentity": "Identitas tanpa nama",
     "authheadLabel": "UTXO identitas:",

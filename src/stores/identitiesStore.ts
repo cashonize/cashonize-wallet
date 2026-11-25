@@ -5,7 +5,7 @@
 // and deciding which coin that is, is this one's.
 
 import { defineStore } from "pinia"
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useStore } from "./store"
 import { useSettingsStore } from "./settingsStore"
 import {
@@ -538,6 +538,19 @@ export const useIdentitiesStore = defineStore('identities', () => {
   async function startFollowingTokenIdentities() {
     followedTokenIdentities.value = undefined;
     try {
+      // The held tokens are what is looked up, so a wallet still loading them is waited for:
+      // asked now, it would answer that it holds none, and the page would show an empty result
+      if (!mainStore.walletUtxos || !mainStore.tokenList) {
+        await new Promise<void>((resolve) => {
+          const stop = watch(() => mainStore.walletUtxos && mainStore.tokenList, (loaded) => {
+            if (!loaded) return;
+            stop();
+            resolve();
+          });
+        });
+      }
+      // turned off again meanwhile: the token list is not sent anywhere
+      if (!settingsStore.followTokenIdentities) return;
       await followTokenIdentities('all');
     } catch (error) {
       console.error("Failed to look up the identities of the held tokens:", error);

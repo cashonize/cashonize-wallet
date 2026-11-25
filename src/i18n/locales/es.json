@@ -1587,8 +1587,8 @@
       "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD.",
       "bottomNavOnMobile": "Mostrar las pestañas de navegación abajo en pantallas pequeñas",
       "dappActivityInNav": "Mostrar el icono de actividad de dApps en la navegación superior",
-      "followTokenIdentities": "Seguir las identidades de los tokens que tienes",
-      "followTokenIdentitiesHint": "La lista de tokens que tienes se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivado por defecto: entonces solo se consulta la identidad de un token cuya AuthKey tiene esta billetera. Activarlo consulta todos los tokens que tienes en cada apertura de la billetera.",
+      "followTokenIdentities": "Seguir las identidades de los tokens de esta billetera",
+      "followTokenIdentitiesHint": "La lista de tokens de esta billetera se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivado por defecto: entonces solo se consulta la identidad de un token cuya AuthKey tiene esta billetera. Activarlo consulta todos los tokens de la billetera en cada apertura de la billetera.",
       "allowDappIdentitySpends": "Permitir que las apps conectadas gasten UTXOs de identidad",
       "allowDappIdentitySpendsHint": "Apagado: una solicitud de WalletConnect o WizardConnect que gaste el UTXO de una identidad de esta billetera se rechaza, como un UTXO comprometido. Encendido: la solicitud llega al diálogo de aprobación, que nombra la identidad y dice qué lleva su UTXO antes y después. Una solicitud que sacara una identidad de esta billetera se rechaza en ambos casos. Las AuthKeys no se ven afectadas: una solicitud que usa una se firma cuando la AuthKey vuelve, que es como funciona CashTokens Studio.",
       "disableTokenIcons": "Deshabilitar carga de imágenes de tokens",
@@ -1812,8 +1812,10 @@
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
     "watchedHeader": "{count} identidad solo observada, no la tiene esta billetera | {count} identidades solo observadas, no las tiene esta billetera",
     "follow": {
-      "header": "{count} identidad seguida de un token que tienes | {count} identidades seguidas de tokens que tienes",
-      "resolving": "Consultando las identidades de los tokens que tienes"
+      "header": "{count} identidad seguida de un token de esta billetera | {count} identidades seguidas de tokens de esta billetera",
+      "resolving": "Consultando las identidades de los tokens de esta billetera",
+      "searchPlaceholder": "Buscar identidades...",
+      "noMatch": "Ninguna identidad coincide con la búsqueda"
     },
     "unnamedIdentity": "Identidad sin nombre",
     "authheadLabel": "UTXO de la identidad:",

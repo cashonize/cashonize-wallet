@@ -75,7 +75,6 @@
   const confirmBeforeSending = ref(settingsStore.confirmBeforeSending);
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
   const selectedShowCauldronFTValue = ref(settingsStore.showCauldronFTValue);
-  const selectedFollowTokenIdentities = ref(settingsStore.followTokenIdentities);
   const selectedAllowDappIdentitySpends = ref(settingsStore.allowDappIdentitySpends);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
@@ -438,12 +437,6 @@
     localStorage.setItem("showCauldronSwap", selectedShowSwap.value? "true" : "false");
     settingsStore.showCauldronSwap = selectedShowSwap.value;
   }
-  // turning it on starts the lookups, whose result the identities page shows
-  function toggleFollowTokenIdentities(){
-    localStorage.setItem("followTokenIdentities", selectedFollowTokenIdentities.value ? "true" : "false");
-    settingsStore.followTokenIdentities = selectedFollowTokenIdentities.value;
-    if (selectedFollowTokenIdentities.value) void identitiesStore.startFollowingTokenIdentities();
-  }
   function toggleAllowDappIdentitySpends(){
     localStorage.setItem("allowDappIdentitySpends", selectedAllowDappIdentitySpends.value ? "true" : "false");
     settingsStore.allowDappIdentitySpends = selectedAllowDappIdentitySpends.value;
@@ -751,14 +744,6 @@
       </div>
 
       <div style="font-weight: 600; margin: 25px 0 15px;">{{ t('settings.userOptions.identitiesHeading') }}</div>
-
-      <div style="margin-bottom: 15px;">
-        {{ t('settings.userOptions.followTokenIdentities') }}
-        <InfoPopup style="margin-right: 6px;">
-          <div style="max-width: 300px;">{{ t('settings.userOptions.followTokenIdentitiesHint') }}</div>
-        </InfoPopup>
-        <q-toggle v-model="selectedFollowTokenIdentities" @update:model-value="toggleFollowTokenIdentities" dense />
-      </div>
 
       <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.allowDappIdentitySpends') }}

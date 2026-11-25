@@ -1587,8 +1587,8 @@
       "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets.",
       "bottomNavOnMobile": "Die Navigation auf kleinen Bildschirmen unten anzeigen",
       "dappActivityInNav": "Das dApp-Aktivitätssymbol in der oberen Navigation anzeigen",
-      "followTokenIdentities": "Die Identitäten der gehaltenen Tokens verfolgen",
-      "followTokenIdentitiesHint": "Die Liste der gehaltenen Tokens geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Standardmäßig aus: dann wird nur die Identität eines Tokens nachgeschlagen, dessen AuthKey dieses Wallet hält. Einschalten schlägt bei jedem Öffnen des Wallets jeden gehaltenen Token nach.",
+      "followTokenIdentities": "Die Identitäten der Tokens in diesem Wallet verfolgen",
+      "followTokenIdentitiesHint": "Die Liste der Tokens in diesem Wallet geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Standardmäßig aus: dann wird nur die Identität eines Tokens nachgeschlagen, dessen AuthKey dieses Wallet hält. Einschalten schlägt bei jedem Öffnen des Wallets jeden Token im Wallet nach.",
       "allowDappIdentitySpends": "Verbundene Apps dürfen Identitäts-UTXOs ausgeben",
       "allowDappIdentitySpendsHint": "Aus: Eine WalletConnect- oder WizardConnect-Anfrage, die den UTXO einer Identität dieses Wallets ausgibt, wird abgelehnt, so wie ein zugesagter UTXO. An: Die Anfrage erreicht den Bestätigungsdialog, der die Identität nennt und sagt, was ihr UTXO vorher und nachher trägt. Eine Anfrage, die eine Identität aus diesem Wallet bewegen würde, wird in beiden Fällen abgelehnt. AuthKeys sind nicht betroffen: Eine Anfrage, die einen verwendet, wird signiert, wenn der AuthKey zurückkommt, so arbeitet CashTokens Studio.",
       "disableTokenIcons": "Token-Bilder deaktivieren",
@@ -1812,8 +1812,10 @@
     "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
     "watchedHeader": "{count} Identität nur beobachtet, nicht von diesem Wallet gehalten | {count} Identitäten nur beobachtet, nicht von diesem Wallet gehalten",
     "follow": {
-      "header": "{count} verfolgte Identität eines gehaltenen Tokens | {count} verfolgte Identitäten gehaltener Tokens",
-      "resolving": "Die Identitäten der gehaltenen Tokens werden nachgeschlagen"
+      "header": "{count} verfolgte Identität eines Tokens in diesem Wallet | {count} verfolgte Identitäten von Tokens in diesem Wallet",
+      "resolving": "Die Identitäten der Tokens in diesem Wallet werden nachgeschlagen",
+      "searchPlaceholder": "Identitäten suchen...",
+      "noMatch": "Keine Identitäten passen zur Suche"
     },
     "unnamedIdentity": "Identität ohne Namen",
     "authheadLabel": "Identitäts-UTXO:",

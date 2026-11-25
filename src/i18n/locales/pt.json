@@ -1587,8 +1587,8 @@
       "enableAddressMarkingHint": "Marcar um endereço como usado faz a carteira mostrar o próximo, assim você pode dar um endereço novo a cada pagador. Aplica-se a carteiras HD.",
       "bottomNavOnMobile": "Mostrar as abas de navegação na parte inferior em telas pequenas",
       "dappActivityInNav": "Mostrar o ícone de atividade de dApps na navegação superior",
-      "followTokenIdentities": "Seguir as identidades dos tokens que tem",
-      "followTokenIdentitiesHint": "A lista de tokens que tem vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligado por defeito: então só é consultada a identidade de um token cuja AuthKey esta carteira tem. Ligar consulta todos os tokens que tem em cada abertura da carteira.",
+      "followTokenIdentities": "Seguir as identidades dos tokens desta carteira",
+      "followTokenIdentitiesHint": "A lista de tokens desta carteira vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligado por defeito: então só é consultada a identidade de um token cuja AuthKey esta carteira tem. Ligar consulta todos os tokens da carteira em cada abertura da carteira.",
       "allowDappIdentitySpends": "Permitir que apps ligadas gastem UTXOs de identidade",
       "allowDappIdentitySpendsHint": "Desligado: um pedido WalletConnect ou WizardConnect que gaste o UTXO de uma identidade desta carteira é recusado, como um UTXO comprometido. Ligado: o pedido chega ao diálogo de aprovação, que nomeia a identidade e diz o que o seu UTXO carrega antes e depois. Um pedido que tirasse uma identidade desta carteira é recusado em ambos os casos. As AuthKeys não são afetadas: um pedido que use uma é assinado quando a AuthKey volta, que é como o CashTokens Studio funciona.",
       "disableTokenIcons": "Desabilitar carregamento de imagens dos tokens",
@@ -1812,8 +1812,10 @@
     "ownedCount": "{count} identidade que esta carteira possui e gere | {count} identidades que esta carteira possui e gere",
     "watchedHeader": "{count} identidade só observada, não tida por esta carteira | {count} identidades só observadas, não tidas por esta carteira",
     "follow": {
-      "header": "{count} identidade seguida de um token que tem | {count} identidades seguidas de tokens que tem",
-      "resolving": "A consultar as identidades dos tokens que tem"
+      "header": "{count} identidade seguida de um token desta carteira | {count} identidades seguidas de tokens desta carteira",
+      "resolving": "A consultar as identidades dos tokens desta carteira",
+      "searchPlaceholder": "Pesquisar identidades...",
+      "noMatch": "Nenhuma identidade corresponde à pesquisa"
     },
     "unnamedIdentity": "Identidade sem nome",
     "authheadLabel": "UTXO da identidade:",

@@ -1587,8 +1587,8 @@
       "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD.",
       "bottomNavOnMobile": "Afficher les onglets de navigation en bas sur les petits écrans",
       "dappActivityInNav": "Afficher l'icône d'activité dApp dans la navigation supérieure",
-      "followTokenIdentities": "Suivre les identités des tokens que vous détenez",
-      "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens détenus à chaque ouverture du portefeuille.",
+      "followTokenIdentities": "Suivre les identités des tokens de ce portefeuille",
+      "followTokenIdentitiesHint": "La liste des tokens de ce portefeuille est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens du portefeuille à chaque ouverture du portefeuille.",
       "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
       "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les AuthKeys ne sont pas concernées : une requête qui en utilise une est signée quand l'AuthKey revient, ce qui est le fonctionnement de CashTokens Studio.",
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
@@ -1812,8 +1812,10 @@
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
     "watchedHeader": "{count} identité seulement surveillée, non détenue par ce portefeuille | {count} identités seulement surveillées, non détenues par ce portefeuille",
     "follow": {
-      "header": "{count} identité suivie d'un token détenu | {count} identités suivies de tokens détenus",
-      "resolving": "Recherche des identités des tokens que vous détenez"
+      "header": "{count} identité suivie d'un token de ce portefeuille | {count} identités suivies de tokens de ce portefeuille",
+      "resolving": "Recherche des identités des tokens de ce portefeuille",
+      "searchPlaceholder": "Rechercher des identités...",
+      "noMatch": "Aucune identité ne correspond à la recherche"
     },
     "unnamedIdentity": "Identité sans nom",
     "authheadLabel": "UTXO de l'identité :",

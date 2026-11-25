@@ -55,6 +55,13 @@
   // identities of the tokens it holds, followed passively. Neither of the last two counts among
   // this wallet's. The followed group also shows while its lookups run, and never once the
   // following is turned off, whatever it last found.
+  // turning it on starts the lookups, whose result is the list below
+  function toggleFollowTokenIdentities(follow: boolean) {
+    localStorage.setItem("followTokenIdentities", follow ? "true" : "false");
+    settingsStore.followTokenIdentities = follow;
+    if (follow) void identitiesStore.startFollowingTokenIdentities();
+  }
+
   const tokenGroupShown = computed(() => {
     if (!settingsStore.followTokenIdentities) return false;
     return identitiesStore.followedTokenIdentities === undefined || identitiesStore.followedTokenIdentities.length > 0;
@@ -81,6 +88,21 @@
   // The third tier follows the identities of the tokens this wallet holds, passively: folded,
   // since nobody is actively watching them, and on unless turned off in the settings
   const showTokenIdentities = ref(false);
+  // A long followed list is opened to look one token up, so it gets a search: by the token's
+  // name, its symbol or its id, which also finds one whose metadata has not loaded
+  const followSearchFrom = 10;
+  const followSearch = ref('');
+  const shownTokenIdentities = computed(() => {
+    const followed = identitiesStore.followedTokenIdentities ?? [];
+    const query = followSearch.value.toLowerCase().trim();
+    if (!query) return followed;
+    return followed.filter((identity) => {
+      const metadata = store.bcmrRegistries?.[identity.category];
+      return identity.category.includes(query)
+        || metadata?.name.toLowerCase().includes(query)
+        || metadata?.token.symbol.toLowerCase().includes(query);
+    });
+  });
   // the chain drawn out, folded the same way: the prose above says what it is without it
   const showChain = ref(false);
 
@@ -92,6 +114,9 @@
 
   // Re-resolving on every visit is the point of the page: the authhead moves whenever the identity's
   // metadata is updated elsewhere, and the reservations are rewritten from what comes back
+  // The followed list shows what the wallet's open found, which stops at a cap, until this visit's
+  // lookups of every held token are in: its count can still grow, and the heading says so
+  const lookingUpFollowed = ref(false);
   async function reloadIdentities() {
     try {
       // the names first: the cards are up already, and a name the wallet open failed to fetch
@@ -100,7 +125,9 @@
       await identitiesStore.refreshIdentities();
       // the identities of every held token, all of them on a visit rather than the new ones at
       // open; with following off, those of the held NFTs shaped like a key
-      await identitiesStore.followTokenIdentities(settingsStore.followTokenIdentities ? 'all' : 'keys');
+      lookingUpFollowed.value = true;
+      await identitiesStore.followTokenIdentities(settingsStore.followTokenIdentities ? 'all' : 'keys')
+        .finally(() => { lookingUpFollowed.value = false; });
       // after the resolving, which is what says where each publication is
       await identitiesStore.checkPublications();
     } catch (error) {
@@ -422,14 +449,32 @@
         </InfoPopup>
       </div>
       <div v-else class="section">
+        <div class="follow-option">
+          {{ t('settings.userOptions.followTokenIdentities') }}
+          <InfoPopup style="margin-right: 6px;">
+            <div style="max-width: 300px;">{{ t('settings.userOptions.followTokenIdentitiesHint') }}</div>
+          </InfoPopup>
+          <q-toggle :model-value="settingsStore.followTokenIdentities" @update:model-value="toggleFollowTokenIdentities" dense />
+        </div>
         <div v-if="identitiesStore.followedTokenIdentities === undefined" class="description">{{ t('identities.follow.resolving') }} <q-spinner-dots size="1.2em" /></div>
-        <div v-else class="follow-head" @click="showTokenIdentities = !showTokenIdentities">
-          <span>{{ t('identities.follow.header', group.identities.length) }}</span>
-          <q-icon name="expand_more" class="chevron" :class="{ open: showTokenIdentities }" />
+        <div v-else class="follow-row">
+          <div class="follow-head" @click="showTokenIdentities = !showTokenIdentities">
+            <span>{{ t('identities.follow.header', group.identities.length) }}</span>
+            <q-icon name="expand_more" class="chevron" :class="{ open: showTokenIdentities }" />
+            <q-spinner-dots v-if="lookingUpFollowed" size="1.2em" style="margin-left: 6px;" />
+          </div>
+          <input
+            v-if="showTokenIdentities && group.identities.length > followSearchFrom"
+            v-model="followSearch" class="follow-search" :placeholder="t('identities.follow.searchPlaceholder')"
+            autocomplete="off" autocapitalize="none" spellcheck="false"
+          >
+        </div>
+        <div v-if="showTokenIdentities && followSearch.trim() && !shownTokenIdentities.length" class="description" style="margin-top: 8px;">
+          {{ t('identities.follow.noMatch') }}
         </div>
       </div>
       <identityCard
-        v-for="identity in (group.key === 'tokens' && !showTokenIdentities ? [] : group.identities)"
+        v-for="identity in (group.key !== 'tokens' ? group.identities : showTokenIdentities ? shownTokenIdentities : [])"
         :key="identity.category"
         :identity="identity"
         :removable="group.key !== 'tokens'"
@@ -440,6 +485,17 @@
         @toggle="toggleCard(identity.category)"
       />
       </template>
+      <!-- The option sits where its list shows: above the followed identities once there are
+           any, and here while there are none or the following is off -->
+      <div v-if="!tokenGroupShown" class="section">
+        <div class="follow-option">
+          {{ t('settings.userOptions.followTokenIdentities') }}
+          <InfoPopup style="margin-right: 6px;">
+            <div style="max-width: 300px;">{{ t('settings.userOptions.followTokenIdentitiesHint') }}</div>
+          </InfoPopup>
+          <q-toggle :model-value="settingsStore.followTokenIdentities" @update:model-value="toggleFollowTokenIdentities" dense />
+        </div>
+      </div>
     </div>
   </fieldset>
 </template>
@@ -502,6 +558,28 @@
 }
 .follow-head {
   cursor: pointer;
+}
+/* the list's heading with its search at the far end, on a line of its own where the page is narrow */
+.follow-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.follow-search {
+  width: 200px;
+  margin: 0 0 0 auto;
+  padding: 4px 10px;
+}
+@media (max-width: 480px) {
+  .follow-search {
+    flex-basis: 100%;
+    width: 100%;
+  }
+}
+/* above the list it turns on */
+.follow-option + .follow-row, .follow-option + .description {
+  margin-top: 10px;
 }
 /* sized and dropped like the info icon beside it, rather than centred on the line box */
 .follow-head .chevron {

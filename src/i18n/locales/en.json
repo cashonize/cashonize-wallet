@@ -1587,8 +1587,8 @@
       "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets.",
       "bottomNavOnMobile": "Show the navigation tabs at the bottom on small screens",
       "dappActivityInNav": "Show the dApp activity icon in the top navigation",
-      "followTokenIdentities": "Follow the identities of the tokens you hold",
-      "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every held token at every wallet open.",
+      "followTokenIdentities": "Follow the identities of the tokens in this wallet",
+      "followTokenIdentitiesHint": "The list of tokens in this wallet goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every token in the wallet at every wallet open.",
       "allowDappIdentitySpends": "Let connected apps spend identity UTXOs",
       "allowDappIdentitySpendsHint": "Off: a WalletConnect or WizardConnect request that spends the UTXO of one of this wallet's identities is refused, the way a pledged UTXO is. On: the request reaches the approval dialog, which names the identity and says what its UTXO carries before and after. A request that would move an identity out of this wallet is refused either way. AuthKeys are not affected: a request using one is signed when the AuthKey comes back, which is how CashTokens Studio works.",
       "disableTokenIcons": "Disable token image loading",
@@ -1812,8 +1812,10 @@
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
     "watchedHeader": "{count} identity watched only, not held by this wallet | {count} identities watched only, not held by this wallet",
     "follow": {
-      "header": "{count} followed identity of a token you hold | {count} followed identities of tokens you hold",
-      "resolving": "Looking up the identities of the tokens you hold"
+      "header": "{count} followed identity of a token in this wallet | {count} followed identities of tokens in this wallet",
+      "resolving": "Looking up the identities of the tokens in this wallet",
+      "searchPlaceholder": "Search identities...",
+      "noMatch": "No identities match your search"
     },
     "unnamedIdentity": "Unnamed identity",
     "authheadLabel": "Identity UTXO:",
