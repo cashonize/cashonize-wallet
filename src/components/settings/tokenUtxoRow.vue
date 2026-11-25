@@ -1,8 +1,8 @@
 <script setup lang="ts">
-  // A token coin on two lines: what it is and what can be done with it, then where it is. One
-  // copy for the fungible, NFT and FT+NFT lists, which only differ in what the first line says
-  // about the token. The actions belong to the page, so the menu only emits them, and the page
-  // decides whose label editor is open, since one is open at a time across all its lists.
+  // A token coin on two lines: what it is and what can be done with it, then where it is. Fungible,
+  // NFT and FT+NFT coins only differ in what the first line says about the token. The actions
+  // belong to the page, so the menu only emits them, and the page decides whose label editor is
+  // open, since one is open at a time across both its lists.
   import { computed, ref } from 'vue'
   import type { Utxo } from '@cashonize/bch-wallet-lib'
   import EmojiItem from 'src/components/general/emojiItem.vue'
@@ -25,7 +25,7 @@
     utxo: Utxo,
     // off for a single-address wallet, where every coin is on the same address
     showAddress: boolean,
-    // the list the coin is in: its first line shows a fungible amount, an NFT, or both
+    // what the coin holds: its first line shows a fungible amount, an NFT, or both
     kind: 'fungible' | 'nft' | 'ftNft',
     // whether the coin holds BCH worth a warning, by the page's threshold
     holdsSignificantBch: boolean,
@@ -96,7 +96,7 @@
         :size="24"
       />
       <span class="token-name">{{ tokenName }}</span>
-      <span v-if="kind === 'fungible' || kind === 'ftNft'" class="mono amount-value">{{ fungibleAmount }} {{ tokenSymbol }}</span>
+      <span v-if="kind === 'fungible' || kind === 'ftNft'" class="mono amount-value" :title="`${fungibleAmount} ${tokenSymbol}`">{{ fungibleAmount }} {{ tokenSymbol }}</span>
       <span v-if="kind === 'nft' || kind === 'ftNft'" class="muted nft-type">{{ nftType }}</span>
       <EmojiItem v-if="holdsSignificantBch" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
       <span class="line-spacer"></span>

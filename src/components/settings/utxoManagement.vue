@@ -132,7 +132,7 @@
 
   // A row's label line only exists while it has a label or its editor is open, so the menu
   // action first brings the line into the DOM and then opens its editor by ref: the editor
-  // itself on a grid row, the token row on the two-line lists, which forwards to its editor
+  // itself on a grid row, the token row on the two-line list, which forwards to its editor
   const labelEditingOutpoint = ref<string | null>(null);
   interface LabelEditor { startEdit: () => Promise<void> }
   const labelEditRefs: Record<string, LabelEditor | null> = {};
@@ -452,7 +452,7 @@
       <div class="section">
         <div class="list-header" @click="toggleList('bch')">
           <strong>{{ t('utxoManagement.bchList.title') }}</strong>
-          <span v-if="bchUtxoCount !== undefined">({{ formatDecimal(bchUtxoCount) }})</span>
+          <span v-if="shownLists">({{ formatDecimal(shownLists.bch.length) }})</span>
           <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedLists.bch }" />
         </div>
         <template v-if="!collapsedLists.bch">
