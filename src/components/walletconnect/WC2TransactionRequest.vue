@@ -15,6 +15,7 @@
   import { scriptDisplay, summarizeDappTransaction } from 'src/utils/dapp/txSummary';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
+  import { useAppLockStore } from 'src/stores/appLockStore'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -37,6 +38,11 @@
     ...useDialogPluginComponent.emits
   ])
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
+  // signing is a spend, so the app lock's PIN is asked first; backing out leaves the request open
+  async function approve() {
+    if (await useAppLockStore().confirmPin()) onDialogOK()
+  }
 
   const requestParams = props.transactionRequest;
   const { transaction:wcTransactionItem, sourceOutputs } = requestParams;
@@ -317,7 +323,7 @@
         </div>
 
         <div class="wc-modal-bottom-buttons">
-          <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" @click="onDialogOK">
+          <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" @click="approve()">
           <input type="button" :value="t('walletConnect.transactionRequest.cancelButton')" @click="onDialogCancel" v-close-popup>
         </div>
       </fieldset>

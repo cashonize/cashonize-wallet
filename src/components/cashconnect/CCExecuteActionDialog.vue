@@ -12,6 +12,7 @@ import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
 import { type BcmrTokenResponse } from 'src/utils/zodValidation';
 import { useI18n } from 'vue-i18n';
+import { useAppLockStore } from 'src/stores/appLockStore';
 const { t } = useI18n()
 import CCExpansionItem from './CCExpansionItem.vue';
 
@@ -29,6 +30,11 @@ defineEmits([
 ])
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
+// approving is a spend, so the app lock's PIN is asked first; backing out leaves the request open
+async function approve() {
+  if (await useAppLockStore().confirmPin()) onDialogOK()
+}
 
 const safeUrl = sanitizeUrl(props.session.dapp.url);
 const exchangeRate = computed(() => store.exchangeRate);
@@ -221,7 +227,7 @@ function signedAmount(baseUnits: bigint, decimals: number | undefined): string {
 
         <!-- Approve/Reject Buttons -->
         <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">
-          <input type="button" class="primaryButton" :value="t('cashConnect.executeAction.approveButton')" @click="onDialogOK" v-close-popup>
+          <input type="button" class="primaryButton" :value="t('cashConnect.executeAction.approveButton')" @click="approve()">
           <input type="button" :value="t('cashConnect.executeAction.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>

@@ -6,10 +6,12 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { copyToClipboard } from 'src/utils/utils'
   import { confirmDialog } from 'src/utils/txHelpers'
+  import { useAppLockStore } from 'src/stores/appLockStore'
   import { DERIVATION_PATHS } from 'src/utils/wallet/walletUtils'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const appLock = useAppLockStore()
   const $q = useQuasar()
   const { t } = useI18n()
 
@@ -90,7 +92,8 @@
   const privateKeyWif = computed(() => singleAddressWallet.value?.privateKeyWif ?? '');
   const displayWif = ref(false);
 
-  function toggleShowWif() {
+  async function toggleShowWif() {
+    if (!displayWif.value && !await appLock.confirmPin()) return;
     displayWif.value = !displayWif.value;
   }
 
@@ -121,7 +124,9 @@
     verificationWords.value = [];
   }
 
-  function toggleShowSeedphrase() {
+  async function toggleShowSeedphrase() {
+    // with the app lock on, showing the seed phrase asks for its PIN
+    if (!displaySeedphrase.value && !await appLock.confirmPin()) return;
     // Close verification if open
     if (showBackupVerification.value) resetVerificationState();
     displaySeedphrase.value = !displaySeedphrase.value;

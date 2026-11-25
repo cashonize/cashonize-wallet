@@ -17,6 +17,7 @@
   import { useI18n } from 'vue-i18n'
   import { useStore } from '../stores/store'
   import { useIdentitiesStore } from '../stores/identitiesStore'
+  import { useAppLockStore } from '../stores/appLockStore'
   import { useSettingsStore, removeSettingsMenuKeys } from '../stores/settingsStore'
   import { useWalletconnectStore } from '../stores/walletconnectStore'
   import { useCashconnectStore } from '../stores/cashconnectStore'
@@ -36,6 +37,7 @@
   import { useWindowSize, addressesNavTabMinWidth } from 'src/utils/composables'
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
+  const appLock = useAppLockStore()
   const settingsStore = useSettingsStore()
   const walletconnectStore = useWalletconnectStore()
   const cashconnectStore = useCashconnectStore()
@@ -1078,6 +1080,9 @@
           </MenuRow>
           <MenuRow icon="sym_o_account_balance_wallet" :label="t('settings.menu.manageWallets')" @click="settingsSection = 5">
             <span class="description">{{ store.availableWallets.length }} {{ store.availableWallets.length === 1 ? t('common.wallet') : t('common.wallets') }}</span>
+          </MenuRow>
+          <MenuRow icon="lock" :label="t('appLock.title')" @click="store.changeView(22)">
+            <span class="description">{{ appLock.enabled ? t('appLock.on') : t('appLock.off') }}</span>
           </MenuRow>
           <MenuRow v-if="isHdWallet && width <= addressesNavTabMinWidth" icon="view_list" :label="t('settings.menu.hdAddresses')" @click="store.changeView(10)" />
         </div>

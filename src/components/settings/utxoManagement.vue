@@ -14,7 +14,7 @@
   import { toTokenAddress } from 'src/utils/addressValidation';
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels';
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
-  import { displayAndLogError } from 'src/utils/errorHandling';
+  import { CancelledError, displayAndLogError } from 'src/utils/errorHandling';
   import SendUtxoDialog from 'src/components/settings/sendUtxoDialog.vue';
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue';
   import { useStore } from 'src/stores/store'
@@ -321,6 +321,7 @@
       // update wallet history as fire-and-forget promise
       void store.updateWalletHistory();
     } catch(error){
+      if (error instanceof CancelledError) return;
       console.log(error)
       const errorMessage = typeof error == 'string' ? error : t('utxoManagement.notifications.somethingWentWrong');
       $q.notify({
@@ -376,6 +377,7 @@
       // update wallet history as fire-and-forget promise
       void store.updateWalletHistory();
     } catch(error){
+      if (error instanceof CancelledError) return;
       console.log(error)
       const errorMessage = typeof error == 'string' ? error : t('utxoManagement.notifications.somethingWentWrong');
       $q.notify({

@@ -20,7 +20,17 @@ export class ActionableError extends Error {
   }
 }
 
+// The user backing out of what they started, the app lock's PIN prompt say: nothing went wrong,
+// so nothing is shown
+export class CancelledError extends Error {
+  constructor() {
+    super('Cancelled');
+    this.name = 'CancelledError';
+  }
+}
+
 export function displayAndLogError(error: unknown): void {
+  if (error instanceof CancelledError) return;
   const errorMessage = caughtErrorToString(error);
   console.error(errorMessage)
   if (error instanceof ActionableError) {
