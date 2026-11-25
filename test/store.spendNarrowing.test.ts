@@ -11,6 +11,7 @@ import {
 import { useStore } from '../src/stores/store'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
 import { ActionableError } from '../src/utils/errorHandling'
+import { toTokenAddress } from '../src/utils/addressValidation'
 
 const category = '0123456789abcdef'.repeat(4)
 
@@ -433,7 +434,10 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
   // an HD wallet whose receive address 0 is used and every other address unused; the library's
   // own picks know nothing of the freeze and take the first unused address
   async function storeWithHdWallet() {
-    const addressAt = (branch: number, index: number) => `bitcoincash:q${branch}x${index}`
+    // real cashaddrs, the token address is converted from the plain one
+    const addressAt = (branch: number, index: number) => encodeCashAddress({
+      prefix: 'bitcoincash', type: 'p2pkh', payload: new Uint8Array(20).fill(index).fill(branch, 0, 1),
+    }).address
     // the store's HDWallet is the mocked class, which a static import here would not be
     const { HDWallet } = await import('@cashonize/bch-wallet-lib')
     const hdWallet = Object.assign(Object.create(HDWallet.prototype) as object, {
@@ -441,7 +445,6 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
       rawHistory: new Map([[0, [[{}]]], [1, []]]),
       walletCache: { getByIndex: (index: number, branch: number) => ({ address: addressAt(branch, index) }) },
       getDepositAddress: (index = 1) => addressAt(0, index),
-      getTokenDepositAddress: (index = 1) => addressAt(0, index) + '-token',
       getAddressByBranch: (branch: number, index: number) => addressAt(branch, index),
     })
     const store = useStore()
@@ -457,22 +460,19 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
     await store.freezeAddress(addressAt(0, 1))
 
     expect(store.currentDepositAddress).toBe(addressAt(0, 2))
-    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 2), token: addressAt(0, 2) + '-token' })
+    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 2), token: toTokenAddress(addressAt(0, 2)) })
   })
 
   // with nothing skipped the store leaves the pick to the library, whose next unused address
   // moves on a receive without anything reactive changing but the wallet's coins
   it('hands out the next address once the library moved past a used one', async () => {
     const { store, addressAt } = await storeWithHdWallet()
-    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 1), token: addressAt(0, 1) + '-token' })
+    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 1), token: toTokenAddress(addressAt(0, 1)) })
 
-    Object.assign(store.wallet, {
-      getDepositAddress: (index = 2) => addressAt(0, index),
-      getTokenDepositAddress: (index = 2) => addressAt(0, index) + '-token',
-    })
+    Object.assign(store.wallet, { getDepositAddress: (index = 2) => addressAt(0, index) })
     store.walletUtxos = []
 
-    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 2), token: addressAt(0, 2) + '-token' })
+    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 2), token: toTokenAddress(addressAt(0, 2)) })
   })
 
   // a payment beyond the discovery window would never be found by a seed restore
