@@ -53,10 +53,11 @@ import { receiptsToAnnounce } from "src/utils/history/txDirection"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
 import { useIdentitiesStore } from "./identitiesStore"
+import { useAppLockStore } from "./appLockStore"
 import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
 import { useWizardconnectStore, removeWizardConnectSessions } from "./wizardconnectStore"
-import { ActionableError, displayAndLogError, isQuotaExceededError } from "src/utils/errorHandling"
+import { ActionableError, CancelledError, displayAndLogError, isQuotaExceededError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
 import { GithubReleaseSchema } from "src/utils/zodValidation"
@@ -1998,13 +1999,21 @@ export const useStore = defineStore('store', () => {
     return response;
   }
 
+  // With the app lock on, every spend asks for its PIN first; backing out ends the spend quietly
+  async function confirmSpendPin() {
+    const confirmed = await useAppLockStore().confirmPin();
+    if (!confirmed) throw new CancelledError();
+  }
+
   const spend = {
     // An NFT send names its coins in ensureUtxos: matched by commitment alone, a mutable NFT spent
     // elsewhere since it was shown would be minted anew off the category's minting NFT
     async send(requests: SendRequestType, ensureUtxos: Utxo[] = [], afterBroadcast?: AfterBroadcast, holdBack?: HoldBack) {
+      await confirmSpendPin();
       return spendExplained(() => wallet.value.send(requests, { ...spendExclusions(), ensureUtxos }), afterBroadcast, holdBack);
     },
     async sendMax(cashaddr: string) {
+      await confirmSpendPin();
       return spendExplained(() => wallet.value.sendMax(cashaddr, spendExclusions()));
     },
     // the library takes the first vout-0 BCH coin of the pool it is handed as the genesis input,
@@ -2015,6 +2024,7 @@ export const useStore = defineStore('store', () => {
       genesisRequest: TokenGenesisRequest,
       sendRequests?: SendRequestType | SendRequestType[]
     ) {
+      await confirmSpendPin();
       const outpoint = outpointOf(genesisInput);
       const allUtxos = await wallet.value.getUtxos();
       const spendable = filterSpendableUtxos(allUtxos);
@@ -2028,9 +2038,11 @@ export const useStore = defineStore('store', () => {
     // tokenMint and tokenBurn locate their token input themselves, the minting NFT and the burned
     // coins included, and leave the excluded coins out of that too
     async tokenMint(mintRequests: TokenMintRequest | TokenMintRequest[]) {
+      await confirmSpendPin();
       return spendExplained(() => wallet.value.tokenMint(mintRequests, spendExclusions()));
     },
     async tokenBurn(burnRequest: TokenBurnRequest, message?: string) {
+      await confirmSpendPin();
       return spendExplained(() => wallet.value.tokenBurn(burnRequest, message, spendExclusions()));
     },
     async getMaxAmountToSend() {
@@ -2047,6 +2059,7 @@ export const useStore = defineStore('store', () => {
       categoryUtxos: Utxo[] = [],
       options: { tokenOperation?: 'send' | 'mint' } = {},
     ) {
+      await confirmSpendPin();
       const identitiesStore = useIdentitiesStore();
       // only the token coins the operation asked for, so a supply operation cannot sweep the
       // circulating balance into its own change; the other reservations stay excluded on top, a
@@ -2093,6 +2106,7 @@ export const useStore = defineStore('store', () => {
     // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
     // makes the signed pledge the campaign holds unusable
     async releaseReservedCoin(utxo: Utxo) {
+      await confirmSpendPin();
       return sendSingleCoin(utxo, currentDepositAddress.value);
     },
 
@@ -2100,6 +2114,7 @@ export const useStore = defineStore('store', () => {
     // campaign holds a signed pledge against it, so cancelling the pledge is its only release.
     // An 'auth' reserved coin passes deliberately, transferring an identity is this same spend.
     async sendUtxo(utxo: Utxo, cashaddr: string) {
+      await confirmSpendPin();
       if (reservedUtxos.value[outpointOf(utxo)] === 'pledge') {
         throw new Error(t('store.errors.cannotSendPledgedUtxo'));
       }

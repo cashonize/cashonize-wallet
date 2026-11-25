@@ -18,6 +18,7 @@
   import identitiesView from 'src/components/settings/identitiesPage.vue'
   import addressConverterView from 'src/components/settings/addressConverter.vue'
   import faqPageView from 'src/components/settings/faqPage.vue'
+  import appLockView from 'src/components/settings/appLock.vue'
   import requestPaymentView from 'src/components/settings/requestPayment.vue'
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
@@ -111,6 +112,7 @@
       case 19: return identitiesView;
       case 20: return addressConverterView;
       case 21: return faqPageView;
+      case 22: return appLockView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });

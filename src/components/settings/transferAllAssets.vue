@@ -8,6 +8,7 @@
   import { useI18n } from 'vue-i18n'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { confirmDialog } from 'src/utils/txHelpers'
+  import { useAppLockStore } from 'src/stores/appLockStore'
   import { satsToBch, formatFiatAmount, formatNumber, formatTokenAmount } from 'src/utils/utils'
   import { addressFromUri } from 'src/utils/payments/bip21'
   import { validateRecipientAddress, validateTokenRecipientAddress, getCashAddressScanError } from 'src/utils/payments/recipientAddress'
@@ -22,6 +23,7 @@
   const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
+  const appLock = useAppLockStore()
   const { t } = useI18n()
 
   const destinationInput = ref("");
@@ -152,6 +154,8 @@
       t('transferAllAssets.confirm.button')
     );
     if (!confirmed) return;
+    // this transfer spends through the wallet directly, past the PIN that store.spend asks for
+    if (!await appLock.confirmPin()) return;
 
     isTransferring.value = true;
     transferFailed.value = false;
