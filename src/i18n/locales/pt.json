@@ -911,18 +911,8 @@
       "title": "Resumo: UTXOs de tokens por categoria",
       "empty": "Esta carteira não tem UTXOs de tokens."
     },
-    "fungibleList": {
-      "title": "UTXOs de tokens fungíveis",
-      "empty": "Esta carteira não tem UTXOs de tokens fungíveis."
-    },
-    "nftList": {
-      "title": "UTXOs de NFTs",
-      "empty": "Esta carteira não tem UTXOs de NFTs."
-    },
-    "ftNftList": {
-      "title": "UTXOs de tokens fungíveis + NFT",
-      "empty": "Esta carteira não tem UTXOs que contenham ao mesmo tempo uma quantia fungível e um NFT."
-    },
+    "searchPlaceholder": "Buscar UTXOs...",
+    "noMatch": "Nenhum UTXO corresponde à sua pesquisa",
     "reservedSummary": "{count} UTXO retido, fora do seu saldo disponível | {count} UTXOs retidos, fora do seu saldo disponível",
     "reservedTokenSummary": "{count} UTXO de token retido, fora de cada transferência que este app faz | {count} UTXOs de token retidos, fora de cada transferência que este app faz",
     "freeze": {
@@ -963,7 +953,6 @@
       "oneUtxo": "apenas 1"
     },
     "combined": {
-      "title": "UTXOs combinados BCH + Token",
       "description": "Alguns dApps retornam UTXOs que combinam BCH com tokens, fazendo com que o BCH não apareça no seu saldo.",
       "warningCount": "{count} UTXO com BCH + Tokens combinados | {count} UTXOs com BCH + Tokens combinados",
       "warningCountSingle": "{count} UTXO com BCH + Tokens combinados",
@@ -971,7 +960,6 @@
       "splittableAmount": "Você tem {bch} BCH que pode ser separado dos UTXOs de tokens.",
       "nftNote": "Nota: Esta ferramenta só pode separar BCH de UTXOs de tokens fungíveis, não de NFTs.",
       "viewAffected": "Ver UTXOs afetados",
-      "noIssues": "Você não possui UTXOs desse tipo",
       "splittingButton": "Separando...",
       "splitButton": "Separar BCH dos Tokens"
     },
@@ -987,7 +975,11 @@
       "label": "Etiqueta",
       "address": "Endereço",
       "utxoCount": "UTXOs",
-      "bchHeld": "BCH retido"
+      "bchHeld": "BCH retido",
+      "tokenId": "Id do token",
+      "commitment": "Commitment",
+      "outpoint": "Outpoint",
+      "outpointHint": "O id da transação e o número da saída (txid:vout) que identificam este UTXO"
     },
     "notifications": {
       "consolidating": "Consolidando UTXOs de BCH...",

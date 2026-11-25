@@ -911,18 +911,8 @@
       "title": "Обзор: токенные UTXO по категориям",
       "empty": "В этом кошельке нет токенных UTXO."
     },
-    "fungibleList": {
-      "title": "UTXO взаимозаменяемых токенов",
-      "empty": "В этом кошельке нет UTXO взаимозаменяемых токенов."
-    },
-    "nftList": {
-      "title": "NFT UTXO",
-      "empty": "В этом кошельке нет NFT UTXO."
-    },
-    "ftNftList": {
-      "title": "UTXO взаимозаменяемых токенов + NFT",
-      "empty": "В этом кошельке нет UTXO, содержащих одновременно взаимозаменяемую сумму и NFT."
-    },
+    "searchPlaceholder": "Поиск UTXO...",
+    "noMatch": "Нет UTXO, подходящих под запрос",
     "reservedSummary": "{count} UTXO удержан и не входит в доступный для трат баланс | {count} UTXO удержаны и не входят в доступный для трат баланс | {count} UTXO удержаны и не входят в доступный для трат баланс",
     "reservedTokenSummary": "{count} токенный UTXO удержан и исключён из всех переводов этого приложения | {count} токенных UTXO удержаны и исключены из всех переводов этого приложения | {count} токенных UTXO удержаны и исключены из всех переводов этого приложения",
     "freeze": {
@@ -963,7 +953,6 @@
       "oneUtxo": "только 1"
     },
     "combined": {
-      "title": "Совмещённые UTXO BCH + токены",
       "description": "Некоторые dApp возвращают UTXO, совмещающие BCH с токенами, из-за чего эти BCH не отображаются в вашем балансе.",
       "warningCount": "{count} UTXO с BCH и токенами вместе | {count} UTXO с BCH и токенами вместе | {count} UTXO с BCH и токенами вместе",
       "warningCountSingle": "{count} UTXO с BCH и токенами вместе",
@@ -971,7 +960,6 @@
       "splittableAmount": "У вас есть {bch} BCH, которые можно отделить от токенных UTXO.",
       "nftNote": "Примечание: этот инструмент может отделять BCH только от UTXO взаимозаменяемых токенов, но не от NFT.",
       "viewAffected": "Показать затронутые UTXO",
-      "noIssues": "У вас нет таких UTXO",
       "splittingButton": "Разделение...",
       "splitButton": "Отделить BCH от токенов"
     },
@@ -987,7 +975,11 @@
       "label": "Метка",
       "address": "Адрес",
       "utxoCount": "UTXO",
-      "bchHeld": "BCH на счету"
+      "bchHeld": "BCH на счету",
+      "tokenId": "Id токена",
+      "commitment": "Commitment",
+      "outpoint": "Outpoint",
+      "outpointHint": "Id транзакции и номер выхода (txid:vout), которые определяют этот UTXO"
     },
     "notifications": {
       "consolidating": "Объединение BCH UTXO...",

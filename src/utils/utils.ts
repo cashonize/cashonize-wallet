@@ -298,6 +298,12 @@ export function truncateHash(hash: string, head = 16, tail = 8): string {
   return `${hash.slice(0, head)}...${hash.slice(-tail)}`;
 }
 
+// Without the prefix, which is the same for every address of a wallet
+export function truncateAddressBody(address: string): string {
+  const body = address.split(':')[1] ?? address;
+  return body.slice(0, 6) + '...' + body.slice(-6);
+}
+
 // The same hash shorter on a narrow screen, the way the token items shorten a category
 export function truncateHashForWidth(hash: string, windowWidth: number): string {
   if (windowWidth < 390) return truncateHash(hash, 8, 4);

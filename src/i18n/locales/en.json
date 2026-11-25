@@ -911,18 +911,8 @@
       "title": "Overview: token UTXOs per category",
       "empty": "This wallet has no token UTXOs."
     },
-    "fungibleList": {
-      "title": "Fungible token UTXOs",
-      "empty": "This wallet has no fungible token UTXOs."
-    },
-    "nftList": {
-      "title": "NFT UTXOs",
-      "empty": "This wallet has no NFT UTXOs."
-    },
-    "ftNftList": {
-      "title": "Fungible token + NFT UTXOs",
-      "empty": "This wallet has no UTXOs holding a fungible amount and an NFT at once."
-    },
+    "searchPlaceholder": "Search UTXOs...",
+    "noMatch": "No UTXOs match your search",
     "reservedSummary": "{count} UTXO held back, kept out of your spendable balance | {count} UTXOs held back, kept out of your spendable balance",
     "reservedTokenSummary": "{count} token UTXO held back, left out of every transfer this app makes | {count} token UTXOs held back, left out of every transfer this app makes",
     "freeze": {
@@ -963,7 +953,6 @@
       "oneUtxo": "only 1"
     },
     "combined": {
-      "title": "Combined BCH + Token UTXOs",
       "description": "Some dApps return UTXOs that combine BCH with tokens, causing the BCH to not show in your balance.",
       "warningCount": "{count} UTXO with combined BCH + Tokens | {count} UTXOs with combined BCH + Tokens",
       "warningCountSingle": "{count} UTXO with combined BCH + Tokens",
@@ -971,7 +960,6 @@
       "splittableAmount": "You have {bch} BCH that can be split from token UTXOs.",
       "nftNote": "Note: This tool can only split BCH from fungible token UTXOs, not NFTs.",
       "viewAffected": "View affected UTXOs",
-      "noIssues": "You have no such UTXOs",
       "splittingButton": "Splitting...",
       "splitButton": "Split BCH from Tokens"
     },
@@ -987,7 +975,11 @@
       "label": "Label",
       "address": "Address",
       "utxoCount": "UTXOs",
-      "bchHeld": "BCH held"
+      "bchHeld": "BCH held",
+      "tokenId": "Token id",
+      "commitment": "Commitment",
+      "outpoint": "Outpoint",
+      "outpointHint": "The transaction id and output number (txid:vout) that identify this UTXO"
     },
     "notifications": {
       "consolidating": "Consolidating BCH UTXOs...",

@@ -911,18 +911,8 @@
       "title": "Überblick: Token-UTXOs pro Kategorie",
       "empty": "Dieses Wallet hat keine Token-UTXOs."
     },
-    "fungibleList": {
-      "title": "Fungible Token-UTXOs",
-      "empty": "Dieses Wallet hat keine fungiblen Token-UTXOs."
-    },
-    "nftList": {
-      "title": "NFT-UTXOs",
-      "empty": "Dieses Wallet hat keine NFT-UTXOs."
-    },
-    "ftNftList": {
-      "title": "Fungible Token + NFT UTXOs",
-      "empty": "Dieses Wallet hat keine UTXOs, die zugleich einen fungiblen Betrag und ein NFT enthalten."
-    },
+    "searchPlaceholder": "UTXOs suchen...",
+    "noMatch": "Keine UTXOs entsprechen deiner Suche",
     "reservedSummary": "{count} zurückgehaltener UTXO, außerhalb deines verfügbaren Guthabens | {count} zurückgehaltene UTXOs, außerhalb deines verfügbaren Guthabens",
     "reservedTokenSummary": "{count} Token-UTXO zurückgehalten, aus jedem Transfer dieser App herausgehalten | {count} Token-UTXOs zurückgehalten, aus jedem Transfer dieser App herausgehalten",
     "freeze": {
@@ -963,7 +953,6 @@
       "oneUtxo": "nur 1"
     },
     "combined": {
-      "title": "Kombinierte BCH + Token UTXOs",
       "description": "Einige dApps geben UTXOs zurück, die BCH mit Tokens kombinieren, wodurch das BCH nicht in deinem Guthaben angezeigt wird.",
       "warningCount": "{count} UTXO mit kombiniertem BCH + Tokens | {count} UTXOs mit kombiniertem BCH + Tokens",
       "warningCountSingle": "{count} UTXO mit kombiniertem BCH + Tokens",
@@ -971,7 +960,6 @@
       "splittableAmount": "Du hast {bch} BCH, die von Token-UTXOs abgespalten werden können.",
       "nftNote": "Hinweis: Dieses Tool kann nur BCH von fungible Token UTXOs abspalten, nicht von NFTs.",
       "viewAffected": "Betroffene UTXOs anzeigen",
-      "noIssues": "Du hast keine solchen UTXOs",
       "splittingButton": "Wird abgespalten...",
       "splitButton": "BCH von Tokens abspalten"
     },
@@ -987,7 +975,11 @@
       "label": "Beschriftung",
       "address": "Adresse",
       "utxoCount": "UTXOs",
-      "bchHeld": "Enthaltenes BCH"
+      "bchHeld": "Enthaltenes BCH",
+      "tokenId": "Token-ID",
+      "commitment": "Commitment",
+      "outpoint": "Outpoint",
+      "outpointHint": "Transaktions-ID und Output-Nummer (txid:vout), die diesen UTXO eindeutig bezeichnen"
     },
     "notifications": {
       "consolidating": "BCH-UTXOs werden konsolidiert...",

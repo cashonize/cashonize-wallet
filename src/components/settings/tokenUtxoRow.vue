@@ -1,15 +1,16 @@
 <script setup lang="ts">
-  // A token coin on two lines: what it is, then where it is and what can be done with it. One
+  // A token coin on two lines: what it is and what can be done with it, then where it is. One
   // copy for the fungible, NFT and FT+NFT lists, which only differ in what the first line says
   // about the token. The actions belong to the page, so the menu only emits them, and the page
   // decides whose label editor is open, since one is open at a time across all its lists.
   import { computed, ref } from 'vue'
   import type { Utxo } from '@cashonize/bch-wallet-lib'
   import EmojiItem from 'src/components/general/emojiItem.vue'
+  import InfoPopup from 'src/components/general/InfoPopup.vue'
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue'
-  import { copyToClipboard, formatBch, formatTokenAmount, truncateHash } from 'src/utils/utils'
+  import { copyToClipboard, formatBch, formatTokenAmount, truncateAddressBody, truncateHash } from 'src/utils/utils'
   import { isFeatureReservation, outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels'
   import { useStore } from 'src/stores/store'
@@ -22,6 +23,8 @@
 
   const props = defineProps<{
     utxo: Utxo,
+    // off for a single-address wallet, where every coin is on the same address
+    showAddress: boolean,
     // the list the coin is in: its first line shows a fungible amount, an NFT, or both
     kind: 'fungible' | 'nft' | 'ftNft',
     // whether the coin holds BCH worth a warning, by the page's threshold
@@ -57,18 +60,23 @@
     return formatTokenAmount(token.amount, decimals)
   })
 
-  const nftCapability = computed(() => {
+  // Says NFT out loud, so a row in the mixed list reads as what it is: "immutable NFT"
+  const nftType = computed(() => {
     const capability = props.utxo.token?.nft?.capability
     if (!capability) return '' // should never happen
-    if (capability === 'none') return t('tokenItem.info.immutable')
-    if (capability === 'mutable') return t('tokenItem.info.mutable')
-    return t('tokenItem.info.minting')
+    let capabilityText = t('tokenItem.info.minting')
+    if (capability === 'none') capabilityText = t('tokenItem.info.immutable')
+    if (capability === 'mutable') capabilityText = t('tokenItem.info.mutable')
+    return t('tokenItem.info.nftTypeValue', { capability: capabilityText })
   })
 
-  // Commitments are up to 40 bytes and most are far shorter, so the column shows what fits and
-  // its own ellipsis takes the rest. Unlike a hash there is no tail worth keeping, and leaving
-  // the shortening to css is what lets the column be narrow without cutting a value twice.
-  const nftCommitment = computed(() => props.utxo.token?.nft?.commitment || t('tokenItem.empty'))
+  // Commitments are up to 40 bytes of hex and most are far shorter: a short one is shown whole,
+  // a long one loses its middle, and a click copies the full value either way
+  const fullCommitment = computed(() => props.utxo.token?.nft?.commitment ?? '')
+  const nftCommitment = computed(() => {
+    if (fullCommitment.value.length > 20) return truncateHash(fullCommitment.value, 8, 8)
+    return fullCommitment.value
+  })
 
   // The page opens the editor from the menu action the way it opens a grid row's, by ref once
   // the label line is in the DOM, so the row forwards that to its editor
@@ -88,22 +96,10 @@
         :size="24"
       />
       <span class="token-name">{{ tokenName }}</span>
-      <span
-        v-if="kind === 'fungible' || kind === 'ftNft'"
-        class="mono amount-value"
-        :title="`${fungibleAmount} ${tokenSymbol}`"
-      >{{ fungibleAmount }}</span>
-      <template v-if="kind === 'nft' || kind === 'ftNft'">
-        <span class="mono muted commitment-value" :title="utxo.token!.nft!.commitment">{{ nftCommitment }}</span>
-        <span class="description">{{ nftCapability }}</span>
-      </template>
+      <span v-if="kind === 'fungible' || kind === 'ftNft'" class="mono amount-value">{{ fungibleAmount }} {{ tokenSymbol }}</span>
+      <span v-if="kind === 'nft' || kind === 'ftNft'" class="muted nft-type">{{ nftType }}</span>
       <EmojiItem v-if="holdsSignificantBch" class="warn-marker" emoji="⚠️" :sizePx="16" :title="t('utxoManagement.markers.bchOnToken')"/>
-    </div>
-    <div class="utxo-line utxo-line-meta">
-      <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
-      <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
-        <span class="mono muted">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}<img class="copyIcon" src="images/copyGrey.svg"></span>
-      </span>
+      <span class="line-spacer"></span>
       <utxoRowStatus :utxo="utxo" compact />
       <q-icon v-if="!heldByFeature" name="more_vert" size="18px" class="row-menu-trigger">
         <q-menu anchor="bottom right" self="top right" @hide="emit('menuHidden')">
@@ -119,6 +115,40 @@
           </q-list>
         </q-menu>
       </q-icon>
+    </div>
+    <!-- every value but the BCH amount, which carries its unit, says what it is -->
+    <div class="utxo-line utxo-line-meta">
+      <span class="mono bch-value">{{ formatBch(utxo.satoshis, store.network) }}</span>
+      <span class="meta-field">
+        <span class="meta-label">{{ t('utxoManagement.tableHeaders.tokenId') }}</span>
+        <span class="copy-target" :title="category" @click="copyToClipboard(category)">
+          <span class="mono">{{ truncateHash(category, 8, 6) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+        </span>
+      </span>
+      <span v-if="kind === 'nft' || kind === 'ftNft'" class="meta-field">
+        <span class="meta-label">{{ t('utxoManagement.tableHeaders.commitment') }}</span>
+        <span v-if="fullCommitment" class="copy-target" :title="fullCommitment" @click="copyToClipboard(fullCommitment)">
+          <span class="mono">{{ nftCommitment }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+        </span>
+        <span v-else>{{ t('tokenItem.empty') }}</span>
+      </span>
+      <span v-if="showAddress" class="meta-field">
+        <span class="meta-label">{{ t('utxoManagement.tableHeaders.address') }}</span>
+        <span class="copy-target" :title="utxo.address" @click="copyToClipboard(utxo.address)">
+          <span class="mono">{{ truncateAddressBody(utxo.address) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+        </span>
+      </span>
+      <span class="meta-field">
+        <InfoPopup>
+          <template #trigger>
+            <span class="meta-label info-popup-text-trigger">{{ t('utxoManagement.tableHeaders.outpoint') }}</span>
+          </template>
+          {{ t('utxoManagement.tableHeaders.outpointHint') }}
+        </InfoPopup>
+        <span class="copy-target" :title="outpointOf(utxo)" @click="copyToClipboard(outpointOf(utxo))">
+          <span class="mono">{{ truncateHash(utxo.txid, 8, 6) }}:{{ utxo.vout }}<img class="copyIcon" src="images/copyGrey.svg"></span>
+        </span>
+      </span>
     </div>
     <div v-if="label || editingLabel" class="utxo-line utxo-label-line">
       <InlineTextEdit
