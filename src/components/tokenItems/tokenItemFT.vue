@@ -4,8 +4,9 @@
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';
+  import tokenInfoPanel from './tokenInfoPanel.vue'
   import type { TokenDataFT, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount } from 'src/utils/utils';
   import { toTypedAmount } from 'src/utils/numberFormat';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -201,7 +202,7 @@
         />
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
-            <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
+            <div v-if="tokenName" class="tokenTitle">{{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
               <span @click="copyToClipboard(tokenData.category)">
@@ -255,26 +256,16 @@
             {{ t('tokenItem.actions.burnTokens') }}
           </span>
         </div>
-        <div v-if="displayTokenInfo" class="tokenAction">
-          <div></div>
-          <div v-if="tokenMetaData?.description" class="indentText"> {{ t('tokenItem.info.tokenDescription') }} {{ tokenMetaData.description }} </div>
-          <div v-if="tokenMetaData?.token?.symbol">
-            {{ t('tokenItem.info.tokenSymbol') }} {{ tokenMetaData.token.symbol }}
-          </div>
-          <div v-if="tokenData.amount && tokenMetaData">
-            {{ t('tokenItem.info.numberOfDecimals') }} {{ tokenMetaData?.token?.decimals ?? 0 }}
-          </div>
-          <div v-if="tokenMetaData?.uris?.web">
-            {{ t('tokenItem.info.tokenWebLink') }}
-            <a v-if="sanitizeUrl(tokenMetaData.uris.web)" :href="sanitizeUrl(tokenMetaData.uris.web)" target="_blank">{{ tokenMetaData.uris.web }}</a>
-            <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
-          </div>
-          <div>
-            <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">
-              {{ t('tokenItem.info.seeDetailsOnExplorer') }} <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
-            </a>
-          </div>
-        </div>
+        <tokenInfoPanel
+          v-if="displayTokenInfo"
+          :description="tokenMetaData?.description"
+          :facts="tokenMetaData ? [
+            { label: t('tokenItem.info.symbol'), value: tokenMetaData.token?.symbol ?? '' },
+            { label: t('tokenItem.info.decimals'), value: String(tokenMetaData.token?.decimals ?? 0) },
+          ].filter(fact => fact.value) : []"
+          :web-url="tokenMetaData?.uris?.web"
+          :category="tokenData.category"
+        />
 
         <div v-if="displaySendTokens" class="tokenAction">
           {{ t('tokenItem.sendTokens.title') }}
