@@ -5,7 +5,8 @@
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
   import { CHANGE_BRANCH, DEPOSIT_BRANCH, HDWallet } from '@cashonize/bch-wallet-lib';
-  import { useWindowSize } from 'src/utils/composables'
+  import { useWindowSize, addressesNavTabMinWidth } from 'src/utils/composables'
+  import BackRow from 'src/components/general/BackRow.vue'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { maxAddressLabelLength } from 'src/utils/wallet/addressManagement'
   import { buildAddressRows, tokenCategoryCount, type AddressRow } from 'src/utils/wallet/addressRows'
@@ -213,6 +214,8 @@
 <template>
   <fieldset class="item" style="padding-bottom: 1.5rem;">
     <legend>{{ t('hdAddresses.title') }}</legend>
+    <!-- opened from the More page unless the layout settings make it a tab -->
+    <BackRow v-if="!(settingsStore.addressesInNav && width > addressesNavTabMinWidth)" @click="store.goBack()" />
 
     <div class="control-row">
       <div class="type-filter">

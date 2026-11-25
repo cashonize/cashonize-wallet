@@ -192,9 +192,6 @@
         "chf": "CHF - Franco suíço",
         "brl": "BRL - Real brasileiro"
       },
-      "darkMode": "Modo escuro",
-      "confirmPayments": "Confirmar pagamentos antes de enviar",
-      "confirmPaymentsHint": "Pedir confirmação após clicar em enviar (recomendado)",
       "finishButton": "Concluir configuração"
     }
   },
@@ -1536,6 +1533,7 @@
       "important": "(importante)",
       "manageWallets": "Gerenciar carteiras",
       "userOptions": "Opções do usuário",
+      "appearance": "Aparência e layout",
       "tokenSettings": "Configurações de tokens",
       "localization": "Localização",
       "advancedSettings": "Configurações avançadas",
@@ -1567,7 +1565,6 @@
       "languageLoadFailed": "Não foi possível carregar este idioma. Verifique sua conexão ou recarregue a página."
     },
     "userOptions": {
-      "darkMode": "Modo escuro",
       "confirmPayments": "Confirmar pagamentos antes de enviar",
       "confirmPaymentsHint": "Mostra o valor e o endereço para uma última conferência após clicar em enviar. Recomendado, pois um pagamento não pode ser desfeito.",
       "showCauldronSwap": "Mostrar botão de Swap do Cauldron",
@@ -1587,6 +1584,14 @@
       "enableAddressMarkingHint": "Marcar um endereço como usado faz a carteira mostrar o próximo, assim você pode dar um endereço novo a cada pagador. Aplica-se a carteiras HD.",
       "bottomNavOnMobile": "Mostrar as abas de navegação na parte inferior em telas pequenas",
       "dappActivityInNav": "Mostrar o ícone de atividade de dApps na navegação superior",
+      "themeHeading": "Tema",
+      "themeSystem": "Padrão do sistema",
+      "themeLight": "Claro",
+      "themeDark": "Escuro",
+      "navigationHeading": "Navegação",
+      "qrHeading": "Código QR",
+      "addressesInNav": "Mostrar a aba Endereços na navegação superior",
+      "addressesInNavHint": "Para carteiras HD, em ecrãs com largura suficiente. Sem a aba, a página Endereços abre a partir da página ⋯.",
       "followTokenIdentities": "Seguir as identidades dos tokens desta carteira",
       "followTokenIdentitiesHint": "A lista de tokens desta carteira vai para o servidor Chaingraph como um conjunto, para que a identidade de um token que chegue a esta carteira seja notada e retida. Desligado por defeito: então só é consultada a identidade de um token cuja AuthKey esta carteira tem. Ligar consulta todos os tokens da carteira em cada abertura da carteira.",
       "allowDappIdentitySpends": "Permitir que apps ligadas gastem UTXOs de identidade",

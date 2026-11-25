@@ -192,9 +192,6 @@
         "chf": "CHF - Schweizer Franken",
         "brl": "BRL - Brasilianischer Real"
       },
-      "darkMode": "Dark Mode",
-      "confirmPayments": "Zahlungen vor dem Senden bestätigen",
-      "confirmPaymentsHint": "Nach dem Klicken auf Senden um Bestätigung bitten (empfohlen)",
       "finishButton": "Einrichtung abschließen"
     }
   },
@@ -1536,6 +1533,7 @@
       "important": "(wichtig)",
       "manageWallets": "Wallets verwalten",
       "userOptions": "Benutzeroptionen",
+      "appearance": "Darstellung & Layout",
       "tokenSettings": "Token-Einstellungen",
       "localization": "Lokalisierung",
       "advancedSettings": "Erweiterte Einstellungen",
@@ -1567,7 +1565,6 @@
       "languageLoadFailed": "Diese Sprache konnte nicht geladen werden. Prüfe deine Verbindung oder lade die Seite neu."
     },
     "userOptions": {
-      "darkMode": "Dark Mode",
       "confirmPayments": "Zahlungen vor dem Senden bestätigen",
       "confirmPaymentsHint": "Zeigt Betrag und Adresse zur letzten Kontrolle, nachdem du auf Senden geklickt hast. Empfohlen, da eine Zahlung nicht rückgängig gemacht werden kann.",
       "showCauldronSwap": "Cauldron Swap-Button anzeigen",
@@ -1587,6 +1584,14 @@
       "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets.",
       "bottomNavOnMobile": "Die Navigation auf kleinen Bildschirmen unten anzeigen",
       "dappActivityInNav": "Das dApp-Aktivitätssymbol in der oberen Navigation anzeigen",
+      "themeHeading": "Design",
+      "themeSystem": "Systemstandard",
+      "themeLight": "Hell",
+      "themeDark": "Dunkel",
+      "navigationHeading": "Navigation",
+      "qrHeading": "QR-Code",
+      "addressesInNav": "Den Tab „Adressen“ in der oberen Navigation anzeigen",
+      "addressesInNavHint": "Für HD-Wallets, auf ausreichend breiten Bildschirmen. Ohne den Tab öffnet sich die Adressen-Seite über die ⋯-Seite.",
       "followTokenIdentities": "Die Identitäten der Tokens in diesem Wallet verfolgen",
       "followTokenIdentitiesHint": "Die Liste der Tokens in diesem Wallet geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Standardmäßig aus: dann wird nur die Identität eines Tokens nachgeschlagen, dessen AuthKey dieses Wallet hält. Einschalten schlägt bei jedem Öffnen des Wallets jeden Token im Wallet nach.",
       "allowDappIdentitySpends": "Verbundene Apps dürfen Identitäts-UTXOs ausgeben",

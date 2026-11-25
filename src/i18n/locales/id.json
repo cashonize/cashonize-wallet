@@ -192,9 +192,6 @@
         "chf": "CHF - Franc Swiss",
         "brl": "BRL - Real Brasil"
       },
-      "darkMode": "Mode gelap",
-      "confirmPayments": "Konfirmasi pembayaran sebelum mengirim",
-      "confirmPaymentsHint": "Minta konfirmasi setelah menekan kirim (disarankan)",
       "finishButton": "Selesaikan Pengaturan"
     }
   },
@@ -1536,6 +1533,7 @@
       "important": "(penting)",
       "manageWallets": "Kelola dompet",
       "userOptions": "Opsi pengguna",
+      "appearance": "Tampilan & tata letak",
       "tokenSettings": "Pengaturan token",
       "localization": "Lokalisasi",
       "advancedSettings": "Pengaturan lanjutan",
@@ -1567,7 +1565,6 @@
       "languageLoadFailed": "Tidak dapat memuat bahasa ini. Periksa koneksi Anda atau muat ulang halaman."
     },
     "userOptions": {
-      "darkMode": "Mode gelap",
       "confirmPayments": "Konfirmasi pembayaran sebelum mengirim",
       "confirmPaymentsHint": "Menampilkan jumlah dan alamat untuk pemeriksaan terakhir setelah Anda mengklik kirim. Disarankan, karena pembayaran tidak dapat dibatalkan.",
       "showCauldronSwap": "Tampilkan Tombol Swap Cauldron",
@@ -1587,6 +1584,14 @@
       "enableAddressMarkingHint": "Menandai alamat sebagai terpakai membuat dompet memberikan alamat berikutnya, sehingga Anda dapat membagikan alamat baru kepada setiap pembayar. Berlaku untuk dompet HD.",
       "bottomNavOnMobile": "Tampilkan tab navigasi di bagian bawah pada layar kecil",
       "dappActivityInNav": "Tampilkan ikon aktivitas dApp di navigasi atas",
+      "themeHeading": "Tema",
+      "themeSystem": "Bawaan sistem",
+      "themeLight": "Terang",
+      "themeDark": "Gelap",
+      "navigationHeading": "Navigasi",
+      "qrHeading": "Kode QR",
+      "addressesInNav": "Tampilkan tab Alamat di navigasi atas",
+      "addressesInNavHint": "Untuk dompet HD, di layar yang cukup lebar. Tanpa tab, halaman Alamat dibuka dari halaman ⋯.",
       "followTokenIdentities": "Ikuti identitas token di dompet ini",
       "followTokenIdentitiesHint": "Daftar token di dompet ini dikirim ke server Chaingraph sebagai satu kumpulan, sehingga identitas token yang masuk ke dompet ini terdeteksi dan ditahan. Nonaktif secara default: maka hanya token yang AuthKey-nya dimiliki dompet ini yang identitasnya dicari. Mengaktifkannya akan mencari setiap token di dompet setiap kali dompet dibuka.",
       "allowDappIdentitySpends": "Izinkan aplikasi terhubung membelanjakan UTXO identitas",

@@ -23,7 +23,7 @@ describe('the setting that follows the identities of held tokens', () => {
     storage.clear()
     vi.stubGlobal('localStorage', storage)
     // the store reads the dark-mode media query and listens for the app being installed
-    vi.stubGlobal('window', { matchMedia: () => ({ matches: false }), addEventListener: () => {} })
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: false, addEventListener: () => {} }), addEventListener: () => {} })
     setActivePinia(createPinia())
   })
 
@@ -54,7 +54,7 @@ describe('the default wallet name', () => {
   beforeEach(() => {
     storage.clear()
     vi.stubGlobal('localStorage', storage)
-    vi.stubGlobal('window', { matchMedia: () => ({ matches: false }), addEventListener: () => {} })
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: false, addEventListener: () => {} }), addEventListener: () => {} })
     setActivePinia(createPinia())
   })
 

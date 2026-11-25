@@ -192,9 +192,6 @@
         "chf": "CHF - Franc suisse",
         "brl": "BRL - Réal brésilien"
       },
-      "darkMode": "Mode sombre",
-      "confirmPayments": "Confirmer les paiements avant l'envoi",
-      "confirmPaymentsHint": "Demander une confirmation après avoir cliqué sur envoyer (recommandé)",
       "finishButton": "Terminer la configuration"
     }
   },
@@ -1536,6 +1533,7 @@
       "important": "(important)",
       "manageWallets": "Gérer les portefeuilles",
       "userOptions": "Options utilisateur",
+      "appearance": "Apparence et disposition",
       "tokenSettings": "Paramètres des tokens",
       "localization": "Localisation",
       "advancedSettings": "Paramètres avancés",
@@ -1567,7 +1565,6 @@
       "languageLoadFailed": "Impossible de charger cette langue. Vérifiez votre connexion ou rechargez la page."
     },
     "userOptions": {
-      "darkMode": "Mode sombre",
       "confirmPayments": "Confirmer les paiements avant l'envoi",
       "confirmPaymentsHint": "Affiche le montant et l'adresse pour une dernière vérification après avoir cliqué sur envoyer. Recommandé, car un paiement ne peut pas être annulé.",
       "showCauldronSwap": "Afficher le bouton Cauldron Swap",
@@ -1587,6 +1584,14 @@
       "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD.",
       "bottomNavOnMobile": "Afficher les onglets de navigation en bas sur les petits écrans",
       "dappActivityInNav": "Afficher l'icône d'activité dApp dans la navigation supérieure",
+      "themeHeading": "Thème",
+      "themeSystem": "Par défaut du système",
+      "themeLight": "Clair",
+      "themeDark": "Sombre",
+      "navigationHeading": "Navigation",
+      "qrHeading": "Code QR",
+      "addressesInNav": "Afficher l'onglet Adresses dans la navigation supérieure",
+      "addressesInNavHint": "Pour les portefeuilles HD, sur les écrans assez larges. Sans l'onglet, la page Adresses s'ouvre depuis la page ⋯.",
       "followTokenIdentities": "Suivre les identités des tokens de ce portefeuille",
       "followTokenIdentitiesHint": "La liste des tokens de ce portefeuille est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens du portefeuille à chaque ouverture du portefeuille.",
       "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
