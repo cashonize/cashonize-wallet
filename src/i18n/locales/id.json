@@ -1291,9 +1291,9 @@
     "confirmTitle": "Masukkan PIN Anda",
     "confirmButton": "Konfirmasi",
     "wrongPin": "PIN salah",
-    "tooManyAttempts": "Terlalu banyak percobaan yang salah. Coba lagi dalam {seconds} dtk.",
+    "tooManyAttempts": "Terlalu banyak percobaan yang salah. Coba lagi dalam {time}.",
     "forgotPin": "Lupa PIN?",
-    "forgotPinHint": "PIN tidak dapat diatur ulang. Hapus data aplikasi atau situs ini, lalu pulihkan dompet Anda dari frasa seed-nya."
+    "forgotPinHint": "PIN tidak dapat diatur ulang. Hapus data aplikasi atau situs ini, lalu pulihkan dompet Anda dari frasa seed-nya. Dompet tanpa cadangan akan hilang."
   },
   "addressConverter": {
     "title": "Konverter Alamat",

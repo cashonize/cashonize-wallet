@@ -1291,9 +1291,9 @@
     "confirmTitle": "Digite o seu PIN",
     "confirmButton": "Confirmar",
     "wrongPin": "PIN incorreto",
-    "tooManyAttempts": "Muitas tentativas incorretas. Tente novamente em {seconds} s.",
+    "tooManyAttempts": "Muitas tentativas incorretas. Tente novamente em {time}.",
     "forgotPin": "Esqueceu o PIN?",
-    "forgotPinHint": "Um PIN não pode ser redefinido. Apague os dados deste app ou site e depois restaure as suas carteiras a partir das frases-semente."
+    "forgotPinHint": "Um PIN não pode ser redefinido. Apague os dados deste app ou site e depois restaure as suas carteiras a partir das frases-semente. Uma carteira sem backup é perdida."
   },
   "addressConverter": {
     "title": "Conversor de endereços",

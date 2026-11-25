@@ -1291,9 +1291,9 @@
     "confirmTitle": "Saisissez votre code PIN",
     "confirmButton": "Confirmer",
     "wrongPin": "Code PIN incorrect",
-    "tooManyAttempts": "Trop de tentatives incorrectes. Réessayez dans {seconds} s.",
+    "tooManyAttempts": "Trop de tentatives incorrectes. Réessayez dans {time}.",
     "forgotPin": "Code PIN oublié ?",
-    "forgotPinHint": "Un code PIN ne peut pas être réinitialisé. Effacez les données de cette application ou de ce site, puis restaurez vos portefeuilles à partir de leurs phrases de récupération."
+    "forgotPinHint": "Un code PIN ne peut pas être réinitialisé. Effacez les données de cette application ou de ce site, puis restaurez vos portefeuilles à partir de leurs phrases de récupération. Un portefeuille sans sauvegarde est perdu."
   },
   "addressConverter": {
     "title": "Convertisseur d'adresses",

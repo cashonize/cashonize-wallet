@@ -1291,9 +1291,9 @@
     "confirmTitle": "Gib deine PIN ein",
     "confirmButton": "Bestätigen",
     "wrongPin": "Falsche PIN",
-    "tooManyAttempts": "Zu viele falsche Versuche. Versuche es in {seconds} s erneut.",
+    "tooManyAttempts": "Zu viele falsche Versuche. Versuche es in {time} erneut.",
     "forgotPin": "PIN vergessen?",
-    "forgotPinHint": "Eine PIN lässt sich nicht zurücksetzen. Lösche die Daten dieser App oder Website und stelle deine Wallets dann aus ihren Seed-Phrasen wieder her."
+    "forgotPinHint": "Eine PIN lässt sich nicht zurücksetzen. Lösche die Daten dieser App oder Website und stelle deine Wallets dann aus ihren Seed-Phrasen wieder her. Eine Wallet ohne Backup ist verloren."
   },
   "addressConverter": {
     "title": "Adresskonverter",

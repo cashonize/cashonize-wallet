@@ -31,6 +31,9 @@
   onUnmounted(() => clearInterval(timer))
   const waitSeconds = computed(() => Math.max(0, Math.ceil((appLock.retryAt - now.value) / 1000)))
 
+  // minutes and seconds, as the wait grows to a quarter of an hour
+  const waitTime = computed(() => `${Math.floor(waitSeconds.value / 60)}:${String(waitSeconds.value % 60).padStart(2, '0')}`)
+
   onMounted(() => input.value?.focus())
   // the field was disabled for the wait and lost its focus
   watch(waitSeconds, (seconds) => { if (seconds === 0) void nextTick(() => input.value?.focus()) })
@@ -63,11 +66,11 @@
       <span v-if="!pin" class="pin-placeholder">{{ t('appLock.pinPlaceholder') }}</span>
       <span v-for="index in pin.length" :key="index" class="pin-dot"></span>
       <input
-        ref="input" v-model="pin" class="pin-input" type="text" inputmode="numeric" autocomplete="off"
+        ref="input" v-model="pin" class="pin-input" type="text" inputmode="numeric" enterkeyhint="go" autocomplete="off"
         :maxlength="pinMaxLength" :aria-label="t('appLock.pinPlaceholder')" :disabled="waitSeconds > 0"
       >
     </div>
-    <div v-if="waitSeconds > 0" class="pin-message">{{ t('appLock.tooManyAttempts', { seconds: waitSeconds }) }}</div>
+    <div v-if="waitSeconds > 0" class="pin-message">{{ t('appLock.tooManyAttempts', { time: waitTime }) }}</div>
     <div v-else-if="wrong" class="pin-message">{{ t('appLock.wrongPin') }}</div>
     <div class="pin-buttons">
       <input v-if="cancellable" type="button" :value="t('appLock.cancel')" @click="emit('cancel')">

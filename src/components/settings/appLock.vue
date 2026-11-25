@@ -84,15 +84,11 @@
         <span class="lock-badge" :class="{ on: appLock.enabled }">
           <q-icon :name="appLock.enabled ? 'lock' : 'lock_open'" size="26px" />
         </span>
-        <div>
-          <div class="lock-state">
-            {{ appLock.enabled ? t('appLock.isOn') : t('appLock.description') }}
-            <InfoPopup><div style="max-width: 300px;">{{ t('appLock.notEncryption') }}</div></InfoPopup>
-          </div>
-          <div class="description" style="font-size: smaller;">{{ t('appLock.askedWhen') }}:</div>
-        </div>
+        <div class="lock-state">{{ appLock.enabled ? t('appLock.isOn') : t('appLock.description') }}</div>
+        <InfoPopup><div style="max-width: 300px;">{{ t('appLock.notEncryption') }}</div></InfoPopup>
       </div>
 
+      <div style="margin-bottom: 8px;">{{ t('appLock.askedWhen') }}:</div>
       <ul class="lock-asks">
         <li v-for="ask in ['askOpen', 'askSpend', 'askSeed']" :key="ask">
           <q-icon name="check" size="18px" class="lock-check" />
@@ -125,7 +121,7 @@
       </form>
 
       <template v-if="notBackedUp.length">
-        <div class="warning-box" style="margin-top: 16px;">
+        <div class="warning-box lock-warning" style="margin-top: 16px;">
           <q-icon name="warning" size="20px" class="warning-box-icon" />
           <div>{{ t('appLock.notBackedUp', { wallets: notBackedUp.join(', ') }) }}</div>
         </div>
@@ -134,7 +130,8 @@
         </div>
       </template>
 
-      <div class="lock-notes">
+      <!-- the warning above says the same, in a wallet's own terms -->
+      <div v-else class="lock-notes">
         <div><q-icon name="info_outline" size="16px" /> <span>{{ t('appLock.backupFirst') }}</span></div>
       </div>
     </div>
@@ -166,6 +163,7 @@
   color: #fff;
 }
 .lock-state {
+  flex: 1;
   font-size: 1.15em;
   font-weight: 600;
 }
@@ -224,6 +222,13 @@
 }
 .lock-buttons input {
   margin: 0;
+}
+/* the page's most important sentence, in the text colour rather than orange on an orange tint */
+.lock-warning {
+  color: var(--font-color);
+}
+.lock-warning .q-icon {
+  color: orange;
 }
 .lock-notes {
   margin-top: 16px;

@@ -53,7 +53,7 @@
       <PinEntry ref="pinEntry" :check="appLock.unlock" :submit-label="t('appLock.unlockButton')" />
     </div>
     <div class="lock-forgot">
-      <span class="action-link" @click="showForgot = !showForgot">{{ t('appLock.forgotPin') }}</span>
+      <span class="action-link lock-forgot-link" @click="showForgot = !showForgot">{{ t('appLock.forgotPin') }}</span>
       <div v-if="showForgot" class="description">{{ t('appLock.forgotPinHint') }}</div>
     </div>
   </div>
@@ -106,11 +106,16 @@
 }
 .lock-forgot {
   max-width: 340px;
-  margin-top: 20px;
+  margin-top: 8px;
   font-size: smaller;
   text-align: center;
 }
+/* a touch target of its own size, not of the text's */
+.lock-forgot-link {
+  display: inline-block;
+  padding: 12px 16px;
+}
 .lock-forgot .description {
-  margin-top: 8px;
+  margin-top: 0;
 }
 </style>
