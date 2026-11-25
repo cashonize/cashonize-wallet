@@ -13,6 +13,7 @@
   import backupWallet from './settings/backupWallet.vue'
   import walletsOverview from './settings/walletsOverview.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
+  import ThemeSelect from './general/ThemeSelect.vue'
   import { computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from '../stores/store'
@@ -51,10 +52,11 @@
   const isCapacitor = import.meta.env.QUASAR_CAPACITOR_MODE;
   const applicationVersion = import.meta.env.version
 
-  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(0);
+  const settingsSection = ref<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9>(0);
   const sectionTitleKeys = ['nav.more', 'settings.menu.backupWallet', 'settings.menu.userOptions',
     'settings.menu.advancedSettings', 'settings.menu.developerSettings', 'settings.menu.manageWallets',
-    'settings.menu.localization', 'settings.menu.tokenSettings', 'settings.menu.dataAndStorage'] as const;
+    'settings.menu.localization', 'settings.menu.tokenSettings', 'settings.menu.dataAndStorage',
+    'settings.menu.appearance'] as const;
   const sectionTitle = computed(() => t(sectionTitleKeys[settingsSection.value]));
   function toggleMenuGroup(group: 'tools' | 'tokens' | 'settings') {
     openMenuGroup.value = openMenuGroup.value === group ? undefined : group;
@@ -71,7 +73,6 @@
   const selectedNumberFormat = ref(settingsStore.numberFormat);
   const selectedExplorer = ref(store.explorerUrl);
   // user options
-  const selectedDarkMode = ref(settingsStore.darkMode);
   const confirmBeforeSending = ref(settingsStore.confirmBeforeSending);
   const selectedShowSwap = ref(settingsStore.showCauldronSwap);
   const selectedShowCauldronFTValue = ref(settingsStore.showCauldronFTValue);
@@ -81,6 +82,7 @@
   const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
   const enableAddressMarking = ref(settingsStore.enableAddressMarking);
   const dappActivityInNav = ref(settingsStore.dappActivityInNav);
+  const addressesInNav = ref(settingsStore.addressesInNav);
   const bottomNavOnMobile = ref(settingsStore.bottomNavOnMobile);
   // advanced settings, for the active network's options: opening a wallet of another network
   // leaves this view, so the network is the same for as long as it is open
@@ -416,19 +418,6 @@
     settingsStore.configureExchangeRateProvider(selectedExchangeRateProvider.value);
     localStorage.setItem("exchangeRateProvider", selectedExchangeRateProvider.value);
   }
-  function changeDarkMode(){
-    settingsStore.darkMode = selectedDarkMode.value;
-    localStorage.setItem("darkMode", selectedDarkMode.value? "true" : "false");
-    darkmodeTransition()
-    selectedDarkMode.value ? document.body.classList.add("dark") : document.body.classList.remove("dark")
-  }
-  // work-around to not apply transitions for qr code scanning
-  function darkmodeTransition() {
-      document.body.classList.add('transition-enabled');
-    setTimeout(() => {
-      document.body.classList.remove('transition-enabled');
-    }, 500);
-  }
   function toggleConfirmBeforeSending(){
     localStorage.setItem("confirmBeforeSending", confirmBeforeSending.value? "true" : "false");
     settingsStore.confirmBeforeSending = confirmBeforeSending.value;
@@ -459,6 +448,10 @@
   function toggleTokenAddressQrDefault(){
     localStorage.setItem("tokenAddressQrDefault", tokenAddressQrDefault.value? "true" : "false");
     settingsStore.tokenAddressQrDefault = tokenAddressQrDefault.value;
+  }
+  function toggleAddressesInNav(){
+    localStorage.setItem("addressesInNav", addressesInNav.value? "true" : "false");
+    settingsStore.addressesInNav = addressesInNav.value;
   }
   function toggleDappActivityInNav(){
     localStorage.setItem("dappActivityInNav", dappActivityInNav.value? "true" : "false");
@@ -654,10 +647,6 @@
     <backupWallet v-if="settingsSection == 1" />
     <div v-else-if="settingsSection == 2">
       <div style="margin-bottom: 15px;">
-        {{ t('settings.userOptions.darkMode') }} <q-toggle v-model="selectedDarkMode" @update:model-value="changeDarkMode()" dense />
-      </div>
-
-      <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.confirmPayments') }}
         <InfoPopup style="margin-right: 6px;">
           <div style="max-width: 300px;">{{ t('settings.userOptions.confirmPaymentsHint') }}</div>
@@ -685,6 +674,40 @@
       </div>
 
       <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.enableAddressMarking') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.enableAddressMarkingHint') }}</div>
+          <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="enableAddressMarking" @update:model-value="toggleEnableAddressMarking" dense />
+      </div>
+    </div>
+    <div v-else-if="settingsSection == 9">
+      <div style="font-weight: 600; margin: 0 0 15px;">{{ t('settings.userOptions.themeHeading') }}</div>
+
+      <ThemeSelect style="margin-bottom: 15px;" />
+
+      <div style="font-weight: 600; margin: 25px 0 15px;">{{ t('settings.userOptions.navigationHeading') }}</div>
+
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.addressesInNav') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.addressesInNavHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="addressesInNav" @update:model-value="toggleAddressesInNav" dense />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.dappActivityInNav') }} <q-toggle v-model="dappActivityInNav" @update:model-value="toggleDappActivityInNav" dense />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.bottomNavOnMobile') }} <q-toggle v-model="bottomNavOnMobile" @update:model-value="toggleBottomNavOnMobile" dense />
+      </div>
+
+      <div style="font-weight: 600; margin: 25px 0 15px;">{{ t('settings.userOptions.qrHeading') }}</div>
+
+      <div style="margin-bottom: 15px;">
         <label for="selectQrAnimation">{{ t('settings.userOptions.qrAnimation') }}</label>
         <select v-model="qrAnimation" @change="changeQrAnimation()">
           <option value="MaterializeIn">MaterializeIn</option>
@@ -698,23 +721,6 @@
 
       <div style="margin-bottom: 15px;">
         {{ t('settings.userOptions.tokenAddressQrDefault') }} <q-toggle v-model="tokenAddressQrDefault" @update:model-value="toggleTokenAddressQrDefault" dense />
-      </div>
-
-      <div style="margin-bottom: 15px;">
-        {{ t('settings.userOptions.enableAddressMarking') }}
-        <InfoPopup style="margin-right: 6px;">
-          <div style="max-width: 300px;">{{ t('settings.userOptions.enableAddressMarkingHint') }}</div>
-          <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
-        </InfoPopup>
-        <q-toggle v-model="enableAddressMarking" @update:model-value="toggleEnableAddressMarking" dense />
-      </div>
-
-      <div style="margin-bottom: 15px;">
-        {{ t('settings.userOptions.bottomNavOnMobile') }} <q-toggle v-model="bottomNavOnMobile" @update:model-value="toggleBottomNavOnMobile" dense />
-      </div>
-
-      <div style="margin-bottom: 15px;">
-        {{ t('settings.userOptions.dappActivityInNav') }} <q-toggle v-model="dappActivityInNav" @update:model-value="toggleDappActivityInNav" dense />
       </div>
     </div>
     <div v-else-if="settingsSection == 7">
@@ -1069,11 +1075,12 @@
           <MenuRow icon="lock" :label="t('appLock.title')" @click="store.changeView(22)">
             <span class="description">{{ appLock.enabled ? t('appLock.on') : t('appLock.off') }}</span>
           </MenuRow>
-          <MenuRow v-if="isHdWallet && width <= addressesNavTabMinWidth" icon="view_list" :label="t('settings.menu.hdAddresses')" @click="store.changeView(10)" />
         </div>
       </div>
 
       <div class="menu-group menu-rows">
+        <!-- an HD wallet's addresses, here unless the layout settings make the page a tab -->
+        <MenuRow v-if="isHdWallet && !(settingsStore.addressesInNav && width > addressesNavTabMinWidth)" icon="view_list" :label="t('settings.menu.hdAddresses')" @click="store.changeView(10)" />
         <MenuRow icon="build" :label="t('settings.menu.tools')" :expanded="openMenuGroup === 'tools'" @click="toggleMenuGroup('tools')">
           <span v-if="utxosWithBchAndTokens?.length && openMenuGroup !== 'tools'" style="color: orange">{{ t('settings.menu.important') }}</span>
         </MenuRow>
@@ -1103,6 +1110,7 @@
         <MenuRow icon="settings" :label="t('settings.title')" :expanded="openMenuGroup === 'settings'" @click="toggleMenuGroup('settings')" />
         <template v-if="openMenuGroup === 'settings'">
           <MenuRow :label="t('settings.menu.userOptions')" @click="settingsSection = 2" />
+          <MenuRow :label="t('settings.menu.appearance')" @click="settingsSection = 9" />
           <MenuRow :label="t('settings.menu.tokenSettings')" @click="settingsSection = 7" />
           <MenuRow :label="t('settings.menu.localization')" @click="settingsSection = 6" />
           <MenuRow :label="t('settings.menu.advancedSettings')" @click="settingsSection = 3" />

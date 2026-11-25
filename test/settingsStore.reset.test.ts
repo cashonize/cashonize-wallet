@@ -36,7 +36,7 @@ describe('resetting the settings', () => {
     readKeys.clear()
     vi.stubGlobal('localStorage', storage)
     // the store reads the dark-mode media query and listens for the app being installed
-    vi.stubGlobal('window', { matchMedia: () => ({ matches: false }), addEventListener: () => {} })
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: false, addEventListener: () => {} }), addEventListener: () => {} })
     vi.stubGlobal('document', { body: { classList: { add: () => {} } } })
     setActivePinia(createPinia())
   })
@@ -86,7 +86,7 @@ describe('the per-network settings', () => {
   beforeEach(() => {
     storage.clear()
     vi.stubGlobal('localStorage', storage)
-    vi.stubGlobal('window', { matchMedia: () => ({ matches: false }), addEventListener: () => {} })
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: false, addEventListener: () => {} }), addEventListener: () => {} })
     vi.stubGlobal('document', { body: { classList: { add: () => {} } } })
   })
 

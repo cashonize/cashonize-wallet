@@ -276,7 +276,7 @@
     </div>
     <nav v-if="store.displayView && !navAtBottom" style="display: flex; justify-content: center; user-select: none;" class="tabs" :class="{ compact: compactNavTabs }">
       <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ t('nav.wallet') }} </div>
-      <div v-if="width > addressesNavTabMinWidth && settingsStore.getWalletType(store.activeWalletName) === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
+      <div v-if="settingsStore.addressesInNav && width > addressesNavTabMinWidth && settingsStore.getWalletType(store.activeWalletName) === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ t('nav.tokens') }} </div>
       <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ t('nav.history') }} </div>
       <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ t('nav.connect') }} </div>

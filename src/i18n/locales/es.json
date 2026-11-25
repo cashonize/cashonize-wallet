@@ -192,9 +192,6 @@
         "chf": "CHF - Franco suizo",
         "brl": "BRL - Real brasileño"
       },
-      "darkMode": "Modo oscuro",
-      "confirmPayments": "Confirmar pagos antes de enviar",
-      "confirmPaymentsHint": "Pedir confirmación después de hacer clic en enviar (recomendado)",
       "finishButton": "Finalizar configuración"
     }
   },
@@ -1536,6 +1533,7 @@
       "important": "(importante)",
       "manageWallets": "Administrar billeteras",
       "userOptions": "Opciones de usuario",
+      "appearance": "Apariencia y diseño",
       "tokenSettings": "Configuración de tokens",
       "localization": "Localización",
       "advancedSettings": "Configuración avanzada",
@@ -1567,7 +1565,6 @@
       "languageLoadFailed": "No se pudo cargar este idioma. Comprueba tu conexión o recarga la página."
     },
     "userOptions": {
-      "darkMode": "Modo oscuro",
       "confirmPayments": "Confirmar pagos antes de enviar",
       "confirmPaymentsHint": "Muestra el importe y la dirección para una última comprobación después de hacer clic en enviar. Recomendado, ya que un pago no se puede deshacer.",
       "showCauldronSwap": "Mostrar botón de Cauldron Swap",
@@ -1587,6 +1584,14 @@
       "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD.",
       "bottomNavOnMobile": "Mostrar las pestañas de navegación abajo en pantallas pequeñas",
       "dappActivityInNav": "Mostrar el icono de actividad de dApps en la navegación superior",
+      "themeHeading": "Tema",
+      "themeSystem": "Predeterminado del sistema",
+      "themeLight": "Claro",
+      "themeDark": "Oscuro",
+      "navigationHeading": "Navegación",
+      "qrHeading": "Código QR",
+      "addressesInNav": "Mostrar la pestaña Direcciones en la navegación superior",
+      "addressesInNavHint": "Para billeteras HD, en pantallas lo bastante anchas. Sin la pestaña, la página Direcciones se abre desde la página ⋯.",
       "followTokenIdentities": "Seguir las identidades de los tokens de esta billetera",
       "followTokenIdentitiesHint": "La lista de tokens de esta billetera se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivado por defecto: entonces solo se consulta la identidad de un token cuya AuthKey tiene esta billetera. Activarlo consulta todos los tokens de la billetera en cada apertura de la billetera.",
       "allowDappIdentitySpends": "Permitir que las apps conectadas gasten UTXOs de identidad",

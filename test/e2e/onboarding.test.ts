@@ -39,10 +39,6 @@ async function expectShownAddresses(page: Page, expected: { address: string, tok
   await expect(shown.nth(1)).toHaveText(expected.tokenAddress)
 }
 
-function preferenceToggle(page: Page, label: string) {
-  return page.locator('div:has(> .q-toggle)').filter({ hasText: label }).locator('.q-toggle')
-}
-
 test.use({ colorScheme: 'light' })
 
 test.afterEach(async () => {
@@ -138,9 +134,7 @@ test.describe('Onboarding import', () => {
     await importWalletOnboarding(page, { seedPhrase: MNEMONIC_12, walletType: 'hd', derivationPath: 'standard', walletName: 'e2e import' })
 
     await page.locator('#selectCurrency').selectOption('eur')
-    // Confirming payments starts on for new users, so clicking turns it off
-    await preferenceToggle(page, 'Dark mode').click()
-    await preferenceToggle(page, 'Confirm payments').click()
+    await page.getByRole('button', { name: 'Dark', exact: true }).click()
     await page.getByRole('button', { name: 'Finish Setup' }).click()
 
     const expected = addressesAt(MNEMONIC_12, "m/44'/145'/0'/0/0")
@@ -149,14 +143,12 @@ test.describe('Onboarding import', () => {
     const stored = await page.evaluate(() => ({
       currency: localStorage.getItem('currency'),
       darkMode: localStorage.getItem('darkMode'),
-      confirmBeforeSending: localStorage.getItem('confirmBeforeSending'),
       activeWalletName: localStorage.getItem('activeWalletName'),
       walletType: JSON.parse(localStorage.getItem('walletMetadata') ?? '{}')['e2e import']?.walletType,
     }))
     expect(stored).toEqual({
       currency: 'eur',
       darkMode: 'true',
-      confirmBeforeSending: 'false',
       activeWalletName: 'e2e import',
       walletType: 'hd',
     })

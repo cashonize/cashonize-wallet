@@ -75,7 +75,7 @@ const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 export const settingsMenuKeys = [
   // user options
   "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "explorer-testnet4", "qrAnimation",
-  "tokenAddressQrDefault", "enableAddressMarking", "dappActivityInNav", "bottomNavOnMobile",
+  "tokenAddressQrDefault", "enableAddressMarking", "dappActivityInNav", "bottomNavOnMobile", "addressesInNav",
   // token settings
   "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
   "allowDappIdentitySpends",
@@ -90,6 +90,8 @@ export const settingsMenuKeys = [
   // developer settings
   "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
 ] as const;
+
+export type ThemeMode = 'system' | 'light' | 'dark';
 
 export type BackupStatus = 'verified' | 'imported' | 'dismissed' | 'none';
 
@@ -133,6 +135,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const enableAddressMarking = ref(false);
   // the dapp activity log opens from the dapp sessions; this adds its icon to the top nav as well
   const dappActivityInNav = ref(false);
+  // an HD wallet's Addresses page as a tab of the top nav; without it the page opens from the More page
+  const addressesInNav = ref(false);
   // the main tabs in a bar at the bottom of the screen, within thumb reach, on narrow screens only;
   // on by default in the Android app, where tablets keep the top nav by being wider
   const bottomNavOnMobile = ref(Boolean(isCapacitor));
@@ -253,6 +257,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readEnableAddressMarking = localStorage.getItem("enableAddressMarking");
   if(readEnableAddressMarking) enableAddressMarking.value = readEnableAddressMarking == "true";
 
+  const readAddressesInNav = localStorage.getItem("addressesInNav");
+  if(readAddressesInNav) addressesInNav.value = readAddressesInNav == "true";
+
   const readDappActivityInNav = localStorage.getItem("dappActivityInNav");
   if(readDappActivityInNav) dappActivityInNav.value = readDappActivityInNav == "true";
 
@@ -264,11 +271,30 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     document.body.classList.add("dark");
     darkMode.value = true;
   }
-  const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches
-  if(readDarkMode == null && prefersDarkMode){
+  const systemDarkMode = window.matchMedia("(prefers-color-scheme: dark)")
+  if(readDarkMode == null && systemDarkMode.matches){
     document.body.classList.add("dark");
     darkMode.value = true;
   }
+  // The theme the user chose: light, dark, or the system's, which is no stored value at all, so a
+  // wallet that never chose keeps following the system as it always did
+  let initialThemeMode: ThemeMode = 'system';
+  if (readDarkMode != null) initialThemeMode = readDarkMode == "true" ? 'dark' : 'light';
+  const themeMode = ref<ThemeMode>(initialThemeMode);
+  function applyTheme() {
+    darkMode.value = themeMode.value === 'system' ? systemDarkMode.matches : themeMode.value === 'dark';
+    document.body.classList.toggle("dark", darkMode.value);
+  }
+  function setThemeMode(mode: ThemeMode) {
+    themeMode.value = mode;
+    if (mode === 'system') localStorage.removeItem("darkMode");
+    else localStorage.setItem("darkMode", mode === 'dark' ? "true" : "false");
+    applyTheme();
+  }
+  // following the system means following it when it changes, at dusk say
+  systemDarkMode.addEventListener('change', () => {
+    if (themeMode.value === 'system') applyTheme();
+  });
 
   const readShowSwap = localStorage.getItem("showCauldronSwap");
   if(readShowSwap == "true"){
@@ -624,6 +650,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     tokenMetadataIndexer,
     ipfsGateway,
     darkMode,
+    themeMode,
+    setThemeMode,
     showFiatValueHistory,
     showBalanceInHistory,
     tokenBurn,
@@ -635,6 +663,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     tokenAddressQrDefault,
     enableAddressMarking,
     dappActivityInNav,
+    addressesInNav,
     bottomNavOnMobile,
     hasPlayedAnimation,
     featuredTokens,
