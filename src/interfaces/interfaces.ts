@@ -30,7 +30,7 @@ export const CurrencyShortNames = {
   mxn: "MXN",
   ars: "ARS",
   rub: "RUB"
-} as const
+} as const satisfies Record<keyof typeof CurrencySymbols, string>
 
 export type Currency = keyof typeof CurrencySymbols;
 
