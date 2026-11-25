@@ -460,6 +460,21 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
     expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 2), token: addressAt(0, 2) + '-token' })
   })
 
+  // with nothing skipped the store leaves the pick to the library, whose next unused address
+  // moves on a receive without anything reactive changing but the wallet's coins
+  it('hands out the next address once the library moved past a used one', async () => {
+    const { store, addressAt } = await storeWithHdWallet()
+    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 1), token: addressAt(0, 1) + '-token' })
+
+    Object.assign(store.wallet, {
+      getDepositAddress: (index = 2) => addressAt(0, index),
+      getTokenDepositAddress: (index = 2) => addressAt(0, index) + '-token',
+    })
+    store.walletUtxos = []
+
+    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 2), token: addressAt(0, 2) + '-token' })
+  })
+
   // a payment beyond the discovery window would never be found by a seed restore
   it('refuses to freeze the last fresh receive address of the discovery window', async () => {
     const { store, addressAt } = await storeWithHdWallet()

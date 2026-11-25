@@ -383,7 +383,11 @@ export const useStore = defineStore('store', () => {
     return freshReceiveIndex(frozenAddresses.value);
   })
 
+  // Both addresses read walletUtxos themselves: when the pick is left to the library
+  // currentAddressIndex stays undefined across a receive, and a computed whose value did not
+  // change notifies no one
   const currentDepositAddress = computed(() => {
+    void walletUtxos.value;
     const activeWallet = _wallet.value;
     if (!activeWallet) return "";
     if (activeWallet instanceof HDWallet && currentAddressIndex.value !== undefined) {
@@ -393,6 +397,7 @@ export const useStore = defineStore('store', () => {
   })
 
   const currentTokenDepositAddress = computed(() => {
+    void walletUtxos.value;
     const activeWallet = _wallet.value;
     if (!activeWallet) return "";
     if (activeWallet instanceof HDWallet && currentAddressIndex.value !== undefined) {
