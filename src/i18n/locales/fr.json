@@ -1011,6 +1011,8 @@
     "unusedAddresses": "Non utilisées",
     "pinnedAddresses": "Épinglées",
     "noAddresses": "Aucune adresse analysée pour le moment",
+    "searchPlaceholder": "Rechercher des adresses...",
+    "noMatch": "Aucune adresse ne correspond à la recherche",
     "options": "Options",
     "hideZeroBalances": "Masquer les soldes nuls",
     "showTokenAddresses": "Afficher les adresses au format token",

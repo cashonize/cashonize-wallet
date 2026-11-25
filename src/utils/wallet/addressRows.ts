@@ -53,3 +53,24 @@ export function tokenCategoryCount(row: AddressRow): number {
   }
   return categories.length;
 }
+
+// From this many addresses in a list on, it gets a search field
+export const addressSearchFrom = 8;
+
+// Whether a row answers a search of the address lists: by its index, either form of its address
+// (a pasted full one included, where the lists show them shortened), its label, or a token it
+// holds. A query of digits alone is an index and no part of an address, which almost any digit is.
+export function addressRowMatches(
+  row: AddressRow, searchQuery: string, label: string | undefined, tokenText: (category: string) => string
+): boolean {
+  const query = searchQuery.trim().toLowerCase();
+  if (!query) return true;
+  if (label?.toLowerCase().includes(query)) return true;
+  const holdsMatchingToken = row.utxos.some((utxo) => {
+    const category = utxo.token?.category;
+    return category !== undefined && (category === query || tokenText(category).toLowerCase().includes(query));
+  });
+  if (holdsMatchingToken) return true;
+  if (/^\d+$/.test(query)) return String(row.index) === query;
+  return row.address.includes(query) || row.tokenAddress.includes(query);
+}

@@ -1011,6 +1011,8 @@
     "unusedAddresses": "Belum dipakai",
     "pinnedAddresses": "Disematkan",
     "noAddresses": "Belum ada alamat yang dipindai",
+    "searchPlaceholder": "Cari alamat...",
+    "noMatch": "Tidak ada alamat yang cocok dengan pencarian",
     "options": "Opsi",
     "hideZeroBalances": "Sembunyikan saldo nol",
     "showTokenAddresses": "Tampilkan alamat dalam format token",

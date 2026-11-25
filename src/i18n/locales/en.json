@@ -1011,6 +1011,8 @@
     "unusedAddresses": "Unused",
     "pinnedAddresses": "Pinned",
     "noAddresses": "No addresses scanned yet",
+    "searchPlaceholder": "Search addresses...",
+    "noMatch": "No addresses match your search",
     "options": "Options",
     "hideZeroBalances": "Hide zero balances",
     "showTokenAddresses": "Show addresses in token format",

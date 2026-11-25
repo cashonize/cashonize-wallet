@@ -1011,6 +1011,8 @@
     "unusedAddresses": "Неиспользованные",
     "pinnedAddresses": "Закреплённые",
     "noAddresses": "Адреса ещё не просканированы",
+    "searchPlaceholder": "Поиск адресов...",
+    "noMatch": "Нет адресов, подходящих под запрос",
     "options": "Параметры",
     "hideZeroBalances": "Скрыть нулевые балансы",
     "showTokenAddresses": "Показывать адреса в токенном формате",

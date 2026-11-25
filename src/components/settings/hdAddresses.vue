@@ -9,7 +9,7 @@
   import BackRow from 'src/components/general/BackRow.vue'
   import { confirmDialog } from 'src/utils/txHelpers'
   import { maxAddressLabelLength } from 'src/utils/wallet/addressManagement'
-  import { buildAddressRows, tokenCategoryCount, type AddressRow } from 'src/utils/wallet/addressRows'
+  import { addressRowMatches, addressSearchFrom, buildAddressRows, tokenCategoryCount, type AddressRow } from 'src/utils/wallet/addressRows'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
@@ -149,15 +149,34 @@
     return rows.filter(row => row.balance > 0n);
   }
 
+
+  // The search of a long list. It reads only while its field shows, so a query typed on one tab
+  // does not go on filtering a shorter one that has no field to clear it in.
+  const searchQuery = ref("");
+  const searchShown = computed(() => {
+    const rows = selectedChain.value === "receiving" ? receivingAddresses.value : changeAddresses.value;
+    return applyBalanceFilter(rows).length >= addressSearchFrom;
+  });
+  const searching = computed(() => searchShown.value && searchQuery.value.trim() !== "");
+  const tokenText = (category: string) => {
+    const metadata = store.bcmrRegistries?.[category];
+    return metadata ? `${metadata.name} ${metadata.token.symbol}` : "";
+  };
+  function applyFilters(rows: AddressRow[]) {
+    const shown = applyBalanceFilter(rows);
+    if (!searching.value) return shown;
+    return shown.filter(row => addressRowMatches(row, searchQuery.value, store.addressLabels[row.address], tokenText));
+  }
+
   // Addresses the user marked as used or froze are grouped under used: they are no longer handed out
   const isSkipped = (row: AddressRow) => isMarked(row) || isFrozen(row);
   // A pinned address is listed in its own group only, whether or not it has been paid to yet
-  const pinnedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(isPinned)));
+  const pinnedReceivingAddresses = computed(() => applyFilters(receivingAddresses.value.filter(isPinned)));
   const unpinnedReceivingAddresses = computed(() => receivingAddresses.value.filter(row => !isPinned(row)));
-  const usedReceivingAddresses = computed(() => applyBalanceFilter(unpinnedReceivingAddresses.value.filter(row => row.txCount > 0 || isSkipped(row))));
-  const unusedReceivingAddresses = computed(() => applyBalanceFilter(unpinnedReceivingAddresses.value.filter(row => row.txCount === 0 && !isSkipped(row))));
-  const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount > 0)));
-  const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount === 0)));
+  const usedReceivingAddresses = computed(() => applyFilters(unpinnedReceivingAddresses.value.filter(row => row.txCount > 0 || isSkipped(row))));
+  const unusedReceivingAddresses = computed(() => applyFilters(unpinnedReceivingAddresses.value.filter(row => row.txCount === 0 && !isSkipped(row))));
+  const usedChangeAddresses = computed(() => applyFilters(changeAddresses.value.filter(row => row.txCount > 0)));
+  const unusedChangeAddresses = computed(() => applyFilters(changeAddresses.value.filter(row => row.txCount === 0)));
 
   const filteredReceivingCount = computed(() => {
     return pinnedReceivingAddresses.value.length + usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length;
@@ -226,7 +245,11 @@
           {{ t('hdAddresses.change') }} ({{ filteredChangeCount }})
         </button>
       </div>
-      <span class="options-toggle" :class="{ active: showOptions }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
+      <input
+        v-if="searchShown" v-model="searchQuery" class="address-search" :placeholder="t('hdAddresses.searchPlaceholder')"
+        autocomplete="off" autocapitalize="none" spellcheck="false"
+      >
+      <span class="options-toggle" :class="{ active: showOptions, 'after-search': searchShown }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
         <q-icon name="tune" size="22px" />
       </span>
     </div>
@@ -270,14 +293,14 @@
       </div>
     </div>
 
-    <div v-if="!addressGroups.length" class="description">{{ t('hdAddresses.noAddresses') }}</div>
+    <div v-if="!addressGroups.length" class="description">{{ searching ? t('hdAddresses.noMatch') : t('hdAddresses.noAddresses') }}</div>
 
     <template v-for="group in addressGroups" :key="group.key">
       <div class="group-header" @click="toggleGroup(group.key)">
         {{ group.label }} ({{ group.rows.length }})
         <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedGroups[group.key] }" />
       </div>
-      <template v-if="!collapsedGroups[group.key]">
+      <template v-if="!collapsedGroups[group.key] || searching">
         <template v-for="row in group.rows" :key="row.index">
           <div
             class="address-item"
@@ -445,9 +468,25 @@
   margin: 10px 0;
 }
 
-/* the shared toggle styles are in app.css; here it also takes the row's trailing space */
+/* the shared toggle styles are in app.css; here it also takes the row's trailing space, which the
+   search field before it takes instead when there is one */
 .options-toggle {
   margin-left: auto;
+}
+.options-toggle.after-search {
+  margin-left: 0;
+}
+/* at the far end of its row, on a line of its own where the view is narrow */
+.address-search {
+  width: 200px;
+  margin: 0 0 0 auto;
+  padding: 4px 10px;
+}
+@media (max-width: 480px) {
+  .address-search {
+    flex-basis: 100%;
+    width: 100%;
+  }
 }
 
 .options-panel {
