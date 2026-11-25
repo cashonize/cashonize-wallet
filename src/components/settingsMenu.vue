@@ -1,9 +1,3 @@
-<script lang="ts">
-  import { ref } from 'vue'
-  // which group of the More page is open; kept across visits, so coming back from a tool finds it open
-  const openMenuGroup = ref(undefined as undefined | 'tools' | 'tokens');
-</script>
-
 <script setup lang="ts">
   import { appNetworks, walletDbName, type AppNetwork } from 'src/utils/wallet/networks'
   import EmojiItem from './general/emojiItem.vue'
@@ -15,7 +9,7 @@
   import walletsOverview from './settings/walletsOverview.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
   import ThemeSelect from './general/ThemeSelect.vue'
-  import { computed, watch } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from '../stores/store'
   import { moreSectionViewBase } from '../stores/constants'
@@ -56,7 +50,7 @@
 
   // Which page under the More page shows, 0 for the page itself. Each is a view of its own, so the
   // browser's and the phone's back button lead up a level, as the back row does.
-  type MoreSection = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+  type MoreSection = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   const settingsSection = computed(() => {
     const view = store.displayView ?? 0;
     return (view >= moreSectionViewBase ? view - moreSectionViewBase : 0) as MoreSection;
@@ -65,8 +59,19 @@
   const sectionTitleKeys = ['nav.more', 'settings.menu.backupWallet', 'settings.menu.userOptions',
     'settings.menu.advancedSettings', 'settings.menu.developerSettings', 'settings.menu.manageWallets',
     'settings.menu.localization', 'settings.menu.tokenSettings', 'settings.menu.dataAndStorage',
-    'settings.menu.appearance', 'settings.title'] as const;
+    'settings.menu.appearance', 'settings.title', 'settings.menu.tools',
+    'settings.menu.tokenCreation'] as const;
   const sectionTitle = computed(() => t(sectionTitleKeys[settingsSection.value]));
+  const walletTools = [
+    { view: 17, name: 'requestPayment', icon: 'qr_code_2', hdOnly: false },
+    { view: 7, name: 'utxoManagement', icon: 'layers', hdOnly: false },
+    { view: 8, name: 'sweepPrivateKey', icon: 'cleaning_services', hdOnly: false },
+    { view: 16, name: 'transferAllAssets', icon: 'send', hdOnly: false },
+    { view: 18, name: 'flipstarter', icon: 'volunteer_activism', hdOnly: false },
+    { view: 13, name: 'signVerifyMessage', icon: 'draw', hdOnly: false },
+    { view: 15, name: 'exportXpub', icon: 'ios_share', hdOnly: true },
+    { view: 20, name: 'addressConverter', icon: 'swap_horiz', hdOnly: false },
+  ] as const;
   const settingsSections = [
     { section: 2, name: 'userOptions', icon: 'tune' },
     { section: 9, name: 'appearance', icon: 'palette' },
@@ -76,9 +81,6 @@
     { section: 8, name: 'dataAndStorage', icon: 'folder' },
     { section: 4, name: 'developerSettings', icon: 'code' },
   ] as const;
-  function toggleMenuGroup(group: 'tools' | 'tokens') {
-    openMenuGroup.value = openMenuGroup.value === group ? undefined : group;
-  }
   const isHdWallet = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'hd');
   const indexedDbCacheSizeMB = ref(undefined as undefined | number);
   const localStorageSizeMB = ref(undefined as undefined | number);
@@ -1073,6 +1075,26 @@
           :description="t(`settings.menu.${section.name}Description`)" @click="openSection(section.section)" />
       </div>
     </div>
+    <!-- the wallet tools, each with what it is for -->
+    <div v-else-if="settingsSection == 11" class="menu-groups">
+      <div class="menu-group menu-rows">
+        <template v-for="tool in walletTools" :key="tool.name">
+          <MenuRow v-if="!tool.hdOnly || isHdWallet" :icon="tool.icon" :label="t(`settings.menu.${tool.name}`)"
+            :description="t(`settings.menu.${tool.name}Description`)" @click="store.changeView(tool.view)">
+            <span v-if="tool.name === 'utxoManagement' && utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
+          </MenuRow>
+        </template>
+      </div>
+    </div>
+    <!-- what a token's creator uses: its identity, and making a new one -->
+    <div v-else-if="settingsSection == 12" class="menu-groups">
+      <div class="menu-group menu-rows">
+        <MenuRow icon="badge" :label="t('settings.menu.identities')" :description="t('settings.menu.identitiesDescription')" @click="store.changeView(19)">
+          <span v-if="identitiesStore.unseenIdentities.length" class="description">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
+        </MenuRow>
+        <MenuRow icon="add_circle" :label="t('settings.menu.createTokens')" :description="t('settings.menu.createTokensDescription')" @click="store.changeView(6)" />
+      </div>
+    </div>
     <!-- settingsSection === 0: the More page -->
     <div v-else class="menu-groups">
       <div class="menu-group">
@@ -1095,31 +1117,13 @@
       <div class="menu-group menu-rows">
         <!-- an HD wallet's addresses, here unless the layout settings make the page a tab -->
         <MenuRow v-if="isHdWallet && !(settingsStore.addressesInNav && width > addressesNavTabMinWidth)" icon="view_list" :label="t('settings.menu.hdAddresses')" @click="store.changeView(10)" />
-        <MenuRow icon="build" :label="t('settings.menu.tools')" :expanded="openMenuGroup === 'tools'" @click="toggleMenuGroup('tools')">
-          <span v-if="utxosWithBchAndTokens?.length && openMenuGroup !== 'tools'" style="color: orange">{{ t('settings.menu.important') }}</span>
+        <MenuRow icon="build" :label="t('settings.menu.tools')" @click="openSection(11)">
+          <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
         </MenuRow>
-        <template v-if="openMenuGroup === 'tools'">
-          <MenuRow :label="t('settings.menu.requestPayment')" @click="store.changeView(17)" />
-          <MenuRow :label="t('settings.menu.utxoManagement')" @click="store.changeView(7)">
-            <span v-if="utxosWithBchAndTokens?.length" style="color: orange">{{ t('settings.menu.important') }}</span>
-          </MenuRow>
-          <MenuRow :label="t('settings.menu.sweepPrivateKey')" @click="store.changeView(8)" />
-          <MenuRow :label="t('settings.menu.transferAllAssets')" @click="store.changeView(16)" />
-          <MenuRow :label="t('settings.menu.flipstarter')" @click="store.changeView(18)" />
-          <MenuRow :label="t('settings.menu.signVerifyMessage')" @click="store.changeView(13)" />
-          <MenuRow v-if="isHdWallet" :label="t('settings.menu.exportXpub')" @click="store.changeView(15)" />
-          <MenuRow :label="t('settings.menu.addressConverter')" @click="store.changeView(20)" />
-        </template>
 
-        <MenuRow icon="generating_tokens" :label="t('settings.menu.tokenCreation')" :expanded="openMenuGroup === 'tokens'" @click="toggleMenuGroup('tokens')">
-          <span v-if="identitiesStore.unseenIdentities.length && openMenuGroup !== 'tokens'" class="description">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
+        <MenuRow icon="generating_tokens" :label="t('settings.menu.tokenCreation')" @click="openSection(12)">
+          <span v-if="identitiesStore.unseenIdentities.length" class="description">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
         </MenuRow>
-        <template v-if="openMenuGroup === 'tokens'">
-          <MenuRow :label="t('settings.menu.identities')" @click="store.changeView(19)">
-            <span v-if="identitiesStore.unseenIdentities.length" class="description">{{ t('settings.menu.newCount', identitiesStore.unseenIdentities.length) }}</span>
-          </MenuRow>
-          <MenuRow :label="t('settings.menu.createTokens')" @click="store.changeView(6)" />
-        </template>
 
         <MenuRow icon="settings" :label="t('settings.title')" @click="openSection(10)" />
       </div>
