@@ -8,6 +8,7 @@ import sendConfirmDialog from 'src/components/general/sendConfirmDialog.vue'
 import { useStore } from 'src/stores/store'
 import { useIdentitiesStore } from 'src/stores/identitiesStore'
 import { useSettingsStore } from 'src/stores/settingsStore'
+import { useAppLockStore } from 'src/stores/appLockStore'
 import { displayAndLogError } from 'src/utils/errorHandling'
 import { identityRefusal, refusalMessage, type ReservedInputsCheck } from 'src/utils/dapp/reservedInputs'
 import type { SendSummary } from 'src/interfaces/interfaces'
@@ -63,6 +64,8 @@ export function confirmSend(summary: SendSummary): Promise<boolean> {
 }
 
 export function notifySending(message?: string){
+  // with the app lock on the PIN is asked first, and nothing is being sent yet
+  if (useAppLockStore().enabled) return
   Notify.create({
     spinner: true,
     message: message ?? t('common.status.sending'),

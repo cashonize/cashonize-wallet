@@ -7,6 +7,7 @@
   import { useWindowSize } from 'src/utils/composables'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useStore } from 'src/stores/store'
+  import { useAppLockStore } from 'src/stores/appLockStore'
   import { useI18n } from 'vue-i18n'
   const settingsStore = useSettingsStore()
   const store = useStore()
@@ -26,6 +27,10 @@
 
   const safeUrl = sanitizeUrl(props.dappMetadata.url);
   const sessionSettingsWC = ref('');
+  // the settings grant auto-approve, which signs without a prompt, so they open behind the app lock's PIN
+  async function openSessionSettings() {
+    if (await useAppLockStore().confirmPin()) sessionSettingsWC.value = props.sessionId;
+  }
 
   const displaySessionId = computed(() => {
     const session = activeSessions.value[props.sessionId] as SessionTypes.Struct;
@@ -74,7 +79,7 @@
     </div>
     <div class="wc-session-actions">
       <img style="cursor: pointer; max-width: none;"
-        @click="() => sessionSettingsWC = sessionId"
+        @click="openSessionSettings()"
         :src="settingsStore.darkMode? 'images/settingsLightGrey.svg': 'images/settings.svg'"
       />
       <img style="cursor: pointer; max-width: none;"

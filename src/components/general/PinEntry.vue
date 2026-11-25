@@ -1,7 +1,7 @@
 <script setup lang="ts">
   // The PIN field of the app lock, with its wrong-PIN message and the wait after too many tries.
   // `check` says whether the typed PIN is right; the lock screen unlocks with it, a dialog only verifies.
-  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAppLockStore } from 'src/stores/appLockStore'
   import { pinMaxLength, pinMinLength } from 'src/utils/appLock'
@@ -32,6 +32,8 @@
   const waitSeconds = computed(() => Math.max(0, Math.ceil((appLock.retryAt - now.value) / 1000)))
 
   onMounted(() => input.value?.focus())
+  // the field was disabled for the wait and lost its focus
+  watch(waitSeconds, (seconds) => { if (seconds === 0) void nextTick(() => input.value?.focus()) })
   defineExpose({ focus: () => input.value?.focus() })
 
   async function submit() {
@@ -54,12 +56,17 @@
 
 <template>
   <form class="pin-entry" @submit.prevent="submit">
-    <!-- a masked text field rather than a password one, which browsers would offer to save -->
-    <input
-      ref="input" v-model="pin" class="pin-input" type="text" inputmode="numeric" autocomplete="off"
-      :maxlength="pinMaxLength" :placeholder="t('appLock.pinPlaceholder')" :aria-label="t('appLock.pinPlaceholder')"
-      :disabled="waitSeconds > 0"
-    >
+    <!-- The digits are typed into a field that is not shown, which keeps the device's own number
+         keyboard, and drawn as one dot each, so the row says nothing of how long a PIN is. A text field rather than a password one, which browsers
+         would offer to save. -->
+    <div class="pin-dots" :class="{ waiting: waitSeconds > 0, wrong }">
+      <span v-if="!pin" class="pin-placeholder">{{ t('appLock.pinPlaceholder') }}</span>
+      <span v-for="index in pin.length" :key="index" class="pin-dot"></span>
+      <input
+        ref="input" v-model="pin" class="pin-input" type="text" inputmode="numeric" autocomplete="off"
+        :maxlength="pinMaxLength" :aria-label="t('appLock.pinPlaceholder')" :disabled="waitSeconds > 0"
+      >
+    </div>
     <div v-if="waitSeconds > 0" class="pin-message">{{ t('appLock.tooManyAttempts', { seconds: waitSeconds }) }}</div>
     <div v-else-if="wrong" class="pin-message">{{ t('appLock.wrongPin') }}</div>
     <div class="pin-buttons">
@@ -74,15 +81,42 @@
   width: 100%;
   max-width: 260px;
 }
-.pin-input {
-  text-align: center;
-  font-size: 1.4em;
-  letter-spacing: 0.3em;
-  -webkit-text-security: disc;
+.pin-dots {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 48px;
+  border: 1px solid var(--surface-line-strong);
+  border-radius: 8px;
 }
-.pin-input::placeholder {
-  font-size: 0.7em;
-  letter-spacing: normal;
+.pin-dots:focus-within {
+  border-color: var(--color-primary);
+}
+.pin-dots.waiting {
+  opacity: 0.4;
+}
+.pin-dots.wrong {
+  border-color: red;
+}
+.pin-placeholder {
+  color: grey;
+}
+.pin-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--font-color);
+}
+.pin-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: text;
 }
 .pin-message {
   margin-top: 8px;
@@ -95,6 +129,9 @@
   justify-content: center;
   gap: 10px;
   margin-top: 14px;
+}
+.pin-buttons input {
+  flex: 1;
 }
 .pin-buttons input {
   margin: 0;

@@ -3,16 +3,27 @@
   import BackRow from 'src/components/general/BackRow.vue'
   import MenuRow from 'src/components/general/MenuRow.vue'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
-  import { computed, ref } from 'vue'
+  import { computed, onDeactivated, ref, watch } from 'vue'
   import { Notify } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
   import { useAppLockStore } from 'src/stores/appLockStore'
+  import { useSettingsStore } from 'src/stores/settingsStore'
   import { isValidPin, pinMaxLength, pinMinLength } from 'src/utils/appLock'
   import { displayAndLogError } from 'src/utils/errorHandling'
   const store = useStore()
   const appLock = useAppLockStore()
+  const settingsStore = useSettingsStore()
   const { t } = useI18n()
+
+  // a forgotten PIN is recovered from only by restoring, which a wallet without a backup cannot do
+  const notBackedUp = computed(() => store.availableWallets
+    .map(wallet => wallet.name)
+    .filter(name => settingsStore.getBackupStatus(name) === 'none'))
+  function openBackup() {
+    store.pendingSettingsSection = 1
+    store.changeView(5)
+  }
 
   const newPin = ref('')
   const repeatPin = ref('')
@@ -31,6 +42,10 @@
     repeatPin.value = ''
     changing.value = false
   }
+
+  // the page is kept alive: a form opened behind the PIN closes when the page is left or the app locks
+  onDeactivated(resetForm)
+  watch(() => appLock.locked, resetForm)
 
   async function savePin() {
     if (!canSave.value) return
@@ -108,6 +123,16 @@
           <input v-if="changing" type="button" class="button" :value="t('appLock.cancel')" @click="resetForm()">
         </div>
       </form>
+
+      <template v-if="notBackedUp.length">
+        <div class="warning-box" style="margin-top: 16px;">
+          <q-icon name="warning" size="20px" class="warning-box-icon" />
+          <div>{{ t('appLock.notBackedUp', { wallets: notBackedUp.join(', ') }) }}</div>
+        </div>
+        <div v-if="notBackedUp.includes(store.activeWalletName)" class="lock-rows" style="margin-top: 8px;">
+          <MenuRow icon="key" :label="t('appLock.backUpNow')" @click="openBackup()" />
+        </div>
+      </template>
 
       <div class="lock-notes">
         <div><q-icon name="info_outline" size="16px" /> <span>{{ t('appLock.backupFirst') }}</span></div>

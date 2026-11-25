@@ -3,7 +3,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Dialog } from 'quasar'
-import { makePinRecord, pinMatches, retryDelayMs, type PinRecord } from 'src/utils/appLock'
+import { makePinRecord, maxDelayMs, pinMatches, retryDelayMs, type PinRecord } from 'src/utils/appLock'
 
 const pinKey = 'appLock'
 const attemptsKey = 'appLockAttempts'
@@ -19,10 +19,16 @@ export const useAppLockStore = defineStore('appLock', () => {
   const enabled = computed(() => pinRecord.value !== undefined)
   const locked = ref(enabled.value)
 
-  // kept in storage, so that reloading the app does not hand out fresh tries
+  // Kept in storage, so that reloading the app does not hand out fresh tries, and read again
+  // before each try, as another tab may have used some. A wait further off than the longest one
+  // comes from a clock set back since, and is cut to it.
   const attempts = ref<Attempts>({ failed: 0, retryAt: 0 })
-  const storedAttempts = localStorage.getItem(attemptsKey)
-  if (storedAttempts) attempts.value = JSON.parse(storedAttempts) as Attempts
+  function readAttempts() {
+    const stored = localStorage.getItem(attemptsKey)
+    const read = stored ? JSON.parse(stored) as Attempts : { failed: 0, retryAt: 0 }
+    attempts.value = { failed: read.failed, retryAt: Math.min(read.retryAt, Date.now() + maxDelayMs) }
+  }
+  readAttempts()
   function saveAttempts(next: Attempts) {
     attempts.value = next
     localStorage.setItem(attemptsKey, JSON.stringify(next))
@@ -32,6 +38,7 @@ export const useAppLockStore = defineStore('appLock', () => {
   // False for a wrong PIN and during the wait after too many of them
   async function checkPin(pin: string) {
     if (!pinRecord.value) return true
+    readAttempts()
     if (Date.now() < attempts.value.retryAt) return false
     const matches = await pinMatches(pin, pinRecord.value)
     if (matches) {

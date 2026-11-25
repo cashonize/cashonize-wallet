@@ -31,6 +31,11 @@
   width: 320px;
   max-width: 90vw;
 }
+body.dark .pin-dialog {
+  border: 1px solid var(--surface-line);
+  background-color: var(--bg-color);
+  color: var(--font-color);
+}
 .pin-dialog-body {
   display: flex;
   justify-content: center;

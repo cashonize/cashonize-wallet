@@ -23,6 +23,7 @@ import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRe
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
 import type { WcSignMessageRequest, WcSignTransactionRequest } from "@bch-wc2/interfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
+import { useAppLockStore } from 'src/stores/appLockStore';
 import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
@@ -442,7 +443,9 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         // Auto-approve early return. Not for an identity operation: auto-approve was granted for
         // ordinary spends, and a held back coin is spent only in front of the user.
         const touchesIdentity = arrivalCheck.returning.length > 0;
-        if (!touchesIdentity && settingsStore.isAutoApproveValid(topic)) {
+        // nor while the app is locked: the request then waits in its dialog for the unlock
+        const locked = useAppLockStore().locked;
+        if (!touchesIdentity && !locked && settingsStore.isAutoApproveValid(topic)) {
           await signTransactionWC(event)
           // Decrement request count if applicable
           if (settingsStore.getAutoApproveState(topic)?.mode === "count") {

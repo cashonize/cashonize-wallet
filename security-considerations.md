@@ -36,7 +36,7 @@ Cashonize currently stores your seed phrase unencrypted in IndexedDB. The actual
 
 On the web and on Android, an optional PIN can lock the app (under ⋯ → App lock). It is asked when Cashonize opens, after it sat in the background for a few minutes, and before sending, signing a dApp transaction or showing the seed phrase.
 
-The app lock is a gate in the interface, not encryption. It keeps someone holding your unlocked device out of the wallet, but the seed phrase stays in plaintext at rest as described above, so it does not protect against anything that can read the app's storage. A forgotten PIN cannot be reset: clear the app's data and restore from your seed phrase. The desktop app has no app lock.
+The app lock is a gate in the interface, not encryption. It keeps someone holding your unlocked device out of the wallet, but the seed phrase stays in plaintext at rest as described above, so it does not protect against anything that can read the app's storage: in a browser that includes anyone who opens the developer tools, and WalletConnect requests of a session set to auto-approve are signed without the PIN (granting auto-approve asks for it). A forgotten PIN cannot be reset: clear the app's data and restore from your seed phrase. The desktop app has no app lock.
 
 ### Summary
 

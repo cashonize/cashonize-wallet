@@ -39,7 +39,7 @@ export async function pinMatches(pin: string, record: PinRecord) {
 
 const freeAttempts = 5
 const firstDelayMs = 30_000
-const maxDelayMs = 15 * 60_000
+export const maxDelayMs = 15 * 60_000
 
 // The wait after a wrong PIN: none for the first few, then doubling from half a minute
 export function retryDelayMs(failedAttempts: number) {

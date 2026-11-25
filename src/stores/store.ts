@@ -1999,10 +1999,17 @@ export const useStore = defineStore('store', () => {
     return response;
   }
 
-  // With the app lock on, every spend asks for its PIN first; backing out ends the spend quietly
+  // With the app lock on, a spend asks for its PIN first; backing out ends the spend quietly. A
+  // spend right after another does not ask again, so that a run of them, BCH split off several
+  // token coins say, is one prompt.
+  const spendPinGraceMs = 15_000;
+  let spendPinConfirmedAt = 0;
   async function confirmSpendPin() {
-    const confirmed = await useAppLockStore().confirmPin();
-    if (!confirmed) throw new CancelledError();
+    if (Date.now() - spendPinConfirmedAt > spendPinGraceMs) {
+      const confirmed = await useAppLockStore().confirmPin();
+      if (!confirmed) throw new CancelledError();
+    }
+    spendPinConfirmedAt = Date.now();
   }
 
   const spend = {
