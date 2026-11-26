@@ -18,6 +18,10 @@ export const biometricsSupported = Boolean(import.meta.env.QUASAR_CAPACITOR_MODE
 // function returning it would never settle.
 let biometric: BiometricPlugin | undefined
 async function withPlugin<T>(use: (plugin: BiometricPlugin) => Promise<T>) {
+  // Right in front of the import, where the bundler sees it and drops the import from web and
+  // desktop builds: Quasar resolves @capacitor/core to src-capacitor/node_modules in every build
+  // mode, which only exists where the Android project was installed
+  if (!import.meta.env.QUASAR_CAPACITOR_MODE) throw new Error('Biometrics are Android only')
   const { registerPlugin } = await import('@capacitor/core')
   biometric ??= registerPlugin<BiometricPlugin>('Biometric')
   return await use(biometric)
