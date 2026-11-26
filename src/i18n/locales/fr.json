@@ -1601,6 +1601,7 @@
       "enableTokenBurn": "Afficher le bouton de destruction sur les tokens",
       "identitiesHeading": "Identités (avancé)",
       "enableQrScan": "Activer le scan QR",
+      "enableQrScanHint": "Affiche Scanner sur la page du portefeuille et un bouton de scan à côté des champs d'adresse. Le scanner lit aussi un code depuis une image, il fonctionne donc sans caméra.",
       "selectUnit": "Sélectionner l'unité Bitcoin Cash :",
       "bchUnit": "BCH",
       "satUnit": "satoshis",

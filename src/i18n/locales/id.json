@@ -1601,6 +1601,7 @@
       "enableTokenBurn": "Tampilkan tombol bakar pada token",
       "identitiesHeading": "Identitas (Lanjutan)",
       "enableQrScan": "Aktifkan pindai QR",
+      "enableQrScanHint": "Menampilkan Pindai di halaman dompet dan tombol pindai di samping kolom alamat. Pemindai juga dapat membaca kode dari gambar, jadi berfungsi tanpa kamera.",
       "selectUnit": "Pilih satuan Bitcoin Cash:",
       "bchUnit": "BCH",
       "satUnit": "satoshi",

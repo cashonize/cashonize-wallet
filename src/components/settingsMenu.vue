@@ -664,7 +664,11 @@
       </div>
 
       <div v-if="!isCapacitor" style="margin-bottom: 15px;">
-        {{ t('settings.userOptions.enableQrScan') }} <q-toggle v-model="enableQrScan" @update:model-value="changeQrScan()" dense />
+        {{ t('settings.userOptions.enableQrScan') }}
+        <InfoPopup style="margin-right: 6px;">
+          <div style="max-width: 300px;">{{ t('settings.userOptions.enableQrScanHint') }}</div>
+        </InfoPopup>
+        <q-toggle v-model="enableQrScan" @update:model-value="changeQrScan()" dense />
       </div>
 
       <div style="margin-bottom: 15px;">

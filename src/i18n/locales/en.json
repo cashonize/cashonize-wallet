@@ -1601,6 +1601,7 @@
       "enableTokenBurn": "Show the burn button on tokens",
       "identitiesHeading": "Identities (Advanced)",
       "enableQrScan": "Enable QR scan",
+      "enableQrScanHint": "Shows Scan on the wallet page and a scan button beside address fields. The scanner can also read a code from an image, so it works without a camera.",
       "selectUnit": "Select Bitcoin Cash unit:",
       "bchUnit": "BCH",
       "satUnit": "satoshis",

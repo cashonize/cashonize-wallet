@@ -1601,6 +1601,7 @@
       "enableTokenBurn": "Mostrar o botão de queimar nos tokens",
       "identitiesHeading": "Identidades (avançado)",
       "enableQrScan": "Habilitar leitura de QR",
+      "enableQrScanHint": "Mostra Escanear na página da carteira e um botão de leitura ao lado dos campos de endereço. O leitor também lê um código de uma imagem, então funciona sem câmera.",
       "selectUnit": "Selecionar unidade Bitcoin Cash:",
       "bchUnit": "BCH",
       "satUnit": "satoshis",

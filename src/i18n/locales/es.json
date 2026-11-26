@@ -1601,6 +1601,7 @@
       "enableTokenBurn": "Mostrar el botón de quemar en los tokens",
       "identitiesHeading": "Identidades (avanzado)",
       "enableQrScan": "Habilitar escaneo QR",
+      "enableQrScanHint": "Muestra Escanear en la página de la billetera y un botón de escaneo junto a los campos de dirección. El escáner también lee un código desde una imagen, así que funciona sin cámara.",
       "selectUnit": "Seleccionar unidad de Bitcoin Cash:",
       "bchUnit": "BCH",
       "satUnit": "satoshis",
