@@ -8,6 +8,7 @@
   import { confirmDialog } from 'src/utils/txHelpers'
   import { useAppLockStore } from 'src/stores/appLockStore'
   import { DERIVATION_PATHS } from 'src/utils/wallet/walletUtils'
+  import { isDevelopmentWallet } from 'src/utils/wallet/backupReminder'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -73,11 +74,10 @@
   // Computed property to check if current wallet's seed has been backed up
   const backupStatus = computed(() => settingsStore.getBackupStatus(store.activeWalletName));
   const hasSeedBackedUp = computed(() => backupStatus.value === 'verified' || backupStatus.value === 'imported');
-  // A development wallet holds no real funds, so its backup reminder can be turned off. Not an older
-  // wallet's chipnet copy: it has the keys of the mainnet wallet.
+  // A development wallet holds no real funds, so its backup reminder can be turned off
   const isDevWallet = computed(() => {
     const walletInfo = store.availableWallets.find(w => w.name === store.activeWalletName);
-    return store.network !== 'mainnet' && walletInfo !== undefined && !walletInfo.networks.includes('mainnet');
+    return isDevelopmentWallet(store.network, walletInfo);
   });
   function dismissBackupReminder() {
     settingsStore.setBackupStatus(store.activeWalletName, 'dismissed');

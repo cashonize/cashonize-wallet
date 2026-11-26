@@ -4,7 +4,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { menuSectionViewBase } from 'src/stores/constants'
-  import { backupReminderDue, backupReminderSnoozeMs } from 'src/utils/wallet/backupReminder'
+  import { backupReminderDue, backupReminderSnoozeMs, isDevelopmentWallet } from 'src/utils/wallet/backupReminder'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -12,10 +12,14 @@
 
   const show = computed(() => {
     const walletName = store.activeWalletName;
-    const status = settingsStore.getBackupStatus(walletName);
-    const holdsCoins = (store.walletUtxos?.length ?? 0) > 0;
-    const snoozedUntil = settingsStore.getWalletMetadata(walletName).backupReminderSnoozedUntil;
-    return backupReminderDue(status, holdsCoins, snoozedUntil, Date.now());
+    const walletInfo = store.availableWallets.find(wallet => wallet.name === walletName);
+    return backupReminderDue({
+      status: settingsStore.getBackupStatus(walletName),
+      holdsCoins: (store.walletUtxos?.length ?? 0) > 0,
+      developmentWallet: isDevelopmentWallet(store.network, walletInfo),
+      snoozedUntil: settingsStore.getWalletMetadata(walletName).backupReminderSnoozedUntil,
+      now: Date.now(),
+    });
   });
   function remindLater() {
     settingsStore.snoozeBackupReminder(store.activeWalletName, Date.now() + backupReminderSnoozeMs);

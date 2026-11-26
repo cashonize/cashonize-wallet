@@ -24,22 +24,3 @@ test('sends BCH, and the payment confirms', async ({ page }) => {
   const paid = transaction.vout.find(output => output.scriptPubKey.addresses?.includes(toRegtest(destination)))
   expect(paid?.value).toBe(0.0004)
 })
-
-// A wallet made in the app can hold funds without its seed phrase ever having been shown
-test('asks for a backup once the wallet holds funds, until told to remind later', async ({ page }) => {
-  await openRegtestWallet(page)
-  const reminder = page.getByText('This wallet is not backed up')
-  await expectBalance(page, '0')
-  await expect(reminder).toBeHidden()
-
-  await fund(await depositAddress(page), 100_000n)
-  await expectBalance(page, '0.001')
-  await expect(reminder).toBeVisible()
-
-  await page.getByRole('button', { name: 'Remind me later' }).click()
-  await expect(reminder).toBeHidden()
-  // the choice is the wallet's, kept across a reload
-  await page.reload()
-  await expectBalance(page, '0.001')
-  await expect(reminder).toBeHidden()
-})
