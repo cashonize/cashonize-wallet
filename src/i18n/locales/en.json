@@ -108,7 +108,7 @@
     "notifications": {
       "receivedBch": "Received {amount} {unit} ({fiatValue})",
       "receivedTokens": "Received new {tokenType}",
-      "broadcastAgainSent": "Transaction {txId} was broadcast"
+      "broadcastAgainSent": "The transaction was broadcast"
     },
     "errors": {
       "chipnetCopyChanged": "The chipnet copy of {name} changed since it was checked, so nothing was removed.",

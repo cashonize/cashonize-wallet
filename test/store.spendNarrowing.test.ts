@@ -12,6 +12,10 @@ import { useStore } from '../src/stores/store'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
 import { ActionableError } from '../src/utils/errorHandling'
 import { toTokenAddress } from '../src/utils/addressValidation'
+import { handleTransactionBroadcastSuccess } from '../src/utils/txHelpers'
+
+// the sent dialog a broadcast again ends on is a component, which this suite does not load
+vi.mock('../src/utils/txHelpers', () => ({ handleTransactionBroadcastSuccess: vi.fn() }))
 
 const category = '0123456789abcdef'.repeat(4)
 
@@ -240,6 +244,8 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     await (error as ActionableError).action.run()
     expect(wallet.submitTransaction).toHaveBeenCalledWith(hexToBin('0200'))
     expect(wallet.send).toHaveBeenCalledTimes(1)
+    // it ends on the sent dialog, which takes the txid apart from its message
+    expect(handleTransactionBroadcastSuccess).toHaveBeenCalledWith(expect.not.stringContaining('again-tx'), 'again-tx', expect.any(String))
   })
 
   // the steps after the broadcast are part of the spend: broadcasting again runs them too

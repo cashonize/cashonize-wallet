@@ -108,7 +108,7 @@
     "notifications": {
       "receivedBch": "Diterima {amount} {unit} ({fiatValue})",
       "receivedTokens": "Diterima {tokenType} baru",
-      "broadcastAgainSent": "Transaksi {txId} telah disiarkan"
+      "broadcastAgainSent": "Transaksi telah disiarkan"
     },
     "errors": {
       "chipnetCopyChanged": "Salinan chipnet dari {name} berubah sejak diperiksa, jadi tidak ada yang dihapus.",

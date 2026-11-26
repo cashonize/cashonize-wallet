@@ -1973,9 +1973,11 @@ export const useStore = defineStore('store', () => {
       async () => ({ txId: await wallet.value.submitTransaction(hexToBin(transaction)) }),
       afterBroadcast,
     );
-    Notify.create({ type: 'positive', message: t('store.notifications.broadcastAgainSent', { txId }) });
-    await updateWalletUtxos();
-    void updateWalletHistory();
+    // The same dialog a first broadcast ends on, which shortens the txid and links the explorer.
+    // Loaded on use, as it brings a component along that the store's own imports stay free of.
+    const { handleTransactionBroadcastSuccess } = await import('src/utils/txHelpers');
+    const sentMessage = t('store.notifications.broadcastAgainSent');
+    await handleTransactionBroadcastSuccess(sentMessage, txId, sentMessage);
   }
 
   // A spend that names one specific coin, an NFT transfer or burn, cannot fall back on another the

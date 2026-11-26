@@ -108,7 +108,7 @@
     "notifications": {
       "receivedBch": "Получено {amount} {unit} ({fiatValue})",
       "receivedTokens": "Получены новые {tokenType}",
-      "broadcastAgainSent": "Транзакция {txId} транслирована"
+      "broadcastAgainSent": "Транзакция транслирована"
     },
     "errors": {
       "chipnetCopyChanged": "Копия {name} в chipnet изменилась после проверки, поэтому ничего не удалено.",
