@@ -1,10 +1,8 @@
 ![Cashonize Banner](docs/images/cashonize-banner.png)
 
-## Cashonize: a modern Bitcoin Cash Wallet
+## Cashonize: a Bitcoin Cash wallet built for CashTokens and DeFi
 
-**Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet.**
-
-It is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an installable web app, and comes in English, Spanish, French, German, Portuguese, Indonesian and Russian.
+Cashonize is available as a webwallet, a desktop application (for Windows & Linux), an Android APK and an installable web app, and comes in English, Spanish, French, German, Portuguese, Indonesian and Russian.
 
 For users, the [Cashonize about page](https://about.cashonize.com) introduces the wallet and its features, while this readme goes into more detail.
 
