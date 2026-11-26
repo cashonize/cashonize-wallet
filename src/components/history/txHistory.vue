@@ -529,36 +529,6 @@ fieldset.item {
   background-color: var(--surface-strong);
 }
 
-.tx-direction {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tx-direction.received {
-  background-color: rgba(10, 193, 143, 0.15);
-  color: var(--color-primary);
-}
-
-.tx-direction.sent {
-  background-color: var(--surface-strong);
-  color: var(--color-grey);
-}
-
-.tx-direction.combined {
-  background-color: rgba(74, 144, 217, 0.15);
-  color: #4a90d9;
-}
-
-.tx-direction.pending {
-  background-color: rgba(230, 162, 60, 0.18);
-  color: #e6a23c;
-}
-
 /* equal flexible side sections keep the note centered on the card */
 .tx-left {
   display: flex;
@@ -723,20 +693,6 @@ body.dark .negative {
   margin-right: 2px;
 }
 
-.token-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--surface-line-strong);
-  background-color: var(--surface-subtle);
-  border-radius: 14px;
-  padding: 2px 10px 2px 4px;
-  font-size: 0.85em;
-}
-
-.chip-symbol {
-  word-break: break-word;
-}
 
 .tx-count {
   text-align: center;

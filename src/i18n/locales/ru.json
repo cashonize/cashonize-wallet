@@ -199,13 +199,12 @@
     }
   },
   "wallet": {
-    "balance": "Баланс в {currency}:",
-    "address": "Адрес {network}:",
-    "tokenAddress": "Адрес для токенов:",
-    "send": "Отправить {network}:",
+    "selectAsset": "Выберите, что отправить",
+    "selectAssetHint": "Bitcoin Cash или взаимозаменяемый токен, который есть в этом кошельке",
     "addressPlaceholder": "адрес",
     "amountPlaceholder": "сумма",
-    "max": "макс",
+    "available": "Доступно: {amount}",
+    "useMax": "использовать максимум",
     "notEnoughBch": "Недостаточно BCH в кошельке для отправки",
     "sendingTransaction": "Отправка транзакции...",
     "sent": "Отправлено {amount} на {address}",
@@ -500,6 +499,7 @@
     "loading": "Загрузка истории транзакций",
     "loadingFailed": "Не удалось загрузить историю транзакций",
     "noTransactions": "В этом кошельке нет транзакций",
+    "recentActivity": "Последние операции",
     "title": "История транзакций",
     "transactionCount": "Транзакций: {count}",
     "options": "Параметры",
@@ -1142,8 +1142,14 @@
       "ownAddress": "Адрес назначения принадлежит этому же кошельку"
     }
   },
+  "receive": {
+    "title": "Получить",
+    "bchAddressHint": "Ваш BCH-адрес. Переключитесь на «Токены», чтобы получать CashTokens.",
+    "tokenAddressHint": "Ваш токенный адрес для получения CashTokens.",
+    "copyAddress": "Скопировать адрес",
+    "requestAmount": "Запросить сумму"
+  },
   "requestPayment": {
-    "title": "Создать запрос платежа",
     "description": "Создайте запрос платежа, чтобы отправить его тому, кто вам платит.",
     "descriptionToken": "Создайте запрос взаимозаменяемого токена, чтобы отправить его тому, кто вам платит.",
     "bip21Hint": "Запросы платежа в BCH используют BIP21 — давний стандарт URI, который широко поддерживают кошельки BCH.",
@@ -1166,7 +1172,6 @@
     "selectTokenPrompt": "Выберите токен для запроса",
     "messageLabel": "Сообщение (необязательно):",
     "messagePlaceholder": "Заметка для плательщика, например номер счёта",
-    "payToLabel": "Получатель:",
     "selectAddress": "Выбрать из адресов кошелька",
     "selectAddressHint": "Выберите, на какой адрес запросить",
     "requesting": "Запрос: {amount}",
@@ -1343,6 +1348,7 @@
   },
   "qrScanner": {
     "scanQrCode": "Сканировать QR-код",
+    "scan": "Сканировать",
     "chooseImage": "Выбрать изображение",
     "switchCamera": "Сменить камеру",
     "noQrCodeInImage": "На изображении не найден QR-код",
@@ -1352,7 +1358,8 @@
       "nonSecureContext": "Нет доступа к камере в незащищённом контексте",
       "unableToAccess": "Нет доступа к камере",
       "constraintsMismatch": "Ограничения не подходят ни к одной установленной камере. Может быть, вы запросили фронтальную камеру, которой нет?",
-      "unknownError": "Произошла неизвестная ошибка"
+      "unknownError": "Произошла неизвестная ошибка",
+      "nothingToDo": "Это не BCH-адрес, не запрос платежа, не подключение dApp и не приватный ключ"
     }
   },
   "relativeTime": {
@@ -1553,8 +1560,6 @@
       "developerSettingsDescription": "Тестовые кошельки и функции для разработчиков",
       "tools": "Инструменты кошелька",
       "hdAddresses": "HD-адреса",
-      "requestPayment": "Создать запрос платежа",
-      "requestPaymentDescription": "QR-код или ссылка с запросом суммы",
       "utxoManagement": "Управление UTXO",
       "utxoManagementDescription": "Просмотр, заморозка, отправка и объединение отдельных монет",
       "createTokens": "Создать токен",

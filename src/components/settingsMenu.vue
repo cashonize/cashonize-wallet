@@ -63,7 +63,6 @@
     'settings.menu.tokenCreation'] as const;
   const sectionTitle = computed(() => t(sectionTitleKeys[settingsSection.value]));
   const walletTools = [
-    { view: 17, name: 'requestPayment', icon: 'qr_code_2', hdOnly: false },
     { view: 7, name: 'utxoManagement', icon: 'layers', hdOnly: false },
     { view: 8, name: 'sweepPrivateKey', icon: 'cleaning_services', hdOnly: false },
     { view: 16, name: 'transferAllAssets', icon: 'send', hdOnly: false },

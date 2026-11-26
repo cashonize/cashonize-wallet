@@ -199,13 +199,12 @@
     }
   },
   "wallet": {
-    "balance": "{currency}-Guthaben:",
-    "address": "{network}-Adresse:",
-    "tokenAddress": "Token-Adresse:",
-    "send": "{network} senden:",
+    "selectAsset": "Wähle, was du senden möchtest",
+    "selectAssetHint": "Bitcoin Cash oder ein fungibles Token, das dieses Wallet hält",
     "addressPlaceholder": "Adresse",
     "amountPlaceholder": "Betrag",
-    "max": "max",
+    "available": "Verfügbar: {amount}",
+    "useMax": "Maximum verwenden",
     "notEnoughBch": "Nicht genug BCH im Wallet zum Senden",
     "sendingTransaction": "Transaktion wird gesendet...",
     "sent": "{amount} an {address} gesendet",
@@ -500,6 +499,7 @@
     "loading": "Lade Transaktionshistorie",
     "loadingFailed": "Transaktionshistorie konnte nicht geladen werden",
     "noTransactions": "Keine Transaktionen in diesem Wallet",
+    "recentActivity": "Letzte Aktivität",
     "title": "Transaktionshistorie",
     "transactionCount": "{count} Transaktionen",
     "options": "Optionen",
@@ -1142,8 +1142,14 @@
       "ownAddress": "Das Ziel ist eine Adresse dieses selben Wallets"
     }
   },
+  "receive": {
+    "title": "Empfangen",
+    "bchAddressHint": "Deine BCH-Adresse. Wechsle zu Tokens, um CashTokens zu empfangen.",
+    "tokenAddressHint": "Deine Token-Adresse, zum Empfangen von CashTokens.",
+    "copyAddress": "Adresse kopieren",
+    "requestAmount": "Betrag anfordern"
+  },
   "requestPayment": {
-    "title": "Zahlungsanforderung erstellen",
     "description": "Erstelle eine Zahlungsanforderung, die du mit dem Zahlenden teilst.",
     "descriptionToken": "Erstelle eine Anforderung für ein fungibles Token, die du mit dem Zahlenden teilst.",
     "bip21Hint": "BCH-Zahlungsanforderungen nutzen BIP21, einen langjährigen URI-Standard, den BCH-Wallets breit unterstützen.",
@@ -1166,7 +1172,6 @@
     "selectTokenPrompt": "Wähle ein Token zum Anfordern",
     "messageLabel": "Nachricht (optional):",
     "messagePlaceholder": "Notiz für den Zahlenden, etwa eine Rechnungsnummer",
-    "payToLabel": "Zahlen an:",
     "selectAddress": "Aus den Wallet-Adressen auswählen",
     "selectAddressHint": "Wähle, an welche Adresse die Zahlung gehen soll",
     "requesting": "Angefordert: {amount}",
@@ -1343,6 +1348,7 @@
   },
   "qrScanner": {
     "scanQrCode": "QR-Code scannen",
+    "scan": "Scannen",
     "chooseImage": "Bild auswählen",
     "switchCamera": "Kamera wechseln",
     "noQrCodeInImage": "Kein QR-Code im Bild gefunden",
@@ -1352,7 +1358,8 @@
       "nonSecureContext": "Kamerazugriff in unsicherem Kontext nicht möglich",
       "unableToAccess": "Kamerazugriff nicht möglich",
       "constraintsMismatch": "Einschränkungen passen zu keiner installierten Kamera. Hast du nach der Frontkamera gefragt, obwohl keine vorhanden ist?",
-      "unknownError": "Unbekannter Fehler aufgetreten"
+      "unknownError": "Unbekannter Fehler aufgetreten",
+      "nothingToDo": "Keine BCH-Adresse, Zahlungsanforderung, dApp-Verbindung oder privater Schlüssel"
     }
   },
   "relativeTime": {
@@ -1553,8 +1560,6 @@
       "developerSettingsDescription": "Test-Wallets und Entwicklerfunktionen",
       "tools": "Wallet-Werkzeuge",
       "hdAddresses": "HD Adressen",
-      "requestPayment": "Zahlungsanforderung erstellen",
-      "requestPaymentDescription": "Ein QR-Code oder Link, der um einen Betrag bittet",
       "utxoManagement": "UTXO-Verwaltung",
       "utxoManagementDescription": "Einzelne Coins ansehen, einfrieren, senden oder zusammenführen",
       "createTokens": "Token erstellen",

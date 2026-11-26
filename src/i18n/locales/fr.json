@@ -199,13 +199,12 @@
     }
   },
   "wallet": {
-    "balance": "Solde en {currency} :",
-    "address": "Adresse {network} :",
-    "tokenAddress": "Adresse de token :",
-    "send": "Envoyer {network} :",
+    "selectAsset": "Choisissez quoi envoyer",
+    "selectAssetHint": "Bitcoin Cash, ou un token fongible que ce portefeuille détient",
     "addressPlaceholder": "adresse",
     "amountPlaceholder": "montant",
-    "max": "max",
+    "available": "Disponible : {amount}",
+    "useMax": "utiliser le maximum",
     "notEnoughBch": "Pas assez de BCH dans le portefeuille pour envoyer",
     "sendingTransaction": "Envoi de la transaction...",
     "sent": "Envoyé {amount} à {address}",
@@ -500,6 +499,7 @@
     "loading": "Chargement de l'historique des transactions",
     "loadingFailed": "Échec du chargement de l'historique des transactions",
     "noTransactions": "Aucune transaction dans ce portefeuille",
+    "recentActivity": "Activité récente",
     "title": "Historique des transactions",
     "transactionCount": "{count} Transactions",
     "options": "Options",
@@ -1142,8 +1142,14 @@
       "ownAddress": "La destination est une adresse de ce même portefeuille"
     }
   },
+  "receive": {
+    "title": "Recevoir",
+    "bchAddressHint": "Votre adresse BCH. Passez à Tokens pour recevoir des CashTokens.",
+    "tokenAddressHint": "Votre adresse de token, pour recevoir des CashTokens.",
+    "copyAddress": "Copier l'adresse",
+    "requestAmount": "Demander un montant"
+  },
   "requestPayment": {
-    "title": "Créer une demande de paiement",
     "description": "Créez une demande de paiement à partager avec la personne qui vous paie.",
     "descriptionToken": "Créez une demande de token fongible à partager avec la personne qui vous paie.",
     "bip21Hint": "Les demandes de paiement en BCH utilisent BIP21, un standard d'URI de longue date largement pris en charge par les portefeuilles BCH.",
@@ -1166,7 +1172,6 @@
     "selectTokenPrompt": "Sélectionnez un token à demander",
     "messageLabel": "Message (facultatif) :",
     "messagePlaceholder": "Note pour le payeur, comme un numéro de facture",
-    "payToLabel": "Payer à :",
     "selectAddress": "Sélectionner parmi les adresses du portefeuille",
     "selectAddressHint": "Choisissez l'adresse sur laquelle demander le paiement",
     "requesting": "Demande de {amount}",
@@ -1343,6 +1348,7 @@
   },
   "qrScanner": {
     "scanQrCode": "Scanner le code QR",
+    "scan": "Scanner",
     "chooseImage": "Choisir une image",
     "switchCamera": "Changer de caméra",
     "noQrCodeInImage": "Aucun code QR trouvé dans l'image",
@@ -1352,7 +1358,8 @@
       "nonSecureContext": "Impossible d'accéder à la caméra dans un contexte non sécurisé",
       "unableToAccess": "Impossible d'accéder à la caméra",
       "constraintsMismatch": "Les contraintes ne correspondent à aucune caméra installée. Avez-vous demandé la caméra frontale alors qu'il n'y en a pas ?",
-      "unknownError": "Une erreur inconnue s'est produite"
+      "unknownError": "Une erreur inconnue s'est produite",
+      "nothingToDo": "Ce n'est ni une adresse BCH, ni une demande de paiement, ni une connexion dApp, ni une clé privée"
     }
   },
   "relativeTime": {
@@ -1553,8 +1560,6 @@
       "developerSettingsDescription": "Portefeuilles de test et fonctions développeur",
       "tools": "Outils du portefeuille",
       "hdAddresses": "Adresses HD",
-      "requestPayment": "Créer une demande de paiement",
-      "requestPaymentDescription": "Un code QR ou un lien demandant un montant",
       "utxoManagement": "Gestion des UTXO",
       "utxoManagementDescription": "Voir, geler, envoyer ou consolider des pièces individuelles",
       "createTokens": "Créer un token",

@@ -7,10 +7,8 @@
     title: string,
     hint: string,
     allowChangeAddresses?: boolean,
-    hideZeroBalancesDefault?: boolean,
   }>(), {
     allowChangeAddresses: true,
-    hideZeroBalancesDefault: true,
   })
 
   defineEmits([
@@ -35,7 +33,6 @@
           <HdAddressSelect
             :hint="hint"
             :allow-change-addresses="props.allowChangeAddresses"
-            :hide-zero-balances-default="props.hideZeroBalancesDefault"
             @selection-changed="onSelectionChanged"
           />
         </div>

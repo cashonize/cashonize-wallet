@@ -250,14 +250,8 @@ body.dark .qr-code {
 }
 .sendCurrencyInput {
   position: relative;
-  width: 50%;
+  flex: 1;
   margin-left: 5px;
-}
-.fillInMaxBch {
-  margin-left: 5px;
-}
-.fillInMaxBchSmallScreen {
-  display: none;
 }
 .input-icon {
   position: absolute;
@@ -288,6 +282,51 @@ input[type='number'] {
 
 .item {
   margin: 10px;
+}
+/* a token amount of a transaction, with the token's icon, where the direction mark is used */
+.token-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--surface-line-strong);
+  background-color: var(--surface-subtle);
+  border-radius: 14px;
+  padding: 2px 10px 2px 4px;
+  font-size: 0.85em;
+}
+
+.chip-symbol {
+  word-break: break-word;
+}
+/* the round direction mark of a transaction, in the history and in the wallet page's recent activity */
+.tx-direction {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tx-direction.received {
+  background-color: rgba(10, 193, 143, 0.15);
+  color: var(--color-primary);
+}
+
+.tx-direction.sent {
+  background-color: var(--surface-strong);
+  color: var(--color-grey);
+}
+
+.tx-direction.combined {
+  background-color: rgba(74, 144, 217, 0.15);
+  color: #4a90d9;
+}
+
+.tx-direction.pending {
+  background-color: rgba(230, 162, 60, 0.18);
+  color: #e6a23c;
 }
 /* the arrows that switch between the wallet's addresses, on the wallet page and the address list:
    an icon rather than the ⇄ character, which each platform's fallback font draws differently.
@@ -747,9 +786,6 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
     flex: 1;
     min-width: 140px;
   }
-  .fillInMaxBch {
-    padding: 1rem 1.5rem;
-  }
   .actionBar span {
     margin: 0 10px;
   }
@@ -767,19 +803,6 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
     margin-top: 4px;
     width: 100%;
     gap: 0.5rem;
-  }
-}
-@media only screen and (max-width: 420px) {
-  /* the max button no longer fits next to the amount inputs, hide it and
-     show the max button next to the send button instead */
-  .fillInMaxBch {
-    display: none;
-  }
-  .fillInMaxBchSmallScreen {
-    display: inline-block;
-    margin-top: 8px;
-    margin-right: 8px;
-    padding: 1rem 1.5rem;
   }
 }
 /* Quasar dialog styling */

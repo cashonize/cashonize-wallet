@@ -13,9 +13,13 @@
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
-  defineProps<{
+  // Picking a token to request offers every fungible token the wallet knows, and any other by its
+  // id. Picking what to send offers what the wallet can spend, with BCH first: that one resolves
+  // with an empty category.
+  const props = defineProps<{
     title: string,
     hint: string,
+    forSending?: boolean,
   }>()
 
   defineEmits([
@@ -44,9 +48,10 @@
   // Fungible categories the wallet moved before but no longer holds. Having spent a token
   // down to zero is no reason to stop being able to ask for more of it. Read off the loaded
   // history, so opening the picker loads the full one, which fills the list in once loaded.
-  store.ensureFullHistory();
+  if (!props.forSending) store.ensureFullHistory();
   const historyCategories = computed(() => {
     const categories: string[] = [];
+    if (props.forSending) return categories;
     const heldCategories = fungibleTokens.value.map(tokenData => tokenData.category);
     for (const transaction of store.walletHistory ?? []) {
       for (const tokenChange of transaction.tokenAmountChanges) {
@@ -61,9 +66,18 @@
   });
 
   const tokenOptions = computed<TokenOption[]>(() => [
-    ...fungibleTokens.value.map(tokenData => ({ category: tokenData.category, amount: tokenData.amount })),
+    ...fungibleTokens.value
+      .filter(tokenData => !props.forSending || tokenData.amount > 0n)
+      .map(tokenData => ({ category: tokenData.category, amount: tokenData.amount })),
     ...historyCategories.value.map(category => ({ category, amount: 0n })),
   ]);
+  const bchName = 'Bitcoin Cash';
+  const bchSymbol = computed(() => store.network === 'mainnet' ? 'BCH' : 'tBCH');
+  const bchOptionShown = computed(() => {
+    if (!props.forSending) return false;
+    const query = searchQuery.value.toLowerCase().trim();
+    return `${bchName} ${bchSymbol.value}`.toLowerCase().includes(query);
+  });
 
   // Searches the same fields as the token list page: category, name and symbol
   const searchedTokens = computed(() => {
@@ -82,7 +96,7 @@
   // same search field. Recognized on the query alone, the lookup itself waits for a click.
   const pastedTokenId = computed(() => {
     const query = searchQuery.value.trim().toLowerCase();
-    if (!/^[0-9a-f]{64}$/.test(query)) return undefined;
+    if (props.forSending || !/^[0-9a-f]{64}$/.test(query)) return undefined;
     if (searchedTokens.value.length) return undefined;
     return query;
   });
@@ -154,6 +168,11 @@
     return `${formatTokenAmount(option.amount, decimals)} ${symbol}`.trim();
   }
 
+  const bchBalance = computed(() => {
+    if (store.balance === undefined) return bchSymbol.value;
+    return `${formatTokenAmount(store.balance, 8)} ${bchSymbol.value}`;
+  });
+
   // A failed lookup belongs to the id that was tried, not to the next one
   watch(searchQuery, () => {
     lookupFailed.value = false;
@@ -175,7 +194,7 @@
           ref="searchInputRef"
           v-model="searchQuery"
           type="text"
-          :placeholder="t('requestPayment.searchOrPasteId')"
+          :placeholder="forSending ? t('tokens.searchPlaceholder') : t('requestPayment.searchOrPasteId')"
           class="search-input"
           autocomplete="off"
           autocapitalize="none"
@@ -194,9 +213,16 @@
           </div>
           <div v-if="lookupFailed" class="lookup-failed">{{ t('requestPayment.lookupFailed') }}</div>
         </div>
-        <div v-else-if="!tokenOptions.length" class="no-tokens">{{ t('requestPayment.noFungibleTokens') }}</div>
-        <div v-else-if="!searchedTokens.length" class="no-tokens">{{ t('tokens.noMatch') }}</div>
+        <div v-else-if="!forSending && !tokenOptions.length" class="no-tokens">{{ t('requestPayment.noFungibleTokens') }}</div>
+        <div v-else-if="!searchedTokens.length && !bchOptionShown" class="no-tokens">{{ t('tokens.noMatch') }}</div>
         <div v-else class="token-list">
+          <div v-if="bchOptionShown" class="token-item" @click="onDialogOK('')">
+            <img src="images/bch-icon.svg" alt="" class="bch-icon">
+            <div class="token-info">
+              <div class="token-name">{{ bchName }}</div>
+              <div class="token-sub">{{ bchBalance }}</div>
+            </div>
+          </div>
           <div
             v-for="option in searchedTokens"
             :key="option.category"
@@ -231,6 +257,12 @@
 </template>
 
 <style scoped>
+/* the size the token icons take by default */
+.bch-icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
 .dialogFieldset {
   padding: 2rem;
   width: 550px;

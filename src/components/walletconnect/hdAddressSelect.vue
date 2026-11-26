@@ -14,16 +14,14 @@
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
-  // The wallet tools reuse this selector with their own hint text and, when the picked
-  // address is one to hand out, without the change chain and without hiding the
-  // unused addresses that a payment request wants in the first place
+  // The receive page reuses this selector with its own hint text, for an address to hand out:
+  // receive addresses only, so the pills pick between unused and used ones instead of between the
+  // chains, and with no option to hide the empty addresses a request wants in the first place
   const props = withDefaults(defineProps<{
     hint?: string,
     allowChangeAddresses?: boolean,
-    hideZeroBalancesDefault?: boolean,
   }>(), {
     allowChangeAddresses: true,
-    hideZeroBalancesDefault: true,
   });
 
   const emit = defineEmits<{
@@ -37,7 +35,8 @@
   const changeAddresses = ref<AddressRow[]>([]);
   const selectedChain = ref("receiving" as "receiving" | "change");
   const showOptions = ref(false);
-  const hideZeroBalances = ref(props.hideZeroBalancesDefault);
+  const selectedStatus = ref("unused" as "unused" | "used");
+  const hideZeroBalances = ref(props.allowChangeAddresses);
   const collapsedGroups = ref({ unused: false, used: false });
   const selectedAddress = ref<string | null>(null);
   const expandedTokensKey = ref<string | null>(null);
@@ -122,6 +121,9 @@
     const groups: { key: "unused" | "used"; label: string; rows: AddressRow[] }[] = [];
     if (unused.length) groups.push({ key: "unused", label: t('hdAddresses.unusedAddresses'), rows: unused });
     if (used.length) groups.push({ key: "used", label: t('hdAddresses.usedAddresses'), rows: used });
+    // without the chains to pick between, the pills pick the group and only that one is listed;
+    // a search looks in both
+    if (!props.allowChangeAddresses && !searching.value) return groups.filter(group => group.key === selectedStatus.value);
     return groups;
   });
 
@@ -156,7 +158,7 @@
   <div>
     <div class="control-row">
       <span>{{ props.hint ?? t('walletConnect.addressSelect.hint') }}</span>
-      <span class="options-toggle" :class="{ active: showOptions }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
+      <span v-if="props.allowChangeAddresses" class="options-toggle" :class="{ active: showOptions }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
         <q-icon name="tune" size="22px" />
       </span>
     </div>
@@ -167,13 +169,21 @@
       </div>
     </div>
 
-    <div v-if="props.allowChangeAddresses || searchShown" class="filter-row">
+    <div class="filter-row">
       <div v-if="props.allowChangeAddresses" class="type-filter">
         <button :class="{ active: selectedChain === 'receiving' }" @click="selectedChain = 'receiving'">
           {{ t('hdAddresses.receiving') }} ({{ filteredReceivingCount }})
         </button>
         <button :class="{ active: selectedChain === 'change' }" @click="selectedChain = 'change'">
           {{ t('hdAddresses.change') }} ({{ filteredChangeCount }})
+        </button>
+      </div>
+      <div v-else class="type-filter">
+        <button :class="{ active: selectedStatus === 'unused' }" @click="selectedStatus = 'unused'">
+          {{ t('hdAddresses.unusedAddresses') }} ({{ unusedReceivingAddresses.length }})
+        </button>
+        <button :class="{ active: selectedStatus === 'used' }" @click="selectedStatus = 'used'">
+          {{ t('hdAddresses.usedAddresses') }} ({{ usedReceivingAddresses.length }})
         </button>
       </div>
       <input
@@ -185,7 +195,7 @@
     <div v-if="!addressGroups.length" class="description">{{ searching ? t('hdAddresses.noMatch') : t('hdAddresses.noAddresses') }}</div>
 
     <template v-for="group in addressGroups" :key="group.key">
-      <div class="group-header" @click="toggleGroup(group.key)">
+      <div v-if="props.allowChangeAddresses || searching" class="group-header" @click="toggleGroup(group.key)">
         {{ group.label }} ({{ group.rows.length }})
         <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedGroups[group.key] }" />
       </div>

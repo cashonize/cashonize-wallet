@@ -19,11 +19,12 @@
   import addressConverterView from 'src/components/settings/addressConverter.vue'
   import faqPageView from 'src/components/settings/faqPage.vue'
   import appLockView from 'src/components/settings/appLock.vue'
-  import requestPaymentView from 'src/components/settings/requestPayment.vue'
+  import receivePaymentView from 'src/components/receivePayment.vue'
+  import sendPaymentView from 'src/components/sendPayment.vue'
   import hdAddressesView from 'src/components/settings/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
-  import { defineComponent, ref, computed, watch, watchEffect, onMounted, onUnmounted } from 'vue'
+  import { defineComponent, ref, computed, watch, watchEffect, nextTick, onMounted, onUnmounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
   import { preloadIcons } from 'src/utils/icons/preloadIcons'
@@ -31,6 +32,7 @@
   import { getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
   import { appNetworks, storedAppNetwork, walletDbName, type AppNetwork } from 'src/utils/wallet/networks'
   import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
+  import { routeScannedCode } from 'src/utils/scanRouting'
   import { useStore } from 'src/stores/store'
   import { menuSectionViewBase } from 'src/stores/constants'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
@@ -92,6 +94,8 @@
   // Settings View re-renders on navigation, a placeholder component used for the KeepAlive
   const emptyView = defineComponent({ render: () => null })
   // the menu page and the pages under it, which the settings menu component renders all of
+  // the wallet page and the two pages its actions open
+  const onWalletPage = computed(() => [1, 17, 23].includes(store.displayView ?? 0));
   const onMenuPage = computed(() => store.displayView === 5 || (store.displayView ?? 0) >= menuSectionViewBase);
   const currentView = computed(() => {
     if (onMenuPage.value) return emptyView;
@@ -110,12 +114,13 @@
       case 13: return signVerifyMessageView;
       case 15: return exportXpubView;
       case 16: return transferAllAssetsView;
-      case 17: return requestPaymentView;
+      case 17: return receivePaymentView;
       case 18: return flipstarterView;
       case 19: return identitiesView;
       case 20: return addressConverterView;
       case 21: return faqPageView;
       case 22: return appLockView;
+      case 23: return sendPaymentView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });
@@ -124,9 +129,10 @@
     if (!store._wallet) return {};
 
     switch (store.displayView) {
-      case 1: return { bchSendRequest: bchSendRequest.value };
+      case 1: return { onScanned: openScannedCode };
       case 4: return { dappUriUrlParam: dappUriUrlParam.value };
       case 8: return { wif: wifToSweep.value };
+      case 23: return { bchSendRequest: bchSendRequest.value };
       default: return {};
     }
   });
@@ -194,7 +200,7 @@
   if(props?.uri?.startsWith('bitcoincash:')){
     if(walletExists){
       bchSendRequest.value = props.uri
-      store.changeView(1);
+      store.changeView(23);
     } else {
       $q.notify({
         message: t('common.errors.needToInitializeWallet'),
@@ -228,7 +234,7 @@
     // check if BCH send request is passed through props
     if(props?.uri?.startsWith('bitcoincash:')){
       bchSendRequest.value = props.uri
-      store.changeView(1);
+      store.changeView(23);
     }
     // check if sweep request is passed through props
     if(props?.uri?.startsWith('bch-wif:')){
@@ -236,6 +242,24 @@
       store.changeView(8);
     }
   })
+
+  // A code from the general scanner goes to the page that takes it, the way a deep link does.
+  // The page reads it from its prop, which only reaches a view while it is the one shown: so the
+  // view is opened first, and the prop emptied before it is set, for a code scanned twice to count.
+  async function openScannedCode(content: string) {
+    const route = routeScannedCode(content, store.network, store.wallet.networkPrefix);
+    if ('error' in route) return;
+    const targets = {
+      send: { uri: bchSendRequest, view: 23 },
+      connect: { uri: dappUriUrlParam, view: 4 },
+      sweep: { uri: wifToSweep, view: 8 },
+    };
+    const target = targets[route.page];
+    store.changeView(target.view);
+    target.uri.value = undefined;
+    await nextTick();
+    target.uri.value = content;
+  }
 
   const hasUtxosWithBchAndTokens = computed(() => {
     if (!store._wallet || !store.walletUtxos) return undefined;
@@ -278,7 +302,7 @@
       <DappActivityButton icon-only />
     </div>
     <nav v-if="store.displayView && !navAtBottom" style="display: flex; justify-content: center; user-select: none;" class="tabs" :class="{ compact: compactNavTabs }">
-      <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ t('nav.wallet') }} </div>
+      <div @click="store.changeView(1)" :class="{ active: onWalletPage }"> {{ t('nav.wallet') }} </div>
       <div v-if="settingsStore.addressesInNav && width > addressesNavTabMinWidth && settingsStore.getWalletType(store.activeWalletName) === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ t('nav.tokens') }} </div>
       <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ t('nav.history') }} </div>
@@ -299,7 +323,7 @@
     <settingsMenu v-if="onMenuPage" />
   </main>
   <nav v-if="navAtBottom" v-show="!textFieldFocused" class="bottom-nav">
-    <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }">
+    <div @click="store.changeView(1)" :class="{ active: onWalletPage }">
       <q-icon name="sym_o_account_balance_wallet" size="24px" />
       <span>{{ t('nav.wallet') }}</span>
     </div>

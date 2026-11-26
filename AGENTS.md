@@ -136,7 +136,7 @@ An optional PIN (`stores/appLockStore.ts`) gates the interface: the wallet is no
 ### Component Organization
 Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`.
 
-`src/components/` holds the four main tab views (`bchWallet`, `myTokens`, `connectDapp`, `settingsMenu`) plus `walletOnboarding` at the root, with a folder per area below: `settings/`, `walletconnect/`, `cashconnect/`, `wizardconnect/`, `history/`, `portfolio/`, `tokenItems/`, `qr/` and `general/` for what several views reuse. `src/utils/` is grouped the same way (`dapp/`, `defi/`, `wallet/`, ...).
+`src/components/` holds the four main tab views (`bchWallet`, `myTokens`, `connectDapp`, `settingsMenu`), the two pages the wallet tab's actions open (`receivePayment`, `sendPayment`) and `walletOnboarding` at the root, with a folder per area below: `settings/`, `walletconnect/`, `cashconnect/`, `wizardconnect/`, `history/`, `portfolio/`, `tokenItems/`, `qr/` and `general/` for what several views reuse. `src/utils/` is grouped the same way (`dapp/`, `defi/`, `wallet/`, ...).
 
 Two components sit outside their folder's protocol: `WC2TransactionRequest` is shared with wizardconnect, and the WizardConnect sign dialogs are opened from `wizardconnectStore` rather than from a session component.
 

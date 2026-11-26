@@ -22,3 +22,12 @@ export function isWizardConnectUri(uri: string): boolean {
 export function isDappConnectionUri(uri: string): boolean {
   return isWalletConnectUri(uri) || isCashConnectUri(uri) || isWizardConnectUri(uri);
 }
+
+/** A pairing URI as a QR code carries it; WalletConnect's is checked in full, the others on pairing */
+export function isScannableDappUri(content: string): boolean {
+  const matchWalletConnect = /^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i.test(content);
+  // WizardConnect QR codes use an uppercased, percent-escaped alphanumeric-mode form
+  // (WIZ://%3FP%3D...), so only the scheme is matched
+  const matchWizardConnect = /^wiz:\/\//i.test(content);
+  return matchWalletConnect || isCashConnectUri(content) || matchWizardConnect;
+}

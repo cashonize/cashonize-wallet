@@ -53,6 +53,14 @@ export async function importWalletOnboarding(page: Page, options: ImportOptions)
   await page.getByRole('button', { name: 'Finish Setup' }).waitFor({ timeout: 15_000 })
 }
 
+// The wallet's address is on the receive page, one tap from the wallet page; leaves the wallet
+// page open again
+export async function expectReceiveAddress(page: Page, expected: string | RegExp) {
+  await page.getByRole('button', { name: 'Receive' }).click()
+  await expect(page.locator('.depositAddr')).toHaveText(expected, { timeout: 30_000 })
+  await page.getByRole('button', { name: 'Back' }).click()
+}
+
 // A wallet lives on one network, and onboarding makes mainnet ones: a chipnet wallet is added from
 // the developer settings, which open it once it is made. Creates one, or imports the seed phrase.
 export async function addChipnetWallet(page: Page, options: { seedPhrase?: string, walletType?: 'single' | 'hd', walletName?: string } = {}) {
@@ -76,7 +84,7 @@ export async function addChipnetWallet(page: Page, options: { seedPhrase?: strin
     await page.getByRole('button', { name: 'Create new wallet' }).click()
   }
   if (options.walletName) await expect(page.locator('legend.walletName')).toContainText(options.walletName, { timeout: 30_000 })
-  await expect(page.locator('.depositAddr').first()).toHaveText(/^bchtest:/, { timeout: 30_000 })
+  await expectReceiveAddress(page, /^bchtest:/)
 }
 
 // Runs the onboarding, then adds a chipnet wallet: importing E2E_SEED_PHRASE when set, creating a

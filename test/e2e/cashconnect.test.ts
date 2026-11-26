@@ -36,8 +36,11 @@ test.describe.serial('CashConnect E2E', () => {
     // single address, so dApp pairing keeps e2e coverage for that type; WalletConnect covers HD
     await setupWalletOnChipnet(walletPage, 'single')
 
-    // Read the wallet's deposit address from the wallet tab (used as send recipient)
-    walletAddress = (await walletPage.locator('.depositAddr').first().textContent() ?? '').trim()
+    // Read the wallet's deposit address from the receive page (used as send recipient)
+    await walletPage.getByRole('button', { name: 'Receive' }).click()
+    await expect(walletPage.locator('.depositAddr')).toHaveText(/^bchtest:/, { timeout: 30_000 })
+    walletAddress = (await walletPage.locator('.depositAddr').textContent() ?? '').trim()
+    await walletPage.getByRole('button', { name: 'Back' }).click()
     expect(walletAddress).toContain('bchtest:')
 
     // Navigate to the Connect tab (hosts the shared URI input and the CashConnect sessions list)
