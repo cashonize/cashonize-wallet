@@ -524,6 +524,11 @@ export const useStore = defineStore('store', () => {
     };
     // a test network's hashrate is too erratic for a gap between blocks to say anything about the server
     if (network === 'mainnet') options.staleTipSeconds = STALE_TIP_SECONDS;
+    // dev builds only, for the regtest e2e suite: its local chain answers as chipnet and can never
+    // reach chipnet's checkpoint, so the library's chain check is skipped
+    if (import.meta.env.QUASAR_DEV && network === 'chipnet' && localStorage.getItem('devSkipChainCheck') === 'true') {
+      options.chain = false;
+    }
     const provider = createFailoverProvider(libraryNetwork(network), urls, options)
       .then((made) => {
         setGlobalProvider(libraryNetwork(network), made);

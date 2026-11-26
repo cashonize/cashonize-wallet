@@ -6,11 +6,13 @@ import { CASHONIZE_URL, addChipnetWallet, expectReceiveAddress } from '../helper
 import { APP_ELECTRUM_SERVER } from './chain'
 
 // The app's chipnet server is the regtest one from the first load on, with any other settings.
-// The chipnet token metadata indexer knows none of the chain's tokens, so it is not asked.
+// The chipnet token metadata indexer knows none of the chain's tokens, so it is not asked. The
+// chain is far below chipnet's checkpoint, so the dev build's switch for the chain check is set.
 async function pointAppAtRegtest(page: Page, settings: Record<string, string>) {
   await page.route('https://bcmr-chipnet.paytaca.com/**', route => route.abort())
   await page.addInitScript(({ server, settings }) => {
     localStorage.setItem('electrum-chipnet', server)
+    localStorage.setItem('devSkipChainCheck', 'true')
     for (const [key, value] of Object.entries(settings)) localStorage.setItem(key, value)
   }, { server: APP_ELECTRUM_SERVER, settings })
 }
@@ -38,12 +40,12 @@ export async function openRegtestWallet(page: Page, options: WalletOptions = {})
   await addChipnetWallet(page, chipnetOptions)
 }
 
-// Switches the chipnet electrum server the way a user does: a custom server in the advanced settings
+// Switches the chipnet electrum server the way a user does: another custom server in the advanced
+// settings, which already show the single server mode with a custom one, as the app was opened on
 export async function switchChipnetServer(page: Page, server: string) {
   await page.locator('nav').getByLabel('Menu').click()
   await page.getByRole('button', { name: 'Settings', exact: true }).click()
   await page.getByText('Advanced settings').click()
-  await page.locator('div:has(> label:text-is("Electrum server chipnet:")) > select').selectOption('custom')
   const input = page.getByPlaceholder('e.g. 127.0.0.1 or fulcrum.example.com:443')
   await input.fill(server)
   await input.press('Enter')
