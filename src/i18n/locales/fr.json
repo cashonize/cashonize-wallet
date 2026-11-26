@@ -1606,7 +1606,6 @@
       "satUnit": "satoshis",
       "blockExplorer": "Explorateur de blocs :",
       "qrAnimation": "Animation du code QR :",
-      "tokenAddressQrDefault": "Afficher le code QR de l'adresse de token par défaut",
       "enableAddressMarking": "Activer la gestion avancée des adresses : marquer les adresses comme utilisées",
       "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD.",
       "bottomNavOnMobile": "Afficher les onglets de navigation en bas sur les petits écrans",

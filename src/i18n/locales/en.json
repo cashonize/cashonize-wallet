@@ -1606,7 +1606,6 @@
       "satUnit": "satoshis",
       "blockExplorer": "Block explorer:",
       "qrAnimation": "QR code animation:",
-      "tokenAddressQrDefault": "Show token address QR code by default",
       "enableAddressMarking": "Enable advanced address management: mark addresses as used",
       "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets.",
       "bottomNavOnMobile": "Show the navigation tabs at the bottom on small screens",

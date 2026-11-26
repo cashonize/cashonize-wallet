@@ -75,7 +75,7 @@ const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 export const settingsMenuKeys = [
   // user options
   "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "explorer-testnet4", "qrAnimation",
-  "tokenAddressQrDefault", "enableAddressMarking", "dappActivityInNav", "bottomNavOnMobile", "addressesInNav",
+  "enableAddressMarking", "dappActivityInNav", "bottomNavOnMobile", "addressesInNav",
   // token settings
   "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
   "allowDappIdentitySpends",
@@ -131,7 +131,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // macro that cannot focus on a QR code held at arm's length, so the choice has to stick.
   const qrScannerCameraId = ref("");
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
-  const tokenAddressQrDefault = ref(false);
   const enableAddressMarking = ref(false);
   // the dapp activity log opens from the dapp sessions; this adds its icon to the top nav as well
   const dappActivityInNav = ref(false);
@@ -251,8 +250,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readQrAnimation = localStorage.getItem("qrAnimation");
   if(readQrAnimation) qrAnimation.value = readQrAnimation as QRCodeAnimationName | 'None';
 
-  const readTokenAddressQrDefault = localStorage.getItem("tokenAddressQrDefault");
-  if(readTokenAddressQrDefault) tokenAddressQrDefault.value = readTokenAddressQrDefault == "true";
 
   const readEnableAddressMarking = localStorage.getItem("enableAddressMarking");
   if(readEnableAddressMarking) enableAddressMarking.value = readEnableAddressMarking == "true";
@@ -664,7 +661,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     qrScan,
     qrScannerCameraId,
     qrAnimation,
-    tokenAddressQrDefault,
     enableAddressMarking,
     dappActivityInNav,
     addressesInNav,

@@ -99,7 +99,6 @@
   const selectedAllowDappIdentitySpends = ref(settingsStore.allowDappIdentitySpends);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
-  const tokenAddressQrDefault = ref(settingsStore.tokenAddressQrDefault);
   const enableAddressMarking = ref(settingsStore.enableAddressMarking);
   const dappActivityInNav = ref(settingsStore.dappActivityInNav);
   const addressesInNav = ref(settingsStore.addressesInNav);
@@ -459,10 +458,6 @@
     localStorage.setItem("qrScan", enableQrScan.value? "true" : "false");
     settingsStore.qrScan = enableQrScan.value;
   }
-  function toggleTokenAddressQrDefault(){
-    localStorage.setItem("tokenAddressQrDefault", tokenAddressQrDefault.value? "true" : "false");
-    settingsStore.tokenAddressQrDefault = tokenAddressQrDefault.value;
-  }
   function toggleAddressesInNav(){
     localStorage.setItem("addressesInNav", addressesInNav.value? "true" : "false");
     settingsStore.addressesInNav = addressesInNav.value;
@@ -731,10 +726,6 @@
           <option value="RadialRippleIn">RadialRippleIn</option>
           <option value="None">None</option>
         </select>
-      </div>
-
-      <div style="margin-bottom: 15px;">
-        {{ t('settings.userOptions.tokenAddressQrDefault') }} <q-toggle v-model="tokenAddressQrDefault" @update:model-value="toggleTokenAddressQrDefault" dense />
       </div>
     </div>
     <div v-else-if="settingsSection == 7">

@@ -1606,7 +1606,6 @@
       "satUnit": "Satoshis",
       "blockExplorer": "Block-Explorer:",
       "qrAnimation": "QR-Code Animation:",
-      "tokenAddressQrDefault": "QR-Code der Token-Adresse standardmäßig anzeigen",
       "enableAddressMarking": "Erweiterte Adressverwaltung aktivieren: Adressen als verwendet markieren",
       "enableAddressMarkingHint": "Eine Adresse als verwendet zu markieren lässt die Wallet die nächste ausgeben, so kannst du jedem Zahler eine neue Adresse geben. Gilt für HD-Wallets.",
       "bottomNavOnMobile": "Die Navigation auf kleinen Bildschirmen unten anzeigen",

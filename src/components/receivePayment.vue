@@ -31,7 +31,7 @@
   const isHdWallet = computed(() => store._wallet instanceof HDWallet);
 
   // Which of the wallet's two address forms is shown, the plain one or the token-aware one
-  const mode = ref<'bch' | 'token'>(settingsStore.tokenAddressQrDefault ? 'token' : 'bch');
+  const mode = ref<'bch' | 'token'>('bch');
   // The amount, token and message that turn the address into a payment request stay folded away
   // until asked for: most of the time the address is all that is wanted
   const showRequestFields = ref(false);
@@ -196,7 +196,6 @@
   watch(() => settingsStore.qrAnimation, () => {
     if(!settingsStore.hasPlayedAnimation) animateQrCode()
   })
-  watch(() => settingsStore.tokenAddressQrDefault, (tokenDefault) => setMode(tokenDefault ? 'token' : 'bch'))
 
   function openAddressSelectDialog() {
     $q.dialog({

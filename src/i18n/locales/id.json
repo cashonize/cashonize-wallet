@@ -1606,7 +1606,6 @@
       "satUnit": "satoshi",
       "blockExplorer": "Block explorer:",
       "qrAnimation": "Animasi kode QR:",
-      "tokenAddressQrDefault": "Tampilkan kode QR alamat token secara default",
       "enableAddressMarking": "Aktifkan manajemen alamat lanjutan: tandai alamat sebagai terpakai",
       "enableAddressMarkingHint": "Menandai alamat sebagai terpakai membuat dompet memberikan alamat berikutnya, sehingga Anda dapat membagikan alamat baru kepada setiap pembayar. Berlaku untuk dompet HD.",
       "bottomNavOnMobile": "Tampilkan tab navigasi di bagian bawah pada layar kecil",

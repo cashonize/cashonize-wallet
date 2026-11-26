@@ -1606,7 +1606,6 @@
       "satUnit": "satoshis",
       "blockExplorer": "Explorador de bloques:",
       "qrAnimation": "Animación de código QR:",
-      "tokenAddressQrDefault": "Mostrar el código QR de la dirección de token por defecto",
       "enableAddressMarking": "Habilitar gestión avanzada de direcciones: marcar direcciones como usadas",
       "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD.",
       "bottomNavOnMobile": "Mostrar las pestañas de navegación abajo en pantallas pequeñas",
