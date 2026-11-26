@@ -48,7 +48,6 @@
     "@bch-wc2/interfaces": "^0.0.16",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.5.3",
-    "@capgo/capacitor-native-biometric": "8.9.3",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.65.1",
     "@quasar/app-vite": "^3.10.4",

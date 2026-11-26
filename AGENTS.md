@@ -167,7 +167,7 @@ Unit tests (`/test`, vitest) and E2E tests (`/test/e2e`, Playwright). IndexedDB-
 
 ## Dependency Pinning
 
-Security-critical dependencies (key material, signing, dApp communication: bch-wallet-lib, libauth, walletkit, @walletconnect/core, cashconnect, wizardconnect, and the biometric plugin that unlocks the app lock) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
+Security-critical dependencies (key material, signing, dApp communication: bch-wallet-lib, libauth, walletkit, @walletconnect/core, cashconnect, wizardconnect) use exact versions in `package.json`; the ones that also appear as transitive deps are pinned graph-wide in the pnpm `overrides` block. Upgrades to these must be deliberate and reviewed — bump both places together.
 
 A pinned dep may carry a pnpm patch, declared with its reason in `pnpm-workspace.yaml` and dropped once the fix lands upstream.
 
