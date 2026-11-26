@@ -131,7 +131,7 @@ The portfolio view (`components/portfolio/`) charts the wallet's total value acr
 The menu page (the fifth tab, `settingsMenu`) carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves an identity's UTXO, or the AuthKey that opens its covenant, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. The identities page also holds back what the user never listed; its detection and following paths are described in `docs/bcmr-identities.md`.
 
 ### App Lock
-An optional PIN (`stores/appLockStore.ts`) gates the interface: the wallet is not loaded until the first unlock, and `confirmPin()` is asked before a spend (inside `store.spend.*`), a dApp transaction signature and a seed reveal; message signing asks none. It is not encryption; the seed at rest is unchanged, and anything that spends past `store.spend` has to ask for the PIN itself.
+An optional PIN (`stores/appLockStore.ts`) gates the interface: the wallet is not loaded until the first unlock, and `confirmPin()` is asked before a spend (inside `store.spend.*`), a dApp transaction signature and a seed reveal; message signing asks none. It is not encryption; the seed at rest is unchanged, and anything that spends past `store.spend` has to ask for the PIN itself. On Android a fingerprint or face can stand in for the PIN (`utils/biometrics.ts`), the system prompt passed being as much a gate as a typed PIN, with the PIN as the fallback.
 
 ### Component Organization
 Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`.
@@ -146,10 +146,10 @@ Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect pa
 ### Quasar Framework
 Docs: https://quasar.dev/docs
 
-- **Boot files** (`src/boot/`): Run at app startup - `icons.ts`, `i18n.ts`, `deepLinking.ts` (Capacitor only), `plausible.ts` (SPA production only)
+- **Boot files** (`src/boot/`): Run at app startup - `icons.ts`, `i18n.ts`, `deepLinking.ts` and `biometrics.ts` (Capacitor only), `plausible.ts` (SPA production only)
 - **Plugins**: `Notify` for toasts, `Dialog` for confirmations and custom dialogs (configured in quasar.config.ts)
 - **Mode/env detection**: In app code, use Quasar v3 `import.meta.env.QUASAR_*` constants, e.g. `import.meta.env.QUASAR_SPA_MODE`.
-- **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking; the runtime copies live in `src-capacitor/`
+- **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking only; builds resolve them from `src-capacitor/node_modules`, which web, desktop and CI do not install. Code those builds also load never imports them: Capacitor-only boot files (`deepLinking.ts`, `biometrics.ts`) do, and hand on what is needed
 
 ### Styling
 Base CSS from a vendored subset of chota (`src/css/chota-subset.css`), custom styles in `src/css/`. Material icon names are mapped to SVG constants in `src/boot/icons.ts`; Quasar components use the `svg-material-icons` icon set, with no icon webfont.

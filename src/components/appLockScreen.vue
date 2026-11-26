@@ -13,6 +13,11 @@
   const pinEntry = ref<InstanceType<typeof PinEntry>>()
   const showForgot = ref(false)
 
+  // the PIN field takes over when the prompt is left without passing it
+  async function tryBiometrics() {
+    if (!await appLock.unlockWithBiometrics()) pinEntry.value?.focus()
+  }
+
   // Everything else on the page is made inert while the screen shows, a dialog opened meanwhile
   // included, so neither the keyboard nor a dialog's own focus trap reaches past it
   const madeInert = new Set<Element>()
@@ -35,6 +40,7 @@
     // only now, as an open dialog's focus trap took the focus back until it was made inert
     pinEntry.value?.focus()
     document.addEventListener('keydown', keepKeys, true)
+    if (appLock.biometrics) void tryBiometrics()
   })
   onUnmounted(() => {
     observer.disconnect()
@@ -51,6 +57,9 @@
       <span class="lock-badge"><q-icon name="lock" size="28px" /></span>
       <div class="lock-title">{{ t('appLock.lockedTitle') }}</div>
       <PinEntry ref="pinEntry" :check="appLock.unlock" :submit-label="t('appLock.unlockButton')" />
+      <span v-if="appLock.biometrics" class="action-link lock-biometrics" @click="tryBiometrics()">
+        <q-icon name="fingerprint" size="20px" /> {{ t('appLock.useBiometrics') }}
+      </span>
     </div>
     <div class="lock-forgot">
       <span class="action-link lock-forgot-link" @click="showForgot = !showForgot">{{ t('appLock.forgotPin') }}</span>
@@ -103,6 +112,13 @@
   margin: 16px 0 10px;
   font-weight: 600;
   text-align: center;
+}
+.lock-biometrics {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px 16px;
 }
 .lock-forgot {
   max-width: 340px;
