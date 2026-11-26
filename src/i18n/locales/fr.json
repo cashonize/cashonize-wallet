@@ -993,6 +993,22 @@
       "somethingWentWrong": "une erreur s'est produite"
     }
   },
+  "networkStatus": {
+    "title": "État du réseau",
+    "description": "Le serveur Electrum auquel ce portefeuille est connecté. Le portefeuille se fie à ce qu'il indique et ne le vérifie pas.",
+    "block": "Bloc {height}",
+    "electrumHeading": "Connexion Electrum",
+    "server": "Serveur :",
+    "status": "État :",
+    "connected": "Connecté",
+    "connecting": "Connexion en cours…",
+    "reconnecting": "Connexion perdue, reconnexion…",
+    "mode": "Mode de serveur :",
+    "blockHeight": "Hauteur de bloc :",
+    "latestBlock": "Dernier bloc :",
+    "seeOnExplorer": "Voir dans l'explorateur de blocs",
+    "changeServer": "Changer de serveur"
+  },
   "aboutCashonize": {
     "title": "À propos de Cashonize",
     "description": "Votre porte d'entrée vers les CashTokens et la DeFi de Bitcoin Cash.",

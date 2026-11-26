@@ -993,6 +993,22 @@
       "somethingWentWrong": "terjadi kesalahan"
     }
   },
+  "networkStatus": {
+    "title": "Status jaringan",
+    "description": "Server Electrum yang terhubung dengan dompet ini. Dompet memercayai apa yang dilaporkannya dan tidak memverifikasinya.",
+    "block": "Blok {height}",
+    "electrumHeading": "Koneksi Electrum",
+    "server": "Server:",
+    "status": "Status:",
+    "connected": "Terhubung",
+    "connecting": "Menghubungkan…",
+    "reconnecting": "Koneksi terputus, menghubungkan kembali…",
+    "mode": "Mode server:",
+    "blockHeight": "Tinggi blok:",
+    "latestBlock": "Blok terbaru:",
+    "seeOnExplorer": "Lihat di block explorer",
+    "changeServer": "Ganti server"
+  },
   "aboutCashonize": {
     "title": "Tentang Cashonize",
     "description": "Pintu masuk Anda ke CashTokens dan DeFi Bitcoin Cash.",

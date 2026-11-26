@@ -28,6 +28,7 @@ import {
   type TokenGenesisRequest,
   type TokenMintRequest,
   type TokenBurnRequest,
+  decodeHeader,
 } from "@cashonize/bch-wallet-lib"
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
 import {
@@ -230,6 +231,8 @@ export const useStore = defineStore('store', () => {
   // Address whose transactions the history narrows to, set from the addresses page
   const pendingHistorySearch = ref(undefined as (undefined | string));
   const currentBlockHeight = ref(undefined as (number | undefined));
+  // the timestamp (seconds) in the header of that block, as the server reports it
+  const currentBlockTimestamp = ref(undefined as (number | undefined));
   // Token metadata of the wallet's categories. Every fetch fills this one object, adding a category
   // only when it is missing (storeUtils); a reset or an indexer change replaces it, so a late reply
   // fills an object nothing reads any more
@@ -503,6 +506,8 @@ export const useStore = defineStore('store', () => {
   const replacedProviders = new Set<ElectrumNetworkProvider>();
   // The server each network's provider is on, for the messages that name it
   const electrumServerInUse = reactive<Partial<Record<AppNetwork, string>>>({});
+  // Whether that server's connection is lost for now, the provider waiting for it or moving on
+  const electrumConnectionLost = reactive<Partial<Record<AppNetwork, boolean>>>({});
 
   // `fresh` makes a new one for an unchanged choice too, which connects only once it is used
   function providerForSelectedServer(network: AppNetwork, fresh = false): Promise<ElectrumNetworkProvider> {
@@ -521,6 +526,10 @@ export const useStore = defineStore('store', () => {
         electrumServerInUse[network] = server;
         if (mode === 'automatic') saveLastGoodElectrumServer(network, server);
       },
+      onConnectionChange: (connected) => {
+        if (selectedProviders[network]?.provider !== provider) return;
+        electrumConnectionLost[network] = !connected;
+      },
     };
     // a test network's hashrate is too erratic for a gap between blocks to say anything about the server
     if (network === 'mainnet') options.staleTipSeconds = STALE_TIP_SECONDS;
@@ -536,6 +545,7 @@ export const useStore = defineStore('store', () => {
       });
     selectedProviders[network] = { choice, provider };
     delete electrumServerInUse[network];
+    delete electrumConnectionLost[network];
     // one that cannot be made is not kept, so the next call tries again; its rejection reaches
     // whoever awaits it, and is no unhandled rejection otherwise
     provider.catch(() => {
@@ -930,6 +940,7 @@ export const useStore = defineStore('store', () => {
     const cancelBlocks = await wallet.value.watchBlocks(header => {
       if (initialization !== currentInitialization) return;
       currentBlockHeight.value = header.height;
+      currentBlockTimestamp.value = decodeHeader(header).timestamp;
       // a test network's hashrate is too erratic for a gap between blocks to say anything about the server
       if (network.value === 'mainnet') warnIfServerTipStale(header);
     }, false);
@@ -1025,6 +1036,7 @@ export const useStore = defineStore('store', () => {
     isHistoryPartial.value = false;
     walletTxids.value = new Set();
     currentBlockHeight.value = undefined;
+    currentBlockTimestamp.value = undefined;
     dismissStaleServerWarning?.();
     dismissStaleServerWarning = undefined;
 
@@ -2232,12 +2244,14 @@ export const useStore = defineStore('store', () => {
     announcedAssetsError,
     exchangeRate,
     currentBlockHeight,
+    currentBlockTimestamp,
     canGoBack,
     goBack,
     changeView,
     setWallet,
     selectElectrumProvider,
     electrumServerInUse,
+    electrumConnectionLost,
     validateElectrumServer,
     initializeWallet,
     resetWalletState,

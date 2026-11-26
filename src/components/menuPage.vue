@@ -796,6 +796,7 @@
         </select>
         <div v-if="store.electrumServerInUse[activeNetwork]" style="font-size: smaller; color: grey;">
           {{ t('settings.advanced.electrumInUse', { server: store.electrumServerInUse[activeNetwork] }) }}
+          <span class="action-link" @click="store.changeView(24)">{{ t('networkStatus.title') }} →</span>
         </div>
         <div v-if="selectedElectrumMode === 'single' && selectedElectrumServer === 'custom'" style="margin-top: 8px;">
           <input
@@ -1134,6 +1135,9 @@
 
       <div class="menu-group">
         <div class="menu-rows">
+          <MenuRow icon="lan" :label="t('networkStatus.title')" @click="store.changeView(24)">
+            <span v-if="store.currentBlockHeight !== undefined" class="description">{{ t('networkStatus.block', { height: formatDecimal(store.currentBlockHeight) }) }}</span>
+          </MenuRow>
           <MenuRow icon="help_outline" :label="t('settings.menu.faq')" @click="store.changeView(21)" />
           <MenuRow icon="info_outline" :label="t('settings.menu.aboutCashonize')" @click="store.changeView(11)" />
         </div>

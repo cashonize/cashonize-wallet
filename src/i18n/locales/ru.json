@@ -993,6 +993,22 @@
       "somethingWentWrong": "что-то пошло не так"
     }
   },
+  "networkStatus": {
+    "title": "Состояние сети",
+    "description": "Сервер Electrum, к которому подключён этот кошелёк. Кошелёк доверяет его данным и не проверяет их.",
+    "block": "Блок {height}",
+    "electrumHeading": "Соединение Electrum",
+    "server": "Сервер:",
+    "status": "Состояние:",
+    "connected": "Подключено",
+    "connecting": "Подключение…",
+    "reconnecting": "Соединение потеряно, переподключение…",
+    "mode": "Режим сервера:",
+    "blockHeight": "Высота блока:",
+    "latestBlock": "Последний блок:",
+    "seeOnExplorer": "Открыть в обозревателе блоков",
+    "changeServer": "Сменить сервер"
+  },
   "aboutCashonize": {
     "title": "О Cashonize",
     "description": "Ваш вход в мир CashTokens и DeFi на Bitcoin Cash.",

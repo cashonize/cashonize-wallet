@@ -993,6 +993,22 @@
       "somethingWentWrong": "Etwas ist schiefgelaufen"
     }
   },
+  "networkStatus": {
+    "title": "Netzwerkstatus",
+    "description": "Der Electrum-Server, mit dem diese Wallet verbunden ist. Die Wallet vertraut seinen Angaben und überprüft sie nicht.",
+    "block": "Block {height}",
+    "electrumHeading": "Electrum-Verbindung",
+    "server": "Server:",
+    "status": "Status:",
+    "connected": "Verbunden",
+    "connecting": "Verbindung wird aufgebaut…",
+    "reconnecting": "Verbindung verloren, wird wiederhergestellt…",
+    "mode": "Servermodus:",
+    "blockHeight": "Blockhöhe:",
+    "latestBlock": "Neuester Block:",
+    "seeOnExplorer": "Im Block-Explorer ansehen",
+    "changeServer": "Server ändern"
+  },
   "aboutCashonize": {
     "title": "Über Cashonize",
     "description": "Dein Einstieg in CashTokens und Bitcoin Cash DeFi.",

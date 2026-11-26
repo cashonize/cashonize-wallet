@@ -993,6 +993,22 @@
       "somethingWentWrong": "something went wrong"
     }
   },
+  "networkStatus": {
+    "title": "Network status",
+    "description": "The electrum server this wallet is connected to. The wallet trusts what it reports and does not verify it.",
+    "block": "Block {height}",
+    "electrumHeading": "Electrum connection",
+    "server": "Server:",
+    "status": "Status:",
+    "connected": "Connected",
+    "connecting": "Connecting…",
+    "reconnecting": "Connection lost, reconnecting…",
+    "mode": "Server mode:",
+    "blockHeight": "Block height:",
+    "latestBlock": "Latest block:",
+    "seeOnExplorer": "See on block explorer",
+    "changeServer": "Change server"
+  },
   "aboutCashonize": {
     "title": "About Cashonize",
     "description": "Your entry point to CashTokens and Bitcoin Cash DeFi.",

@@ -993,6 +993,22 @@
       "somethingWentWrong": "algo salió mal"
     }
   },
+  "networkStatus": {
+    "title": "Estado de la red",
+    "description": "El servidor Electrum al que está conectada esta billetera. La billetera confía en lo que informa y no lo verifica.",
+    "block": "Bloque {height}",
+    "electrumHeading": "Conexión Electrum",
+    "server": "Servidor:",
+    "status": "Estado:",
+    "connected": "Conectado",
+    "connecting": "Conectando…",
+    "reconnecting": "Conexión perdida, reconectando…",
+    "mode": "Modo de servidor:",
+    "blockHeight": "Altura de bloque:",
+    "latestBlock": "Último bloque:",
+    "seeOnExplorer": "Ver en el explorador de bloques",
+    "changeServer": "Cambiar servidor"
+  },
   "aboutCashonize": {
     "title": "Acerca de Cashonize",
     "description": "Tu puerta de entrada a CashTokens y al DeFi de Bitcoin Cash.",

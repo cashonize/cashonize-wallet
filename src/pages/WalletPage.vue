@@ -23,6 +23,7 @@
   import sendPaymentView from 'src/components/sendPayment.vue'
   import hdAddressesView from 'src/components/hdAddresses.vue'
   import aboutCashonizeView from 'src/components/aboutCashonize.vue'
+  import networkStatusView from 'src/components/networkStatus.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
   import { defineComponent, ref, computed, watch, watchEffect, nextTick, onMounted, onUnmounted } from 'vue'
   import { storeToRefs } from 'pinia'
@@ -121,6 +122,7 @@
       case 21: return faqPageView;
       case 22: return appLockView;
       case 23: return sendPaymentView;
+      case 24: return networkStatusView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });
