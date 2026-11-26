@@ -20,47 +20,46 @@ The portfolio view values your BCH, tokens and DeFi positions together, so you a
 
 ### The wallet for you?
 
-Because of its minimalist design and modern look, Cashonize is a user-friendly wallet, even for inexperienced users.
-
-Cashonize lets you create and switch between multiple wallets. There are two wallet types supported: single-address wallet and HD wallet. HD wallets use a new address for each transaction, providing basic privacy for everyday payments.
+Because of its minimalist design and modern look, Cashonize is a user-friendly wallet, even for inexperienced users. It also grows with you: as your use of Bitcoin Cash gets more advanced, the power-user features are there, without cluttering the basics.
 
 Cashonize can be locked with a PIN: an app lock asked when the wallet opens and before sending. It does not yet encrypt seed phrases.
 
 ### Features
 
 - **Send & receive BCH and CashTokens** - Full support for fungible tokens and NFTs
-- **Connect to dApps via WalletConnect** - Easy-to-understand transaction preview screen
+- **Connect to dApps via WalletConnect** - Transaction preview that shows your BCH and token balance changes
 - **WizardConnect support** - Connect HD wallets to dApps through the Nostr-based WizardConnect protocol
 - **Open-source and non-custodial** - You control your keys
 - **Multi-wallet support** - Create and manage multiple wallets (single-address or HD)
+- **Hide balances** - Tap your balance to hide amounts when others can see your screen
 - **Minimalist design** - Easy to use with a clean, modern interface
 - **Fast and lightweight** - Quick startup, fast data loading, and snappy navigation
 - **Streamlined onboarding** - New users are guided through wallet creation and preferences setup
 - **Localization** - Available in English, Spanish, French, German, Portuguese, Indonesian and Russian
+- **Token management** - Favorite, hide and search tokens, with live Cauldron prices
 - **Transaction history** - Filterable, searchable history with private transaction notes
 - **Minimal dependencies** - Fewer third-party packages means less code to trust and easier to audit
-- **HD address management** - Address overview with balances, labels and marking addresses as used
-- **Wallet tools** - Sign and verify messages, freeze and label coins and HD addresses, and transfer all assets to another wallet
+- **Wallet tools** - Sign and verify messages, freeze and label coins, and transfer all assets to another wallet
 - **Sweep functionality** - Sweep BCH and CashTokens from paper wallets, cashstamps, or private keys
 
 
 ### Exclusive Features
 
 - **CashConnect support** - Connect to BCH-native dApps through the CashConnect protocol
-- **Detailed dApp transaction preview** - Shows your balance changes for BCH and tokens before signing
+- **Address management** - See your HD addresses with balances, and label, freeze, pin or mark them as used
+- **Your choice of servers** - Choose the server behind each of chain data, token metadata and prices
 - **Portfolio view** - Chart of your total wallet value across your assets and DeFi positions
 - **Portfolio integrations** - Also values your Cauldron liquidity pools, ParyonUSD loans and stakes
+- **dApp activity** - A record of every transaction and message you signed for a dApp, with its outcome
 - **Dapp-aware history** - Labels dapp transactions and classifies swaps as combined, both filterable
-- **Token pills in history** - Token changes shown as pills with icon and amount in the history
-- **Token management** - Favorite, hide, and search tokens
-- **Cauldron price display** - View live Cauldron DEX prices for fungible tokens
 - **Parsable NFTs** - Decode NFT commitments and display their data as human-readable attributes (parsable BCMR support)
 - **ParyonUSD loan keys** - Supports the ParyonUSD loan key extension to fetch and display live loan state
 - **Flipstarter pledges** - Make and cancel pledges to Flipstarter campaigns from the wallet
 - **TapSwap listings** - Shows the assets you have listed for sale on TapSwap in the portfolio
 - **Hodl contracts** - Shows BCH locked in hodl timelock contracts in the portfolio
 - **Create tokens** - Pick the token id coin and keep part of the supply as a protected reserve
-- **Identities** - Finds, adds, protects and deliberately transfers the identities your keys hold
+- **Identities you control** - Finds, adds, protects and deliberately transfers the identities your keys hold
+- **Identities you follow** - Optionally follows your tokens' issuer identities, and protects any that reach you
 - **Metadata publishing** - Verifies your BCMR registry against its on-chain hash and publishes it
 - **AuthKey support** - Recognizes and protects AuthKey NFTs and shows the identities they control
 
