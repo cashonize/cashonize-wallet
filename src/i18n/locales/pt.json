@@ -601,6 +601,12 @@
     "cancel": "Cancelar"
   },
   "backupWallet": {
+    "reminder": {
+      "title": "Esta carteira não tem backup",
+      "text": "Anote a seed phrase: é a única forma de recuperar seus fundos se este dispositivo ou os dados dele forem perdidos.",
+      "backupNow": "Fazer backup agora",
+      "later": "Lembrar mais tarde"
+    },
     "currentWallet": "Carteira atual:",
     "seedPhrase": {
       "title": "Seed phrase da carteira",

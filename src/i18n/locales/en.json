@@ -601,6 +601,12 @@
     "cancel": "Cancel"
   },
   "backupWallet": {
+    "reminder": {
+      "title": "This wallet is not backed up",
+      "text": "Write down its seed phrase: it is the only way to get your funds back if this device or its data is lost.",
+      "backupNow": "Back up now",
+      "later": "Remind me later"
+    },
     "currentWallet": "Current wallet:",
     "seedPhrase": {
       "title": "Wallet seed phrase",

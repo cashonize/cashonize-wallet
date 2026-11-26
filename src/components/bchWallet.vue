@@ -12,6 +12,7 @@
   import portfolioIcon from './portfolio/portfolioIcon.vue';
   import NetworkBadge from './general/networkBadge.vue';
   import RecentActivity from './history/recentActivity.vue';
+  import BackupReminder from './wallets/backupReminder.vue';
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -168,6 +169,7 @@
         {{ t('common.actions.send') }}
       </button>
     </div>
+    <BackupReminder />
     <RecentActivity />
   </fieldset>
   <div v-if="showQrCodeDialog">
