@@ -109,11 +109,11 @@
         <template v-if="displayCurrencyBalance">
           {{ displayCurrencyBalance }} <span class="balanceCurrency">{{ currencyDisplayShortName }}</span>
         </template>
-        <span v-else class="balancePlaceholder" style="width: 5em;"></span>
+        <span v-else class="placeholder-bar" style="width: 5em;"></span>
       </div>
       <div class="balanceBch">
         <template v-if="balanceInBchUnit !== undefined">{{ formatNumber(balanceInBchUnit, 8) + displayUnitLong }}</template>
-        <span v-else class="balancePlaceholder" style="width: 7em;"></span>
+        <span v-else class="placeholder-bar" style="width: 7em;"></span>
       </div>
       <div v-if="reservedInBchUnit" class="balanceReserved">
         {{ t('wallet.reservedBalance', {
@@ -208,23 +208,6 @@
   min-height: 1.5em;
   font-size: 1.1em;
   line-height: 1.5;
-}
-/* a bar where an amount will be */
-.balancePlaceholder {
-  display: inline-block;
-  height: 0.6em;
-  border-radius: 0.3em;
-  background-color: var(--surface-strong);
-  vertical-align: middle;
-  animation: balancePlaceholderPulse 1.4s ease-in-out infinite;
-}
-@keyframes balancePlaceholderPulse {
-  50% { opacity: 0.4; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .balancePlaceholder {
-    animation: none;
-  }
 }
 .balanceReserved {
   color: grey;

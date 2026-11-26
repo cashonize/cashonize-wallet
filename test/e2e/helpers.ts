@@ -56,7 +56,7 @@ export async function importWalletOnboarding(page: Page, options: ImportOptions)
 // The wallet's address is on the receive page, one tap from the wallet page; leaves the wallet
 // page open again
 export async function expectReceiveAddress(page: Page, expected: string | RegExp) {
-  await page.getByRole('button', { name: 'Receive' }).click()
+  await page.getByRole('button', { name: 'Receive', exact: true }).click()
   await expect(page.locator('.depositAddr')).toHaveText(expected, { timeout: 30_000 })
   await page.getByRole('button', { name: 'Back' }).click()
 }

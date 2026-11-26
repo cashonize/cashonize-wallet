@@ -35,7 +35,7 @@ function addressesAt(mnemonic: string, path: string) {
 
 async function expectShownAddresses(page: Page, expected: { address: string, tokenAddress: string }) {
   // the receive page shows one address form at a time, and stays on the form last picked
-  await page.getByRole('button', { name: 'Receive' }).click()
+  await page.getByRole('button', { name: 'Receive', exact: true }).click()
   const addressForms = page.locator('.type-filter button')
   const shown = page.locator('.depositAddr')
   await addressForms.first().click()

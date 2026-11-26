@@ -93,9 +93,9 @@
   // KeepAlive stays mounted permanently so the views are cached regardless of navigation.
   // Settings View re-renders on navigation, a placeholder component used for the KeepAlive
   const emptyView = defineComponent({ render: () => null })
-  // the menu page and the pages under it, which the settings menu component renders all of
   // the wallet page and the two pages its actions open
   const onWalletPage = computed(() => [1, 17, 23].includes(store.displayView ?? 0));
+  // the menu page and the pages under it, which the settings menu component renders all of
   const onMenuPage = computed(() => store.displayView === 5 || (store.displayView ?? 0) >= menuSectionViewBase);
   const currentView = computed(() => {
     if (onMenuPage.value) return emptyView;

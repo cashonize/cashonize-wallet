@@ -39,7 +39,7 @@
   // over the code's component
   const qrCodeRef = shallowRef<InstanceType<typeof QrCode> | null>(null);
 
-  // The bch amount is typed in the user's display unit, like the send form on the wallet page
+  // The bch amount is typed in the user's display unit, like the send page's
   const requestAmount = ref("");
   const currencyAmount = ref("");
   const tokenAmountInput = ref("");
@@ -451,7 +451,6 @@
   flex: 1 1 0;
   min-width: 110px;
 }
-/* marks the currency field as the derived one, the request itself is in bch */
 /* the fiat field's unit, which is also the choice of it: sits inside the field like the other
    fields' unit labels, without the frame of a form control */
 .currencySelect {
@@ -479,6 +478,7 @@ body.dark .currencySelect option {
 .amountField input {
   padding-right: 62px;
 }
+/* marks the currency field as the derived one, the request itself is in bch */
 .approxSign {
   flex: none;
   color: grey;

@@ -283,6 +283,23 @@ input[type='number'] {
 .item {
   margin: 10px;
 }
+/* a bar where text is still loading, in the place and line the text will take */
+.placeholder-bar {
+  display: inline-block;
+  height: 0.6em;
+  border-radius: 0.3em;
+  background-color: var(--surface-strong);
+  vertical-align: middle;
+  animation: placeholderBarPulse 1.4s ease-in-out infinite;
+}
+@keyframes placeholderBarPulse {
+  50% { opacity: 0.4; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .placeholder-bar {
+    animation: none;
+  }
+}
 /* a token amount of a transaction, with the token's icon, where the direction mark is used */
 .token-chip {
   display: inline-flex;
@@ -328,7 +345,7 @@ input[type='number'] {
   background-color: rgba(230, 162, 60, 0.18);
   color: #e6a23c;
 }
-/* the arrows that switch between the wallet's addresses, on the wallet page and the address list:
+/* the arrows that switch between an address's two forms, in the address list's code dialog:
    an icon rather than the ⇄ character, which each platform's fallback font draws differently.
    Mirrored with a 2D scaleX rather than rotateY(180deg): a 3D transform can leave the icon on its
    own compositing layer, resampled and soft. */

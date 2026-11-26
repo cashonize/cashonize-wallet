@@ -98,15 +98,7 @@
   // The view is kept alive, and a picked token belongs to the wallet and network it was picked on
   watch(() => store._wallet, () => selectAsset(""));
 
-  function takeSendRequest() {
-    if (!props.bchSendRequest) return;
-    destinationAddr.value = props.bchSendRequest;
-    parseAddrParams();
-  }
-  takeSendRequest();
-  // The view is kept alive, so setup runs once: a later request only changes the prop
-  watch(props, takeSendRequest);
-
+  // declared before the first request is taken below, which may already need them
   const tokenDataLoaded = computed(() => store.tokenList !== null && store.tokenMetadataLoaded);
   let waitingRequest: string | undefined;
   watch(tokenDataLoaded, (loaded) => {
@@ -116,6 +108,15 @@
     // unless the field was changed in the meantime
     if (destinationAddr.value === request) parseAddrParams();
   });
+
+  function takeSendRequest() {
+    if (!props.bchSendRequest) return;
+    destinationAddr.value = props.bchSendRequest;
+    parseAddrParams();
+  }
+  takeSendRequest();
+  // The view is kept alive, so setup runs once: a later request only changes the prop
+  watch(props, takeSendRequest);
 
   function parseAddrParams(){
     const addressInput = destinationAddr.value;
@@ -134,10 +135,8 @@
       // A request says what it asks for, so the form follows it whatever was picked before
       const { category: requestedCategory, satoshis: requestedSatoshis, fungibleAmount } = parsePayProParams(parsed);
       if(requestedCategory){
-        // Which tokens the wallet holds and how many decimals they count in is known once both
-        // have loaded. A request that comes before that, as one opening the app does, stays in the
-        // address field and is read again then, rather than judged on an empty list or filled in
-        // with an amount off by the token's decimals.
+        // Before the token list and its metadata have loaded, as for a request that opens the app,
+        // the wallet cannot tell whether it holds the token: the request is read again then
         if(!tokenDataLoaded.value){
           waitingRequest = addressInput;
           return;
@@ -150,18 +149,21 @@
         }
         selectAsset(requestedCategory);
         destinationAddr.value = parsed.address;
-        if(fungibleAmount !== undefined){
+        // The amount travels in base units and the field takes whole tokens, so it is only filled
+        // in with the token's decimals known: metadata landing later would make the same digits
+        // mean another amount
+        if(fungibleAmount !== undefined && tokenMetadata.value){
           tokenSendAmount.value = toTypedAmount(formatTokenAmountFromBigInt(fungibleAmount, tokenDecimals.value));
         }
         return;
       }
 
       // Set the address (without query params)
+      selectAsset("");
       destinationAddr.value = parsed.address;
 
       // Set the amount if present
       if(requestedSatoshis !== undefined){
-        selectAsset("");
         bchSendAmount.value = satoshisToTypedAmount(requestedSatoshis, settingsStore.bchUnit);
         void setCurrencyAmount();
       }
@@ -234,7 +236,7 @@
       })
     }
   }
-  // back to the balance the payment just changed, unless the user already moved on
+  // back to where the form was opened from, the wallet page as a rule, unless the user already moved on
   function returnToWallet() {
     if (store.displayView === 23) store.goBack();
   }
@@ -270,11 +272,13 @@
       wrongNetwork: t('wallet.errors.notCashaddress'),
       legacyAddress: t('wallet.errors.legacyAddress'),
     });
+    // the address as checked here is the one sent to: the field can change while the confirmation
+    // is open, when a payment link arrives
     destinationAddr.value = address;
 
     const formattedAmount = formatTokenAmount(amountSats, settingsStore.bchUnit === 'sat' ? 0 : 8)
     const sendInfo = {
-      recipient: destinationAddr.value,
+      recipient: address,
       amount: formattedAmount,
       unit: bchDisplayUnit.value.trim(),
       fiat: 'amount' in typedCurrency.value ? formatFiatAmount(Number(typedCurrency.value.amount), settingsStore.currency) : undefined,
@@ -282,16 +286,16 @@
     // confirm payment if setting is enabled
     if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
 
-    const sendBchOutput = { cashaddr: destinationAddr.value, value:amountSats } ;
+    const sendBchOutput = { cashaddr: address, value:amountSats } ;
     notifySending(t('wallet.sendingTransaction'));
     const { txId } = await store.spend.send([ sendBchOutput ]);
-    const alertMessage = t('wallet.sent', { amount: formattedAmount + displayUnitLong.value, address: destinationAddr.value })
+    const alertMessage = t('wallet.sent', { amount: formattedAmount + displayUnitLong.value, address })
     // reset fields
     bchSendAmount.value = "";
     currencySendAmount.value = "";
     destinationAddr.value = "";
-    await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'), sendInfo);
     returnToWallet();
+    await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'), sendInfo);
   }
 
   const qrDecode = (content: string) => {

@@ -58,7 +58,7 @@ export async function addWallet(page: Page, name: string, walletType: 'single' |
 // Reads an address off the receive page, which shows one form at a time, and leaves the wallet
 // page open again on the plain form
 async function receiveAddress(page: Page, form: 'bch' | 'token'): Promise<string> {
-  await page.getByRole('button', { name: 'Receive' }).click()
+  await page.getByRole('button', { name: 'Receive', exact: true }).click()
   const addressForms = page.locator('.type-filter button')
   const expectedPrefix = form === 'bch' ? /^bchtest:q/ : /^bchtest:z/
   await addressForms.nth(form === 'bch' ? 0 : 1).click()

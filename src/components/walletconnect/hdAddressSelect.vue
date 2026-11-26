@@ -97,7 +97,7 @@
 
   const usedReceivingAddresses = computed(() => applyFilters(receivingAddresses.value.filter(row => row.txCount > 0)));
   // With zero balances hidden and no receive address holding any (an empty wallet), there would be
-  // nothing to share: it gets the receive address the wallet page shows, which skips frozen and
+  // nothing to share: it gets the receive address the receive page shows, which skips frozen and
   // marked addresses, or else its first unused one
   const unusedReceivingAddresses = computed(() => {
     const unused = applyFilters(receivingAddresses.value.filter(row => row.txCount === 0));
@@ -199,7 +199,8 @@
         {{ group.label }} ({{ group.rows.length }})
         <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedGroups[group.key] }" />
       </div>
-      <template v-if="!collapsedGroups[group.key] || searching">
+      <!-- with the pills picking the group there is no header to fold it by, outside a search -->
+      <template v-if="!collapsedGroups[group.key] || searching || !props.allowChangeAddresses">
         <template v-for="row in group.rows" :key="row.index">
           <div
             class="address-item"

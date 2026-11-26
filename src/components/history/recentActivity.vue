@@ -17,7 +17,14 @@
   const { t } = useI18n()
 
   const recentCount = 3;
-  const recentTransactions = computed(() => store.walletHistory?.slice(0, recentCount));
+  // Rows that carry a token amount wait for the metadata it is read with, the decimals above all:
+  // the held tokens' own load, and the fetch for tokens that only the history still names
+  const recentTransactions = computed(() => {
+    const recent = store.walletHistory?.slice(0, recentCount);
+    const tokenMetadataPending = !store.tokenMetadataLoaded || store.historyMetadataFetches > 0;
+    if (tokenMetadataPending && recent?.some(transaction => transaction.tokenAmountChanges.length)) return undefined;
+    return recent;
+  });
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
 
   const bchDisplayUnit = computed(() => store.network === "mainnet" ? "BCH" : "tBCH");
@@ -34,14 +41,27 @@
 </script>
 
 <template>
-  <div v-if="recentTransactions" class="recentActivity">
+  <div class="recentActivity">
     <div class="recentHeader">
       <span>{{ t('history.recentActivity') }}</span>
-      <button v-if="recentTransactions.length" type="button" class="recentAll" @click="store.changeView(3)">
+      <button v-if="recentTransactions?.length" type="button" class="recentAll" @click="store.changeView(3)">
         {{ t('nav.history') }} <q-icon name="chevron_right" size="18px" />
       </button>
     </div>
-    <div v-if="!recentTransactions.length" class="recentEmpty">{{ t('history.noTransactions') }}</div>
+    <!-- the list keeps the height of its rows whatever it holds, so the page does not grow as the
+         history arrives: rows of bars while it loads, and the room left free in a wallet with fewer -->
+    <div class="recentList">
+    <template v-if="!recentTransactions">
+      <div v-for="row in recentCount" :key="row" class="recentItem">
+        <span class="tx-direction placeholderMark"></span>
+        <span class="recentInfo">
+          <span class="recentType"><span class="placeholder-bar" style="width: 5em;"></span></span>
+          <span class="recentTime"><span class="placeholder-bar" style="width: 9em;"></span></span>
+        </span>
+        <span class="recentBch"><span class="placeholder-bar" style="width: 7em;"></span></span>
+      </div>
+    </template>
+    <div v-else-if="!recentTransactions.length" class="recentEmpty">{{ t('history.noTransactions') }}</div>
     <button
       v-for="transaction in recentTransactions"
       :key="transaction.hash"
@@ -71,6 +91,7 @@
         </span>
       </span>
     </button>
+    </div>
   </div>
 
   <TransactionDialog
@@ -103,8 +124,16 @@
   font-weight: 500;
   opacity: 0.75;
 }
+/* three rows of two lines of text and their padding */
+.recentList {
+  min-height: 204px;
+}
 .recentEmpty {
+  padding: 10px 4px;
   color: grey;
+}
+.placeholderMark {
+  background-color: var(--surface-strong);
 }
 .recentItem {
   display: flex;
@@ -124,7 +153,7 @@
 .recentItem + .recentItem {
   border-top: 1px solid var(--surface-line);
 }
-.recentItem:hover {
+button.recentItem:hover {
   opacity: 1;
   background: var(--surface-strong);
 }

@@ -37,7 +37,7 @@ test.describe.serial('CashConnect E2E', () => {
     await setupWalletOnChipnet(walletPage, 'single')
 
     // Read the wallet's deposit address from the receive page (used as send recipient)
-    await walletPage.getByRole('button', { name: 'Receive' }).click()
+    await walletPage.getByRole('button', { name: 'Receive', exact: true }).click()
     await expect(walletPage.locator('.depositAddr')).toHaveText(/^bchtest:/, { timeout: 30_000 })
     walletAddress = (await walletPage.locator('.depositAddr').textContent() ?? '').trim()
     await walletPage.getByRole('button', { name: 'Back' }).click()
