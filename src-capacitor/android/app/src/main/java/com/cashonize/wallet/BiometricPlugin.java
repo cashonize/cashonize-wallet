@@ -33,31 +33,46 @@ public class BiometricPlugin extends Plugin {
         String title = call.getString("title", "");
         String cancel = call.getString("cancel", "");
         getActivity().runOnUiThread(() -> {
-            BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
-                .setTitle(title)
-                .setNegativeButtonText(cancel)
-                .setAllowedAuthenticators(AUTHENTICATORS)
-                .setConfirmationRequired(false)
-                .build();
-            BiometricPrompt prompt = new BiometricPrompt(
-                getActivity(),
-                ContextCompat.getMainExecutor(getContext()),
-                new BiometricPrompt.AuthenticationCallback() {
-                    @Override
-                    public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult authResult) {
-                        resolveVerified(call, true);
-                    }
-
-                    @Override
-                    public void onAuthenticationError(int errorCode, CharSequence message) {
-                        resolveVerified(call, false);
-                    }
-                    // onAuthenticationFailed is a finger or face not recognised: the prompt
-                    // stays open for another try and ends in one of the two callbacks above
-                }
-            );
-            prompt.authenticate(info);
+            // BiometricPrompt ignores a call made after the activity saved its state (the app in
+            // the background) without any callback, which would leave this call open for good
+            if (getActivity().getSupportFragmentManager().isStateSaved()) {
+                resolveVerified(call, false);
+                return;
+            }
+            try {
+                showPrompt(call, title, cancel);
+            } catch (RuntimeException error) {
+                // an exception on the UI thread would crash the app: no prompt, so not verified
+                resolveVerified(call, false);
+            }
         });
+    }
+
+    private void showPrompt(PluginCall call, String title, String cancel) {
+        BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
+            .setTitle(title)
+            .setNegativeButtonText(cancel)
+            .setAllowedAuthenticators(AUTHENTICATORS)
+            .setConfirmationRequired(false)
+            .build();
+        BiometricPrompt prompt = new BiometricPrompt(
+            getActivity(),
+            ContextCompat.getMainExecutor(getContext()),
+            new BiometricPrompt.AuthenticationCallback() {
+                @Override
+                public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult authResult) {
+                    resolveVerified(call, true);
+                }
+
+                @Override
+                public void onAuthenticationError(int errorCode, CharSequence message) {
+                    resolveVerified(call, false);
+                }
+                // onAuthenticationFailed is a finger or face not recognised: the prompt
+                // stays open for another try and ends in one of the two callbacks above
+            }
+        );
+        prompt.authenticate(info);
     }
 
     private static void resolveVerified(PluginCall call, boolean verified) {
