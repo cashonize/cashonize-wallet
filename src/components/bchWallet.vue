@@ -1,62 +1,27 @@
 <script setup lang="ts">
-  import { ref, computed, watch, shallowRef, nextTick } from 'vue'
-  import { convert } from '@cashonize/bch-wallet-lib'
-  import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
-  import { copyToClipboard, formatFiatAmount, formatNumber, formatTokenAmount, convertToCurrency, fiatToTypedAmount, readTypedSatoshis, satoshisToTypedAmount } from 'src/utils/utils';
-  import { readTypedAmount, typedAmountMessage } from 'src/utils/numberFormat';
-  import { parseBip21Uri, isBip21Uri } from 'src/utils/payments/bip21';
-  import { getCashAddressScanError } from 'src/utils/payments/recipientAddress';
-  import { parsePayProParams, getPaymentRequestValidationError } from 'src/utils/payments/paymentRequest';
-  import { normalizeCashAddressForNetwork } from 'src/utils/addressValidation';
+  import { ref, computed, nextTick } from 'vue'
+  import { CurrencyShortNames } from 'src/interfaces/interfaces'
+  import { formatFiatAmount, formatNumber, convertToCurrency } from 'src/utils/utils';
+  import { routeScannedCode } from 'src/utils/scanRouting';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
-  import { useQuasar, type QMenu } from 'quasar'
+  import { type QMenu } from 'quasar'
   import { useI18n } from 'vue-i18n'
-  import { displayAndLogError } from 'src/utils/errorHandling'
-  import { confirmSend, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { switchWalletWithNotice, maxWallets } from 'src/utils/wallet/walletUtils'
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
-  import QrScanButton from './qr/qrScanButton.vue';
-  import QrCode from './general/qrCode.vue';
   import portfolioIcon from './portfolio/portfolioIcon.vue';
   import NetworkBadge from './general/networkBadge.vue';
+  import RecentActivity from './history/recentActivity.vue';
 
-  const $q = useQuasar()
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
-  const props = defineProps<{
-    bchSendRequest: string | undefined
-  }>()
+  // a code from the general scanner, which the page routes to the view it belongs to
+  const emit = defineEmits<{ scanned: [content: string] }>()
 
-  // reactive state
-  const displayBchQr = ref(!settingsStore.tokenAddressQrDefault);
-  const bchSendAmount = ref("");
-  const currencySendAmount = ref("");
-  const destinationAddr = ref("");
   const showQrCodeDialog = ref(false);
-  const isSending = ref(false);
-  // We keep the qr code in a ref so that we can call animateQrCode on rendered()
-  // This event handler calls the animation after the qr code has rendered
-  // Consecutive animations are only triggered when addressQrcode changes as reactive property of the qr code
-  // Using shallowRef avoids Vue’s deep reactivity re-activation when re-navigating to this view
-  // This speeds up the rendering of the component
-  const qrCodeRef = shallowRef<InstanceType<typeof QrCode> | null>(null);
 
-  const addressQrcode = computed(() => displayBchQr.value ? store.currentDepositAddress : store.currentTokenDepositAddress)
-
-  const showMarkUsedAction = computed(() =>
-    settingsStore.enableAddressMarking && settingsStore.getWalletType(store.activeWalletName) === 'hd'
-  )
-
-  const bchDisplayNetwork = computed(() => {
-    return (store.network == "mainnet") ? 'BCH' : 'tBCH'
-  })
-  const bchDisplayUnit = computed(() => {
-    if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " sats"
-    else return settingsStore.bchUnit == "bch"? " tBCH" : " tsats"
-  })
   const displayUnitLong = computed(() => {
     if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " satoshis"
     else return settingsStore.bchUnit == "bch"? " tBCH" : " testnet satoshis"
@@ -81,33 +46,7 @@
     const sats = Number(store.reservedBalance);
     return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
-  const typedBch = computed(() => readTypedSatoshis(bchSendAmount.value, settingsStore.bchUnit));
-  const typedCurrency = computed(() => readTypedAmount(currencySendAmount.value));
-  // the bch field empties when the fiat one is refused, so the reason shows under the fields
-  const currencyError = computed(() => {
-    if (!currencySendAmount.value.trim() || !('problem' in typedCurrency.value)) return undefined;
-    return typedAmountMessage(typedCurrency.value.problem);
-  });
 
-  // handle props
-  if(props.bchSendRequest?.startsWith('bitcoincash:')){
-    destinationAddr.value = props.bchSendRequest
-    parseAddrParams()
-  }
-  watch(props, () => {
-    if(props.bchSendRequest?.startsWith('bitcoincash:')){
-      destinationAddr.value = props.bchSendRequest
-      parseAddrParams()
-    }
-  })
-
-  // general functions
-  const animateQrCode = () => {
-    if (qrCodeRef.value && !settingsStore.hasPlayedAnimation && settingsStore.qrAnimation != 'None') {
-      qrCodeRef.value.animate();
-      settingsStore.hasPlayedAnimation = true;
-    }
-  };
   // Leaving the view while the wallet menu animates closed takes away its anchor, so the menu
   // jumps to the screen's left edge on the way out. For add wallet it closes without the
   // animation instead, and the view changes as soon as it is gone.
@@ -128,172 +67,11 @@
     store.changeView(9);
   }
 
-  function switchAddressTypeQr(){
-    displayBchQr.value = !displayBchQr.value;
-    settingsStore.hasPlayedAnimation = false;
+  // The scanner stays open on a code the wallet has no use for, with the reason shown
+  const qrFilter = (content: string) => {
+    const route = routeScannedCode(content, store.network, store.wallet.networkPrefix);
+    return 'error' in route ? route.error : true;
   }
-  function parseAddrParams(){
-    const addressInput = destinationAddr.value;
-    if(!isBip21Uri(addressInput) || !addressInput.includes("?")) return;
-
-    // Parse BIP21 URIs with query params (e.g. bitcoincash:qz...?amount=1&label=Shop)
-    try {
-      const parsed = parseBip21Uri(addressInput);
-
-      const validationError = getPaymentRequestValidationError(parsed);
-      if (validationError) {
-        $q.notify({ message: validationError, icon: 'warning', color: "red" });
-        return;
-      }
-
-      // Token payment requests are paid from the token's own send form
-      const { category: requestedCategory, satoshis: requestedSatoshis } = parsePayProParams(parsed);
-      if(requestedCategory){
-        notifyTokenPaymentRequest(requestedCategory);
-        return;
-      }
-
-      // Set the address (without query params)
-      destinationAddr.value = parsed.address;
-
-      // Set the amount if present
-      if(requestedSatoshis !== undefined){
-        bchSendAmount.value = satoshisToTypedAmount(requestedSatoshis, settingsStore.bchUnit);
-        void setCurrencyAmount();
-      }
-    } catch {
-      // If parsing fails, leave the input as-is for manual handling
-    }
-  }
-  // A token payment request cannot be paid from the bch send form, so point at the token it
-  // asks for. The wallet only knows a name for tokens it holds or has held.
-  function notifyTokenPaymentRequest(category: string){
-    const tokenName = store.bcmrRegistries?.[category]?.name;
-    const displayName = tokenName ?? `${category.slice(0, 10)}...${category.slice(-8)}`;
-    const holdsToken = store.tokenList?.some(tokenData => tokenData.category === category);
-    if(!holdsToken){
-      $q.notify({
-        message: t('wallet.errors.tokenPaymentRequestNotHeld', { token: displayName }),
-        icon: 'warning',
-        color: "grey-7"
-      });
-      return;
-    }
-    $q.notify({
-      message: t('wallet.errors.tokenPaymentRequest', { token: displayName }),
-      icon: 'info',
-      color: "grey-7",
-      actions: [{
-        label: t('wallet.openInTokens'),
-        color: 'white',
-        handler: () => {
-          store.pendingTokenSearch = category;
-          store.changeView(2);
-        }
-      }]
-    });
-  }
-
-  async function setCurrencyAmount() {
-    if(!('satoshis' in typedBch.value)){
-      currencySendAmount.value = ""
-      return
-    }
-    const newCurrencyValue = await convert(Number(typedBch.value.satoshis), "sat", settingsStore.currency);
-    currencySendAmount.value = fiatToTypedAmount(newCurrencyValue);
-  }
-  async function setBchAmount() {
-    if('problem' in typedCurrency.value){
-      bchSendAmount.value = ""
-      return
-    }
-    const newSatsValue = await convert(Number(typedCurrency.value.amount), settingsStore.currency, "sat");
-    bchSendAmount.value = satoshisToTypedAmount(BigInt(Math.round(newSatsValue)), settingsStore.bchUnit);
-  }
-  function useMaxBchAmount() {
-    if(store.maxAmountToSend && store.balance){
-      bchSendAmount.value = satoshisToTypedAmount(store.maxAmountToSend, settingsStore.bchUnit);
-      // update currency balance & set currency amount
-      if (store.exchangeRate !== undefined) {
-        currencySendAmount.value = fiatToTypedAmount(convertToCurrency(store.maxAmountToSend, store.exchangeRate));
-      }
-    }
-    else{
-      $q.notify({
-        message: t('wallet.errors.noBalance'),
-        icon: 'warning',
-        color: "grey-7"
-      })
-    }
-  }
-  async function sendBch(){
-    if (isSending.value) return;
-    isSending.value = true;
-    try{
-      // check for valid inputs
-      if(!destinationAddr.value) throw new Error(t('wallet.errors.noDestination'))
-      if(currencyError.value) throw new Error(currencyError.value)
-      if(!bchSendAmount.value.trim()) throw new Error(t('wallet.errors.noAmount'))
-      if('error' in typedBch.value) throw new Error(typedBch.value.error)
-      const amountSats = typedBch.value.satoshis
-      if(amountSats > (store.maxAmountToSend ?? 0n)) throw new Error(t('wallet.errors.insufficientFunds'))
-      const { address } = normalizeCashAddressForNetwork(destinationAddr.value, store.wallet.networkPrefix, {
-        invalidAddress: t('wallet.errors.invalidAddress'),
-        wrongNetwork: t('wallet.errors.notCashaddress'),
-        legacyAddress: t('wallet.errors.legacyAddress'),
-      });
-      destinationAddr.value = address;
-
-      const formattedAmount = formatTokenAmount(amountSats, settingsStore.bchUnit === 'sat' ? 0 : 8)
-      const sendInfo = {
-        recipient: destinationAddr.value,
-        amount: formattedAmount,
-        unit: bchDisplayUnit.value.trim(),
-        fiat: 'amount' in typedCurrency.value ? formatFiatAmount(Number(typedCurrency.value.amount), settingsStore.currency) : undefined,
-      }
-      // confirm payment if setting is enabled
-      if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
-
-      const sendBchOutput = { cashaddr: destinationAddr.value, value:amountSats } ;
-      notifySending(t('wallet.sendingTransaction'));
-      const { txId } = await store.spend.send([ sendBchOutput ]);
-      const alertMessage = t('wallet.sent', { amount: formattedAmount + displayUnitLong.value, address: destinationAddr.value })
-      // reset fields
-      bchSendAmount.value = "";
-      currencySendAmount.value = "";
-      destinationAddr.value = "";
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('wallet.transactionSuccess'), sendInfo);
-    } catch(error){
-      displayAndLogError(error)
-    } finally {
-      isSending.value = false;
-    }
-  }
-
-  const qrDecode = (content: string) => {
-    destinationAddr.value = content;
-    parseAddrParams()
-  }
-  const qrFilter = (content: string) => getCashAddressScanError(content, store.wallet.networkPrefix) ?? true
-
-  // The view is kept alive, so a unit or currency changed in the settings re-expresses the typed amount
-  watch(() => settingsStore.bchUnit, (newUnit, previousUnit) => {
-    const typed = readTypedSatoshis(bchSendAmount.value, previousUnit);
-    if ('satoshis' in typed) bchSendAmount.value = satoshisToTypedAmount(typed.satoshis, newUnit);
-  });
-  watch(() => settingsStore.currency, () => void setCurrencyAmount());
-  // we want to play the animation when the user updates the qrAnimation setting
-  // @codeRendered does not trigger on 'qrAnimation' so we use a watcher for it
-  watch(() => settingsStore.qrAnimation, () => {
-    if(!settingsStore.hasPlayedAnimation) animateQrCode()
-  })
-
-  // the component is kept alive across view switches, so changing the default-QR setting
-  // in the settings menu should also update the currently displayed QR code
-  watch(() => settingsStore.tokenAddressQrDefault, (newValue) => {
-    displayBchQr.value = !newValue;
-    settingsStore.hasPlayedAnimation = false;
-  })
 </script>
 
 
@@ -321,82 +99,47 @@
         </q-list>
       </q-menu>
     </legend>
-    <div class="portfolioLink" @click="store.changeView(12)">
+    <div class="portfolioLink" role="button" @click="store.changeView(12)">
       <portfolioIcon :sizePx="20" />
       <span>{{ t('portfolio.title') }}</span>
     </div>
-    <div style="font-size: 1.2em">
-      {{ t('wallet.balance', { currency: currencyDisplayShortName }) }}
-      <span style="color: hsla(160, 100%, 37%, 1);">{{ displayCurrencyBalance }}</span>
-    </div>
-    <span>
-      {{ t('wallet.balance', { currency: bchDisplayNetwork }) }}
-      <span style="color: hsla(160, 100%, 37%, 1);">
-        {{ balanceInBchUnit !== undefined ? formatNumber(balanceInBchUnit, 8) + displayUnitLong : "" }}
-      </span>
-    </span>
-    <div v-if="reservedInBchUnit" style="color: grey;">
-      {{ t('wallet.reservedBalance', {
-        amount: formatNumber(reservedInBchUnit, 8) + displayUnitLong
-      }) }}
-    </div>
-    <div style="word-break: break-all;">
-      {{ t('wallet.address', { network: bchDisplayNetwork }) }}
-      <span @click="() => copyToClipboard(store.currentDepositAddress)" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.currentDepositAddress }} </span>
-        <img class="copyIcon" src="images/copyGrey.svg">
-      </span>
-    </div>
-    <div style="word-break: break-all;">
-      {{ t('wallet.tokenAddress') }}
-      <span @click="() => copyToClipboard(store.currentTokenDepositAddress)" style="cursor:pointer;">
-        <span class="depositAddr">{{ store.currentTokenDepositAddress }}</span>
-        <img class="copyIcon" src="images/copyGrey.svg">
-      </span>
-    </div>
-    <div v-if="showMarkUsedAction" class="markUsedRow">
-      <span class="markUsedAction" @click="store.markAddressUsed(store.currentDepositAddress)">
-        <q-icon name="archive" size="18px" class="markUsedIcon" /> {{ t('addressManagement.markAddressUsedAction') }}
-      </span>
-    </div>
-    <div class="qr-frame">
-      <QrCode ref="qrCodeRef" :contents="addressQrcode" :animation="settingsStore.qrAnimation" :label="displayBchQr ? t('qrCode.bchAddress') : t('qrCode.tokenAddress')" @click="copyToClipboard(addressQrcode)" class="qr-code" @rendered="animateQrCode">
-        <img :src="displayBchQr? 'images/bch-icon.svg':'images/tokenicon.svg'" alt="" />
-      </QrCode>
-    </div>
-    <div style="text-align: center;">
-      <div class="switchAddressButton icon" :class="{ flipped: !displayBchQr }" @click="switchAddressTypeQr()">
-        <q-icon name="swap_horiz" />
+    <div class="balance">
+      <!-- both lines keep their place while they load, so the page does not shift when they arrive -->
+      <div class="balanceMain">
+        <template v-if="displayCurrencyBalance">
+          {{ displayCurrencyBalance }} <span class="balanceCurrency">{{ currencyDisplayShortName }}</span>
+        </template>
+        <span v-else class="placeholder-bar" style="width: 5em;"></span>
+      </div>
+      <div class="balanceBch">
+        <template v-if="balanceInBchUnit !== undefined">{{ formatNumber(balanceInBchUnit, 8) + displayUnitLong }}</template>
+        <span v-else class="placeholder-bar" style="width: 7em;"></span>
+      </div>
+      <div v-if="reservedInBchUnit" class="balanceReserved">
+        {{ t('wallet.reservedBalance', {
+          amount: formatNumber(reservedInBchUnit, 8) + displayUnitLong
+        }) }}
       </div>
     </div>
-    <div>
-      {{ t('wallet.send', { network: bchDisplayNetwork }) }}
-      <div style="display: flex; gap: 0.5rem;">
-        <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('wallet.addressPlaceholder')" name="addressInput">
-        <QrScanButton @click="showQrCodeDialog = true" />
-      </div>
-      <span class="sendAmountGroup">
-        <span style="position: relative; width: 50%;">
-          <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="currencyInput">
-          <i class="input-icon">{{ bchDisplayUnit }}</i>
-        </span>
-        <span class="sendCurrencyInput">
-          <input v-model="currencySendAmount" @input="setBchAmount()" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="bchAmountInput">
-          <i class="input-icon">
-            {{`${currencyDisplayShortName} ${CurrencySymbols[settingsStore.currency]}`}}
-          </i>
-        </span>
-            <button @click="useMaxBchAmount()" class="fillInMaxBch">{{ t('wallet.max') }}</button>
-      </span>
-      <div v-if="'satoshis' in typedBch && typedBch.satoshis > (store.maxAmountToSend ?? 0n)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
-      <div v-if="currencyError" style="color: red;">{{ currencyError }}</div>
-
+    <div class="walletActions">
+      <button type="button" class="walletAction" @click="store.changeView(17)">
+        <span class="walletActionIcon"><q-icon name="arrow_downward" size="22px" /></span>
+        {{ t('receive.title') }}
+      </button>
+      <!-- scanning is a user option, off by default where there is no camera to expect -->
+      <button v-if="settingsStore.qrScan" type="button" class="walletAction" @click="showQrCodeDialog = true">
+        <span class="walletActionIcon"><q-icon name="qr_code_scanner" size="22px" /></span>
+        {{ t('qrScanner.scan') }}
+      </button>
+      <button type="button" class="walletAction" @click="store.changeView(23)">
+        <span class="walletActionIcon"><q-icon name="arrow_upward" size="22px" /></span>
+        {{ t('common.actions.send') }}
+      </button>
     </div>
-    <button @click="useMaxBchAmount()" class="fillInMaxBchSmallScreen">{{ t('wallet.max') }}</button>
-    <input @click="sendBch()" type="button" class="primaryButton" :value="isSending ? t('common.status.sending') : t('common.actions.send')" :disabled="isSending" style="margin-top: 8px;">
+    <RecentActivity />
   </fieldset>
   <div v-if="showQrCodeDialog">
-    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="qrDecode" :filter="qrFilter"/>
+    <QrCodeDialog @hide="() => showQrCodeDialog = false" @decode="(content: string) => emit('scanned', content)" :filter="qrFilter"/>
   </div>
 </template>
 
@@ -408,7 +151,7 @@
   position: relative;
   margin: 0 10px;
   padding-top: 8px;
-  padding-bottom: 2rem;
+  padding-bottom: 1.5rem;
   max-width: 75rem;
 }
 /* a legend, but the name shows as typed: wallet names can differ only in case */
@@ -420,8 +163,8 @@
   padding: 0 10px;
   text-transform: none;
   letter-spacing: normal;
-  font-weight: 600;
-  font-size: 1em;
+  font-weight: 700;
+  font-size: 1.25em;
   cursor: pointer;
   user-select: none;
   transition: color 0.2s;
@@ -444,6 +187,97 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.balance {
+  margin: 24px 0 28px;
+  text-align: center;
+}
+.balanceMain {
+  min-height: 1.3em;
+  font-size: 2.4em;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-primary);
+  overflow-wrap: anywhere;
+}
+.balanceCurrency {
+  font-size: 0.45em;
+  font-weight: 500;
+}
+.balanceBch {
+  min-height: 1.5em;
+  font-size: 1.1em;
+  line-height: 1.5;
+}
+.balanceReserved {
+  color: grey;
+}
+.walletActions {
+  display: flex;
+  justify-content: center;
+  gap: clamp(16px, 8vw, 40px);
+  margin-bottom: 4px;
+}
+/* on a phone an icon in a tinted circle over its label, not chota's grey button */
+.walletAction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 72px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--font-color);
+  font-weight: 500;
+}
+.walletActionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(10, 193, 143, 0.15);
+  color: var(--color-primary);
+  transition: background-color 0.2s, color 0.2s;
+}
+.walletAction:hover {
+  opacity: 1;
+}
+.walletAction:hover .walletActionIcon {
+  background-color: var(--color-primary);
+  color: white;
+}
+/* with room to spare the circle would sit lost in the box: there each action is one pill, the
+   icon beside its label */
+@media (min-width: 600px) {
+  .walletActions {
+    gap: 12px;
+  }
+  .walletAction {
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    min-width: 150px;
+    padding: 9px 20px;
+    border: 1px solid rgba(10, 193, 143, 0.45);
+    border-radius: 999px;
+    background-color: rgba(10, 193, 143, 0.1);
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .walletAction:hover {
+    border-color: var(--color-primary);
+    background-color: rgba(10, 193, 143, 0.2);
+  }
+  .walletActionIcon,
+  .walletAction:hover .walletActionIcon {
+    width: auto;
+    height: auto;
+    background: none;
+    color: var(--color-primary);
+  }
 }
 .portfolioLink {
   position: absolute;
@@ -478,33 +312,5 @@ body.dark .portfolioLink {
   .walletName {
     max-width: calc(100% - 60px);
   }
-}
-/* size, background and dark mode crop are shared with the address dialog, see app.css */
-.qr-frame {
-  margin: 5px auto 0 auto;
-}
-.switchAddressButton {
-  width: fit-content;
-  margin: auto;
-  margin-top: -10px;
-  /* the extra top padding keeps the icon clear of the qr code */
-  padding: 10px 5px 5px;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.3s;
-}
-.markUsedRow {
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-.markUsedAction {
-  cursor: pointer;
-  user-select: none;
-}
-/* icons are taller than the lowercase text, drop the icon slightly below the
-   baseline so it reads as vertically centered next to the label */
-.markUsedIcon {
-  vertical-align: -0.2em;
-  opacity: 0.8;
 }
 </style>

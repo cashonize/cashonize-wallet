@@ -199,13 +199,12 @@
     }
   },
   "wallet": {
-    "balance": "Saldo en {currency}:",
-    "address": "Dirección {network}:",
-    "tokenAddress": "Dirección de token:",
-    "send": "Enviar {network}:",
+    "selectAsset": "Elige qué enviar",
+    "selectAssetHint": "Bitcoin Cash o un token fungible que tenga esta billetera",
     "addressPlaceholder": "dirección",
     "amountPlaceholder": "monto",
-    "max": "máx",
+    "available": "Disponible: {amount}",
+    "useMax": "usar máximo",
     "notEnoughBch": "No hay suficiente BCH en la billetera para enviar",
     "sendingTransaction": "Enviando transacción...",
     "sent": "Enviado {amount} a {address}",
@@ -500,6 +499,7 @@
     "loading": "Cargando historial de transacciones",
     "loadingFailed": "Error al cargar el historial de transacciones",
     "noTransactions": "No hay transacciones en esta billetera",
+    "recentActivity": "Actividad reciente",
     "title": "Historial de transacciones",
     "transactionCount": "{count} Transacciones",
     "options": "Opciones",
@@ -1142,8 +1142,14 @@
       "ownAddress": "El destino es una dirección de esta misma billetera"
     }
   },
+  "receive": {
+    "title": "Recibir",
+    "bchAddressHint": "Tu dirección de BCH. Cambia a Tokens para recibir CashTokens.",
+    "tokenAddressHint": "Tu dirección de token, para recibir CashTokens.",
+    "copyAddress": "Copiar dirección",
+    "requestAmount": "Solicitar una cantidad"
+  },
   "requestPayment": {
-    "title": "Crear solicitud de pago",
     "description": "Crea una solicitud de pago para compartir con quien te va a pagar.",
     "descriptionToken": "Crea una solicitud de un token fungible para compartir con quien te va a pagar.",
     "bip21Hint": "Las solicitudes de pago en BCH usan BIP21, un estándar de URI de larga data que las billeteras de BCH admiten ampliamente.",
@@ -1166,7 +1172,6 @@
     "selectTokenPrompt": "Selecciona un token para solicitar",
     "messageLabel": "Mensaje (opcional):",
     "messagePlaceholder": "Nota para quien paga, como un número de factura",
-    "payToLabel": "Pagar a:",
     "selectAddress": "Seleccionar entre las direcciones de la billetera",
     "selectAddressHint": "Elige a qué dirección solicitar el pago",
     "requesting": "Solicitando {amount}",
@@ -1343,6 +1348,7 @@
   },
   "qrScanner": {
     "scanQrCode": "Escanear código QR",
+    "scan": "Escanear",
     "chooseImage": "Elegir imagen",
     "switchCamera": "Cambiar cámara",
     "noQrCodeInImage": "No se encontró código QR en la imagen",
@@ -1352,7 +1358,8 @@
       "nonSecureContext": "No se puede acceder a la cámara en contexto no seguro",
       "unableToAccess": "No se puede acceder a la cámara",
       "constraintsMismatch": "Las restricciones no coinciden con ninguna cámara instalada. ¿Pediste la cámara frontal aunque no hay ninguna?",
-      "unknownError": "Ocurrió un error desconocido"
+      "unknownError": "Ocurrió un error desconocido",
+      "nothingToDo": "No es una dirección de BCH, una solicitud de pago, una conexión de dApp ni una clave privada"
     }
   },
   "relativeTime": {
@@ -1553,8 +1560,6 @@
       "developerSettingsDescription": "Billeteras de prueba y funciones para desarrolladores",
       "tools": "Herramientas de billetera",
       "hdAddresses": "Direcciones HD",
-      "requestPayment": "Crear solicitud de pago",
-      "requestPaymentDescription": "Un código QR o enlace que pide un importe",
       "utxoManagement": "Gestión de UTXO",
       "utxoManagementDescription": "Ver, congelar, enviar o consolidar monedas individuales",
       "createTokens": "Crear token",

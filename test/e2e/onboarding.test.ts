@@ -34,9 +34,16 @@ function addressesAt(mnemonic: string, path: string) {
 }
 
 async function expectShownAddresses(page: Page, expected: { address: string, tokenAddress: string }) {
+  // the receive page shows one address form at a time, and stays on the form last picked
+  await page.getByRole('button', { name: 'Receive', exact: true }).click()
+  const addressForms = page.locator('.type-filter button')
   const shown = page.locator('.depositAddr')
-  await expect(shown.first()).toHaveText(expected.address, { timeout: 30_000 })
-  await expect(shown.nth(1)).toHaveText(expected.tokenAddress)
+  await addressForms.first().click()
+  await expect(shown).toHaveText(expected.address, { timeout: 30_000 })
+  await addressForms.nth(1).click()
+  await expect(shown).toHaveText(expected.tokenAddress)
+  await addressForms.first().click()
+  await page.getByRole('button', { name: 'Back' }).click()
 }
 
 test.use({ colorScheme: 'light' })

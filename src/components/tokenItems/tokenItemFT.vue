@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { ref, toRefs, computed } from 'vue';
-  import { TokenSendRequest } from "@cashonize/bch-wallet-lib"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';
@@ -12,8 +11,9 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
-  import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { confirmDialog, confirmSend, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { getCashAddressScanError } from 'src/utils/payments/recipientAddress'
+  import { sendFungibleTokens } from 'src/utils/payments/sendFungibleTokens'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { useI18n } from 'vue-i18n'
@@ -103,42 +103,11 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
-      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
-      if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
-      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
-      if(amountTokensInt <= 0n) throw new Error(t('tokenItem.errors.noValidAmount'));
-      const amountSentFormatted = formatTokenAmount(amountTokensInt, decimals)
-      if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
-
-      const category = tokenData.value.category;
-      const sendInfo = {
-        recipient: destinationAddr.value,
-        amount: amountSentFormatted,
-        unit: tokenMetaData.value?.token?.symbol ?? category.slice(0, 8),
-        token: { category, iconUrl: store.tokenIconUrl(category) },
-      }
-      // confirm payment if setting is enabled
-      if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
-
-      notifySending();
-      const { txId } = await store.spend.send([
-        new TokenSendRequest({
-          cashaddr: destinationAddr.value,
-          amount: amountTokensInt,
-          category: category,
-        }),
-      ]);
-      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      let alertMessage = t('tokenItem.alerts.sentTokensNoSymbol', { amount: amountSentFormatted, tokenId: displayId, address: destinationAddr.value });
-      if (tokenMetaData.value?.token?.symbol) {
-        alertMessage = t('tokenItem.alerts.sentTokens', { amount: amountSentFormatted, symbol: tokenMetaData.value.token.symbol, address: destinationAddr.value });
-      }
-      tokenSendAmount.value = "";
-      destinationAddr.value = "";
-      displaySendTokens.value = false;
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'), sendInfo);
+      await sendFungibleTokens(tokenData.value.category, destinationAddr.value, tokenSendAmount.value, () => {
+        tokenSendAmount.value = "";
+        destinationAddr.value = "";
+        displaySendTokens.value = false;
+      });
     }catch(error){
       displayAndLogError(error)
     } finally {

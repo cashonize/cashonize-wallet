@@ -11,7 +11,7 @@ import {
   generateRandomBytes,
   hash160,
 } from '@bitauth/libauth'
-import { importWalletOnboarding, waitForDialog } from './helpers'
+import { expectReceiveAddress, importWalletOnboarding, waitForDialog } from './helpers'
 
 // Fresh for every run, so it is unused and the HD wallet shows its first receive address
 const MNEMONIC = process.env.E2E_CONVERT_SEED ?? freshSeedPhrase()
@@ -40,7 +40,7 @@ test.afterEach(async () => {
 async function openSingleAddressWallet(page: Page) {
   await importWalletOnboarding(page, { seedPhrase: MNEMONIC, walletType: 'single' })
   await page.getByRole('button', { name: 'Finish Setup' }).click()
-  await expect(page.locator('.depositAddr').first()).toHaveText(firstAddress(MNEMONIC), { timeout: 30_000 })
+  await expectReceiveAddress(page, firstAddress(MNEMONIC))
 }
 
 async function openManageWallets(page: Page) {
@@ -65,11 +65,11 @@ test('converts the single address wallet into the HD wallet on the same seed, ke
   await page.locator('nav').getByLabel('Menu').click()
   await expect(addressesRow).toBeVisible()
   await page.locator('nav').getByText('Wallet', { exact: true }).click()
-  await expect(page.locator('.depositAddr').first()).toHaveText(firstAddress(MNEMONIC), { timeout: 30_000 })
+  await expectReceiveAddress(page, firstAddress(MNEMONIC))
 
   // stored as HD: still HD, and still the same address, after a reload
   await page.reload()
-  await expect(page.locator('.depositAddr').first()).toHaveText(firstAddress(MNEMONIC), { timeout: 30_000 })
+  await expectReceiveAddress(page, firstAddress(MNEMONIC))
   await page.locator('nav').getByLabel('Menu').click()
   await expect(addressesRow).toBeVisible()
   await openManageWallets(page)

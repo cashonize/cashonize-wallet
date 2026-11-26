@@ -1326,6 +1326,9 @@ export const useStore = defineStore('store', () => {
   // Categories already queried for history metadata this session, so categories without
   // a BCMR record aren't re-queried on every history refresh (cachedFetch only caches successful lookups)
   let queriedHistoryCategories: string[] = [];
+  // The fetches under way for those categories. The history view shows its rows meanwhile; the
+  // wallet page's few rows wait for them, rather than show a token amount that then changes.
+  const historyMetadataFetches = ref(0);
   // Without a count, a refresh of what is loaded: the newest page, merged into the full history once
   // that is loaded; the refreshes of a send or receive, one or two per event, share one load
   // Resolves to the history items fetched, also when a newer load replaced them in walletHistory
@@ -1369,7 +1372,9 @@ export const useStore = defineStore('store', () => {
         }
       }
       if (missingCategories.length) {
-        void fetchTokenMetadata(missingCategories.map(category => ({ category, amount: 0n })), false);
+        historyMetadataFetches.value++;
+        void fetchTokenMetadata(missingCategories.map(category => ({ category, amount: 0n })), false)
+          .finally(() => { historyMetadataFetches.value--; });
       }
       return history;
     } catch(error){
@@ -2238,6 +2243,7 @@ export const useStore = defineStore('store', () => {
     loadAllHistory,
     ensureFullHistory,
     loadingFullHistory,
+    historyMetadataFetches,
     indexedTransactions,
     toggleFavorite,
     toggleHidden,

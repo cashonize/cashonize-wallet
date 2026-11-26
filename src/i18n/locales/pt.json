@@ -199,13 +199,12 @@
     }
   },
   "wallet": {
-    "balance": "Saldo em {currency}:",
-    "address": "Endereço {network}:",
-    "tokenAddress": "Endereço de token:",
-    "send": "Enviar {network}:",
+    "selectAsset": "Escolha o que enviar",
+    "selectAssetHint": "Bitcoin Cash ou um token fungível que esta carteira possui",
     "addressPlaceholder": "endereço",
     "amountPlaceholder": "valor",
-    "max": "máx",
+    "available": "Disponível: {amount}",
+    "useMax": "usar máximo",
     "notEnoughBch": "BCH insuficiente na carteira para enviar",
     "sendingTransaction": "Enviando transação...",
     "sent": "Enviado {amount} para {address}",
@@ -500,6 +499,7 @@
     "loading": "Carregando histórico de transações",
     "loadingFailed": "Falha ao carregar o histórico de transações",
     "noTransactions": "Nenhuma transação nesta carteira",
+    "recentActivity": "Atividade recente",
     "title": "Histórico de Transações",
     "transactionCount": "{count} Transações",
     "options": "Opções",
@@ -1142,8 +1142,14 @@
       "ownAddress": "O destino é um endereço desta mesma carteira"
     }
   },
+  "receive": {
+    "title": "Receber",
+    "bchAddressHint": "Seu endereço BCH. Mude para Tokens para receber CashTokens.",
+    "tokenAddressHint": "Seu endereço de token, para receber CashTokens.",
+    "copyAddress": "Copiar endereço",
+    "requestAmount": "Solicitar uma quantia"
+  },
   "requestPayment": {
-    "title": "Criar solicitação de pagamento",
     "description": "Crie uma solicitação de pagamento para compartilhar com quem vai te pagar.",
     "descriptionToken": "Crie uma solicitação de um token fungível para compartilhar com quem vai te pagar.",
     "bip21Hint": "As solicitações de pagamento em BCH usam BIP21, um padrão de URI de longa data amplamente suportado pelas carteiras de BCH.",
@@ -1166,7 +1172,6 @@
     "selectTokenPrompt": "Selecione um token para solicitar",
     "messageLabel": "Mensagem (opcional):",
     "messagePlaceholder": "Nota para quem paga, como um número de fatura",
-    "payToLabel": "Pagar para:",
     "selectAddress": "Selecionar entre os endereços da carteira",
     "selectAddressHint": "Escolha para qual endereço solicitar o pagamento",
     "requesting": "Solicitando {amount}",
@@ -1343,6 +1348,7 @@
   },
   "qrScanner": {
     "scanQrCode": "Escanear QR Code",
+    "scan": "Escanear",
     "chooseImage": "Escolher imagem",
     "switchCamera": "Trocar câmera",
     "noQrCodeInImage": "Nenhum QR Code encontrado na imagem",
@@ -1352,7 +1358,8 @@
       "nonSecureContext": "Não é possível acessar a câmera em contexto não seguro",
       "unableToAccess": "Não foi possível acessar a câmera",
       "constraintsMismatch": "As restrições não correspondem a nenhuma câmera instalada. Você solicitou a câmera frontal embora não exista uma?",
-      "unknownError": "Erro desconhecido"
+      "unknownError": "Erro desconhecido",
+      "nothingToDo": "Não é um endereço BCH, uma solicitação de pagamento, uma conexão de dApp nem uma chave privada"
     }
   },
   "relativeTime": {
@@ -1553,8 +1560,6 @@
       "developerSettingsDescription": "Carteiras de teste e funções de desenvolvedor",
       "tools": "Ferramentas da carteira",
       "hdAddresses": "Endereços HD",
-      "requestPayment": "Criar solicitação de pagamento",
-      "requestPaymentDescription": "Um código QR ou link a pedir um valor",
       "utxoManagement": "Gerenciamento de UTXOs",
       "utxoManagementDescription": "Ver, congelar, enviar ou consolidar moedas individuais",
       "createTokens": "Criar token",

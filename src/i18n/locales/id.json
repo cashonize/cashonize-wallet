@@ -199,13 +199,12 @@
     }
   },
   "wallet": {
-    "balance": "Saldo {currency}:",
-    "address": "Alamat {network}:",
-    "tokenAddress": "Alamat token:",
-    "send": "Kirim {network}:",
+    "selectAsset": "Pilih yang akan dikirim",
+    "selectAssetHint": "Bitcoin Cash, atau token fungible yang disimpan dompet ini",
     "addressPlaceholder": "alamat",
     "amountPlaceholder": "jumlah",
-    "max": "maks",
+    "available": "Tersedia: {amount}",
+    "useMax": "gunakan maks",
     "notEnoughBch": "BCH di dompet tidak cukup untuk dikirim",
     "sendingTransaction": "Mengirim transaksi...",
     "sent": "Terkirim {amount} ke {address}",
@@ -500,6 +499,7 @@
     "loading": "Memuat riwayat transaksi",
     "loadingFailed": "Gagal memuat riwayat transaksi",
     "noTransactions": "Tidak ada transaksi di dompet ini",
+    "recentActivity": "Aktivitas terbaru",
     "title": "Riwayat Transaksi",
     "transactionCount": "{count} Transaksi",
     "options": "Opsi",
@@ -1142,8 +1142,14 @@
       "ownAddress": "Tujuannya adalah alamat dari dompet yang sama ini"
     }
   },
+  "receive": {
+    "title": "Terima",
+    "bchAddressHint": "Alamat BCH Anda. Beralih ke Token untuk menerima CashTokens.",
+    "tokenAddressHint": "Alamat token Anda, untuk menerima CashTokens.",
+    "copyAddress": "Salin Alamat",
+    "requestAmount": "Minta sejumlah dana"
+  },
   "requestPayment": {
-    "title": "Buat Permintaan Pembayaran",
     "description": "Buat permintaan pembayaran untuk dibagikan kepada siapa pun yang membayar Anda.",
     "descriptionToken": "Buat permintaan token fungible untuk dibagikan kepada siapa pun yang membayar Anda.",
     "bip21Hint": "Permintaan pembayaran BCH menggunakan BIP21, standar URI yang sudah lama ada dan didukung luas oleh dompet BCH.",
@@ -1166,7 +1172,6 @@
     "selectTokenPrompt": "Pilih token yang akan diminta",
     "messageLabel": "Pesan (opsional):",
     "messagePlaceholder": "Catatan untuk pembayar, seperti nomor faktur",
-    "payToLabel": "Bayar ke:",
     "selectAddress": "Pilih dari alamat dompet",
     "selectAddressHint": "Pilih alamat tujuan permintaan",
     "requesting": "Meminta {amount}",
@@ -1343,6 +1348,7 @@
   },
   "qrScanner": {
     "scanQrCode": "Pindai Kode QR",
+    "scan": "Pindai",
     "chooseImage": "Pilih gambar",
     "switchCamera": "Ganti kamera",
     "noQrCodeInImage": "Tidak ada kode QR di gambar",
@@ -1352,7 +1358,8 @@
       "nonSecureContext": "Tidak dapat mengakses kamera dalam konteks yang tidak aman",
       "unableToAccess": "Tidak dapat mengakses kamera",
       "constraintsMismatch": "Batasan tidak cocok dengan kamera terpasang mana pun. Apakah Anda meminta kamera depan padahal tidak ada?",
-      "unknownError": "Terjadi kesalahan yang tidak diketahui"
+      "unknownError": "Terjadi kesalahan yang tidak diketahui",
+      "nothingToDo": "Bukan alamat BCH, permintaan pembayaran, koneksi dApp, atau kunci privat"
     }
   },
   "relativeTime": {
@@ -1553,8 +1560,6 @@
       "developerSettingsDescription": "Dompet uji dan fitur pengembang",
       "tools": "Alat dompet",
       "hdAddresses": "Alamat HD",
-      "requestPayment": "Buat Permintaan Pembayaran",
-      "requestPaymentDescription": "Kode QR atau tautan yang meminta sejumlah dana",
       "utxoManagement": "Manajemen UTXO",
       "utxoManagementDescription": "Lihat, bekukan, kirim, atau gabungkan koin satu per satu",
       "createTokens": "Buat token",

@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import BackRow from 'src/components/general/BackRow.vue'
   import { ref, computed, watch } from 'vue'
-  import { NetworkType, Wallet, convert, decodeWif } from '@cashonize/bch-wallet-lib';
+  import { Wallet, convert } from '@cashonize/bch-wallet-lib';
   import { libraryNetwork } from 'src/utils/wallet/networks';
   import { decodePrivateKeyWif, encodePrivateKeyWif } from '@bitauth/libauth';
   import { useStore } from 'src/stores/store'
@@ -18,6 +18,7 @@
   import { tokenListFromUtxos } from 'src/stores/storeUtils'
   import { noHold, transferAllAssets, type TransferProgress } from 'src/utils/tools/transferAssets'
   import { decryptBip38Key, isBip38Key, isUncompressedBip38Key } from 'src/utils/tools/bip38'
+  import { getPrivateKeyScanError, withoutWifScheme } from 'src/utils/tools/privateKeyScan'
   import type { TokenList } from 'src/interfaces/interfaces'
 
   const $q = useQuasar()
@@ -63,10 +64,6 @@
 
   const fungibleTokens = computed(() => previewTokenList.value.filter(item => 'amount' in item));
   const nftTokens = computed(() => previewTokenList.value.filter(item => 'nfts' in item));
-
-  function withoutWifScheme(input: string) {
-    return input.startsWith('bch-wif:') ? input.slice(8) : input;
-  }
 
   const keyToSweep = computed(() => withoutWifScheme(privateKeyToSweep.value.trim()));
   const isEncryptedKey = computed(() => isBip38Key(keyToSweep.value));
@@ -309,24 +306,7 @@
   const qrDecode = (content: string) => {
     privateKeyToSweep.value = withoutWifScheme(content);
   }
-  const qrFilter = (content: string) => {
-    const key = withoutWifScheme(content);
-    // Encrypted keys are the same on both networks, so which one it is only shows after decrypting
-    if (isBip38Key(key)) return true;
-    let wifNetwork: NetworkType;
-    try {
-      wifNetwork = decodeWif(key).network;
-    } catch {
-      return t('sweepPrivateKey.qrErrors.notWif');
-    }
-    if (store.network === 'mainnet' && wifNetwork !== NetworkType.Mainnet) {
-      return t('sweepPrivateKey.qrErrors.notMainnetWif');
-    }
-    if (store.network !== 'mainnet' && wifNetwork !== NetworkType.Testnet) {
-      return t('sweepPrivateKey.qrErrors.notTestnetWif', { network: store.network });
-    }
-    return true;
-  }
+  const qrFilter = (content: string) => getPrivateKeyScanError(content, store.network) ?? true
 </script>
 
 <template>

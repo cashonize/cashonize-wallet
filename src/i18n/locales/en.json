@@ -199,13 +199,12 @@
     }
   },
   "wallet": {
-    "balance": "{currency} balance:",
-    "address": "{network} address:",
-    "tokenAddress": "Token address:",
-    "send": "Send {network}:",
+    "selectAsset": "Select what to send",
+    "selectAssetHint": "Bitcoin Cash, or a fungible token this wallet holds",
     "addressPlaceholder": "address",
     "amountPlaceholder": "amount",
-    "max": "max",
+    "available": "Available: {amount}",
+    "useMax": "use max",
     "notEnoughBch": "Not enough BCH in wallet to send",
     "sendingTransaction": "Sending transaction...",
     "sent": "Sent {amount} to {address}",
@@ -500,6 +499,7 @@
     "loading": "Loading transaction history",
     "loadingFailed": "Failed to load transaction history",
     "noTransactions": "No transactions in this wallet",
+    "recentActivity": "Recent activity",
     "title": "Transaction History",
     "transactionCount": "{count} Transactions",
     "options": "Options",
@@ -1142,8 +1142,14 @@
       "ownAddress": "The destination is an address of this same wallet"
     }
   },
+  "receive": {
+    "title": "Receive",
+    "bchAddressHint": "Your BCH address. Switch to Tokens to receive CashTokens.",
+    "tokenAddressHint": "Your token address, for receiving CashTokens.",
+    "copyAddress": "Copy Address",
+    "requestAmount": "Request an amount"
+  },
   "requestPayment": {
-    "title": "Create Payment Request",
     "description": "Create a payment request to share with whoever is paying you.",
     "descriptionToken": "Create a request for a fungible token to share with whoever is paying you.",
     "bip21Hint": "BCH payment requests use BIP21, a long standing URI standard that BCH wallets widely support.",
@@ -1166,7 +1172,6 @@
     "selectTokenPrompt": "Select a token to request",
     "messageLabel": "Message (optional):",
     "messagePlaceholder": "Note for the payer, like an invoice number",
-    "payToLabel": "Pay to:",
     "selectAddress": "Select from wallet addresses",
     "selectAddressHint": "Choose which address to request to",
     "requesting": "Requesting {amount}",
@@ -1343,6 +1348,7 @@
   },
   "qrScanner": {
     "scanQrCode": "Scan QR Code",
+    "scan": "Scan",
     "chooseImage": "Choose image",
     "switchCamera": "Switch camera",
     "noQrCodeInImage": "No QR code found in image",
@@ -1352,7 +1358,8 @@
       "nonSecureContext": "Unable to acccess camera in non-secure context",
       "unableToAccess": "Unable to access camera",
       "constraintsMismatch": "Constraints don't match any installed camera. Did you ask for the front camera although there is none?",
-      "unknownError": "Unknown error occurred"
+      "unknownError": "Unknown error occurred",
+      "nothingToDo": "Not a BCH address, payment request, dApp connection or private key"
     }
   },
   "relativeTime": {
@@ -1553,8 +1560,6 @@
       "developerSettingsDescription": "Test wallets and developer features",
       "tools": "Wallet tools",
       "hdAddresses": "HD Addresses",
-      "requestPayment": "Create Payment Request",
-      "requestPaymentDescription": "A QR code or link asking for an amount",
       "utxoManagement": "UTXO Management",
       "utxoManagementDescription": "See, freeze, send or consolidate individual coins",
       "createTokens": "Create token",
