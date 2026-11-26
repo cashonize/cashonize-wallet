@@ -106,7 +106,8 @@ export const useAppLockStore = defineStore('appLock', () => {
   // so a fingerprint enrolled on the device since cannot replace it.
   async function confirmPin(allowBiometrics = true) {
     if (!enabled.value) return true
-    if (allowBiometrics && await passBiometrics(t('appLock.confirmTitleBiometrics'))) return true
+    // not behind the lock screen, whose own prompt would answer for both
+    if (allowBiometrics && !locked.value && await passBiometrics(t('appLock.confirmTitleBiometrics'))) return true
     // loaded here, so the stores asking for a PIN do not import a component
     const { default: pinDialog } = await import('src/components/general/pinDialog.vue')
     return new Promise<boolean>((resolve) => {
