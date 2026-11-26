@@ -1610,6 +1610,8 @@
       "themeLight": "Terang",
       "themeDim": "Redup",
       "themeDark": "Gelap",
+      "walletPageHeading": "Halaman dompet",
+      "primaryBalance": "Saldo utama:",
       "navigationHeading": "Navigasi",
       "qrHeading": "Kode QR",
       "addressesInNav": "Tampilkan tab Alamat di navigasi atas",

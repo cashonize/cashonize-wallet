@@ -1610,6 +1610,8 @@
       "themeLight": "Clair",
       "themeDim": "Tamisé",
       "themeDark": "Sombre",
+      "walletPageHeading": "Page du portefeuille",
+      "primaryBalance": "Solde principal :",
       "navigationHeading": "Navigation",
       "qrHeading": "Code QR",
       "addressesInNav": "Afficher l'onglet Adresses dans la navigation supérieure",

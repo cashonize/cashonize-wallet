@@ -102,6 +102,7 @@
   const dappActivityInNav = ref(settingsStore.dappActivityInNav);
   const addressesInNav = ref(settingsStore.addressesInNav);
   const bottomNavOnMobile = ref(settingsStore.bottomNavOnMobile);
+  const primaryBalance = ref(settingsStore.primaryBalance);
   // advanced settings, for the active network's options: opening a wallet of another network
   // leaves this view, so the network is the same for as long as it is open
   const activeNetwork = store.network;
@@ -465,6 +466,10 @@
     localStorage.setItem("dappActivityInNav", dappActivityInNav.value? "true" : "false");
     settingsStore.dappActivityInNav = dappActivityInNav.value;
   }
+  function changePrimaryBalance(){
+    localStorage.setItem("primaryBalance", primaryBalance.value);
+    settingsStore.primaryBalance = primaryBalance.value;
+  }
   function toggleBottomNavOnMobile(){
     localStorage.setItem("bottomNavOnMobile", bottomNavOnMobile.value? "true" : "false");
     settingsStore.bottomNavOnMobile = bottomNavOnMobile.value;
@@ -685,6 +690,16 @@
       <div style="font-weight: 600; margin: 0 0 15px;">{{ t('settings.userOptions.themeHeading') }}</div>
 
       <ThemeSelect style="margin-bottom: 15px;" />
+
+      <div style="font-weight: 600; margin: 25px 0 15px;">{{ t('settings.userOptions.walletPageHeading') }}</div>
+
+      <div style="margin-bottom: 15px;">
+        <label for="selectPrimaryBalance">{{ t('settings.userOptions.primaryBalance') }}</label>
+        <select id="selectPrimaryBalance" v-model="primaryBalance" @change="changePrimaryBalance()">
+          <option value="bch">BCH</option>
+          <option value="fiat">{{ CurrencyShortNames[settingsStore.currency] }}</option>
+        </select>
+      </div>
 
       <div style="font-weight: 600; margin: 25px 0 15px;">{{ t('settings.userOptions.navigationHeading') }}</div>
 

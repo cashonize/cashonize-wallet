@@ -1610,6 +1610,8 @@
       "themeLight": "Светлая",
       "themeDim": "Приглушённая",
       "themeDark": "Тёмная",
+      "walletPageHeading": "Страница кошелька",
+      "primaryBalance": "Основной баланс:",
       "navigationHeading": "Навигация",
       "qrHeading": "QR-код",
       "addressesInNav": "Показывать вкладку «Адреса» в верхней навигации",

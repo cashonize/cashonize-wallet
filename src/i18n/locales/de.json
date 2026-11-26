@@ -1610,6 +1610,8 @@
       "themeLight": "Hell",
       "themeDim": "Gedimmt",
       "themeDark": "Dunkel",
+      "walletPageHeading": "Wallet-Seite",
+      "primaryBalance": "Hauptguthaben:",
       "navigationHeading": "Navigation",
       "qrHeading": "QR-Code",
       "addressesInNav": "Den Tab „Adressen“ in der oberen Navigation anzeigen",

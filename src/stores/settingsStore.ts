@@ -75,7 +75,7 @@ const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 export const settingsMenuKeys = [
   // user options
   "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "explorer-testnet4", "qrAnimation",
-  "dappActivityInNav", "bottomNavOnMobile", "addressesInNav",
+  "dappActivityInNav", "bottomNavOnMobile", "addressesInNav", "primaryBalance",
   // token settings
   "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
   "allowDappIdentitySpends",
@@ -138,6 +138,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // the main tabs in a bar at the bottom of the screen, within thumb reach, on narrow screens only;
   // on by default in the Android app, where tablets keep the top nav by being wider
   const bottomNavOnMobile = ref(Boolean(isCapacitor));
+  // which of the wallet page's two balance lines is the large one: the BCH amount, which is what
+  // the wallet holds and what the rest of the page counts in, or its value in the currency
+  const primaryBalance = ref<'fiat' | 'bch'>('bch');
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
@@ -266,6 +269,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   const readDappActivityInNav = localStorage.getItem("dappActivityInNav");
   if(readDappActivityInNav) dappActivityInNav.value = readDappActivityInNav == "true";
+
+  if(localStorage.getItem("primaryBalance") == "fiat") primaryBalance.value = "fiat";
 
   const readBottomNavOnMobile = localStorage.getItem("bottomNavOnMobile");
   if(readBottomNavOnMobile) bottomNavOnMobile.value = readBottomNavOnMobile == "true";
@@ -671,6 +676,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     dappActivityInNav,
     addressesInNav,
     bottomNavOnMobile,
+    primaryBalance,
     hasPlayedAnimation,
     featuredTokens,
     hiddenTokens,

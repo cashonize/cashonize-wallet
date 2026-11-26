@@ -39,6 +39,15 @@
     const sats = Number(store.balance);
     return settingsStore.bchUnit === 'sat' ? sats : sats / 100_000_000;
   });
+  // The large line and the one under it. Which is which is the user's choice on mainnet; on a
+  // test network the coins are worth nothing, so their amount leads whatever was chosen.
+  const balanceLines = computed(() => {
+    let fiatLine, bchLine;
+    if (displayCurrencyBalance.value) fiatLine = { amount: displayCurrencyBalance.value, unit: currencyDisplayShortName.value };
+    if (balanceInBchUnit.value !== undefined) bchLine = { amount: formatNumber(balanceInBchUnit.value, 8), unit: displayUnitLong.value.trim() };
+    const bchFirst = settingsStore.primaryBalance === 'bch' || store.network !== 'mainnet';
+    return bchFirst ? [bchLine, fiatLine] : [fiatLine, bchLine];
+  });
   // Part of the balance above, not a separate amount: shown so the balance and the lower figure
   // the send form will accept do not silently disagree
   const reservedInBchUnit = computed(() => {
@@ -106,13 +115,13 @@
     <div class="balance">
       <!-- both lines keep their place while they load, so the page does not shift when they arrive -->
       <div class="balanceMain">
-        <template v-if="displayCurrencyBalance">
-          {{ displayCurrencyBalance }} <span class="balanceCurrency">{{ currencyDisplayShortName }}</span>
+        <template v-if="balanceLines[0]">
+          {{ balanceLines[0].amount }} <span class="balanceUnit">{{ balanceLines[0].unit }}</span>
         </template>
         <span v-else class="placeholder-bar" style="width: 5em;"></span>
       </div>
-      <div class="balanceBch">
-        <template v-if="balanceInBchUnit !== undefined">{{ formatNumber(balanceInBchUnit, 8) + displayUnitLong }}</template>
+      <div class="balanceSecondary">
+        <template v-if="balanceLines[1]">{{ balanceLines[1].amount }} {{ balanceLines[1].unit }}</template>
         <span v-else class="placeholder-bar" style="width: 7em;"></span>
       </div>
       <div v-if="reservedInBchUnit" class="balanceReserved">
@@ -200,11 +209,11 @@
   color: var(--color-primary);
   overflow-wrap: anywhere;
 }
-.balanceCurrency {
+.balanceUnit {
   font-size: 0.45em;
   font-weight: 500;
 }
-.balanceBch {
+.balanceSecondary {
   min-height: 1.5em;
   font-size: 1.1em;
   line-height: 1.5;

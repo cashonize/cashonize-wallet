@@ -1610,6 +1610,8 @@
       "themeLight": "Light",
       "themeDim": "Dim",
       "themeDark": "Dark",
+      "walletPageHeading": "Wallet page",
+      "primaryBalance": "Main balance:",
       "navigationHeading": "Navigation",
       "qrHeading": "QR code",
       "addressesInNav": "Show the Addresses tab in the top navigation",

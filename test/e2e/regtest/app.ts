@@ -85,7 +85,7 @@ export async function openSendForm(page: Page) {
 
 // The wallet's balance line in tBCH, e.g. "0.001 tBCH"
 export async function expectBalance(page: Page, tbch: string) {
-  await expect(page.locator('.balanceBch')).toContainText(`${tbch} tBCH`, { timeout: 30_000 })
+  await expect(page.locator('.balance')).toContainText(`${tbch} tBCH`, { timeout: 30_000 })
 }
 
 // Confirms a payment when the app asks for it (the "Confirm payments" setting), or else goes on once

@@ -1610,6 +1610,8 @@
       "themeLight": "Claro",
       "themeDim": "Atenuado",
       "themeDark": "Oscuro",
+      "walletPageHeading": "Página de la billetera",
+      "primaryBalance": "Saldo principal:",
       "navigationHeading": "Navegación",
       "qrHeading": "Código QR",
       "addressesInNav": "Mostrar la pestaña Direcciones en la navegación superior",
