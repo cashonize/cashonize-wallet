@@ -146,10 +146,10 @@ Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect pa
 ### Quasar Framework
 Docs: https://quasar.dev/docs
 
-- **Boot files** (`src/boot/`): Run at app startup - `icons.ts`, `i18n.ts`, `deepLinking.ts` (Capacitor only), `plausible.ts` (SPA production only)
+- **Boot files** (`src/boot/`): Run at app startup - `icons.ts`, `i18n.ts`, `deepLinking.ts` and `biometrics.ts` (Capacitor only), `plausible.ts` (SPA production only)
 - **Plugins**: `Notify` for toasts, `Dialog` for confirmations and custom dialogs (configured in quasar.config.ts)
 - **Mode/env detection**: In app code, use Quasar v3 `import.meta.env.QUASAR_*` constants, e.g. `import.meta.env.QUASAR_SPA_MODE`.
-- **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking only; builds resolve them from `src-capacitor/node_modules`, which web, desktop and CI do not install. Code those builds also load imports them dynamically, right behind an `import.meta.env.QUASAR_CAPACITOR_MODE` check
+- **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking only; builds resolve them from `src-capacitor/node_modules`, which web, desktop and CI do not install. The dev server resolves every import, a dynamic one behind a mode check included, so code those builds also load never imports them: Capacitor-only boot files (`deepLinking.ts`, `biometrics.ts`) do, and hand on what is needed
 
 ### Styling
 Base CSS from a vendored subset of chota (`src/css/chota-subset.css`), custom styles in `src/css/`. Material icon names are mapped to SVG constants in `src/boot/icons.ts`; Quasar components use the `svg-material-icons` icon set, with no icon webfont.

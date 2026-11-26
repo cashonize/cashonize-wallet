@@ -2,30 +2,25 @@
 // typing the app lock's PIN, which stays the fallback. Like the PIN it is a gate in the interface:
 // it shows the device's owner is present and decrypts nothing. The prompt is the app's own
 // native plugin (BiometricPlugin.java), strong biometrics only.
-interface BiometricPlugin {
+export interface BiometricPlugin {
   isAvailable(): Promise<{ available: boolean }>
   verify(options: { title: string, cancel: string }): Promise<{ verified: boolean }>
 }
 
-export const biometricsSupported = Boolean(import.meta.env.QUASAR_CAPACITOR_MODE)
-
-// Handed to `use` rather than returned: Capacitor's plugin proxy answers to `then`, so an async
-// function returning it would never settle
+// Handed over by the Capacitor-only boot file (src/boot/biometrics.ts), so this file, which the
+// app lock loads on every platform, imports nothing from Capacitor
 let biometric: BiometricPlugin | undefined
-async function withPlugin<T>(use: (plugin: BiometricPlugin) => Promise<T>) {
-  // The check sits right at the import so the bundler drops it from web and desktop builds,
-  // which cannot resolve @capacitor/core (it lives in src-capacitor/node_modules)
-  if (!import.meta.env.QUASAR_CAPACITOR_MODE) throw new Error('Biometrics are Android only')
-  const { registerPlugin } = await import('@capacitor/core')
-  biometric ??= registerPlugin<BiometricPlugin>('Biometric')
-  return await use(biometric)
+export function setBiometricPlugin(plugin: BiometricPlugin) {
+  biometric = plugin
 }
+
+export const biometricsSupported = Boolean(import.meta.env.QUASAR_CAPACITOR_MODE)
 
 // Whether the device has a strong fingerprint or face enrolled; its own PIN does not count
 export async function biometricsAvailable() {
-  if (!biometricsSupported) return false
+  if (!biometric) return false
   try {
-    const result = await withPlugin(plugin => plugin.isAvailable())
+    const result = await biometric.isAvailable()
     return result.available
   } catch {
     return false
@@ -37,14 +32,14 @@ let pending: Promise<boolean> | undefined
 
 // True once the prompt was passed; false when it was cancelled, failed or could not be shown
 export async function verifyBiometrics(title: string, cancel: string) {
-  if (!biometricsSupported) return false
-  pending ??= prompt(title, cancel).finally(() => { pending = undefined })
+  if (!biometric) return false
+  pending ??= prompt(biometric, title, cancel).finally(() => { pending = undefined })
   return await pending
 }
 
-async function prompt(title: string, cancel: string) {
+async function prompt(plugin: BiometricPlugin, title: string, cancel: string) {
   try {
-    const result = await withPlugin(plugin => plugin.verify({ title, cancel }))
+    const result = await plugin.verify({ title, cancel })
     return result.verified
   } catch {
     return false
