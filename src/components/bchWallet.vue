@@ -311,6 +311,7 @@ body.dark .portfolioLink {
   }
   .walletName {
     max-width: calc(100% - 60px);
+    font-size: 1.05em;
   }
 }
 </style>
