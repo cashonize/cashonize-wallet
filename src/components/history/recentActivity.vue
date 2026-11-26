@@ -25,6 +25,7 @@
     if (tokenMetadataPending && recent?.some(transaction => transaction.tokenAmountChanges.length)) return undefined;
     return recent;
   });
+  const shownTransactions = computed(() => settingsStore.hideBalances ? [] : recentTransactions.value);
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
 
   const bchDisplayUnit = computed(() => store.network === "mainnet" ? "BCH" : "tBCH");
@@ -51,7 +52,10 @@
     <!-- the list keeps the height of its rows whatever it holds, so the page does not grow as the
          history arrives: rows of bars while it loads, and the room left free in a wallet with fewer -->
     <div class="recentList">
-    <template v-if="!recentTransactions">
+    <!-- a row's time and tokens are enough to find its transaction on an explorer, amounts or not,
+         so with balances hidden the rows go altogether -->
+    <div v-if="settingsStore.hideBalances" class="recentEmpty">{{ t('history.recentHidden') }}</div>
+    <template v-else-if="!recentTransactions">
       <div v-for="row in recentCount" :key="row" class="recentItem">
         <span class="tx-direction placeholderMark"></span>
         <span class="recentInfo">
@@ -63,7 +67,7 @@
     </template>
     <div v-else-if="!recentTransactions.length" class="recentEmpty">{{ t('history.noTransactions') }}</div>
     <button
-      v-for="transaction in recentTransactions"
+      v-for="transaction in shownTransactions"
       :key="transaction.hash"
       type="button"
       class="recentItem"

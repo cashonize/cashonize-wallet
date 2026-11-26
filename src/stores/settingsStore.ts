@@ -138,6 +138,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // the main tabs in a bar at the bottom of the screen, within thumb reach, on narrow screens only;
   // on by default in the Android app, where tablets keep the top nav by being wider
   const bottomNavOnMobile = ref(Boolean(isCapacitor));
+  // What the wallet holds shows as dots, for a screenshot or a look over the shoulder. Switched
+  // on the wallet page's balance rather than in the settings, and a matter of display only:
+  // amounts to check before acting, a send's confirmation for one, still show.
+  const hideBalances = ref(localStorage.getItem("hideBalances") == "true");
   // which of the wallet page's two balance lines is the large one: the BCH amount, which is what
   // the wallet holds and what the rest of the page counts in, or its value in the currency
   const primaryBalance = ref<'fiat' | 'bch'>('bch');
@@ -613,6 +617,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
   }
 
+  function setHideBalances(hide: boolean) {
+    hideBalances.value = hide;
+    localStorage.setItem("hideBalances", hide ? "true" : "false");
+  }
+
   function getWalletType(walletName: string): 'single' | 'hd' {
     return walletMetadata.value[walletName]?.walletType || 'single';
   }
@@ -677,6 +686,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     addressesInNav,
     bottomNavOnMobile,
     primaryBalance,
+    hideBalances,
+    setHideBalances,
     hasPlayedAnimation,
     featuredTokens,
     hiddenTokens,

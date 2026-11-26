@@ -4,7 +4,7 @@
   import { ref, computed, watch } from 'vue'
   import { convert } from '@cashonize/bch-wallet-lib'
   import { CurrencySymbols, CurrencyShortNames } from 'src/interfaces/interfaces'
-  import { formatFiatAmount, formatNumber, formatTokenAmount, formatTokenAmountFromBigInt, convertToCurrency, fiatToTypedAmount, readTypedSatoshis, satoshisToTypedAmount } from 'src/utils/utils';
+  import { formatFiatAmount, formatNumber, formatTokenAmount, formatTokenAmountFromBigInt, convertToCurrency, fiatToTypedAmount, readTypedSatoshis, satoshisToTypedAmount, hiddenAmount } from 'src/utils/utils';
   import { readTypedAmount, toTypedAmount, typedAmountMessage } from 'src/utils/numberFormat';
   import { parseBip21Uri, isBip21Uri } from 'src/utils/payments/bip21';
   import { getCashAddressScanError } from 'src/utils/payments/recipientAddress';
@@ -57,8 +57,12 @@
   // The balance is a page away from this form, so what can be sent is said here, with the part of
   // the balance that is held back when there is one
   const availableDisplay = computed(() => {
-    if (selectedCategory.value) return `${formatTokenAmount(tokenBalance.value, tokenDecimals.value)} ${tokenSymbol.value}`;
+    if (selectedCategory.value) {
+      const amount = settingsStore.hideBalances ? hiddenAmount : formatTokenAmount(tokenBalance.value, tokenDecimals.value);
+      return `${amount} ${tokenSymbol.value}`;
+    }
     if (store.maxAmountToSend === undefined) return undefined;
+    if (settingsStore.hideBalances) return hiddenAmount + displayUnitLong.value;
     return formatNumber(satsInBchUnit(store.maxAmountToSend), 8) + displayUnitLong.value;
   });
   const reservedInBchUnit = computed(() => store.reservedBalance ? satsInBchUnit(store.reservedBalance) : undefined);
@@ -373,7 +377,7 @@
       {{ t('wallet.available', { amount: availableDisplay }) }}
       <span class="useMax">{{ t('wallet.useMax') }}</span>
     </button>
-    <div v-if="!selectedCategory && reservedInBchUnit" class="sendReserved">
+    <div v-if="!selectedCategory && reservedInBchUnit && !settingsStore.hideBalances" class="sendReserved">
       {{ t('wallet.reservedBalance', { amount: formatNumber(reservedInBchUnit, 8) + displayUnitLong }) }}
     </div>
     <input @click="send()" type="button" class="primaryButton" :value="isSending ? t('common.status.sending') : t('common.actions.send')" :disabled="isSending" style="margin-top: 8px;">

@@ -222,7 +222,10 @@
       "notCashaddress": "Not a cashaddress on current network",
       "legacyAddress": "Legacy addresses look the same as Bitcoin (BTC) addresses. CashAddr is the standard address format on BCH. If you are sure this is a BCH address, convert it with the Address Converter in Wallet tools."
     },
-    "reservedBalance": "Held back: {amount}"
+    "reservedBalance": "Held back: {amount}",
+    "hideBalances": "Hide balances",
+    "showBalances": "Show balances",
+    "balancesHidden": "Balances are hidden."
   },
   "portfolio": {
     "title": "Portfolio",
@@ -500,6 +503,7 @@
     "loadingFailed": "Failed to load transaction history",
     "noTransactions": "No transactions in this wallet",
     "recentActivity": "Recent activity",
+    "recentHidden": "Hidden with your balances",
     "title": "Transaction History",
     "transactionCount": "{count} Transactions",
     "options": "Options",

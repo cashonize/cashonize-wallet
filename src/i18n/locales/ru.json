@@ -222,7 +222,10 @@
       "notCashaddress": "Не cashaddress текущей сети",
       "legacyAddress": "Устаревшие (legacy) адреса выглядят так же, как адреса Bitcoin (BTC). CashAddr — стандартный формат адресов в BCH. Если вы уверены, что это адрес BCH, преобразуйте его с помощью конвертера адресов в инструментах кошелька."
     },
-    "reservedBalance": "Удерживается: {amount}"
+    "reservedBalance": "Удерживается: {amount}",
+    "hideBalances": "Скрыть балансы",
+    "showBalances": "Показать балансы",
+    "balancesHidden": "Балансы скрыты."
   },
   "portfolio": {
     "title": "Портфель",
@@ -500,6 +503,7 @@
     "loadingFailed": "Не удалось загрузить историю транзакций",
     "noTransactions": "В этом кошельке нет транзакций",
     "recentActivity": "Последние операции",
+    "recentHidden": "Скрыто вместе с балансами",
     "title": "История транзакций",
     "transactionCount": "Транзакций: {count}",
     "options": "Параметры",

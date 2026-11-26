@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, nextTick } from 'vue'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
-  import { formatFiatAmount, formatNumber, convertToCurrency } from 'src/utils/utils';
+  import { formatFiatAmount, formatNumber, convertToCurrency, hiddenAmount } from 'src/utils/utils';
   import { routeScannedCode } from 'src/utils/scanRouting';
   import { useStore } from '../stores/store'
   import { useSettingsStore } from '../stores/settingsStore'
@@ -45,9 +45,22 @@
     let fiatLine, bchLine;
     if (displayCurrencyBalance.value) fiatLine = { amount: displayCurrencyBalance.value, unit: currencyDisplayShortName.value };
     if (balanceInBchUnit.value !== undefined) bchLine = { amount: formatNumber(balanceInBchUnit.value, 8), unit: displayUnitLong.value.trim() };
+    if (settingsStore.hideBalances) {
+      if (fiatLine) fiatLine.amount = hiddenAmount;
+      if (bchLine) bchLine.amount = hiddenAmount;
+    }
     const bchFirst = settingsStore.primaryBalance === 'bch' || store.network !== 'mainnet';
     return bchFirst ? [bchLine, fiatLine] : [fiatLine, bchLine];
   });
+  const eyeShown = ref(false);
+  let eyeTimer: ReturnType<typeof setTimeout> | undefined;
+  function toggleHideBalances() {
+    settingsStore.setHideBalances(!settingsStore.hideBalances);
+    eyeShown.value = true;
+    clearTimeout(eyeTimer);
+    eyeTimer = setTimeout(() => { eyeShown.value = false }, 2500);
+  }
+  const hideLabel = computed(() => settingsStore.hideBalances ? t('wallet.showBalances') : t('wallet.hideBalances'));
   // Part of the balance above, not a separate amount: shown so the balance and the lower figure
   // the send form will accept do not silently disagree
   const reservedInBchUnit = computed(() => {
@@ -113,18 +126,28 @@
       <span>{{ t('portfolio.title') }}</span>
     </div>
     <div class="balance">
+      <!-- The two amounts are the switch that hides what the wallet holds, and no wider than they
+           are: the room beside them is not. The eye says so on hover, and for a moment after a
+           switch, which is all a touch screen sees of it. -->
       <!-- both lines keep their place while they load, so the page does not shift when they arrive -->
-      <div class="balanceMain">
-        <template v-if="balanceLines[0]">
-          {{ balanceLines[0].amount }} <span class="balanceUnit">{{ balanceLines[0].unit }}</span>
-        </template>
-        <span v-else class="placeholder-bar" style="width: 5em;"></span>
+      <div
+        class="balanceLines" :class="{ eyeShown }" role="button" tabindex="0" :title="hideLabel" :aria-label="hideLabel"
+        @click="toggleHideBalances()"
+        @keydown.enter="toggleHideBalances()"
+      >
+        <div class="balanceMain" :class="{ masked: settingsStore.hideBalances }">
+          <template v-if="balanceLines[0]">
+            {{ balanceLines[0].amount }} <span class="balanceUnit">{{ balanceLines[0].unit }}</span>
+          </template>
+          <span v-else class="placeholder-bar" style="width: 5em;"></span>
+        </div>
+        <div class="balanceSecondary">
+          <template v-if="balanceLines[1]">{{ balanceLines[1].amount }} {{ balanceLines[1].unit }}</template>
+          <span v-else class="placeholder-bar" style="width: 7em;"></span>
+        </div>
+        <q-icon :name="settingsStore.hideBalances ? 'sym_o_visibility_off' : 'sym_o_visibility'" size="22px" class="balanceEye" />
       </div>
-      <div class="balanceSecondary">
-        <template v-if="balanceLines[1]">{{ balanceLines[1].amount }} {{ balanceLines[1].unit }}</template>
-        <span v-else class="placeholder-bar" style="width: 7em;"></span>
-      </div>
-      <div v-if="reservedInBchUnit" class="balanceReserved">
+      <div v-if="reservedInBchUnit && !settingsStore.hideBalances" class="balanceReserved">
         {{ t('wallet.reservedBalance', {
           amount: formatNumber(reservedInBchUnit, 8) + displayUnitLong
         }) }}
@@ -201,6 +224,34 @@
   margin: 24px 0 28px;
   text-align: center;
 }
+/* as wide as the longer of the two lines, so the eye sits beside them, halfway down the pair it
+   hides, without taking part in their centring */
+.balanceLines {
+  position: relative;
+  display: inline-block;
+  /* the same on both sides to stay centred, the right one holding the eye */
+  padding: 0 32px;
+  cursor: pointer;
+  user-select: none;
+}
+.balanceEye {
+  position: absolute;
+  right: 4px;
+  /* where the two lines meet, which is below the middle: the upper line is the taller one */
+  top: 64%;
+  transform: translateY(-50%);
+  color: var(--font-color);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.eyeShown .balanceEye {
+  opacity: 0.6;
+}
+@media (hover: hover) {
+  .balanceLines:hover .balanceEye {
+    opacity: 0.6;
+  }
+}
 .balanceMain {
   min-height: 1.3em;
   font-size: 2.4em;
@@ -208,6 +259,14 @@
   line-height: 1.3;
   color: var(--color-primary);
   overflow-wrap: anywhere;
+}
+/* dots sit halfway up their line where digits stand on it, so beside them the smaller unit is
+   centred on the line too rather than left on the baseline */
+.balanceMain.masked {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25em;
 }
 .balanceUnit {
   font-size: 0.45em;

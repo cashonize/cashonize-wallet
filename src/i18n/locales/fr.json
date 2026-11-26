@@ -222,7 +222,10 @@
       "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel",
       "legacyAddress": "Les adresses legacy sont identiques aux adresses Bitcoin (BTC). CashAddr est le format d'adresse standard sur BCH. Si vous êtes sûr qu'il s'agit d'une adresse BCH, convertissez-la avec le convertisseur d'adresses dans les outils du portefeuille."
     },
-    "reservedBalance": "Retenu : {amount}"
+    "reservedBalance": "Retenu : {amount}",
+    "hideBalances": "Masquer les soldes",
+    "showBalances": "Afficher les soldes",
+    "balancesHidden": "Les soldes sont masqués."
   },
   "portfolio": {
     "title": "Portfolio",
@@ -500,6 +503,7 @@
     "loadingFailed": "Échec du chargement de l'historique des transactions",
     "noTransactions": "Aucune transaction dans ce portefeuille",
     "recentActivity": "Activité récente",
+    "recentHidden": "Masqué avec vos soldes",
     "title": "Historique des transactions",
     "transactionCount": "{count} Transactions",
     "options": "Options",

@@ -17,7 +17,7 @@ const keptKeys = [
   "locale",
   "walletMetadata", "walletBackupStatus", "seedBackedUp",
   "featuredTokens", "hiddenTokens", "tokenDisplayFilter", "fiatValueHistory", "showBalanceInHistory",
-  "qrScannerCameraId", "pwaInstalled",
+  "qrScannerCameraId", "pwaInstalled", "hideBalances",
   "hideBalanceColumn", "chaingraph", "authchains", "enableAddressMarking",
 ]
 

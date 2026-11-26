@@ -5,7 +5,7 @@
   import TokenIcon from '../general/TokenIcon.vue';
   import tokenInfoPanel from './tokenInfoPanel.vue'
   import type { TokenDataFT, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, formatFiatAmount, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount, hiddenAmount } from 'src/utils/utils';
   import { toTypedAmount } from 'src/utils/numberFormat';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -186,12 +186,12 @@
           </div>
           <div v-if="holding" class="tokenAmount">
             <div>{{ t('tokenItem.amount') }}
-              {{ formatTokenAmount(holding, tokenMetaData?.token?.decimals) }} {{ tokenMetaData?.token?.symbol }}
-              <span v-if="holdingsFiatValue !== null" style="font-size: smaller; color: grey; white-space: nowrap;">
+              {{ settingsStore.hideBalances ? hiddenAmount : formatTokenAmount(holding, tokenMetaData?.token?.decimals) }} {{ tokenMetaData?.token?.symbol }}
+              <span v-if="holdingsFiatValue !== null && !settingsStore.hideBalances" style="font-size: smaller; color: grey; white-space: nowrap;">
                 ≈ {{ formatFiatAmount(holdingsFiatValue, settingsStore.currency) }}
               </span>
             </div>
-            <div v-if="heldBack" style="color: grey;">{{ heldBackLine }}</div>
+            <div v-if="heldBack && !settingsStore.hideBalances" style="color: grey;">{{ heldBackLine }}</div>
           </div>
         </div>
         <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.category)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.category) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">

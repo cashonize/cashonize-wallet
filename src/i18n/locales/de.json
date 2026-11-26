@@ -222,7 +222,10 @@
       "notCashaddress": "Keine cashaddress im aktuellen Netzwerk",
       "legacyAddress": "Legacy-Adressen sehen genauso aus wie Bitcoin-Adressen (BTC). CashAddr ist das Standard-Adressformat bei BCH. Wenn du sicher bist, dass es eine BCH-Adresse ist, wandle sie mit dem Adresskonverter in den Wallet-Werkzeugen um."
     },
-    "reservedBalance": "Zurückgehalten: {amount}"
+    "reservedBalance": "Zurückgehalten: {amount}",
+    "hideBalances": "Guthaben ausblenden",
+    "showBalances": "Guthaben anzeigen",
+    "balancesHidden": "Guthaben sind ausgeblendet."
   },
   "portfolio": {
     "title": "Portfolio",
@@ -500,6 +503,7 @@
     "loadingFailed": "Transaktionshistorie konnte nicht geladen werden",
     "noTransactions": "Keine Transaktionen in diesem Wallet",
     "recentActivity": "Letzte Aktivität",
+    "recentHidden": "Mit deinem Guthaben ausgeblendet",
     "title": "Transaktionshistorie",
     "transactionCount": "{count} Transaktionen",
     "options": "Optionen",

@@ -816,7 +816,14 @@
       </InfoPopup>
     </div>
 
-    <div v-if="!assets || !portfolioReady" style="text-align: center;">
+    <!-- the page is amounts from top to bottom, so with balances hidden it says so instead -->
+    <div v-if="settingsStore.hideBalances" class="page-note">
+      {{ t('wallet.balancesHidden') }}
+      <button type="button" class="button" style="display: block; margin: 12px auto 0;" @click="settingsStore.setHideBalances(false)">
+        {{ t('wallet.showBalances') }}
+      </button>
+    </div>
+    <div v-else-if="!assets || !portfolioReady" style="text-align: center;">
       <template v-if="store.walletInitFailed">{{ t('portfolio.loadingFailed') }}</template>
       <template v-else>{{ t('portfolio.loading') }} <q-spinner-dots size="1.2em" /></template>
     </div>

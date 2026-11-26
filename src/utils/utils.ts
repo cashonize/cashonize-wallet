@@ -272,6 +272,9 @@ export function readTypedSatoshis(text: string, unit: 'bch' | 'sat'): { satoshis
   return { satoshis };
 }
 
+// What stands in for an amount while balances are hidden
+export const hiddenAmount = "••••";
+
 // The reverse, for an amount the app fills into a BCH field
 export function satoshisToTypedAmount(satoshis: bigint, unit: 'bch' | 'sat'): string {
   return toTypedAmount(formatTokenAmountFromBigInt(satoshis, unit === 'sat' ? 0 : 8));

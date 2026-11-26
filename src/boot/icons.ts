@@ -67,6 +67,8 @@ import {
   symOutlinedHistory,
   symOutlinedLink,
   symOutlinedToll,
+  symOutlinedVisibility,
+  symOutlinedVisibilityOff,
 } from '@quasar/extras/material-symbols-outlined'
 
 // TODO: Replace icon-name strings with direct SVG imports for compile-time checking.
@@ -131,6 +133,8 @@ const appIcons: Record<string, string> = {
   sym_o_history: symOutlinedHistory,
   sym_o_link: symOutlinedLink,
   sym_o_toll: symOutlinedToll,
+  sym_o_visibility: symOutlinedVisibility,
+  sym_o_visibility_off: symOutlinedVisibilityOff,
   sync: matSync,
   tune: matTune,
   unarchive: matUnarchive,

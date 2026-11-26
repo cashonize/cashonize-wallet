@@ -222,7 +222,10 @@
       "notCashaddress": "Bukan cashaddress di jaringan saat ini",
       "legacyAddress": "Alamat legacy terlihat sama dengan alamat Bitcoin (BTC). CashAddr adalah format alamat standar di BCH. Jika Anda yakin ini alamat BCH, konversikan dengan Konverter Alamat di Alat dompet."
     },
-    "reservedBalance": "Ditahan: {amount}"
+    "reservedBalance": "Ditahan: {amount}",
+    "hideBalances": "Sembunyikan saldo",
+    "showBalances": "Tampilkan saldo",
+    "balancesHidden": "Saldo disembunyikan."
   },
   "portfolio": {
     "title": "Portofolio",
@@ -500,6 +503,7 @@
     "loadingFailed": "Gagal memuat riwayat transaksi",
     "noTransactions": "Tidak ada transaksi di dompet ini",
     "recentActivity": "Aktivitas terbaru",
+    "recentHidden": "Disembunyikan bersama saldo Anda",
     "title": "Riwayat Transaksi",
     "transactionCount": "{count} Transaksi",
     "options": "Opsi",

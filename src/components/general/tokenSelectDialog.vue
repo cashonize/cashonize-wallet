@@ -5,7 +5,7 @@
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
-  import { formatTokenAmount } from 'src/utils/utils'
+  import { formatTokenAmount, hiddenAmount } from 'src/utils/utils'
   import type { TokenDataFT } from 'src/interfaces/interfaces'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
 
@@ -165,11 +165,12 @@
   function heldAmount(option: TokenOption) {
     const decimals = metadataFor(option.category)?.token?.decimals;
     const symbol = metadataFor(option.category)?.token?.symbol ?? "";
-    return `${formatTokenAmount(option.amount, decimals)} ${symbol}`.trim();
+    const amount = settingsStore.hideBalances ? hiddenAmount : formatTokenAmount(option.amount, decimals);
+    return `${amount} ${symbol}`.trim();
   }
 
   const bchBalance = computed(() => {
-    if (store.balance === undefined) return bchSymbol.value;
+    if (store.balance === undefined || settingsStore.hideBalances) return bchSymbol.value;
     return `${formatTokenAmount(store.balance, 8)} ${bchSymbol.value}`;
   });
 
