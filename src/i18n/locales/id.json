@@ -1,6 +1,6 @@
 {
   "common": {
-    "extensionImportNote": "Ekstensi menyimpan datanya sendiri: alamat yang dibekukan, janji Flipstarter, label, dan catatan dari aplikasi web Cashonize bukan bagian dari frasa pemulihan. Atur ulang semuanya di sini sebelum menggunakan dApp, agar koin yang ditahan tetap terlindungi.",
+    "extensionImportNote": "Ekstensi menyimpan datanya sendiri: kunci aplikasi, alamat yang dibekukan, janji Flipstarter, label, dan catatan dari aplikasi web Cashonize bukan bagian dari frasa pemulihan dan tetap di sana. Aktifkan kembali kunci aplikasi di sini, dan atur pembekuan serta janji sebelum menggunakan dApp, agar koin yang ditahan tetap terlindungi.",
     "actions": {
       "back": "Kembali",
       "send": "Kirim",
@@ -485,6 +485,9 @@
     "browserProviderNote": "Situs juga dapat terhubung melalui penyedia ekstensi browser Cashonize (window.cashonize).",
     "disconnect": "Putuskan koneksi",
     "tiedChipnetCopy": "Dompet chipnet ini memakai kunci yang sama dengan dompet mainnet Anda, sehingga tanda tangan dApp di sini juga dapat membelanjakan koin mainnet. Gunakan dompet chipnet tersendiri untuk dApp: Menu > Pengaturan > Pengaturan pengembang > Tambah dompet pengembangan.",
+    "requestWithdrawn": "{dapp} menarik kembali permintaan ini, jadi tidak ada yang ditandatangani.",
+    "requestTimedOut": "Permintaan dari {dapp} ini kedaluwarsa, jadi tidak ada yang ditandatangani.",
+    "autoApprovingTitle": "Menyetujui Otomatis Transaksi",
     "browserConnect": {
       "title": "Hubungkan ke Cashonize",
       "app": "Aplikasi:",

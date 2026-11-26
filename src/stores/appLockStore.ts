@@ -3,7 +3,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Dialog } from 'quasar'
-import { freeAttempts, makePinRecord, maxDelayMs, pinMatches, retryDelayMs, type PinRecord } from 'src/utils/appLock'
+import { autoLockMs, freeAttempts, makePinRecord, maxDelayMs, pinMatches, retryDelayMs, type PinRecord } from 'src/utils/appLock'
 import { biometricsSupported, verifyBiometrics } from 'src/utils/biometrics'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -20,6 +20,14 @@ export const useAppLockStore = defineStore('appLock', () => {
 
   const enabled = computed(() => pinRecord.value !== undefined)
   const locked = ref(enabled.value)
+  // When the app was last unlocked: with the PIN, or in the extension by another of its pages
+  const unlockedAt = ref(Date.now())
+  // When the app went out of sight. Away for autoLockMs it locks, before it is back in view too, so
+  // auto-approval stops then. App.vue counts it for its page, the extension for all its pages.
+  const awaySince = ref<number>()
+  // whether a PIN is being asked in a dialog, which a withdrawn request takes with it
+  const openPinDialogs = ref(0)
+  const confirming = computed(() => openPinDialogs.value > 0)
 
   // Unlocking with a fingerprint or face instead of the PIN, an option on top of the PIN
   const biometrics = ref(biometricsSupported && enabled.value && localStorage.getItem(biometricsKey) === 'on')
@@ -88,38 +96,92 @@ export const useAppLockStore = defineStore('appLock', () => {
     if (enabled.value) locked.value = true
   }
 
+  function lockIfAway() {
+    if (awaySince.value !== undefined && Date.now() - awaySince.value >= autoLockMs) lock()
+  }
+
   async function unlock(pin: string) {
     const matches = await checkPin(pin)
-    if (matches) locked.value = false
+    if (matches) {
+      unlockedAt.value = Date.now()
+      locked.value = false
+    }
     return matches
   }
 
   async function unlockWithBiometrics() {
     const passed = await passBiometrics(t('appLock.lockedTitleBiometrics'))
-    if (passed) locked.value = false
+    if (passed) {
+      unlockedAt.value = Date.now()
+      locked.value = false
+    }
     return passed
+  }
+
+  // The extension's pages share one unlock (utils/bex/sharedUnlock.ts): a page takes over the one
+  // another page holds, and when it began, without the PIN
+  function resumeUnlock(since: number) {
+    if (!locked.value) return
+    unlockedAt.value = since
+    locked.value = false
+  }
+
+  // Auto-approval signs a dApp's request without asking, which the lock must stop: not while
+  // locked, nor once unlocked for a request sent before. Anyone at the device can make a dApp send
+  // one, and the PIN approves nothing the user has not seen.
+  function allowsAutoApproval(sentAt: number) {
+    if (!enabled.value) return true
+    lockIfAway()
+    return !locked.value && sentAt >= unlockedAt.value
   }
 
   // Asks for the PIN in a dialog before something sensitive. Resolves true right away without a
   // lock, and false when the user backs out. With biometrics on, their prompt comes first and
   // leaving it opens the PIN dialog; changing or removing the lock itself asks for the typed PIN,
-  // so a fingerprint enrolled on the device since cannot replace it.
-  async function confirmPin(allowBiometrics = true) {
+  // so a fingerprint enrolled on the device since cannot replace it. False too once `withdrawn`
+  // aborts: what the PIN was asked for went away, a request its dApp withdrew say, and a PIN or
+  // fingerprint given after cannot approve it.
+  async function confirmPin(allowBiometrics = true, withdrawn?: AbortSignal) {
     if (!enabled.value) return true
     // not behind the lock screen, whose own prompt would answer for both
-    if (allowBiometrics && !locked.value && await passBiometrics(t('appLock.confirmTitleBiometrics'))) return true
+    if (allowBiometrics && !locked.value && biometrics.value) {
+      openPinDialogs.value++
+      let passed: boolean
+      try {
+        passed = await passBiometrics(t('appLock.confirmTitleBiometrics'))
+      } finally {
+        openPinDialogs.value--
+      }
+      if (passed) return !withdrawn?.aborted
+    }
     // loaded here, so the stores asking for a PIN do not import a component
     const { default: pinDialog } = await import('src/components/general/pinDialog.vue')
+    if (withdrawn?.aborted) return false
+    openPinDialogs.value++
     return new Promise<boolean>((resolve) => {
-      Dialog.create({ component: pinDialog })
-        .onOk(() => resolve(true))
-        .onCancel(() => resolve(false))
-        .onDismiss(() => resolve(false))
+      let settled = false
+      const settle = (confirmed: boolean) => {
+        if (settled) return
+        settled = true
+        openPinDialogs.value--
+        withdrawn?.removeEventListener('abort', onWithdrawn)
+        resolve(confirmed)
+      }
+      const handle = Dialog.create({ component: pinDialog })
+        .onOk(() => settle(true))
+        .onCancel(() => settle(false))
+        .onDismiss(() => settle(false))
+      function onWithdrawn() {
+        settle(false)
+        handle.hide()
+      }
+      withdrawn?.addEventListener('abort', onWithdrawn)
     })
   }
 
   return {
-    enabled, locked, biometrics, retryAt, triesLeft,
-    checkPin, setPin, removePin, setBiometrics, lock, unlock, unlockWithBiometrics, confirmPin,
+    enabled, locked, biometrics, unlockedAt, awaySince, confirming, retryAt, triesLeft,
+    checkPin, setPin, removePin, setBiometrics, lock, lockIfAway, unlock, unlockWithBiometrics, resumeUnlock,
+    allowsAutoApproval, confirmPin,
   }
 })

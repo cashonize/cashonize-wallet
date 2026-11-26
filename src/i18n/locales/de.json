@@ -1,6 +1,6 @@
 {
   "common": {
-    "extensionImportNote": "Die Erweiterung speichert ihre eigenen Daten: eingefrorene Adressen, Flipstarter-Pledges, Labels und Notizen aus der Cashonize-Web-App sind nicht Teil der seed phrase. Richte sie hier erneut ein, bevor du dApps nutzt, damit die zurückgehaltenen Coins geschützt bleiben.",
+    "extensionImportNote": "Die Erweiterung speichert ihre eigenen Daten: App-Sperre, eingefrorene Adressen, Flipstarter-Pledges, Labels und Notizen der Cashonize-Web-App sind nicht Teil der seed phrase und bleiben dort. Schalte die App-Sperre hier erneut ein und richte Einfrierungen und Pledges ein, bevor du dApps nutzt, damit die zurückgehaltenen Coins geschützt bleiben.",
     "actions": {
       "back": "Zurück",
       "send": "Senden",
@@ -485,6 +485,9 @@
     "browserProviderNote": "Websites können sich auch über den Cashonize-Browsererweiterungsanbieter (window.cashonize) verbinden.",
     "disconnect": "Trennen",
     "tiedChipnetCopy": "Dieses Chipnet-Wallet teilt seine Schlüssel mit deinem Mainnet-Wallet, daher könnte eine dApp-Signatur hier auch Mainnet-Coins ausgeben. Nutze für dApps ein eigenes Chipnet-Wallet: Menü > Einstellungen > Entwicklereinstellungen > Entwicklungs-Wallet hinzufügen.",
+    "requestWithdrawn": "{dapp} hat diese Anfrage zurückgezogen, es wurde nichts signiert.",
+    "requestTimedOut": "Diese Anfrage von {dapp} ist abgelaufen, es wurde nichts signiert.",
+    "autoApprovingTitle": "Transaktion wird automatisch genehmigt",
     "browserConnect": {
       "title": "Mit Cashonize verbinden",
       "app": "App:",

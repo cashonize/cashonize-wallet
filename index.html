@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html>
+<% /* every extension page starts sized as the toolbar popup, from its first paint: boot/bexPageSize.ts */ %>
+<html<% if (ctx.mode.bex) { %> class="toolbar-popup"<% } %>>
   <head>
     <title><%= productName %></title>
 

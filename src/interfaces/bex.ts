@@ -39,6 +39,8 @@ export interface BexRequestMessage {
   internalRequestId: number
   origin: string
   message: Wc2Request
+  // when the worker took the request in, which says whether it was sent behind the app lock
+  createdAt: number
 }
 
 export interface BexResponseMessage {
@@ -59,10 +61,18 @@ export interface BexCloseMessage {
   type: 'close'
 }
 
+// The wallet page has a request to show the user, and asks to be brought in front for it
+export interface BexShowMessage {
+  type: 'show'
+}
+
 // A request the wallet page may still be handling was withdrawn, timed out or lost its page
+export type BexCancelReason = 'withdrawn' | 'timeout' | 'closed'
+
 export interface BexCancelMessage {
   type: 'cancel'
   internalRequestId: number
+  reason: BexCancelReason
 }
 
 export interface BexTransportRequest {

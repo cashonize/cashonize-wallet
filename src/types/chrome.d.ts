@@ -24,6 +24,16 @@ declare namespace chrome {
     function getURL(path: string): string
   }
 
+  namespace action {
+    function openPopup(options?: { windowId?: number }): Promise<void>
+    function setBadgeText(details: { text: string }): Promise<void>
+    function setBadgeBackgroundColor(details: { color: string }): Promise<void>
+  }
+
+  namespace extension {
+    function getViews(fetchProperties?: { type?: 'tab' | 'popup' }): Window[]
+  }
+
   namespace tabs {
     function update(tabId: number, updateProperties: { active?: boolean }): Promise<unknown>
   }

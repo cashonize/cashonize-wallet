@@ -6,7 +6,7 @@ import { test, expect, type BrowserContext, type Page } from '@playwright/test'
 import { SignedMessage } from '@cashonize/bch-wallet-lib'
 import { DAPP_URL, expectReceiveAddress, waitForDialog } from '../helpers'
 import { txFixture } from '../test-dapp/src/fixtures'
-import { launchExtension } from './extension'
+import { launchExtension, waitForToolbarPopup } from './extension'
 
 let context: BrowserContext
 let closeExtension: (() => Promise<void>) | undefined
@@ -67,20 +67,17 @@ test.describe.serial('Cashonize BEX — on mainnet', () => {
     expect(SignedMessage.verify('on mainnet', await signing as string, address!).valid).toBe(true)
   })
 
-  test('signs a transaction in a new approval window, without broadcasting it', async () => {
+  test('signs a transaction in the toolbar popup, without broadcasting it', async () => {
     await walletPage.close()
-    const opening = context.waitForEvent('page')
     const signing = dappPage.evaluate(fixture =>
       window.cashonize.request({ method: 'bch_signTransaction', params: fixture }), txFixture)
-    const popup = await opening
-    popup.on('pageerror', error => pageErrors.push(error.message))
-    // shown once the window has the wallet's coins and has run its identity checks
-    const dialog = await waitForDialog(popup, 90_000)
-    await expect(dialog).toContainText('Test transaction')
-    await dialog.getByRole('button', { name: 'Sign' }).click()
+    const popup = await waitForToolbarPopup(context)
+    // shown once the popup has the wallet's coins and has run its identity checks
+    await popup.clickInDialog('Test transaction', 'Sign', 90_000)
     const signed = await signing as { signedTransaction: string; signedTransactionHash: string }
     expect(signed.signedTransaction).toMatch(/^[0-9a-f]+$/)
     expect(signed.signedTransactionHash).toMatch(/^[0-9a-f]{64}$/)
+    expect(popup.errors).toEqual([])
     expect(pageErrors).toEqual([])
   })
 })

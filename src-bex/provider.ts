@@ -274,6 +274,12 @@ const provider = {
   async disconnect(): Promise<void> {
     await provider.request({ method: 'bch_disconnect', params: {} }).catch(() => undefined)
   },
+
+  // Not in IConnector, which has no cancel: withdraws the site's requests still waiting for the
+  // user, as bch_cancelPendingRequests does, and resolves to its { cancelledCount }
+  cancelPendingRequests(): Promise<unknown> {
+    return provider.request({ method: 'bch_cancelPendingRequests', params: {} })
+  },
 }
 
 window.addEventListener('message', (event) => {

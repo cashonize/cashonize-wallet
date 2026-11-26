@@ -2,11 +2,11 @@
 // WalletConnect or an injected wallet through that interface works with window.cashonize as is,
 // passing its libauth objects, and a site the user auto-approves signs its transactions unprompted.
 
-import { test, expect, type BrowserContext, type Page } from '@playwright/test'
+import { test, expect, type BrowserContext, type Locator, type Page } from '@playwright/test'
 import { SignedMessage } from '@cashonize/bch-wallet-lib'
 import { DAPP_URL, setupWalletOnChipnet, waitForDialog } from '../helpers'
 import { txFixture } from '../test-dapp/src/fixtures'
-import { launchExtension } from './extension'
+import { launchExtension, waitForToolbarPopup } from './extension'
 
 let context: BrowserContext
 let closeExtension: (() => Promise<void>) | undefined
@@ -77,6 +77,30 @@ async function listen(page: Page) {
 }
 
 const connectorEvents = () => dappPage.evaluate(() => window.connectorEvents ?? [])
+
+// the app lock's PIN in the lock tests
+const pin = '2468'
+async function enterPin(scope: Locator, button: string) {
+  await scope.getByLabel('PIN', { exact: true }).fill(pin)
+  await scope.getByRole('button', { name: button }).click()
+}
+async function openAppLock(page: Page) {
+  await page.locator('nav').getByLabel('Menu').click()
+  await page.getByText('App lock', { exact: true }).first().click()
+}
+
+// whether the dApp has had an answer to the request it sent last
+const answered = () => dappPage.evaluate(() => Promise.race([
+  window.queuedResponses![0]!.then(() => true),
+  new Promise<boolean>(resolve => setTimeout(() => resolve(false), 100)),
+]))
+const signedHash = () => dappPage.evaluate(async () =>
+  ((await window.queuedResponses![0]!).result as { signedTransactionHash?: string } | undefined)?.signedTransactionHash)
+
+// the count of waiting requests on the extension's toolbar icon
+const badgeText = () => context.serviceWorkers().find(worker => worker.url().endsWith('/background.js'))!
+  .evaluate(() => (globalThis as unknown as { chrome: { action: { getBadgeText(details: object): Promise<string> } } })
+    .chrome.action.getBadgeText({}))
 
 declare global {
   interface Window {
@@ -189,40 +213,69 @@ test.describe.serial('Cashonize BEX — a drop-in WC2-BCH connector', () => {
     await walletPage.keyboard.press('Escape')
     await expect(walletPage.locator('.q-dialog:visible')).toHaveCount(0)
 
+    // an auto-approved request needs the user for nothing, so the wallet page stays where it is
+    await dappPage.bringToFront()
+    await expect.poll(walletInFront).toBe(false)
     const signed = await signLibauthTransaction(dappPage) as { signedTransactionHash?: string }
     expect(signed.signedTransactionHash).toMatch(/^[0-9a-f]{64}$/)
+    expect(await walletInFront()).toBe(false)
     await expect(walletPage.locator('.q-dialog:visible')).toHaveCount(0)
 
-    // a message is never auto-approved
+    // a message is never auto-approved, and brings the wallet page up for it
     const message = dappPage.evaluate(() => window.cashonize.signMessage({ message: 'still asked' }))
     const dialog = await waitForDialog(walletPage)
     await expect(dialog).toContainText('still asked')
+    await expect.poll(walletInFront).toBe(true)
     await dialog.getByRole('button', { name: 'Cancel' }).click()
     expect(await message).toBeUndefined()
   })
 
-  // A fresh approval window is still loading the wallet when the dApp withdraws; a second request
-  // keeps the window open, where a handler that missed the cancel would go on to sign
+  // A fresh toolbar popup is still loading the wallet when the dApp withdraws; a second request
+  // keeps the popup open, where a handler that missed the cancel would go on to sign
   test('signs no request the dApp withdrew, auto-approved ones included', async () => {
     const before = await activityCount(walletPage)
     await walletPage.close()
-    const opening = context.waitForEvent('page', { timeout: 30_000 })
     const outcome = await dappPage.evaluate(async (fixture) => {
       const signing = window.cashonize.send({ jsonrpc: '2.0', id: 51, method: 'bch_signTransaction', params: fixture })
       await new Promise(resolve => setTimeout(resolve, 300))
-      await window.cashonize.request({ method: 'bch_cancelPendingRequests', params: {} })
+      const { cancelledCount } = await window.cashonize.cancelPendingRequests()
       window.queuedResponses = [window.cashonize.send({ jsonrpc: '2.0', id: 52, method: 'bch_signMessage', params: { message: 'after the cancel' } })]
-      return (await signing).error?.code
+      return { cancelledCount, code: (await signing).error?.code }
     }, txFixture)
-    expect(outcome).toBe(5000)
+    expect(outcome).toEqual({ cancelledCount: 1, code: 5000 })
 
-    const popup = await opening
-    const dialog = await waitForDialog(popup, 30_000)
-    await expect(dialog).toContainText('after the cancel')
-    await expect(popup.locator('.q-dialog:visible')).toHaveCount(1)
-    expect(await activityCount(popup)).toBe(before)
-    await dialog.getByRole('button', { name: 'Cancel' }).click()
-    await expect.poll(() => popup.isClosed(), { timeout: 10_000 }).toBe(true)
+    const popup = await waitForToolbarPopup(context)
+    await expect.poll(() => popup.dialogs(), { timeout: 30_000 }).toEqual([expect.stringContaining('after the cancel')])
+    expect(await popup.evaluate<number>(`Object.keys(localStorage).filter(key => key.startsWith('dappActivity-'))
+      .reduce((count, key) => count + JSON.parse(localStorage.getItem(key) ?? '[]').length, 0)`)).toBe(before)
+    await popup.clickInDialog('after the cancel', 'Cancel')
+    await expect.poll(() => popup.isOpen(), { timeout: 10_000 }).toBe(false)
+
+    walletPage = await context.newPage()
+    await walletPage.goto(extensionUrl)
+    await walletPage.locator('nav').waitFor({ timeout: 30_000 })
+  })
+
+  // A popup woken for an auto-approval loads the wallet before it can sign: it says what it is
+  // doing meanwhile, and closes once it signed
+  test('says at once what a popup woken for an auto-approval is doing, and closes it once signed', async () => {
+    await walletPage.close()
+    await dappPage.evaluate((fixture) => {
+      window.queuedResponses = [window.cashonize.send({ jsonrpc: '2.0', id: 53, method: 'bch_signTransaction', params: fixture })]
+    }, txFixture)
+    const popup = await waitForToolbarPopup(context)
+    // titled as auto-approving, it names the action and the site as the transaction dialog does
+    const notice = () => popup.evaluate<{ text: string; icon?: string } | null>(`(() => {
+      const dialog = document.querySelector('.q-dialog')
+      return dialog && { text: dialog.innerText, icon: dialog.querySelector('img')?.src }
+    })()`)
+    await expect.poll(notice).toEqual({
+      // the legend is set in capitals, which innerText reads as shown
+      text: expect.stringMatching(/Auto-Approving Transaction[\s\S]*Test transaction[\s\S]*Bitcoin Cash WalletConnect Test dApp[\s\S]*http:\/\/localhost:5188/i),
+      icon: 'http://localhost:5188/icon.png',
+    })
+    expect(await signedHash()).toMatch(/^[0-9a-f]{64}$/)
+    await expect.poll(() => popup.isOpen(), { timeout: 10_000 }).toBe(false)
 
     walletPage = await context.newPage()
     await walletPage.goto(extensionUrl)
@@ -247,5 +300,108 @@ test.describe.serial('Cashonize BEX — a drop-in WC2-BCH connector', () => {
     const dialog = await waitForDialog(walletPage)
     await dialog.getByRole('button', { name: 'Cancel' }).click()
     expect(await signing).toBeUndefined()
+  })
+
+  test('shares one unlock among the extension\'s pages, and one lock', async () => {
+    await openAppLock(walletPage)
+    await walletPage.locator('#newPin').fill(pin)
+    await walletPage.locator('#repeatPin').fill(pin)
+    await walletPage.getByRole('button', { name: 'Turn on app lock' }).click()
+
+    // a page opened while another is unlocked opens unlocked
+    const secondPage = await context.newPage()
+    await secondPage.goto(extensionUrl)
+    await secondPage.locator('nav').waitFor({ timeout: 30_000 })
+    await expect(secondPage.locator('.lock-screen')).toHaveCount(0)
+
+    await openAppLock(secondPage)
+    await secondPage.getByText('Lock now', { exact: true }).click()
+    await expect(walletPage.locator('.lock-screen')).toBeVisible()
+
+    // The toolbar popup has one size, locked or showing the wallet: the lock screen alone gave it
+    // none, and the wallet widened it as it rendered
+    const worker = context.serviceWorkers().find(candidate => candidate.url().endsWith('/background.js'))!
+    async function toolbarPopupSize(showing: string) {
+      await worker.evaluate(() => (globalThis as unknown as { chrome: { action: { openPopup(): Promise<void> } } })
+        .chrome.action.openPopup())
+      const popup = await waitForToolbarPopup(context)
+      await expect.poll(() => popup.evaluate<boolean>(`!!document.querySelector(${JSON.stringify(showing)})`)).toBe(true)
+      const size = await popup.evaluate<number[]>('[innerWidth, innerHeight]')
+      await popup.evaluate('window.close()').catch(() => { /* the popup goes away with the call */ })
+      await expect.poll(() => popup.isOpen()).toBe(false)
+      return size
+    }
+    const [lockedWidth, lockedHeight] = await toolbarPopupSize('.lock-screen')
+    expect(lockedWidth).toBeLessThan(450)
+    expect(lockedHeight).toBeGreaterThanOrEqual(400)
+
+    await enterPin(secondPage.locator('.lock-screen'), 'Unlock')
+    await expect(walletPage.locator('.lock-screen')).toHaveCount(0)
+    await secondPage.close()
+
+    const [walletWidth] = await toolbarPopupSize('nav')
+    expect(walletWidth).toBe(lockedWidth)
+    // a tab keeps the window's width
+    expect(await walletPage.evaluate(() => innerWidth)).toBeGreaterThan(450)
+  })
+
+  // Auto-approval stops behind the lock: a transaction sent then is shown once unlocked, as anyone
+  // at the device can make a dApp send one, and only what comes after the unlock signs unasked
+  test('holds what was sent behind the lock for the user, and auto-approves what comes after the unlock', async () => {
+    // a request withdrawn while its PIN is typed takes the PIN dialog with it, and says so
+    await dappPage.evaluate((fixture) => {
+      window.queuedResponses = [window.cashonize.send({ jsonrpc: '2.0', id: 60, method: 'bch_signTransaction', params: fixture })]
+    }, txFixture)
+    await (await waitForDialog(walletPage)).getByRole('button', { name: 'Sign' }).click()
+    await expect(walletPage.locator('.pin-dialog')).toBeVisible()
+    await dappPage.evaluate(() => window.cashonize.request({ method: 'bch_cancelPendingRequests', params: {} }))
+    const withdrawn = walletPage.locator('.q-dialog', { hasText: 'withdrew this request' })
+    await expect(withdrawn).toContainText('http://localhost:5188')
+    await expect(walletPage.locator('.pin-dialog')).toHaveCount(0)
+    await withdrawn.getByRole('button', { name: 'OK' }).click()
+
+    // the site's settings grant auto-approve, so they open behind the PIN
+    await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
+    await walletPage.locator('.bex-session-card .dapp-session-settings').click()
+    await enterPin(await waitForDialog(walletPage), 'Confirm')
+    const settings = await waitForDialog(walletPage)
+    await settings.locator('.q-toggle').click()
+    await expect(settings.locator('input[type="radio"][value="forever"]')).toBeChecked()
+    await walletPage.keyboard.press('Escape')
+    await expect(walletPage.locator('.q-dialog')).toHaveCount(0)
+
+    await openAppLock(walletPage)
+    await walletPage.getByText('Lock now', { exact: true }).click()
+    const lockScreen = walletPage.locator('.lock-screen')
+    await expect(lockScreen).toBeVisible()
+
+    const before = await activityCount(walletPage)
+    await dappPage.bringToFront()
+    await expect.poll(walletInFront).toBe(false)
+    await dappPage.evaluate((fixture) => {
+      window.queuedResponses = [window.cashonize.send({ jsonrpc: '2.0', id: 61, method: 'bch_signTransaction', params: fixture })]
+    }, txFixture)
+    // the page asks to come up for the unlock as it takes the request, which an auto-approval
+    // would answer within moments
+    await expect.poll(walletInFront).toBe(true)
+    await walletPage.waitForTimeout(2_000)
+    expect(await answered()).toBe(false)
+    await expect(walletPage.locator('.q-dialog')).toHaveCount(0)
+    expect(await activityCount(walletPage)).toBe(before)
+    expect(await badgeText()).toBe('1')
+
+    await enterPin(lockScreen, 'Unlock')
+    const held = walletPage.locator('.q-dialog', { hasText: 'Test transaction' })
+    await held.getByRole('button', { name: 'Sign' }).click()
+    await enterPin(walletPage.locator('.q-dialog', { has: walletPage.locator('.pin-dialog') }), 'Confirm')
+    expect(await signedHash()).toMatch(/^[0-9a-f]{64}$/)
+    await expect.poll(badgeText).toBe('')
+
+    // what the site sends from now on is auto-approved
+    await dappPage.evaluate((fixture) => {
+      window.queuedResponses = [window.cashonize.send({ jsonrpc: '2.0', id: 62, method: 'bch_signTransaction', params: fixture })]
+    }, txFixture)
+    expect(await signedHash()).toMatch(/^[0-9a-f]{64}$/)
+    await expect(walletPage.locator('.q-dialog')).toHaveCount(0)
   })
 })

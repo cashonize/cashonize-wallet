@@ -3,6 +3,7 @@
 import '#q-app/bex/background'
 import type {
   BexCancelMessage,
+  BexCancelReason,
   BexCloseMessage,
   BexEventMessage,
   BexEventName,
@@ -48,7 +49,8 @@ const DEFAULT_CHAIN_ID = 'bch:bitcoincash'
 const USER_REJECTED = 5000
 
 const appPorts = new Set<chrome.runtime.Port>()
-// the app ports of approval windows, which close once the queue drains
+// the app ports of the approval windows and toolbar popups opened for the queue, which close once
+// it drains
 const popupPorts = new Set<chrome.runtime.Port>()
 const contentPorts = new Set<chrome.runtime.Port>()
 
@@ -69,6 +71,12 @@ let openingAppPage = false
 // a watchdog for a window that failed to load; two tries, then the request timeout
 let appPageAttempts = 0
 const MAX_APP_PAGE_ATTEMPTS = 2
+// Stopped once a page connects: left running, it would end the guard of the next window opened
+// within its 2 s and open a second one beside it
+let appPageWatchdog: ReturnType<typeof setTimeout> | null = null
+// Set while the toolbar popup opened for the queue loads: the tab-less page connecting then is that
+// popup, which closes once the queue drains, as the approval window does
+let toolbarPopupOpening = false
 let closeTimer: ReturnType<typeof setTimeout> | null = null
 let persistChain: Promise<void> = Promise.resolve()
 // When the user last refused a site's connect request: a site that asks again at once is answered
@@ -128,11 +136,43 @@ const APPROVAL_POPUP_WIDTH = 400
 const APPROVAL_POPUP_HEIGHT = 720
 const APPROVAL_POPUP_MARGIN = 16
 
+// As if the user clicked the extension's icon, over the window of the dApp that asked. Chromium
+// shows the toolbar popup only over a window in front that has a toolbar.
+async function openToolbarPopup(): Promise<boolean> {
+  const head = queue[0]
+  const windowId = head ? contentPortFor(head)?.sender?.tab?.windowId : undefined
+  // set first: the popup's page can connect before the call returns
+  toolbarPopupOpening = true
+  try {
+    await chrome.action.openPopup(windowId === undefined ? {} : { windowId })
+    return true
+  } catch {
+    toolbarPopupOpening = false
+    return false
+  }
+}
+
 async function ensureAppPage() {
   if (appPorts.size > 0 || openingAppPage || appPageAttempts >= MAX_APP_PAGE_ATTEMPTS) return
   openingAppPage = true
   appPageAttempts++
 
+  // The toolbar popup, or an approval window where it cannot show, and for a second try
+  if (appPageAttempts > 1 || !await openToolbarPopup()) await openApprovalWindow()
+
+  // The page connects while it loads; until then a burst of requests opens no second window. One
+  // that connected meanwhile ended the wait already.
+  if (appPorts.size > 0) return
+  appPageWatchdog = setTimeout(() => {
+    appPageWatchdog = null
+    openingAppPage = false
+    toolbarPopupOpening = false
+    // one more try if the page failed to load, while requests are still waiting
+    if (queue.length > 0 && appPorts.size === 0 && appPageAttempts < MAX_APP_PAGE_ATTEMPTS) dispatchNext()
+  }, 2000)
+}
+
+async function openApprovalWindow() {
   // Float the approval window at the top-right of the active browser window. Chromium otherwise
   // places a new popup at the top-left of the screen.
   let bounds: { left: number; top: number } | undefined
@@ -158,12 +198,6 @@ async function ensureAppPage() {
   } catch {
     // the request times out instead
   }
-  // the page connects while it loads; until then a burst of requests opens no second window
-  setTimeout(() => {
-    openingAppPage = false
-    // one more try if the window failed to load, while requests are still waiting
-    if (queue.length > 0 && appPorts.size === 0 && appPageAttempts < MAX_APP_PAGE_ATTEMPTS) dispatchNext()
-  }, 2000)
 }
 
 function closeAppPage(port: chrome.runtime.Port) {
@@ -187,17 +221,25 @@ function cancelScheduledClose() {
 
 // Aborts a request the wallet page may still be handling: its dialog closes, and a handler not at
 // its dialog yet never shows or signs it
-function cancelDialog(internalRequestId: number) {
+function cancelDialog(internalRequestId: number, reason: BexCancelReason) {
   for (const appPort of appPorts) {
     try {
-      appPort.postMessage({ type: 'cancel', internalRequestId } satisfies BexCancelMessage)
+      appPort.postMessage({ type: 'cancel', internalRequestId, reason } satisfies BexCancelMessage)
     } catch {
       // a port that closed in between
     }
   }
 }
 
+// The toolbar icon counts the requests waiting for the user, the one on screen included
+chrome.action.setBadgeBackgroundColor({ color: '#0ac18f' }).catch(() => {})
+function showPendingCount() {
+  chrome.action.setBadgeText({ text: queue.length ? String(queue.length) : '' }).catch(() => {})
+}
+
+// Every change to the queue is stored, and counted on the toolbar icon, through here
 function persistQueue(): Promise<void> {
+  showPendingCount()
   const snapshot = queue.map(entry => ({ ...entry }))
   persistChain = persistChain.then(async () => {
     try {
@@ -223,7 +265,7 @@ function scheduleTimeout(entry: BexQueuedRequest) {
   clearRequestTimer(entry.internalRequestId)
   const remaining = entry.createdAt + REQUEST_TIMEOUT_MS - Date.now()
   requestTimers.set(entry.internalRequestId, setTimeout(() => {
-    void failRequest(entry.internalRequestId, { code: 4000, message: 'Cashonize request timed out' })
+    void failRequest(entry.internalRequestId, { code: 4000, message: 'Cashonize request timed out' }, 'timeout')
   }, Math.max(0, remaining)))
 }
 
@@ -275,13 +317,13 @@ async function settleRequest(internalRequestId: number, outcome: Outcome): Promi
   return entry
 }
 
-async function failRequest(internalRequestId: number, error: Wc2Error) {
+async function failRequest(internalRequestId: number, error: Wc2Error, reason: BexCancelReason) {
   const wasHead = queue[0]?.internalRequestId === internalRequestId
   const headPort = wasHead ? dispatchedPort : null
   const entry = await settleRequest(internalRequestId, { error })
   if (!entry) return
 
-  cancelDialog(internalRequestId)
+  cancelDialog(internalRequestId, reason)
   if (queue.length > 0) {
     dispatchNext()
   } else if (headPort && popupPorts.has(headPort)) {
@@ -309,6 +351,7 @@ function dispatchNext() {
     internalRequestId: entry.internalRequestId,
     origin: entry.origin,
     message: entry.message,
+    createdAt: entry.createdAt,
   }
   try {
     appPort.postMessage(message)
@@ -316,13 +359,12 @@ function dispatchNext() {
     // The port closed; its disconnect handler clears the dispatch and the next page takes over.
     dispatchedId = null
     dispatchedPort = null
-    return
   }
-  void bringToFront(appPort)
 }
 
-// A wallet page in a background tab or window would hold the request unseen. The toolbar popup has
-// no tab, and is in front whenever it is open.
+// A wallet page in a background tab or window would hold the request unseen, so the page asks for
+// this once a request needs the user; an auto-approved one leaves them where they are. The toolbar
+// popup has no tab, and is in front whenever it is open.
 async function bringToFront(appPort: chrome.runtime.Port) {
   const tab = appPort.sender?.tab
   if (tab?.id === undefined) return
@@ -364,6 +406,7 @@ async function restoreQueue() {
   } catch {
     // Start with an empty queue when storage cannot be read.
   }
+  showPendingCount()
   // Do not open a window here: the wallet page (if one is still open) reconnects after a worker
   // restart and asks for the queue with its ready message.
 }
@@ -400,7 +443,7 @@ async function cancelQueuedRequests(origin: string): Promise<number> {
     deliverResponse(entry, { error: { code: USER_REJECTED, message: 'Request cancelled by the dApp' } })
     sourcePorts.delete(entry.internalRequestId)
     queue.splice(queue.indexOf(entry), 1)
-    cancelDialog(entry.internalRequestId)
+    cancelDialog(entry.internalRequestId, 'withdrawn')
   }
   if (headCancelled) {
     dispatchedId = null
@@ -432,7 +475,7 @@ async function dropRequestsFromPort(port: chrome.runtime.Port) {
     queue.splice(index, 1)
     clearRequestTimer(internalRequestId)
     sourcePorts.delete(internalRequestId)
-    cancelDialog(internalRequestId)
+    cancelDialog(internalRequestId, 'closed')
   }
 
   await persistQueue()
@@ -575,15 +618,23 @@ chrome.runtime.onConnect.addListener((port) => {
       return
     }
     appPorts.add(port)
+    if (toolbarPopupOpening && port.sender?.tab === undefined) popupPorts.add(port)
+    toolbarPopupOpening = false
     // a wallet page is up, so the next one need not wait out ensureAppPage's guard
     openingAppPage = false
     appPageAttempts = 0
+    if (appPageWatchdog) clearTimeout(appPageWatchdog)
+    appPageWatchdog = null
 
     port.onMessage.addListener((message: unknown) => {
       const typed = message as { type?: string } | undefined
       if (typed?.type === 'ready') {
         if ((message as BexReadyMessage).isPopup === true) popupPorts.add(port)
         void queueReady.then(dispatchNext)
+        return
+      }
+      if (typed?.type === 'show') {
+        void bringToFront(port)
         return
       }
       void handleAppResponse(message as BexResponseMessage, port)

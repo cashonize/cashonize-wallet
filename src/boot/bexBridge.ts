@@ -1,7 +1,7 @@
 import { defineBoot } from '#q-app'
 import { watch } from 'vue'
 import { BEX_PROVIDER_STATE_KEY, chainIdOf, type BexProviderState } from 'src/utils/bex/permissions'
-import type { BexCancelMessage, BexReadyMessage, BexRequestMessage, BexResponseMessage } from 'src/interfaces/bex'
+import type { BexCancelMessage, BexReadyMessage, BexRequestMessage, BexResponseMessage, BexShowMessage } from 'src/interfaces/bex'
 
 // The extension page is the wallet host. It keeps one port to the service worker, which routes
 // WC2 JSON-RPC requests from the content-script provider here and carries the answers back. It
@@ -16,8 +16,9 @@ export default defineBoot(async () => {
   const bexStore = useBexStore()
   const mainStore = useStore()
 
-  // Only the approval window the worker opens is a popup window, and the worker closes it once the
-  // queue drains. The toolbar popup and a tab are the user's own and stay open.
+  // The approval window the worker opens is a popup window, which it closes once the queue drains,
+  // as it does a toolbar popup it opened itself. The toolbar popup the user opens and a tab are the
+  // user's own and stay open.
   let isPopupPage = false
   try {
     isPopupPage = (await chrome.windows.getCurrent()).type === 'popup'
@@ -54,6 +55,15 @@ export default defineBoot(async () => {
     }
   }
 
+  // a request this page has to show the user brings it in front, the worker knowing its tab
+  bexStore.onNeedsUser(() => {
+    try {
+      port?.postMessage({ type: 'show' } satisfies BexShowMessage)
+    } catch {
+      // the port is being replaced; the page shows the request where it is
+    }
+  })
+
   function connect() {
     port = chrome.runtime.connect({ name: 'cashonize-app' })
     const connectedPort = port
@@ -65,7 +75,8 @@ export default defineBoot(async () => {
         return
       }
       if (typed.type === 'cancel') {
-        inFlight.get((message as BexCancelMessage).internalRequestId)?.abort()
+        const cancel = message as BexCancelMessage
+        inFlight.get(cancel.internalRequestId)?.abort(cancel.reason)
         return
       }
 
@@ -80,6 +91,8 @@ export default defineBoot(async () => {
         origin: request.origin,
         method: request.message.method,
         params: request.message.params,
+        // without it, a request counts as sent before any unlock
+        createdAt: typeof request.createdAt === 'number' ? request.createdAt : 0,
       }, controller.signal).then(
         (result) => postResponse({
           type: 'response',

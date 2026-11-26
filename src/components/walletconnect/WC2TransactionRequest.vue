@@ -39,9 +39,13 @@
   ])
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
+  // The caller hides this dialog when its request goes away, withdrawn by the dApp or timed out;
+  // a PIN being typed for it goes too, from the start of the hide, and can no longer approve it
+  const hiding = new AbortController()
+
   // signing is a spend, so the app lock's PIN is asked first; backing out leaves the request open
   async function approve() {
-    if (await useAppLockStore().confirmPin()) onDialogOK()
+    if (await useAppLockStore().confirmPin(true, hiding.signal)) onDialogOK()
   }
 
   const requestParams = props.transactionRequest;
@@ -140,7 +144,7 @@
 </script>
 
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
+  <q-dialog ref="dialogRef" @before-hide="hiding.abort()" @hide="onDialogHide" persistent transition-show="scale" transition-hide="scale">
     <q-card class="dialogCard">
       <fieldset class="dialogFieldset">
         <legend style="font-size: large;">{{ t('walletConnect.transactionRequest.title') }}</legend>

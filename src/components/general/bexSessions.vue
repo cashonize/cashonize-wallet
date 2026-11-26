@@ -4,6 +4,7 @@
   import { useBexStore } from 'src/stores/bexStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useStore } from 'src/stores/store'
+  import { useAppLockStore } from 'src/stores/appLockStore'
   import { autoApproveKey } from 'src/utils/bex/permissions'
   import DappSessionCard from 'src/components/general/dappSessionCard.vue'
   import WC2SessionSettingsDialog from 'src/components/walletconnect/WC2SessionSettingsDialog.vue'
@@ -18,6 +19,10 @@
   const showConnectedAddresses = computed(() => settingsStore.getWalletType(store.activeWalletName) === 'hd')
 
   const settingsOrigin = ref('')
+  // as for a WalletConnect session: the settings grant auto-approve, so they open behind the app lock's PIN
+  async function openSettings(origin: string) {
+    if (await useAppLockStore().confirmPin()) settingsOrigin.value = origin
+  }
 </script>
 
 <template>
@@ -28,7 +33,7 @@
       <DappSessionCard
         :dapp-metadata="bexStore.siteMetadata(origin, permission)"
         :connected-addresses="showConnectedAddresses ? permission.accounts : []"
-        @settings="settingsOrigin = origin"
+        @settings="openSettings(origin)"
         @remove="bexStore.revokeOrigin(origin)"
       />
 

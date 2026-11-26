@@ -1,6 +1,6 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test'
 import { DAPP_URL, setupWalletOnChipnet, waitForDialog } from '../helpers'
-import { launchExtension, receiveAddress, stopExtensionServiceWorker as stopWorker, type Wc2Response } from './extension'
+import { launchExtension, receiveAddress, stopExtensionServiceWorker as stopWorker, toolbarPopupOpen, waitForToolbarPopup, type Wc2Response } from './extension'
 
 let context: BrowserContext
 let closeExtension: (() => Promise<void>) | undefined
@@ -10,8 +10,8 @@ const pageErrors: string[] = []
 const cspErrors: string[] = []
 
 // Fire several requests at once; the wallet must present them one after another.
-async function queueSignMessageRequests(requests: Array<{ id: number, message: string }>) {
-  await dappPage.evaluate((list) => {
+async function queueSignMessageRequests(requests: Array<{ id: number, message: string }>, page = dappPage) {
+  await page.evaluate((list) => {
     window.queuedResponses = list.map(({ id, message }) => window.cashonize.send({
       jsonrpc: '2.0',
       id,
@@ -21,8 +21,8 @@ async function queueSignMessageRequests(requests: Array<{ id: number, message: s
   }, requests)
 }
 
-async function queuedResponses(): Promise<Wc2Response[]> {
-  return dappPage.evaluate(async () => Promise.all(window.queuedResponses ?? []))
+async function queuedResponses(page = dappPage): Promise<Wc2Response[]> {
+  return page.evaluate(async () => Promise.all(window.queuedResponses ?? []))
 }
 
 function stopExtensionServiceWorker() {
@@ -442,41 +442,40 @@ test.describe.serial('Cashonize BEX — WC2 session and WC2 JSON-RPC transport',
     await expect(dappPage.locator('#response')).toContainText('bchtest:', { timeout: 20_000 })
   })
 
-  test('opens a popup window for a request when no wallet page is open', async () => {
-    const testInfo = test.info()
+  test('opens the toolbar popup for a request when no wallet page is open, and closes it once answered', async () => {
     await walletPage.close()
     await dappPage.waitForTimeout(500)
     await expect(dappPage.locator('#bex-is-connected')).toHaveText('true')
     await expect(dappPage.locator('#bex-selected-address')).toHaveText(/^bchtest:/)
     await expect(dappPage.locator('#bex-events')).not.toContainText('disconnect')
 
-    const popupPromise = context.waitForEvent('page', { timeout: 30_000 })
     await dappPage.click('#bex-btn-sign-message')
-    const popupPage = await popupPromise
-    await popupPage.waitForLoadState('domcontentloaded')
-    expect(popupPage.url()).toContain('chrome-extension://')
-
-
-    const dialog = await waitForDialog(popupPage, 30_000)
-    await expect(dialog).toContainText('Hello BCH')
-    await popupPage.screenshot({ path: testInfo.outputPath('approval-popup.png') })
-    await dialog.getByRole('button', { name: 'Sign' }).click()
+    const popup = await waitForToolbarPopup(context)
+    await popup.clickInDialog('Hello BCH', 'Sign')
 
     await expect(dappPage.locator('#bex-response')).toHaveText(/.{10,}/, { timeout: 20_000 })
     const response = await dappPage.locator('#bex-response').innerText()
     expect(response).not.toContain('"error"')
-    await expect.poll(() => popupPage.isClosed(), { timeout: 10_000 }).toBe(true)
+    await expect.poll(() => popup.isOpen(), { timeout: 10_000 }).toBe(false)
+    expect(popup.errors).toEqual([])
   })
 
-  test('keeps the approval popup open until the queue is empty', async () => {
+  // A dApp in a window without a toolbar, an app or a popup window, cannot have the toolbar popup
+  // over it, so it gets an approval window
+  test('opens an approval window where the toolbar popup cannot show, open until the queue is empty', async () => {
     if (!walletPage.isClosed()) await walletPage.close()
-    await dappPage.waitForTimeout(500)
+    const worker = context.serviceWorkers().find(candidate => candidate.url().endsWith('/background.js'))!
+    const dappOpening = context.waitForEvent('page')
+    await worker.evaluate(url => (globalThis as unknown as { chrome: { windows: { create(data: object): Promise<unknown> } } })
+      .chrome.windows.create({ type: 'popup', url }), DAPP_URL)
+    const dappWindow = await dappOpening
+    await expect(dappWindow.locator('#bex-provider-status')).toHaveText('available', { timeout: 15_000 })
 
     const popupPromise = context.waitForEvent('page', { timeout: 30_000 })
     await queueSignMessageRequests([
       { id: 521, message: 'Popup first' },
       { id: 522, message: 'Popup second' },
-    ])
+    ], dappWindow)
     const popupPage = await popupPromise
     await popupPage.waitForLoadState('domcontentloaded')
 
@@ -489,10 +488,11 @@ test.describe.serial('Cashonize BEX — WC2 session and WC2 JSON-RPC transport',
     expect(popupPage.isClosed()).toBe(false)
     await secondDialog.getByRole('button', { name: 'Sign' }).click()
 
-    const responses = await queuedResponses()
+    const responses = await queuedResponses(dappWindow)
     expect(responses.map(response => response.id)).toEqual([521, 522])
     for (const response of responses) expect(response.error).toBeUndefined()
     await expect.poll(() => popupPage.isClosed(), { timeout: 10_000 }).toBe(true)
+    await dappWindow.close()
   })
 
   test('answers read-only requests without opening the popup', async () => {
@@ -503,6 +503,7 @@ test.describe.serial('Cashonize BEX — WC2 session and WC2 JSON-RPC transport',
     await expect(dappPage.locator('#bex-response')).toContainText('bchtest:', { timeout: 20_000 })
     await dappPage.waitForTimeout(300)
     expect(context.pages().length).toBe(pagesBefore)
+    expect(await toolbarPopupOpen(context)).toBe(false)
   })
 
   test('disconnect button revokes the site without opening the popup', async () => {
@@ -514,5 +515,6 @@ test.describe.serial('Cashonize BEX — WC2 session and WC2 JSON-RPC transport',
     await expect(dappPage.locator('#bex-events')).toContainText('disconnect', { timeout: 20_000 })
     await dappPage.waitForTimeout(300)
     expect(context.pages().length).toBe(pagesBefore)
+    expect(await toolbarPopupOpen(context)).toBe(false)
   })
 })

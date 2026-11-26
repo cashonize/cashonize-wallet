@@ -1,6 +1,6 @@
 {
   "common": {
-    "extensionImportNote": "La extensión guarda sus propios datos: las direcciones congeladas, las promesas de Flipstarter, las etiquetas y las notas de la aplicación web de Cashonize no forman parte de la frase semilla. Vuelve a configurarlos aquí antes de usar dApps, para que las monedas que retienen sigan protegidas.",
+    "extensionImportNote": "La extensión guarda sus propios datos: el bloqueo de la app, las direcciones congeladas, las promesas de Flipstarter, las etiquetas y las notas de la aplicación web de Cashonize no forman parte de la frase semilla y se quedan allí. Vuelve a activar aquí el bloqueo de la app, y configura las congelaciones y las promesas antes de usar dApps, para que las monedas que retienen sigan protegidas.",
     "actions": {
       "back": "Volver",
       "send": "Enviar",
@@ -485,6 +485,9 @@
     "browserProviderNote": "Los sitios también pueden conectarse mediante el proveedor de la extensión de navegador Cashonize (window.cashonize).",
     "disconnect": "Desconectar",
     "tiedChipnetCopy": "Esta billetera de chipnet comparte sus claves con tu billetera de mainnet, así que una firma de una dApp aquí también podría gastar monedas de mainnet. Usa una billetera de chipnet propia para las dApps: Menú > Configuración > Configuración de desarrollador > Agregar billetera de desarrollo.",
+    "requestWithdrawn": "{dapp} retiró esta solicitud, así que no se firmó nada.",
+    "requestTimedOut": "Esta solicitud de {dapp} caducó, así que no se firmó nada.",
+    "autoApprovingTitle": "Aprobando automáticamente la transacción",
     "browserConnect": {
       "title": "Conectar a Cashonize",
       "app": "App:",

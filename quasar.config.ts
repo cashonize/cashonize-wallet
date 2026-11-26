@@ -10,7 +10,8 @@ export default defineConfig((ctx) => {
   const bootFiles = ['preloadStartupAssets', 'icons', 'i18n'];
   if (ctx.mode.capacitor) bootFiles.push('deepLinking', 'biometrics');
   if (ctx.mode.spa) bootFiles.push('plausible');
-  if (ctx.mode.bex) bootFiles.push('bexBridge');
+  // the shared unlock first, so the bridge's first request finds the page as the extension's lock has it
+  if (ctx.mode.bex) bootFiles.push('bexPageSize', 'bexUnlock', 'bexBridge');
   // every icon in public/, which the web build preloads after startup (src/utils/icons/preloadIcons.ts)
   const iconPaths = ['images', 'emoji-icons'].flatMap(dir =>
     readdirSync(ctx.appPaths.resolve.app(`public/${dir}`)).filter(file => file.endsWith('.svg')).map(file => `${dir}/${file}`)

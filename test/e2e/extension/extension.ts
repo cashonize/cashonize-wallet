@@ -27,6 +27,7 @@ export interface CashonizeProvider {
   connect(options?: { chainId?: string }): Promise<void>
   connected(): Promise<boolean>
   disconnect(): Promise<void>
+  cancelPendingRequests(): Promise<{ cancelledCount: number }>
   readonly chainId?: string
   readonly networkVersion?: string
   readonly selectedAddress?: string
@@ -68,6 +69,106 @@ export async function launchExtension() {
     rmSync(profileDir, { recursive: true, force: true })
   }
   return { context, extensionUrl, close }
+}
+
+// The toolbar popup, which the worker opens as a click on the icon does, is no tab, so Playwright
+// makes no page of it: it is the extension page Playwright did not attach to, and it is driven
+// over DevTools messages through the browser's session
+export interface ToolbarPopup {
+  evaluate<T>(expression: string): Promise<T>
+  // the text of each dialog on screen
+  dialogs(): Promise<string[]>
+  // waits for a dialog showing `text`, then clicks its `button`
+  clickInDialog(text: string, button: string, timeoutMs?: number): Promise<void>
+  isOpen(): Promise<boolean>
+  // uncaught errors in the popup since it was found
+  errors: string[]
+}
+
+async function findToolbarPopup(context: BrowserContext) {
+  const cdp = await context.browser()!.newBrowserCDPSession()
+  const { targetInfos } = await cdp.send('Target.getTargets')
+  await cdp.detach()
+  return targetInfos.find(info => info.type === 'page' && !info.attached && info.url.startsWith('chrome-extension://'))
+}
+
+export async function toolbarPopupOpen(context: BrowserContext) {
+  return (await findToolbarPopup(context)) !== undefined
+}
+
+export async function waitForToolbarPopup(context: BrowserContext, timeoutMs = 30_000): Promise<ToolbarPopup> {
+  let target = await findToolbarPopup(context)
+  for (const deadline = Date.now() + timeoutMs; !target; target = await findToolbarPopup(context)) {
+    if (Date.now() > deadline) throw new Error('No toolbar popup opened')
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+  const targetId = target.targetId
+  const cdp = await context.browser()!.newBrowserCDPSession()
+  const { sessionId } = await cdp.send('Target.attachToTarget', { targetId, flatten: false })
+
+  const errors: string[] = []
+  const replies = new Map<number, (reply: { result?: unknown; error?: unknown }) => void>()
+  cdp.on('Target.receivedMessageFromTarget', (event) => {
+    if (event.sessionId !== sessionId) return
+    const message = JSON.parse(event.message) as {
+      id?: number; method?: string; result?: unknown; error?: unknown
+      params?: { exceptionDetails?: { exception?: { description?: string }; text?: string } }
+    }
+    if (message.method === 'Runtime.exceptionThrown') {
+      const details = message.params?.exceptionDetails
+      errors.push(details?.exception?.description ?? details?.text ?? 'error')
+    }
+    if (message.id !== undefined) replies.get(message.id)?.(message)
+  })
+  let nextId = 1
+  function send(method: string, params: object) {
+    const id = nextId++
+    return new Promise<unknown>((resolve, reject) => {
+      replies.set(id, (reply) => {
+        replies.delete(id)
+        if (reply.error) reject(new Error(JSON.stringify(reply.error)))
+        else resolve(reply.result)
+      })
+      cdp.send('Target.sendMessageToTarget', { sessionId, message: JSON.stringify({ id, method, params }) }).catch(reject)
+    })
+  }
+  await send('Runtime.enable', {})
+
+  async function evaluate<T>(expression: string): Promise<T> {
+    const reply = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }) as {
+      result: { value?: unknown }; exceptionDetails?: { text?: string }
+    }
+    if (reply.exceptionDetails) throw new Error(reply.exceptionDetails.text ?? 'evaluation failed')
+    return reply.result.value as T
+  }
+
+  async function clickInDialog(text: string, button: string, timeoutMs = 30_000) {
+    const click = `(() => {
+      const dialog = [...document.querySelectorAll('.q-dialog')].reverse().find(d => d.innerText.includes(${JSON.stringify(text)}))
+      const target = dialog && [...dialog.querySelectorAll('button, input[type=button], input[type=submit]')]
+        .find(b => (b.value || b.innerText).trim() === ${JSON.stringify(button)})
+      target?.click()
+      return Boolean(target)
+    })()`
+    for (const deadline = Date.now() + timeoutMs; !await evaluate<boolean>(click);) {
+      if (Date.now() > deadline) throw new Error(`No dialog with "${text}" and a ${button} button in the toolbar popup`)
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+  }
+
+  function dialogs() {
+    return evaluate<string[]>(`[...document.querySelectorAll('.q-dialog')]
+      .filter(d => d.getClientRects().length).map(d => d.innerText)`)
+  }
+
+  async function isOpen() {
+    const browser = await context.browser()!.newBrowserCDPSession()
+    const { targetInfos } = await browser.send('Target.getTargets')
+    await browser.detach()
+    return targetInfos.some(info => info.targetId === targetId)
+  }
+
+  return { evaluate, dialogs, clickInDialog, isOpen, errors }
 }
 
 // The wallet's address, from the receive page; leaves the wallet page open again

@@ -4,7 +4,7 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test'
 import { SignedMessage } from '@cashonize/bch-wallet-lib'
 import { addChipnetWallet, expectReceiveAddress, setupWalletOnChipnet, waitForDialog } from '../helpers'
-import { launchExtension, stopExtensionServiceWorker } from './extension'
+import { launchExtension, stopExtensionServiceWorker, waitForToolbarPopup } from './extension'
 
 // Two sites the content script serves: the test dApp under two origins
 const SITE_A = 'http://localhost:5188'
@@ -215,11 +215,9 @@ test.describe.serial('Cashonize BEX — what a site can reach', () => {
     await expect(siteA.locator('#bex-provider-status')).toHaveText('available', { timeout: 15_000 })
     expect(await siteA.evaluate(() => window.cashonize.request({ method: 'bch_getAddresses', params: {} }))).toEqual(accountsA)
 
-    // and its requests reach the wallet again, in the approval window the worker opens
-    const opening = context.waitForEvent('page')
+    // and its requests reach the wallet again, in the toolbar popup the worker opens
     const signing = siteA.evaluate(() => window.cashonize.signMessage({ message: 'after the update' }))
-    const dialog = await waitForDialog(await opening, 30_000)
-    await dialog.getByRole('button', { name: 'Sign' }).click()
+    await (await waitForToolbarPopup(context)).clickInDialog('after the update', 'Sign')
     expect(SignedMessage.verify('after the update', await signing as string, accountsA[0]!).valid).toBe(true)
   })
 })

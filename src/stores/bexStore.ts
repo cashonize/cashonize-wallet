@@ -42,10 +42,12 @@ import { i18n } from 'src/boot/i18n'
 import WCSignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
 import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRequest.vue'
 import BexConnectDialog from 'src/components/general/bexConnectDialog.vue'
+import BexAutoApprovingDialog from 'src/components/general/bexAutoApprovingDialog.vue'
 import WC2AddressSelectDialog from 'src/components/walletconnect/WC2AddressSelectDialog.vue'
 import { useStore } from './store'
 import { useSettingsStore } from './settingsStore'
 import { useIdentitiesStore } from './identitiesStore'
+import { useAppLockStore } from './appLockStore'
 
 const { t } = i18n.global
 
@@ -73,6 +75,8 @@ interface BexMethodRequest {
   origin: string
   method: string
   params?: unknown
+  // when the worker took the request in
+  createdAt: number
 }
 
 type TransactionActivity = Omit<DappActivityEntry, 'time' | 'outcome'>
@@ -94,6 +98,7 @@ export const useBexStore = defineStore('bexStore', () => {
   const mainStore = useStore()
   const settingsStore = useSettingsStore()
   const identitiesStore = useIdentitiesStore()
+  const appLock = useAppLockStore()
 
   // Every site's permission, for any wallet. chrome.storage.local is the source of truth, shared
   // with the service worker, which answers read-only requests and revokes on bch_disconnect.
@@ -168,6 +173,37 @@ export const useBexStore = defineStore('bexStore', () => {
 
   const cancelled = () => new BexRpcError(5000, 'Request cancelled by the dApp')
 
+  // Puts this page in front of the user, which the bridge does through the worker. Asked for only
+  // when a request needs the user, so an auto-approved one leaves them where they are.
+  let bringToFront = () => {}
+  function onNeedsUser(show: () => void) {
+    bringToFront = show
+  }
+
+  // A page woken for an auto-approval says so at once, while it loads the wallet to sign with,
+  // rather than show the wallet loading; anything the request then needs the user for replaces it.
+  // The site is named as it was connected, whichever wallet that was: the wallet is not loaded yet.
+  let endAutoApprovingNotice = () => {}
+  function showAutoApprovingNotice(origin: string, userPrompt: string | undefined) {
+    let open = true
+    const permission = Object.hasOwn(permissions.value, origin) ? permissions.value[origin] : undefined
+    const notice = Dialog.create({
+      component: BexAutoApprovingDialog,
+      componentProps: { dappMetadata: metadataFor(origin, permission?.metadata), userPrompt },
+    }).onDismiss(() => { open = false })
+    const end = () => {
+      if (open) notice.hide()
+      open = false
+    }
+    endAutoApprovingNotice = end
+    return end
+  }
+
+  function needsUser() {
+    endAutoApprovingNotice()
+    bringToFront()
+  }
+
   // Polls for a state the wallet page reaches on its own; a cancel or the timeout ends the wait
   async function waitUntil(ready: () => boolean, signal: AbortSignal, timeoutMs: number, timedOut: string) {
     const started = Date.now()
@@ -178,9 +214,23 @@ export const useBexStore = defineStore('bexStore', () => {
     }
   }
 
+  // The bridge hands the page requests while it is locked: before the first unlock, which is what
+  // loads the wallet, and after a later lock, whose screen would hide a dialog, a page out of sight
+  // for the auto-lock time included. So a request waits for the PIN before it waits for the wallet
+  // and before it shows a dialog, without a timeout of its own: the worker's ends one left waiting.
+  async function waitForUnlock(signal: AbortSignal) {
+    appLock.lockIfAway()
+    if (appLock.locked) needsUser()
+    while (appLock.locked) {
+      if (signal.aborted) throw cancelled()
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+  }
+
   // The app page is the wallet host, so a request can arrive while WalletPage is still loading
   // the wallet from IndexedDB
   async function waitForWallet(signal: AbortSignal): Promise<WalletType> {
+    await waitForUnlock(signal)
     await waitUntil(() => !!mainStore._wallet, signal, 30_000, 'No wallet is open in Cashonize')
     return mainStore.wallet
   }
@@ -199,6 +249,8 @@ export const useBexStore = defineStore('bexStore', () => {
 
   // A refusal the user should understand too: they read why, then the dApp gets its error
   async function explainRefusal(message: string, signal: AbortSignal) {
+    await waitForUnlock(signal)
+    needsUser()
     await new Promise<void>((resolve) => {
       const dialog = Dialog.create({
         message,
@@ -281,16 +333,29 @@ export const useBexStore = defineStore('bexStore', () => {
     }
   }
 
+  // A request the user was confirming with the PIN went away under them: they read why
+  function explainWithdrawal(origin: string, reason: unknown) {
+    const message = reason === 'timeout' ? 'dapp.requestTimedOut' : 'dapp.requestWithdrawn'
+    Dialog.create({
+      message: t(message, { dapp: origin }),
+      ok: { label: 'OK', color: 'primary', unelevated: true },
+      class: 'flex justify-center',
+    })
+  }
+
   // Shows one approval dialog and resolves with the result of the approved action. The dialog
   // hides as soon as OK is pressed, so a dismissal after approval is not treated as a rejection.
   // A request the dApp withdrew never shows, and closes if it is up.
-  function showApproval<T>(
+  async function showApproval<T>(
+    origin: string,
     component: object,
     componentProps: Record<string, unknown>,
     onApprove: (payload?: unknown) => T | Promise<T>,
     signal: AbortSignal,
   ): Promise<T> {
-    if (signal.aborted) return Promise.reject(cancelled())
+    await waitForUnlock(signal)
+    if (signal.aborted) throw cancelled()
+    needsUser()
     return new Promise((resolve, reject) => {
       let settled = false
       let approved = false
@@ -304,8 +369,11 @@ export const useBexStore = defineStore('bexStore', () => {
       const handle = Dialog.create({ component, componentProps })
       signal.addEventListener('abort', () => {
         if (approved) return
+        // read before the hide, which takes the PIN dialog with it
+        const confirming = appLock.confirming
         handle.hide()
         settleError(cancelled())
+        if (confirming) explainWithdrawal(origin, signal.reason)
       })
 
       handle.onOk((payload?: unknown) => {
@@ -355,6 +423,7 @@ export const useBexStore = defineStore('bexStore', () => {
     }
     if (wallet instanceof HDWallet) {
       return showApproval(
+        origin,
         WC2AddressSelectDialog,
         { dappMetadata: metadata, allowChangeAddresses: false },
         async (payload?: unknown) => {
@@ -369,6 +438,7 @@ export const useBexStore = defineStore('bexStore', () => {
     }
     const address = wallet.getDepositAddress()
     return showApproval(
+      origin,
       BexConnectDialog,
       { origin, address, network: mainStore.network, dappMetadata: metadata },
       () => connect([address]),
@@ -391,6 +461,7 @@ export const useBexStore = defineStore('bexStore', () => {
     const signing = signingInfo(wallet, signerAddress)
     const dappMetadata = metadataFor(origin, permission.metadata)
     return showApproval(
+      origin,
       WCSignMessageRequest,
       {
         dappMetadata,
@@ -472,8 +543,31 @@ export const useBexStore = defineStore('bexStore', () => {
     }
   }
 
-  async function signTransaction(origin: string, params: unknown, signal: AbortSignal) {
+  async function signTransaction(origin: string, params: unknown, createdAt: number, signal: AbortSignal) {
     const transactionRequest = validateTransaction(params)
+    const loading = !mainStore._wallet || mainStore.walletUtxos === undefined || !identitiesStore.openChecksSettled
+    const endNotice = loading && autoApproves(origin, createdAt)
+      ? showAutoApprovingNotice(origin, transactionRequest.userPrompt)
+      : undefined
+    try {
+      return await approveTransaction(origin, transactionRequest, createdAt, signal)
+    } finally {
+      endNotice?.()
+    }
+  }
+
+  // Whether a site's transaction would be signed without the user, as far as the wallet can tell
+  // before it has its coins: an identity operation still goes to the user
+  function autoApproves(origin: string, createdAt: number) {
+    return appLock.allowsAutoApproval(createdAt) && settingsStore.isAutoApproveValid(autoApproveKey(origin))
+  }
+
+  async function approveTransaction(
+    origin: string,
+    transactionRequest: WcSignTransactionRequest,
+    createdAt: number,
+    signal: AbortSignal,
+  ) {
     const wallet = await waitForWalletReady(signal)
     await assertDappsAvailable(signal)
     const permission = connectedPermission(origin, wallet)
@@ -481,6 +575,7 @@ export const useBexStore = defineStore('bexStore', () => {
 
     const arrivalCheck = reservedInputsCheck(transactionRequest)
     if (arrivalCheck.refusals.length) {
+      needsUser()
       reportDappRefusal(arrivalCheck)
       throw new BexRpcError(5000, 'Transaction signing aborted: a wallet-reserved coin is an input')
     }
@@ -518,10 +613,11 @@ export const useBexStore = defineStore('bexStore', () => {
     }
 
     // As on WalletConnect: the user's auto-approval of a site covers its ordinary spends, never an
-    // identity operation, which is signed only in front of the user
+    // identity operation, which is signed only in front of the user. Nor while the app is locked,
+    // nor for a request sent before its unlock: the request then waits for the unlock in its dialog.
     const autoApproval = autoApproveKey(origin)
     const touchesIdentity = arrivalCheck.returning.length > 0
-    if (!touchesIdentity && settingsStore.isAutoApproveValid(autoApproval)) {
+    if (!touchesIdentity && autoApproves(origin, createdAt)) {
       if (signal.aborted) throw cancelled()
       const signed = await signAndSend()
       if (settingsStore.getAutoApproveState(autoApproval)?.mode === 'count') {
@@ -537,6 +633,7 @@ export const useBexStore = defineStore('bexStore', () => {
       throw new BexRpcError(5000, 'Transaction signing aborted: the wallet could not fetch an exchange rate')
     }
     return showApproval(
+      origin,
       WC2TransactionRequest,
       {
         dappMetadata,
@@ -559,7 +656,7 @@ export const useBexStore = defineStore('bexStore', () => {
       case 'personal_sign':
         return signMessage(request.origin, request.params, signal)
       case 'bch_signTransaction':
-        return signTransaction(request.origin, request.params, signal)
+        return signTransaction(request.origin, request.params, request.createdAt, signal)
       default:
         // the worker answers the read-only methods itself
         throw new BexRpcError(1001, `Unsupported method ${request.method}`)
@@ -572,6 +669,7 @@ export const useBexStore = defineStore('bexStore', () => {
 
   return {
     handleRequest,
+    onNeedsUser,
     activePermissions,
     activeWalletId,
     revokeOrigin,

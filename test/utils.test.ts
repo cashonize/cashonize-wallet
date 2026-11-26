@@ -63,10 +63,19 @@ describe('formatTokenAmount', () => {
 describe('number format setting', () => {
   afterEach(() => { numberFormat.value = 'en-US'; });
 
+  // Swiss grouping is an apostrophe, typographic (U+2019) in older ICU data such as Node 22's and
+  // plain in newer such as Chromium's; a typed amount with either is refused as grouped
+  const swissGroup = "['\u2019]"
+
   it('groups and marks decimals the way each format is shown in the settings', () => {
-    const shown = { 'en-US': '1,234,567.89', 'de-DE': '1.234.567,89', 'fr-FR': '1\u202f234\u202f567,89', 'de-CH': "1'234'567.89" };
+    const shown = {
+      'en-US': /^1,234,567\.89$/,
+      'de-DE': /^1\.234\.567,89$/,
+      'fr-FR': /^1\u202f234\u202f567,89$/,
+      'de-CH': new RegExp(`^1${swissGroup}234${swissGroup}567\\.89$`),
+    };
     for (const [format, expected] of Object.entries(shown)) {
-      expect(formatDecimal(1234567.89, {}, format as keyof typeof shown)).toBe(expected);
+      expect(formatDecimal(1234567.89, {}, format as keyof typeof shown)).toMatch(expected);
     }
   })
   it('keeps every digit of a token amount, with the format\'s decimal mark', () => {
@@ -75,7 +84,7 @@ describe('number format setting', () => {
     expect(formatTokenAmount(90_071_992_547_409_931n, 2)).toBe('900.719.925.474.099,31');
     expect(formatTokenAmount(-50n, 2)).toBe('-0,5');
     numberFormat.value = 'de-CH';
-    expect(formatTokenAmount(123_456_789n, 4)).toBe("12'345.6789");
+    expect(formatTokenAmount(123_456_789n, 4)).toMatch(new RegExp(`^12${swissGroup}345\\.6789$`));
   })
   it('leaves the amounts machines read with a dot', () => {
     numberFormat.value = 'de-DE';
