@@ -1297,7 +1297,14 @@
     "wrongPinTriesLeft": "PIN incorrecto. Queda {count} intento antes de la espera. | PIN incorrecto. Quedan {count} intentos antes de la espera.",
     "tooManyAttempts": "Demasiados intentos fallidos. Inténtalo de nuevo en {time}.",
     "forgotPin": "¿Olvidaste tu PIN?",
-    "forgotPinHint": "Un PIN no se puede restablecer. Borra los datos de esta app o sitio y luego restaura tus billeteras con sus frases semilla. Una billetera sin copia de seguridad se pierde."
+    "forgotPinHint": "Un PIN no se puede restablecer. Borra los datos de esta app o sitio y luego restaura tus billeteras con sus frases semilla. Una billetera sin copia de seguridad se pierde.",
+    "usePin": "Usar PIN",
+    "useBiometrics": "Usar huella o rostro",
+    "lockedTitleBiometrics": "Desbloquear Cashonize",
+    "confirmTitleBiometrics": "Confirma que eres tú",
+    "biometricsSetupTitle": "Confirma para desbloquear con biometría",
+    "biometricsToggle": "Desbloquear con huella o rostro",
+    "biometricsTurnedOn": "Desbloqueo biométrico activado"
   },
   "addressConverter": {
     "title": "Conversor de direcciones",

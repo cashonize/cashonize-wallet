@@ -1297,7 +1297,14 @@
     "wrongPinTriesLeft": "PIN salah. Tersisa {count} percobaan sebelum harus menunggu. | PIN salah. Tersisa {count} percobaan sebelum harus menunggu.",
     "tooManyAttempts": "Terlalu banyak percobaan yang salah. Coba lagi dalam {time}.",
     "forgotPin": "Lupa PIN?",
-    "forgotPinHint": "PIN tidak dapat diatur ulang. Hapus data aplikasi atau situs ini, lalu pulihkan dompet Anda dari frasa seed-nya. Dompet tanpa cadangan akan hilang."
+    "forgotPinHint": "PIN tidak dapat diatur ulang. Hapus data aplikasi atau situs ini, lalu pulihkan dompet Anda dari frasa seed-nya. Dompet tanpa cadangan akan hilang.",
+    "usePin": "Gunakan PIN",
+    "useBiometrics": "Gunakan sidik jari atau wajah",
+    "lockedTitleBiometrics": "Buka Cashonize",
+    "confirmTitleBiometrics": "Konfirmasi bahwa ini Anda",
+    "biometricsSetupTitle": "Konfirmasi untuk membuka dengan biometrik",
+    "biometricsToggle": "Buka dengan sidik jari atau wajah",
+    "biometricsTurnedOn": "Buka kunci biometrik diaktifkan"
   },
   "addressConverter": {
     "title": "Konverter Alamat",

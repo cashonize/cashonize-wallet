@@ -93,6 +93,9 @@ importers:
       '@capacitor/core':
         specifier: ^8.5.3
         version: 8.5.3
+      '@capgo/capacitor-native-biometric':
+        specifier: 8.9.3
+        version: 8.9.3(@capacitor/core@8.5.3)
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.15.0(jiti@2.7.0))
@@ -221,6 +224,11 @@ packages:
 
   '@capacitor/core@8.5.3':
     resolution: {integrity: sha512-oBE1oGuYE4ZzYYrulC75OuHdSsD6zLUy7d5o1tFwDLG4govGoubY15cxpiI5l0+q87Lm5p0bhbehMdzJg4aFag==}
+
+  '@capgo/capacitor-native-biometric@8.9.3':
+    resolution: {integrity: sha512-bH3ZupGr3ocetX546rBvYSuccWy2P45kWu+RXVPXBVpXidQVF/iX8mB0pzPzDCJhEa7XZBi8qKyoaowpmb3sbw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@cashconnect-js/core@1.0.0-alpha.32':
     resolution: {integrity: sha512-TjgE7MdI/V/ncZWh/DBUqQFp4YugwzVOz6YOuz9FDbjnrFg08S0B4H7aM0ZtSKu7jddscWSeESshnULvXVIUoA==}
@@ -2488,6 +2496,10 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@capgo/capacitor-native-biometric@8.9.3(@capacitor/core@8.5.3)':
+    dependencies:
+      '@capacitor/core': 8.5.3
+
   '@cashconnect-js/core@1.0.0-alpha.32':
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
@@ -4247,7 +4259,7 @@ snapshots:
     dependencies:
       nanoid: 3.3.20
       picocolors: 1.1.1
-      source-map-js: 1.2.2
+      source-map-js: 1.2.4
 
   powershell-utils@0.2.1: {}
 
@@ -4415,7 +4427,7 @@ snapshots:
     dependencies:
       chokidar: 5.0.0
       immutable: 5.1.9
-      source-map-js: 1.2.2
+      source-map-js: 1.2.4
     optionalDependencies:
       '@parcel/watcher': 2.5.6
     optional: true

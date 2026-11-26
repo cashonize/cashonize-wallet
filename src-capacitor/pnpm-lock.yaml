@@ -23,6 +23,9 @@ importers:
       '@capacitor/core':
         specifier: ^8.5.3
         version: 8.5.3
+      '@capgo/capacitor-native-biometric':
+        specifier: 8.9.3
+        version: 8.9.3(@capacitor/core@8.5.3)
 
 packages:
 
@@ -43,6 +46,11 @@ packages:
 
   '@capacitor/core@8.5.3':
     resolution: {integrity: sha512-oBE1oGuYE4ZzYYrulC75OuHdSsD6zLUy7d5o1tFwDLG4govGoubY15cxpiI5l0+q87Lm5p0bhbehMdzJg4aFag==}
+
+  '@capgo/capacitor-native-biometric@8.9.3':
+    resolution: {integrity: sha512-bH3ZupGr3ocetX546rBvYSuccWy2P45kWu+RXVPXBVpXidQVF/iX8mB0pzPzDCJhEa7XZBi8qKyoaowpmb3sbw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@ionic/cli-framework-output@2.2.8':
     resolution: {integrity: sha512-TshtaFQsovB4NWRBydbNFawql6yul7d5bMiW1WYYf17hd99V6xdDdk3vtF51bw6sLkxON3bDQpWsnUc9/hVo3g==}
@@ -448,6 +456,10 @@ snapshots:
   '@capacitor/core@8.5.3':
     dependencies:
       tslib: 2.8.1
+
+  '@capgo/capacitor-native-biometric@8.9.3(@capacitor/core@8.5.3)':
+    dependencies:
+      '@capacitor/core': 8.5.3
 
   '@ionic/cli-framework-output@2.2.8':
     dependencies:

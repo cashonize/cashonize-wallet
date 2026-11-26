@@ -3,7 +3,7 @@
   import BackRow from 'src/components/general/BackRow.vue'
   import MenuRow from 'src/components/general/MenuRow.vue'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
-  import { computed, onDeactivated, ref, watch } from 'vue'
+  import { computed, onActivated, onDeactivated, ref, watch } from 'vue'
   import { Notify } from 'quasar'
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
@@ -12,6 +12,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { isValidPin, pinMaxLength, pinMinLength } from 'src/utils/appLock'
   import { displayAndLogError } from 'src/utils/errorHandling'
+  import { biometricsAvailable, verifyBiometrics } from 'src/utils/biometrics'
   const store = useStore()
   const appLock = useAppLockStore()
   const settingsStore = useSettingsStore()
@@ -63,6 +64,22 @@
     }
   }
 
+  // Asked again on each visit, as a fingerprint may have been enrolled in the device's settings since
+  const canUseBiometrics = ref(false)
+  onActivated(async () => { canUseBiometrics.value = await biometricsAvailable() })
+
+  // Turning it on adds a way in, so the PIN is asked first, then the prompt shows that it works
+  async function toggleBiometrics(on: boolean) {
+    if (!on) {
+      appLock.setBiometrics(false)
+      return
+    }
+    if (!await appLock.confirmPin()) return
+    if (!await verifyBiometrics(t('appLock.biometricsSetupTitle'), t('appLock.cancel'))) return
+    appLock.setBiometrics(true)
+    Notify.create({ type: 'positive', message: t('appLock.biometricsTurnedOn') })
+  }
+
   async function startChange() {
     if (await appLock.confirmPin()) changing.value = true
   }
@@ -98,6 +115,11 @@
       </ul>
 
       <div v-if="appLock.enabled && !changing" class="lock-rows">
+        <div v-if="canUseBiometrics || appLock.biometrics" class="lock-toggle">
+          <q-icon name="fingerprint" size="20px" />
+          <span class="lock-toggle-label">{{ t('appLock.biometricsToggle') }}</span>
+          <q-toggle :model-value="appLock.biometrics" dense @update:model-value="toggleBiometrics" />
+        </div>
         <MenuRow icon="lock" :label="t('appLock.lockNow')" @click="appLock.lock()" />
         <MenuRow icon="edit" :label="t('appLock.changePin')" @click="startChange()" />
         <MenuRow icon="lock_open" :label="t('appLock.turnOff')" @click="turnOff()" />
@@ -193,6 +215,19 @@
 }
 .lock-form {
   padding: 14px;
+}
+/* laid out as a menu row, with a toggle where the row's chevron would be */
+.lock-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--surface-line);
+}
+.lock-toggle-label {
+  flex: 1;
 }
 .pin-fields {
   display: grid;

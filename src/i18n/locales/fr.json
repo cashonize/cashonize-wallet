@@ -1297,7 +1297,14 @@
     "wrongPinTriesLeft": "Code PIN incorrect. Encore {count} essai avant l'attente. | Code PIN incorrect. Encore {count} essais avant l'attente.",
     "tooManyAttempts": "Trop de tentatives incorrectes. Réessayez dans {time}.",
     "forgotPin": "Code PIN oublié ?",
-    "forgotPinHint": "Un code PIN ne peut pas être réinitialisé. Effacez les données de cette application ou de ce site, puis restaurez vos portefeuilles à partir de leurs phrases de récupération. Un portefeuille sans sauvegarde est perdu."
+    "forgotPinHint": "Un code PIN ne peut pas être réinitialisé. Effacez les données de cette application ou de ce site, puis restaurez vos portefeuilles à partir de leurs phrases de récupération. Un portefeuille sans sauvegarde est perdu.",
+    "usePin": "Utiliser le code PIN",
+    "useBiometrics": "Utiliser l'empreinte ou le visage",
+    "lockedTitleBiometrics": "Déverrouiller Cashonize",
+    "confirmTitleBiometrics": "Confirmez votre identité",
+    "biometricsSetupTitle": "Confirmez pour déverrouiller par biométrie",
+    "biometricsToggle": "Déverrouiller par empreinte ou visage",
+    "biometricsTurnedOn": "Déverrouillage biométrique activé"
   },
   "addressConverter": {
     "title": "Convertisseur d'adresses",

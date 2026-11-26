@@ -1297,7 +1297,14 @@
     "wrongPinTriesLeft": "PIN incorreto. Resta {count} tentativa antes da espera. | PIN incorreto. Restam {count} tentativas antes da espera.",
     "tooManyAttempts": "Muitas tentativas incorretas. Tente novamente em {time}.",
     "forgotPin": "Esqueceu o PIN?",
-    "forgotPinHint": "Um PIN não pode ser redefinido. Apague os dados deste app ou site e depois restaure as suas carteiras a partir das frases-semente. Uma carteira sem backup é perdida."
+    "forgotPinHint": "Um PIN não pode ser redefinido. Apague os dados deste app ou site e depois restaure as suas carteiras a partir das frases-semente. Uma carteira sem backup é perdida.",
+    "usePin": "Usar PIN",
+    "useBiometrics": "Usar impressão digital ou rosto",
+    "lockedTitleBiometrics": "Desbloquear o Cashonize",
+    "confirmTitleBiometrics": "Confirme que é você",
+    "biometricsSetupTitle": "Confirme para desbloquear com biometria",
+    "biometricsToggle": "Desbloquear com impressão digital ou rosto",
+    "biometricsTurnedOn": "Desbloqueio biométrico ativado"
   },
   "addressConverter": {
     "title": "Conversor de endereços",
