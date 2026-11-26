@@ -1,28 +1,28 @@
 <script setup lang="ts">
   import walletOnboardingView from 'src/components/walletOnboarding.vue'
-  import addWalletView from 'src/components/settings/addWallet.vue'
+  import addWalletView from 'src/components/wallets/addWallet.vue'
   import bchWalletView from 'src/components/bchWallet.vue'
   import myTokensView from 'src/components/myTokens.vue'
   import historyView from 'src/components/history/txHistory.vue'
-  import settingsMenu from 'src/components/settingsMenu.vue'
+  import menuPage from 'src/components/menuPage.vue'
   import DappActivityButton from 'src/components/history/dappActivityButton.vue'
   import HeaderLogo from 'src/components/general/headerLogo.vue'
   import connectDappView from 'src/components/connectDapp.vue'
-  import createTokensView from 'src/components/settings/createTokens.vue'
-  import utxoManagement from 'src/components/settings/utxoManagement.vue'
-  import sweepPrivateKey from 'src/components/settings/sweepPrivateKey.vue'
-  import signVerifyMessageView from 'src/components/settings/signVerifyMessage.vue'
-  import exportXpubView from 'src/components/settings/exportXpub.vue'
-  import transferAllAssetsView from 'src/components/settings/transferAllAssets.vue'
-  import flipstarterView from 'src/components/settings/flipstarterPledge.vue'
-  import identitiesView from 'src/components/settings/identitiesPage.vue'
-  import addressConverterView from 'src/components/settings/addressConverter.vue'
-  import faqPageView from 'src/components/settings/faqPage.vue'
+  import createTokensView from 'src/components/identities/createTokens.vue'
+  import utxoManagement from 'src/components/tools/utxoManagement.vue'
+  import sweepPrivateKey from 'src/components/tools/sweepPrivateKey.vue'
+  import signVerifyMessageView from 'src/components/tools/signVerifyMessage.vue'
+  import exportXpubView from 'src/components/tools/exportXpub.vue'
+  import transferAllAssetsView from 'src/components/tools/transferAllAssets.vue'
+  import flipstarterView from 'src/components/tools/flipstarterPledge.vue'
+  import identitiesView from 'src/components/identities/identitiesPage.vue'
+  import addressConverterView from 'src/components/tools/addressConverter.vue'
+  import faqPageView from 'src/components/faqPage.vue'
   import appLockView from 'src/components/settings/appLock.vue'
   import receivePaymentView from 'src/components/receivePayment.vue'
   import sendPaymentView from 'src/components/sendPayment.vue'
-  import hdAddressesView from 'src/components/settings/hdAddresses.vue'
-  import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
+  import hdAddressesView from 'src/components/hdAddresses.vue'
+  import aboutCashonizeView from 'src/components/aboutCashonize.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
   import { defineComponent, ref, computed, watch, watchEffect, nextTick, onMounted, onUnmounted } from 'vue'
   import { storeToRefs } from 'pinia'
@@ -91,11 +91,11 @@
   // The currentView and its viewSpecificProps are computed based on 'store.displayView'
   // and passed to a dynamic component wrapped in KeepAlive to preserve state.
   // KeepAlive stays mounted permanently so the views are cached regardless of navigation.
-  // Settings View re-renders on navigation, a placeholder component used for the KeepAlive
+  // The menu page re-renders on navigation, a placeholder component used for the KeepAlive
   const emptyView = defineComponent({ render: () => null })
   // the wallet page and the two pages its actions open
   const onWalletPage = computed(() => [1, 17, 23].includes(store.displayView ?? 0));
-  // the menu page and the pages under it, which the settings menu component renders all of
+  // the menu page and the pages under it, which the menuPage component renders all of
   const onMenuPage = computed(() => store.displayView === 5 || (store.displayView ?? 0) >= menuSectionViewBase);
   const currentView = computed(() => {
     if (onMenuPage.value) return emptyView;
@@ -320,7 +320,7 @@
     <KeepAlive>
       <component :is="currentView" v-bind="viewSpecificProps"/>
     </KeepAlive>
-    <settingsMenu v-if="onMenuPage" />
+    <menuPage v-if="onMenuPage" />
   </main>
   <nav v-if="navAtBottom" v-show="!textFieldFocused" class="bottom-nav">
     <div @click="store.changeView(1)" :class="{ active: onWalletPage }">
