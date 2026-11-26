@@ -9,18 +9,12 @@ interface BiometricPlugin {
 
 export const biometricsSupported = Boolean(import.meta.env.QUASAR_CAPACITOR_MODE)
 
-// @capacitor/core is imported here on first use, not at the top of the file: the app lock imports
-// this file on every platform, and loading @capacitor/core sets window.Capacitor, the global by
-// which Quasar tells the Android app apart. Loaded up front, web and desktop builds would carry it
-// too and stay correct only as long as Quasar happens to read the platform first.
-// The plugin is registered without a web implementation, so off Android a call rejects. It is
-// handed to `use` rather than returned: Capacitor's plugin proxy answers to `then`, so an async
-// function returning it would never settle.
+// Handed to `use` rather than returned: Capacitor's plugin proxy answers to `then`, so an async
+// function returning it would never settle
 let biometric: BiometricPlugin | undefined
 async function withPlugin<T>(use: (plugin: BiometricPlugin) => Promise<T>) {
-  // Right in front of the import, where the bundler sees it and drops the import from web and
-  // desktop builds: Quasar resolves @capacitor/core to src-capacitor/node_modules in every build
-  // mode, which only exists where the Android project was installed
+  // The check sits right at the import so the bundler drops it from web and desktop builds,
+  // which cannot resolve @capacitor/core (it lives in src-capacitor/node_modules)
   if (!import.meta.env.QUASAR_CAPACITOR_MODE) throw new Error('Biometrics are Android only')
   const { registerPlugin } = await import('@capacitor/core')
   biometric ??= registerPlugin<BiometricPlugin>('Biometric')
