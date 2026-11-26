@@ -146,10 +146,10 @@
   "onboarding": {
     "welcome": {
       "title": "Welcome to Cashonize",
-      "description": "An easy-to-use Bitcoin Cash wallet with a focus on CashTokens and BCH dApps.",
+      "description": "An easy-to-use, open-source, non-custodial Bitcoin Cash wallet.",
       "featureSendReceive": "Send & receive BCH and CashTokens",
-      "featureWalletConnect": "Connect to dApps via WalletConnect, CashConnect or WizardConnect",
-      "featureOpenSource": "Open-source and non-custodial",
+      "featureDapps": "Connect to any BCH dApp and see what it does before you sign",
+      "featurePortfolio": "See your BCH, tokens and DeFi positions valued together",
       "aboutPrompt": "New to Cashonize? {link}",
       "aboutLinkText": "Learn more about the wallet →"
     },
@@ -157,7 +157,7 @@
       "title": "Create new wallet",
       "description": "Get started with a fresh wallet in seconds",
       "button": "Create new wallet",
-      "seedPhraseNote": "A new seed phrase will be generated. Back it up to secure your wallet.",
+      "seedPhraseNote": "A new seed phrase will be generated. Only you hold it, so back it up to secure your wallet.",
       "submitButton": "Create wallet"
     },
     "import": {

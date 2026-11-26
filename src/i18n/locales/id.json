@@ -146,10 +146,10 @@
   "onboarding": {
     "welcome": {
       "title": "Selamat datang di Cashonize",
-      "description": "Dompet Bitcoin Cash yang mudah digunakan dengan fokus pada CashTokens dan dApp BCH.",
+      "description": "Dompet Bitcoin Cash open-source dan non-kustodian yang mudah digunakan.",
       "featureSendReceive": "Kirim & terima BCH dan CashTokens",
-      "featureWalletConnect": "Hubungkan ke dApp melalui WalletConnect, CashConnect atau WizardConnect",
-      "featureOpenSource": "Open-source dan non-kustodian",
+      "featureDapps": "Hubungkan ke dApp BCH mana pun dan lihat apa yang dilakukannya sebelum menandatangani",
+      "featurePortfolio": "Lihat nilai BCH, token, dan posisi DeFi Anda secara bersamaan",
       "aboutPrompt": "Baru mengenal Cashonize? {link}",
       "aboutLinkText": "Pelajari lebih lanjut tentang dompet ini →"
     },
@@ -157,7 +157,7 @@
       "title": "Buat dompet baru",
       "description": "Mulai dengan dompet baru dalam hitungan detik",
       "button": "Buat dompet baru",
-      "seedPhraseNote": "Frasa pemulihan baru akan dibuat. Cadangkan untuk mengamankan dompet Anda.",
+      "seedPhraseNote": "Frasa pemulihan baru akan dibuat. Hanya Anda yang memegangnya, jadi cadangkan untuk mengamankan dompet Anda.",
       "submitButton": "Buat dompet"
     },
     "import": {

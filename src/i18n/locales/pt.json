@@ -146,10 +146,10 @@
   "onboarding": {
     "welcome": {
       "title": "Bem-vindo ao Cashonize",
-      "description": "Uma carteira Bitcoin Cash fácil de usar, focada em CashTokens e dApps BCH.",
+      "description": "Uma carteira Bitcoin Cash fácil de usar, de código aberto e sem custódia.",
       "featureSendReceive": "Envie e receba BCH e CashTokens",
-      "featureWalletConnect": "Conecte-se a dApps via WalletConnect, CashConnect ou WizardConnect",
-      "featureOpenSource": "Código aberto e sem custódia",
+      "featureDapps": "Conecte-se a qualquer dApp de BCH e veja o que ela faz antes de assinar",
+      "featurePortfolio": "Veja seus BCH, tokens e posições DeFi avaliados em conjunto",
       "aboutPrompt": "Novo no Cashonize? {link}",
       "aboutLinkText": "Saiba mais sobre a carteira →"
     },
@@ -157,7 +157,7 @@
       "title": "Criar nova carteira",
       "description": "Comece com uma nova carteira em segundos",
       "button": "Criar nova carteira",
-      "seedPhraseNote": "Uma nova seed phrase será gerada. Faça backup para proteger sua carteira.",
+      "seedPhraseNote": "Uma nova seed phrase será gerada. Só você a possui, então faça backup para proteger sua carteira.",
       "submitButton": "Criar carteira"
     },
     "import": {

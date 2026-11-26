@@ -146,10 +146,10 @@
   "onboarding": {
     "welcome": {
       "title": "Добро пожаловать в Cashonize",
-      "description": "Простой в использовании кошелёк Bitcoin Cash с упором на CashTokens и dApp на BCH.",
+      "description": "Простой в использовании некастодиальный кошелёк Bitcoin Cash с открытым исходным кодом.",
       "featureSendReceive": "Отправка и получение BCH и CashTokens",
-      "featureWalletConnect": "Подключение к dApp через WalletConnect, CashConnect или WizardConnect",
-      "featureOpenSource": "Открытый исходный код и некастодиальность",
+      "featureDapps": "Подключение к любому dApp на BCH с проверкой его действий перед подписью",
+      "featurePortfolio": "Оценка BCH, токенов и позиций в DeFi в одном месте",
       "aboutPrompt": "Впервые в Cashonize? {link}",
       "aboutLinkText": "Подробнее о кошельке →"
     },
@@ -157,7 +157,7 @@
       "title": "Создать новый кошелёк",
       "description": "Новый кошелёк за считаные секунды",
       "button": "Создать новый кошелёк",
-      "seedPhraseNote": "Будет сгенерирована новая сид-фраза. Сделайте её резервную копию, чтобы защитить кошелёк.",
+      "seedPhraseNote": "Будет сгенерирована новая сид-фраза. Она есть только у вас, поэтому сделайте её резервную копию, чтобы защитить кошелёк.",
       "submitButton": "Создать кошелёк"
     },
     "import": {

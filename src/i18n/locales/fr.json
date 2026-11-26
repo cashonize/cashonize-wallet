@@ -146,10 +146,10 @@
   "onboarding": {
     "welcome": {
       "title": "Bienvenue sur Cashonize",
-      "description": "Un portefeuille Bitcoin Cash facile à utiliser, axé sur les CashTokens et les dApps BCH.",
+      "description": "Un portefeuille Bitcoin Cash open source, non-custodial et facile à utiliser.",
       "featureSendReceive": "Envoyez et recevez des BCH et CashTokens",
-      "featureWalletConnect": "Connectez-vous aux dApps via WalletConnect, CashConnect ou WizardConnect",
-      "featureOpenSource": "Open source et non-custodial",
+      "featureDapps": "Connectez-vous à n'importe quelle dApp BCH et voyez ce qu'elle fait avant de signer",
+      "featurePortfolio": "Voyez vos BCH, tokens et positions DeFi valorisés ensemble",
       "aboutPrompt": "Nouveau sur Cashonize ? {link}",
       "aboutLinkText": "En savoir plus sur le portefeuille →"
     },
@@ -157,7 +157,7 @@
       "title": "Créer un nouveau portefeuille",
       "description": "Commencez avec un nouveau portefeuille en quelques secondes",
       "button": "Créer un nouveau portefeuille",
-      "seedPhraseNote": "Une nouvelle phrase de récupération sera générée. Sauvegardez-la pour sécuriser votre portefeuille.",
+      "seedPhraseNote": "Une nouvelle phrase de récupération sera générée. Vous seul la détenez : sauvegardez-la pour sécuriser votre portefeuille.",
       "submitButton": "Créer le portefeuille"
     },
     "import": {

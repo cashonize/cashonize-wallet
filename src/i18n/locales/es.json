@@ -146,10 +146,10 @@
   "onboarding": {
     "welcome": {
       "title": "Bienvenido a Cashonize",
-      "description": "Una billetera de Bitcoin Cash fácil de usar, con enfoque en CashTokens y dApps de BCH.",
+      "description": "Una billetera de Bitcoin Cash fácil de usar, de código abierto y sin custodia.",
       "featureSendReceive": "Envía y recibe BCH y CashTokens",
-      "featureWalletConnect": "Conéctate a dApps mediante WalletConnect, CashConnect o WizardConnect",
-      "featureOpenSource": "Código abierto y sin custodia",
+      "featureDapps": "Conéctate a cualquier dApp de BCH y mira lo que hace antes de firmar",
+      "featurePortfolio": "Mira tus BCH, tokens y posiciones DeFi valorados en conjunto",
       "aboutPrompt": "¿Nuevo en Cashonize? {link}",
       "aboutLinkText": "Conoce más sobre la billetera →"
     },
@@ -157,7 +157,7 @@
       "title": "Crear nueva billetera",
       "description": "Comienza con una billetera nueva en segundos",
       "button": "Crear nueva billetera",
-      "seedPhraseNote": "Se generará una nueva frase semilla. Haz un respaldo para asegurar tu billetera.",
+      "seedPhraseNote": "Se generará una nueva frase semilla. Solo tú la tienes, así que haz un respaldo para asegurar tu billetera.",
       "submitButton": "Crear billetera"
     },
     "import": {

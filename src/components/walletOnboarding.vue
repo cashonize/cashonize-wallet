@@ -141,11 +141,11 @@
           </div>
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>{{ t('onboarding.welcome.featureWalletConnect') }}</span>
+            <span>{{ t('onboarding.welcome.featureDapps') }}</span>
           </div>
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>{{ t('onboarding.welcome.featureOpenSource') }}</span>
+            <span>{{ t('onboarding.welcome.featurePortfolio') }}</span>
           </div>
         </div>
       </div>
