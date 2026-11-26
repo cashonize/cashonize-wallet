@@ -15,6 +15,7 @@
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
   import CharCounter from 'src/components/general/CharCounter.vue'
   import QrCode from 'src/components/general/qrCode.vue'
+  import QrFullscreenDialog from 'src/components/general/qrFullscreenDialog.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -33,6 +34,7 @@
   const showQrDialog = ref(false);
   const qrDialogRow = ref<AddressRow | null>(null);
   const qrDialogTokenAddress = ref(false);
+  const showFullscreenQr = ref(false);
   const expandedTokensKey = ref<string | null>(null);
   const showLabelDialog = ref(false);
   const labelDialogRow = ref<AddressRow | null>(null);
@@ -215,6 +217,12 @@
     if (isMobile.value) return body.slice(0, 8) + '...' + body.slice(-6);
     return prefix + ':' + body.slice(0, 8) + '...' + body.slice(-8);
   }
+  // A phone's row cuts the start of the address in css, to the room the row has, and always
+  // shows the end
+  const addressTailLength = 6;
+  function addressBody(address: string) {
+    return address.split(':')[1] ?? address;
+  }
 
   // Rebuild when walletUtxos changes (triggers on balance/address updates)
   watchEffect(() => {
@@ -303,13 +311,12 @@
             <div class="index-badge mono">{{ row.index }}</div>
             <div class="address-info">
               <div class="address-text mono">
-                {{ truncateAddress(displayAddress(row)) }}
+                <span v-if="isMobile" class="address-fit">
+                  <span class="address-head">{{ addressBody(displayAddress(row)).slice(0, -addressTailLength) }}</span>
+                  <span>{{ addressBody(displayAddress(row)).slice(-addressTailLength) }}</span>
+                </span>
+                <template v-else>{{ truncateAddress(displayAddress(row)) }}</template>
                 <img class="copyIcon" src="images/copyGrey.svg">
-                <span v-if="isCurrentAddress(row)" class="current-tag">{{ t('hdAddresses.currentTag') }}</span>
-                <!-- both tags can show at once: with no fresh address left the wallet falls
-                     back to handing out an address that was already marked as used -->
-                <span v-if="isMarked(row)" class="marked-tag">{{ t('addressManagement.markedTag') }}</span>
-                <span v-if="isFrozen(row)" class="frozen-tag" :title="t('addressManagement.frozenTagInfo')">{{ t('addressManagement.frozenTag') }}</span>
               </div>
               <div class="address-sub">
                 <span class="mono">{{ formatNumber(satsToBch(row.spendableBalance), 8) }} {{ bchDisplayUnit }}</span>
@@ -318,6 +325,13 @@
                   {{ ' (' + formatFiatAmount(satsToBch(row.spendableBalance) * store.exchangeRate, settingsStore.currency) + ')' }}
                 </span>
                 <span class="dim">{{ ' · ' + t('hdAddresses.txCount', { count: row.txCount }) }}</span>
+                <!-- the tags sit after the details rather than the address, which leaves the
+                     address line to the address and the row's actions -->
+                <span v-if="isCurrentAddress(row)" class="current-tag mono">{{ t('hdAddresses.currentTag') }}</span>
+                <!-- both tags can show at once: with no fresh address left the wallet falls
+                     back to handing out an address that was already marked as used -->
+                <span v-if="isMarked(row)" class="marked-tag mono">{{ t('addressManagement.markedTag') }}</span>
+                <span v-if="isFrozen(row)" class="frozen-tag mono" :title="t('addressManagement.frozenTagInfo')">{{ t('addressManagement.frozenTag') }}</span>
               </div>
               <div v-if="row.reservedBalance" class="reserved-line" @click.stop>
                 <InfoPopup>
@@ -394,6 +408,9 @@
 
   <q-dialog v-model="showQrDialog" transition-show="scale" transition-hide="scale">
     <q-card class="qr-card">
+      <button type="button" class="enlarge-qr" :title="t('qrCode.enlarge')" :aria-label="t('qrCode.enlarge')" @click="showFullscreenQr = true">
+        <q-icon name="open_in_full" size="20px" />
+      </button>
       <div class="qr-frame">
         <QrCode :contents="qrDialogAddress" :label="qrDialogTokenAddress ? t('qrCode.tokenAddress') : t('qrCode.bchAddress')" class="qr-code" @click="copyToClipboard(qrDialogAddress)">
           <img :src="qrDialogTokenAddress ? 'images/tokenicon.svg' : 'images/bch-icon.svg'" alt="" />
@@ -411,6 +428,15 @@
       </div>
     </q-card>
   </q-dialog>
+
+  <QrFullscreenDialog
+    v-model="showFullscreenQr"
+    :contents="qrDialogAddress"
+    :label="qrDialogTokenAddress ? t('qrCode.tokenAddress') : t('qrCode.bchAddress')"
+    :icon-src="qrDialogTokenAddress ? 'images/tokenicon.svg' : 'images/bch-icon.svg'"
+    :caption="undefined"
+    :address="qrDialogAddress"
+  />
 
   <q-dialog v-model="showLabelDialog" @hide="saveLabel" transition-show="scale" transition-hide="scale">
     <q-card class="label-card">
@@ -465,10 +491,14 @@
   margin: 0 0 0 auto;
   padding: 4px 10px;
 }
+/* on a phone the field takes a line of its own, sharing it with the options toggle; a basis this
+   wide is what keeps it from fitting next to the tabs */
 @media (max-width: 480px) {
   .address-search {
-    flex-basis: 100%;
-    width: 100%;
+    flex: 1 1 60%;
+    width: auto;
+    min-width: 0;
+    margin-left: 0;
   }
 }
 
@@ -550,7 +580,8 @@
   color: var(--color-primary);
   border-radius: 10px;
   padding: 0 8px;
-  margin-left: 2px;
+  margin-left: 6px;
+  white-space: nowrap;
 }
 
 .frozen-tag {
@@ -558,7 +589,8 @@
   color: var(--color-frozen);
   border-radius: 10px;
   padding: 0 8px;
-  margin-left: 2px;
+  margin-left: 6px;
+  white-space: nowrap;
 }
 
 .marked-tag {
@@ -566,7 +598,8 @@
   opacity: 0.8;
   border-radius: 10px;
   padding: 0 8px;
-  margin-left: 2px;
+  margin-left: 6px;
+  white-space: nowrap;
 }
 
 .label-inline {
@@ -649,6 +682,18 @@
   align-items: center;
   gap: 4px;
 }
+/* an address cut in its middle: a few characters more than the fixed cut where the row has the
+   room, fewer where its actions need it */
+.address-fit {
+  display: flex;
+  min-width: 0;
+  max-width: 20ch;
+}
+.address-head {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* the balance shows at full strength, only the trailing details are secondary */
 .address-sub .dim {
@@ -677,6 +722,12 @@
 .qr-card {
   padding: 1.5rem;
   background-color: #fff;
+}
+/* the shared look is in app.css; here it sits in the card's corner */
+.enlarge-qr {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 body.dark .qr-card {
   background-color: var(--bg-color);
@@ -793,13 +844,12 @@ body.dark .label-card {
 }
 
 @media only screen and (max-width: 480px) {
-  /* too narrow to keep the actions next to the address, they get a centered
-     line of their own between the address and its label */
+  /* the address takes what the actions leave of the line, and is cut to fit it */
+  .address-info {
+    flex: 1 1 0;
+  }
   .card-buttons {
-    flex: 0 1 100%;
-    order: 3;
-    margin-left: 0;
-    justify-content: center;
+    flex: none;
   }
 }
 </style>

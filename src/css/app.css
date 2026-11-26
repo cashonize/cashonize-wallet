@@ -239,6 +239,17 @@ body.dark .qr-code {
 .qr-code:active {
   transform: scale(0.97);
 }
+/* the quiet button that opens a qr code over the whole screen, placed by the view that has it */
+button.enlarge-qr {
+  margin: 0;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--color-grey);
+}
+button.enlarge-qr:hover {
+  color: var(--font-color);
+}
 .depositAddr,
 .category {
   overflow-wrap: anywhere;

@@ -296,7 +296,7 @@
       </div>
       <button
         type="button"
-        class="enlargeQr"
+        class="enlarge-qr"
         :title="t('qrCode.enlarge')"
         :aria-label="t('qrCode.enlarge')"
         @click="showFullscreenQr = true"
@@ -557,18 +557,11 @@ body.dark .currencySelect option {
   margin: 12px auto 0 auto;
 }
 /* opens the code over the whole screen, from beside the frame's top corner */
-.enlargeQr {
+.enlarge-qr {
   position: absolute;
   top: 0;
   left: 100%;
-  margin: 0 0 0 6px;
-  padding: 6px;
-  border: none;
-  background: none;
-  color: var(--color-grey);
-}
-.enlargeQr:hover {
-  color: var(--font-color);
+  margin-left: 6px;
 }
 /* the chevron that opens the wallet's other addresses, at the end of the address row */
 .selectAddress {
