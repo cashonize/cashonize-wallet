@@ -19,6 +19,7 @@
   import TokenSelectDialog from 'src/components/general/tokenSelectDialog.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
   import QrCode from 'src/components/general/qrCode.vue'
+  import QrFullscreenDialog from 'src/components/general/qrFullscreenDialog.vue'
 
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -35,6 +36,7 @@
   // The amount, token and message that turn the address into a payment request stay folded away
   // until asked for: most of the time the address is all that is wanted
   const showRequestFields = ref(false);
+  const showFullscreenQr = ref(false);
   // A shallowRef, so returning to this kept-alive view does not re-activate deep reactivity
   // over the code's component
   const qrCodeRef = shallowRef<InstanceType<typeof QrCode> | null>(null);
@@ -129,6 +131,11 @@
 
   // Without an amount, token or message the code is the plain address
   const isRequest = computed(() => requestUri.value !== effectiveAddress.value);
+  const qrLabel = computed(() => {
+    if (isRequest.value) return t('qrCode.paymentRequest');
+    return t(mode.value === 'bch' ? 'qrCode.bchAddress' : 'qrCode.tokenAddress');
+  });
+  const qrIconSrc = computed(() => mode.value === 'bch' ? 'images/bch-icon.svg' : 'images/tokenicon.svg');
 
   // What the request actually asks for, restated at the moment the code is handed over
   const requestedAmountDisplay = computed(() => {
@@ -273,18 +280,29 @@
       <div class="addressHint">{{ t(mode === 'bch' ? 'receive.bchAddressHint' : 'receive.tokenAddressHint') }}</div>
     </div>
 
-    <div class="qr-frame">
-      <QrCode
-        ref="qrCodeRef"
-        :contents="requestUri"
-        :animation="settingsStore.qrAnimation"
-        :label="isRequest ? t('qrCode.paymentRequest') : t(mode === 'bch' ? 'qrCode.bchAddress' : 'qrCode.tokenAddress')"
-        @click="copyToClipboard(requestUri)"
-        @rendered="animateQrCode"
-        class="qr-code"
+    <div class="qrArea">
+      <div class="qr-frame">
+        <QrCode
+          ref="qrCodeRef"
+          :contents="requestUri"
+          :animation="settingsStore.qrAnimation"
+          :label="qrLabel"
+          @click="copyToClipboard(requestUri)"
+          @rendered="animateQrCode"
+          class="qr-code"
+        >
+          <img :src="qrIconSrc" alt="" />
+        </QrCode>
+      </div>
+      <button
+        type="button"
+        class="enlargeQr"
+        :title="t('qrCode.enlarge')"
+        :aria-label="t('qrCode.enlarge')"
+        @click="showFullscreenQr = true"
       >
-        <img :src="mode === 'bch' ? 'images/bch-icon.svg' : 'images/tokenicon.svg'" alt="" />
-      </QrCode>
+        <q-icon name="open_in_full" size="20px" />
+      </button>
     </div>
 
     <div v-if="requestedAmountDisplay" class="requestSummary">
@@ -436,6 +454,15 @@
       <div v-else class="requestHint">{{ emptyRequestHint }}</div>
     </div>
   </fieldset>
+
+  <QrFullscreenDialog
+    v-model="showFullscreenQr"
+    :contents="requestUri"
+    :label="qrLabel"
+    :icon-src="qrIconSrc"
+    :caption="requestedAmountDisplay && t('requestPayment.requesting', { amount: requestedAmountDisplay })"
+    :address="effectiveAddress"
+  />
 </template>
 
 <style scoped>
@@ -522,9 +549,26 @@ body.dark .currencySelect option {
   flex: none;
   margin-left: auto;
 }
-/* size, background and dark mode crop are shared with the address dialog, see app.css */
-.qr-frame {
+/* the frame's size, background and dark mode crop are shared with the address dialog, see
+   app.css; it clips what overflows, so the enlarge button hangs off this wrapper instead */
+.qrArea {
+  position: relative;
+  width: fit-content;
   margin: 12px auto 0 auto;
+}
+/* opens the code over the whole screen, from beside the frame's top corner */
+.enlargeQr {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin: 0 0 0 6px;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--color-grey);
+}
+.enlargeQr:hover {
+  color: var(--font-color);
 }
 /* the chevron that opens the wallet's other addresses, at the end of the address row */
 .selectAddress {

@@ -1351,7 +1351,9 @@
     "bchAddress": "QR code de l'adresse Bitcoin Cash",
     "tokenAddress": "QR code de l'adresse de token",
     "xpub": "QR code du xpub",
-    "paymentRequest": "QR code de la demande de paiement"
+    "paymentRequest": "QR code de la demande de paiement",
+    "enlarge": "Afficher le QR code en plein écran",
+    "size": "Taille du QR code"
   },
   "qrScanner": {
     "scanQrCode": "Scanner le code QR",
