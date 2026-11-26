@@ -58,7 +58,8 @@
     return toTokenAddress(requestAddress.value);
   });
 
-  const showMarkUsedAction = computed(() => settingsStore.enableAddressMarking && isHdWallet.value);
+  // Marking starts on the addresses page; a wallet that uses it gets the action here too
+  const showMarkUsedAction = computed(() => isHdWallet.value && store.addressMarks.length > 0);
 
   const bchDisplayNetwork = computed(() => store.network == "mainnet" ? 'BCH' : 'tBCH');
   const bchDisplayUnit = computed(() => {

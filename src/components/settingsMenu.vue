@@ -99,7 +99,6 @@
   const selectedAllowDappIdentitySpends = ref(settingsStore.allowDappIdentitySpends);
   const selectedTokenBurn = ref(settingsStore.tokenBurn);
   const enableQrScan = ref(settingsStore.qrScan);
-  const enableAddressMarking = ref(settingsStore.enableAddressMarking);
   const dappActivityInNav = ref(settingsStore.dappActivityInNav);
   const addressesInNav = ref(settingsStore.addressesInNav);
   const bottomNavOnMobile = ref(settingsStore.bottomNavOnMobile);
@@ -470,10 +469,6 @@
     localStorage.setItem("bottomNavOnMobile", bottomNavOnMobile.value? "true" : "false");
     settingsStore.bottomNavOnMobile = bottomNavOnMobile.value;
   }
-  function toggleEnableAddressMarking(){
-    localStorage.setItem("enableAddressMarking", enableAddressMarking.value? "true" : "false");
-    settingsStore.enableAddressMarking = enableAddressMarking.value;
-  }
   async function confirmDeleteWallets(){
     let text = t('settings.advanced.deleteAllWalletsConfirm', { platform: platformString });
     if (isPwaMode) {
@@ -684,15 +679,6 @@
         <select v-model="selectedExplorer" @change="changeBlockExplorer()">
           <option v-for="explorer in explorerOptions[activeNetwork]" :key="explorer.url" :value="explorer.url">{{ explorer.label }}</option>
         </select>
-      </div>
-
-      <div style="margin-bottom: 15px;">
-        {{ t('settings.userOptions.enableAddressMarking') }}
-        <InfoPopup style="margin-right: 6px;">
-          <div style="max-width: 300px;">{{ t('settings.userOptions.enableAddressMarkingHint') }}</div>
-          <div class="info-popup-note">{{ t('addressManagement.markAddressUsedNote') }}</div>
-        </InfoPopup>
-        <q-toggle v-model="enableAddressMarking" @update:model-value="toggleEnableAddressMarking" dense />
       </div>
     </div>
     <div v-else-if="settingsSection == 9">

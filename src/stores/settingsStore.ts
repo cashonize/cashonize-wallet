@@ -75,7 +75,7 @@ const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 export const settingsMenuKeys = [
   // user options
   "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "explorer-testnet4", "qrAnimation",
-  "enableAddressMarking", "dappActivityInNav", "bottomNavOnMobile", "addressesInNav",
+  "dappActivityInNav", "bottomNavOnMobile", "addressesInNav",
   // token settings
   "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
   "allowDappIdentitySpends",
@@ -131,7 +131,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // macro that cannot focus on a QR code held at arm's length, so the choice has to stick.
   const qrScannerCameraId = ref("");
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
-  const enableAddressMarking = ref(false);
   // the dapp activity log opens from the dapp sessions; this adds its icon to the top nav as well
   const dappActivityInNav = ref(false);
   // an HD wallet's Addresses page as a tab of the top nav; without it the page opens from the menu page
@@ -250,9 +249,17 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readQrAnimation = localStorage.getItem("qrAnimation");
   if(readQrAnimation) qrAnimation.value = readQrAnimation as QRCodeAnimationName | 'None';
 
-
-  const readEnableAddressMarking = localStorage.getItem("enableAddressMarking");
-  if(readEnableAddressMarking) enableAddressMarking.value = readEnableAddressMarking == "true";
+  // Migration: marking addresses as used was an option, and with it off the marks made earlier
+  // were kept but ignored. Marks now always apply, so those are dropped rather than brought back.
+  const oldEnableAddressMarking = localStorage.getItem("enableAddressMarking");
+  if (oldEnableAddressMarking !== null) {
+    if (oldEnableAddressMarking !== "true") {
+      Object.keys(localStorage)
+        .filter(key => key.startsWith("addressMarks-"))
+        .forEach(key => localStorage.removeItem(key));
+    }
+    localStorage.removeItem("enableAddressMarking");
+  }
 
   const readAddressesInNav = localStorage.getItem("addressesInNav");
   if(readAddressesInNav) addressesInNav.value = readAddressesInNav == "true";
@@ -661,7 +668,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     qrScan,
     qrScannerCameraId,
     qrAnimation,
-    enableAddressMarking,
     dappActivityInNav,
     addressesInNav,
     bottomNavOnMobile,

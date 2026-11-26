@@ -357,11 +357,9 @@ export const useStore = defineStore('store', () => {
   }
 
   // What the receive address skips: the frozen addresses, a payment to which could not be spent
-  // from here, the pinned ones, which are already given out, and the marked ones while marking is on
+  // from here, the pinned ones, which are already given out, and the marked ones
   function skippedReceiveAddresses() {
-    const skipped = [...frozenAddresses.value, ...pinnedAddresses.value];
-    if (settingsStore.enableAddressMarking) skipped.push(...addressMarks.value);
-    return skipped;
+    return [...frozenAddresses.value, ...pinnedAddresses.value, ...addressMarks.value];
   }
 
   // Index of the receive address shown on the wallet page. For HD wallets this skips the marked,
@@ -372,10 +370,10 @@ export const useStore = defineStore('store', () => {
     // rawHistory and walletCache below sit outside Vue reactivity, walletUtxos is the
     // signal that they advanced (see walletHasAddress)
     void walletUtxos.value;
-    // marks are kept but ignored while the setting is off, so with nothing frozen or pinned the
-    // wallet hands out the same address it would have without these features
+    // with nothing marked, frozen or pinned the pick is the library's, the address the wallet
+    // would hand out without these features
     const skippedAddresses = skippedReceiveAddresses();
-    if (!settingsStore.enableAddressMarking && !skippedAddresses.length) return undefined;
+    if (!skippedAddresses.length) return undefined;
     const index = freshReceiveIndex(skippedAddresses);
     if (index !== undefined) return index;
     // with every address in the window skipped, a marked or pinned one is still better than a frozen one

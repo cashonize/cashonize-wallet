@@ -18,7 +18,7 @@ const keptKeys = [
   "walletMetadata", "walletBackupStatus", "seedBackedUp",
   "featuredTokens", "hiddenTokens", "tokenDisplayFilter", "fiatValueHistory", "showBalanceInHistory",
   "qrScannerCameraId", "pwaInstalled",
-  "hideBalanceColumn", "chaingraph", "authchains",
+  "hideBalanceColumn", "chaingraph", "authchains", "enableAddressMarking",
 ]
 
 const stored: Record<string, string> = {}

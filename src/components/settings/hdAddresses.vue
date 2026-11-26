@@ -37,16 +37,14 @@
   const showLabelDialog = ref(false);
   const labelDialogRow = ref<AddressRow | null>(null);
   const labelDraft = ref("");
-  // Like the other options this is not remembered, but it cannot be off while an address is
-  // frozen: the freeze applies regardless, and an off switch would read as nothing being frozen
-  const freezeOption = ref(store.frozenAddresses.length > 0);
-  const anyAddressFrozen = computed(() => store.frozenAddresses.length > 0);
-  const showFreezeButtons = computed(() => freezeOption.value || anyAddressFrozen.value);
 
-  // Same for the pin buttons: an address stays pinned regardless, so its unpin button has to show
-  const pinOption = ref(store.pinnedAddresses.length > 0);
-  const anyAddressPinned = computed(() => store.pinnedAddresses.length > 0);
-  const showPinButtons = computed(() => pinOption.value || anyAddressPinned.value);
+  // A click outside an open row menu closes it on the press, and its release then lands on a row
+  // as a click: that one is the dismissal, not a wish to copy the row's address
+  const menuClosedAt = ref(0);
+  function copyRowAddress(row: AddressRow) {
+    if (Date.now() - menuClosedAt.value < 500) return;
+    copyToClipboard(displayAddress(row));
+  }
 
   function isPinned(row: AddressRow): boolean {
     return store.pinnedAddresses.includes(row.address);
@@ -57,13 +55,15 @@
     else store.pinAddress(row.address);
   }
 
-  // Marks are kept but ignored while the setting is off, which also drops the tag,
-  // the unmark button and the grouping of marked addresses under used
   function isMarked(row: AddressRow): boolean {
-    return settingsStore.enableAddressMarking && store.addressMarks.includes(row.address);
+    return store.addressMarks.includes(row.address);
   }
 
-  // Unlike marks a freeze is never ignored, so its tag shows whatever the settings say
+  // Marking is for an address that was handed out and not yet paid to
+  function canMark(row: AddressRow): boolean {
+    return selectedChain.value === "receiving" && row.txCount === 0 && !isMarked(row);
+  }
+
   function isFrozen(row: AddressRow): boolean {
     return store.frozenAddresses.includes(row.address);
   }
@@ -261,14 +261,6 @@
       <div class="option-item">
         {{ t('hdAddresses.showTokenAddresses') }} <q-toggle v-model="showTokenAddresses" dense />
       </div>
-      <div class="option-item" :title="anyAddressFrozen ? t('addressManagement.freezeOptionLocked') : undefined">
-        {{ t('addressManagement.freezeOption') }}
-        <q-toggle :model-value="showFreezeButtons" :disable="anyAddressFrozen" dense @update:model-value="(value: boolean) => freezeOption = value" />
-      </div>
-      <div class="option-item" :title="anyAddressPinned ? t('addressManagement.pinOptionLocked') : undefined">
-        {{ t('addressManagement.pinOption') }}
-        <q-toggle :model-value="showPinButtons" :disable="anyAddressPinned" dense @update:model-value="(value: boolean) => pinOption = value" />
-      </div>
     </div>
 
     <div class="intro">
@@ -281,8 +273,8 @@
           </div>
         </InfoPopup>
       </div>
-      <!-- marking only applies to receiving addresses, so it is only explained there -->
-      <div v-if="settingsStore.enableAddressMarking && selectedChain === 'receiving'">
+      <!-- marking only applies to receiving addresses, and is explained once it is in use -->
+      <div v-if="store.addressMarks.length && selectedChain === 'receiving'">
         {{ t('addressManagement.markingIntro') }}
         <InfoPopup>
           <div style="max-width: 320px;">
@@ -306,7 +298,7 @@
             class="address-item"
             :class="{ current: isCurrentAddress(row), expanded: isTokensExpanded(row) }"
             :title="displayAddress(row)"
-            @click="copyToClipboard(displayAddress(row))"
+            @click="copyRowAddress(row)"
           >
             <div class="index-badge mono">{{ row.index }}</div>
             <div class="address-info">
@@ -353,42 +345,33 @@
               <span v-if="hasTokens(row)" class="tokens-button" :title="t('hdAddresses.tokenCount', tokenCategoryCount(row))" @click.stop="toggleTokens(row)">
                 <q-icon name="expand_more" class="chevron" :class="{ open: isTokensExpanded(row) }" size="22px" />
               </span>
-              <span class="label-button" :title="t('addressManagement.editLabel')" @click.stop="openLabelDialog(row)">
-                <q-icon name="edit" size="20px" />
-              </span>
-              <span
-                v-if="settingsStore.enableAddressMarking && selectedChain === 'receiving' && row.txCount === 0 && !isMarked(row)"
-                class="mark-button"
-                :title="t('addressManagement.markAddressUsed')"
-                @click.stop="store.markAddressUsed(row.address)"
-              >
-                <q-icon name="archive" size="22px" />
-              </span>
-              <span
-                v-if="isMarked(row)"
-                class="mark-button"
-                :title="t('addressManagement.unmarkAddressUsed')"
-                @click.stop="store.unmarkAddressUsed(row.address)"
-              >
-                <q-icon name="unarchive" size="22px" />
-              </span>
-              <span
-                v-if="showFreezeButtons && canToggleFreeze(row)"
-                class="mark-button"
-                :class="{ frozen: isFrozen(row) }"
-                :title="isFrozen(row) ? t('addressManagement.unfreezeAddress') : t('addressManagement.freezeAddress')"
-                @click.stop="toggleFreeze(row)"
-              >
-                <q-icon name="ac_unit" size="22px" />
-              </span>
-              <span
-                v-if="showPinButtons && selectedChain === 'receiving'"
-                class="mark-button"
-                :class="{ pinned: isPinned(row) }"
-                :title="isPinned(row) ? t('addressManagement.unpinAddress') : t('addressManagement.pinAddress')"
-                @click.stop="togglePin(row)"
-              >
-                <q-icon name="push_pin" size="22px" />
+              <!-- what is done to an address now and then sits behind one button -->
+              <span class="menu-button" role="button" :title="t('addressManagement.moreActions')" :aria-label="t('addressManagement.moreActions')" @click.stop>
+                <q-icon name="more_vert" size="22px" />
+                <q-menu anchor="bottom right" self="top right" @before-hide="menuClosedAt = Date.now()">
+                  <q-list dense class="address-menu">
+                    <q-item clickable v-close-popup @click="openLabelDialog(row)">
+                      <q-item-section side><q-icon name="edit" size="20px" /></q-item-section>
+                      <q-item-section>{{ t('addressManagement.editLabel') }}</q-item-section>
+                    </q-item>
+                    <q-item v-if="canMark(row)" clickable v-close-popup @click="store.markAddressUsed(row.address)">
+                      <q-item-section side><q-icon name="archive" size="20px" /></q-item-section>
+                      <q-item-section>{{ t('addressManagement.markAddressUsed') }}</q-item-section>
+                    </q-item>
+                    <q-item v-if="isMarked(row)" clickable v-close-popup @click="store.unmarkAddressUsed(row.address)">
+                      <q-item-section side><q-icon name="unarchive" size="20px" /></q-item-section>
+                      <q-item-section>{{ t('addressManagement.unmarkAddressUsed') }}</q-item-section>
+                    </q-item>
+                    <q-item v-if="canToggleFreeze(row)" clickable v-close-popup @click="toggleFreeze(row)">
+                      <q-item-section side><q-icon name="ac_unit" size="20px" :class="{ 'frozen-icon': isFrozen(row) }" /></q-item-section>
+                      <q-item-section>{{ isFrozen(row) ? t('addressManagement.unfreezeAddress') : t('addressManagement.freezeAddress') }}</q-item-section>
+                    </q-item>
+                    <q-item v-if="selectedChain === 'receiving'" clickable v-close-popup @click="togglePin(row)">
+                      <q-item-section side><q-icon name="push_pin" size="20px" :class="{ 'pinned-icon': isPinned(row) }" /></q-item-section>
+                      <q-item-section>{{ isPinned(row) ? t('addressManagement.unpinAddress') : t('addressManagement.pinAddress') }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
               </span>
               <span class="qr-button" @click.stop="openQrDialog(row)">
                 <q-icon name="qr_code_2" size="22px" />
@@ -619,34 +602,28 @@
 .qr-button,
 .history-button,
 .tokens-button,
-.label-button,
-.mark-button {
+.menu-button {
   display: inline-flex;
   align-items: center;
   opacity: 0.6;
 }
 
-/* wide enough for the inline label, so the dialog button is only for narrow screens */
-.label-button {
-  display: none;
-}
-
 .qr-button:hover,
 .history-button:hover,
 .tokens-button:hover,
-.label-button:hover,
-.mark-button:hover {
+.menu-button:hover {
   opacity: 1;
 }
 
-.mark-button.frozen {
+.address-menu {
+  min-width: 200px;
+}
+/* an action that would undo a state shows the icon in that state's colour */
+.frozen-icon {
   color: var(--color-frozen);
-  opacity: 1;
 }
-
-.mark-button.pinned {
+.pinned-icon {
   color: var(--color-primary);
-  opacity: 1;
 }
 
 .tokens-button .chevron {
@@ -802,9 +779,6 @@ body.dark .label-card {
   /* no hover on touch screens, adding labels happens in the label dialog */
   .label-inline.inline-edit-add {
     display: none;
-  }
-  .label-button {
-    display: inline-flex;
   }
 }
 

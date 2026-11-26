@@ -508,4 +508,16 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
     expect(store.pinnedAddresses).not.toContain(addressAt(0, 20))
     expect(store.currentDepositAddress).toBe(addressAt(0, 20))
   })
+
+  // a marked address was handed to a payer who has not paid yet
+  it('hands out the next address once the current one is marked as used, and the marked one again when unmarked', async () => {
+    const { store, addressAt } = await storeWithHdWallet()
+
+    store.markAddressUsed(addressAt(0, 1))
+    expect(store.addressMarks).toContain(addressAt(0, 1))
+    expect(store.currentDepositAddress).toBe(addressAt(0, 2))
+
+    store.unmarkAddressUsed(addressAt(0, 1))
+    expect(store.currentDepositAddress).toBe(addressAt(0, 1))
+  })
 })
