@@ -28,10 +28,13 @@ export const useAppLockStore = defineStore('appLock', () => {
     else localStorage.removeItem(biometricsKey)
     biometrics.value = on
   }
-  // The device's prompt, which a press of its button leaves for the PIN; false when not passed
+  // The device's prompt, which a press of its button leaves for the PIN; false when not passed.
+  // Passing it shows the owner is there, so it also clears the wrong PINs typed before.
   async function passBiometrics(title: string) {
     if (!biometrics.value) return false
-    return await verifyBiometrics(title, t('appLock.usePin'))
+    const passed = await verifyBiometrics(title, t('appLock.usePin'))
+    if (passed) saveAttempts({ failed: 0, retryAt: 0 })
+    return passed
   }
 
   // Kept in storage, so that reloading the app does not hand out fresh tries, and read again
@@ -99,10 +102,11 @@ export const useAppLockStore = defineStore('appLock', () => {
 
   // Asks for the PIN in a dialog before something sensitive. Resolves true right away without a
   // lock, and false when the user backs out. With biometrics on, their prompt comes first and
-  // leaving it opens the PIN dialog.
-  async function confirmPin() {
+  // leaving it opens the PIN dialog; changing or removing the lock itself asks for the typed PIN,
+  // so a fingerprint enrolled on the device since cannot replace it.
+  async function confirmPin(allowBiometrics = true) {
     if (!enabled.value) return true
-    if (await passBiometrics(t('appLock.confirmTitleBiometrics'))) return true
+    if (allowBiometrics && await passBiometrics(t('appLock.confirmTitleBiometrics'))) return true
     // loaded here, so the stores asking for a PIN do not import a component
     const { default: pinDialog } = await import('src/components/general/pinDialog.vue')
     return new Promise<boolean>((resolve) => {

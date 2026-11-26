@@ -74,18 +74,18 @@
       appLock.setBiometrics(false)
       return
     }
-    if (!await appLock.confirmPin()) return
+    if (!await appLock.confirmPin(false)) return
     if (!await verifyBiometrics(t('appLock.biometricsSetupTitle'), t('appLock.cancel'))) return
     appLock.setBiometrics(true)
     Notify.create({ type: 'positive', message: t('appLock.biometricsTurnedOn') })
   }
 
   async function startChange() {
-    if (await appLock.confirmPin()) changing.value = true
+    if (await appLock.confirmPin(false)) changing.value = true
   }
 
   async function turnOff() {
-    if (!await appLock.confirmPin()) return
+    if (!await appLock.confirmPin(false)) return
     appLock.removePin()
     resetForm()
     Notify.create({ type: 'positive', message: t('appLock.turnedOff') })
