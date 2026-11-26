@@ -99,6 +99,8 @@ BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for authchain i
 
 Cashonize fetches token metadata from the Paytaca BCMR indexer (https://github.com/paytaca/bcmr-indexer) rather than importing full BCMR registry files. The `fetchTokenMetadata` function in `storeUtils.ts` handles this, and the codebase operates on the indexer's response types (`BcmrTokenMetadata`) directly, not full BCMR `Registry` objects. Like blockchain data (see Electrum Trust Model), token metadata is trusted as served: the token displays do not resolve or verify on-chain registries themselves. The indexer indexes token identities only (its identity records root at a token genesis and every route is keyed by category), so a BCH-only identity never enters it; the identities page resolves and verifies any identity's registry from its own publication instead, see Authchain Identities. The setting is therefore the "token metadata indexer" (`tokenMetadataIndexer` in code, with the old `bcmrIndexer*` localStorage keys kept as they are).
 
+Metadata arrives after the coins and transactions it describes and changes how they read (a token amount is counted in the token's decimals), so a view either lets it fill in or holds an amount back until that token's lookup has answered.
+
 ### Parsable NFTs
 When the indexer returns `nft_type: "parsable"` with `token.nfts` parse info (bytecode, types, fields), the wallet runs the parsing bytecode locally in a libauth VM to extract and display structured data from NFT commitments.
 

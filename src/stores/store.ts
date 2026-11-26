@@ -237,6 +237,8 @@ export const useStore = defineStore('store', () => {
   // Set once the opening fetch for the held tokens has landed. The views wait on this rather than on
   // the registries, which a smaller fetch, such as the history's, can start filling first
   const tokenMetadataLoaded = ref(false);
+  // The categories a metadata lookup has come back for, with metadata, without, or failed
+  const answeredMetadataCategories = ref(new Set<string>());
   const cauldronPrices = ref<Record<string, CauldronPriceData> | null>(null);
   // Cauldron liquidity pools owned by the wallet, null until the portfolio view looks them up
   const cauldronPools = ref<CauldronPool[] | null>(null);
@@ -1003,6 +1005,7 @@ export const useStore = defineStore('store', () => {
     pendingHistorySearch.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = {};
+    answeredMetadataCategories.value = new Set();
     tokenMetadataLoaded.value = false;
     queriedHistoryCategories = [];
     cauldronPrices.value = null;
@@ -1324,9 +1327,6 @@ export const useStore = defineStore('store', () => {
   // Categories already queried for history metadata this session, so categories without
   // a BCMR record aren't re-queried on every history refresh (cachedFetch only caches successful lookups)
   let queriedHistoryCategories: string[] = [];
-  // The fetches under way for those categories. The history view shows its rows meanwhile; the
-  // wallet page's few rows wait for them, rather than show a token amount that then changes.
-  const historyMetadataFetches = ref(0);
   // Without a count, a refresh of what is loaded: the newest page, merged into the full history once
   // that is loaded; the refreshes of a send or receive, one or two per event, share one load
   // Resolves to the history items fetched, also when a newer load replaced them in walletHistory
@@ -1355,25 +1355,7 @@ export const useStore = defineStore('store', () => {
       if (count < 0) allHistoryLoaded = initialization;
       // a full load is complete by definition, and a merged one is kept so until the next open
       isHistoryPartial.value = !merge && count > 0 && history.length < rawHistory.length;
-      // Fetch metadata for history tokens no longer in the wallet, so their names, icons
-      // and decimals still display. Fire-and-forget: history renders right away and the
-      // metadata fills in reactively. Held tokens are left to the wallet's own fetch: while that is
-      // loading, this category-only answer could land after it and drop their NFTs' metadata.
-      const missingCategories: string[] = [];
-      for (const tx of history) {
-        for (const tokenChange of tx.tokenAmountChanges) {
-          const category = tokenChange.category;
-          if (bcmrRegistries.value?.[category] || queriedHistoryCategories.includes(category)) continue;
-          if (allTokenList.value?.some(token => token.category === category)) continue;
-          queriedHistoryCategories.push(category);
-          missingCategories.push(category);
-        }
-      }
-      if (missingCategories.length) {
-        historyMetadataFetches.value++;
-        void fetchTokenMetadata(missingCategories.map(category => ({ category, amount: 0n })), false)
-          .finally(() => { historyMetadataFetches.value--; });
-      }
+      fetchHistoryTokenMetadata(history);
       return history;
     } catch(error){
       console.error(error)
@@ -1384,6 +1366,26 @@ export const useStore = defineStore('store', () => {
         icon: 'warning',
         color: "red"
       })
+    }
+  }
+
+  // Fetch metadata for history tokens no longer in the wallet, so their names, icons
+  // and decimals still display. Fire-and-forget: history renders right away and the
+  // metadata fills in reactively. Held tokens are left to the wallet's own fetch: while that is
+  // loading, this category-only answer could land after it and drop their NFTs' metadata.
+  function fetchHistoryTokenMetadata(history: TransactionHistoryItem[]) {
+    const missingCategories: string[] = [];
+    for (const tx of history) {
+      for (const tokenChange of tx.tokenAmountChanges) {
+        const category = tokenChange.category;
+        if (bcmrRegistries.value?.[category] || queriedHistoryCategories.includes(category)) continue;
+        if (allTokenList.value?.some(token => token.category === category)) continue;
+        queriedHistoryCategories.push(category);
+        missingCategories.push(category);
+      }
+    }
+    if (missingCategories.length) {
+      void fetchTokenMetadata(missingCategories.map(category => ({ category, amount: 0n })), false);
     }
   }
 
@@ -1460,7 +1462,15 @@ export const useStore = defineStore('store', () => {
 
   // Fetch token metadata from BCMR indexer
   async function fetchTokenMetadata(tokenList: TokenList, fetchNftInfo: boolean) {
-    await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, tokenMetadataIndexer.value, bcmrRegistries.value);
+    const registries = bcmrRegistries.value;
+    try {
+      await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, tokenMetadataIndexer.value, registries);
+    } finally {
+      // an answer for registries replaced meanwhile says nothing about the new ones
+      if (registries === bcmrRegistries.value) {
+        for (const token of tokenList) answeredMetadataCategories.value.add(token.category);
+      }
+    }
   }
 
   // The opening fetch, for every token the wallet holds
@@ -1475,9 +1485,12 @@ export const useStore = defineStore('store', () => {
   // Before the wallet's coins are read, the initialization's own load covers it.
   function reloadTokenMetadata() {
     bcmrRegistries.value = {};
+    answeredMetadataCategories.value = new Set();
     tokenMetadataLoaded.value = false;
     queriedHistoryCategories = [];
-    if (allTokenList.value) void loadTokenMetadata();
+    if (!allTokenList.value) return;
+    void loadTokenMetadata();
+    if (walletHistory.value) fetchHistoryTokenMetadata(walletHistory.value);
   }
 
   // Fetch BCH exchange rate for fiat display
@@ -2201,6 +2214,7 @@ export const useStore = defineStore('store', () => {
     chaingraph,
     bcmrRegistries,
     tokenMetadataLoaded,
+    answeredMetadataCategories,
     reloadTokenMetadata,
     cauldronPrices,
     cauldronPools,
@@ -2241,7 +2255,6 @@ export const useStore = defineStore('store', () => {
     loadAllHistory,
     ensureFullHistory,
     loadingFullHistory,
-    historyMetadataFetches,
     indexedTransactions,
     toggleFavorite,
     toggleHidden,

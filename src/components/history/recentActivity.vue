@@ -17,14 +17,9 @@
   const { t } = useI18n()
 
   const recentCount = 3;
-  // Rows that carry a token amount wait for the metadata it is read with, the decimals above all:
-  // the held tokens' own load, and the fetch for tokens that only the history still names
-  const recentTransactions = computed(() => {
-    const recent = store.walletHistory?.slice(0, recentCount);
-    const tokenMetadataPending = !store.tokenMetadataLoaded || store.historyMetadataFetches > 0;
-    if (tokenMetadataPending && recent?.some(transaction => transaction.tokenAmountChanges.length)) return undefined;
-    return recent;
-  });
+  // The rows show as soon as the history is in. A token chip waits for its own token's metadata,
+  // the decimals above all, so no amount changes under the eye.
+  const recentTransactions = computed(() => store.walletHistory?.slice(0, recentCount));
   const shownTransactions = computed(() => settingsStore.hideBalances ? [] : recentTransactions.value);
   const selectedTransaction = ref(undefined as TransactionHistoryItem | undefined);
 
@@ -85,13 +80,19 @@
       </span>
       <span v-if="transaction.tokenAmountChanges.length" class="recentTokens">
         <span class="token-chip" v-for="chip in tokenChangeChips(transaction, store.bcmrRegistries)" :key="chip.key">
-          <TokenIcon
-            :token-id="chip.category"
-            :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
-            :size="22"
-          />
-          <span class="recentChipAmount" :class="chip.negative ? 'negative' : 'positive'">{{ chip.amountText }}</span>
-          <span class="chip-symbol">{{ chip.symbol }}</span>
+          <template v-if="store.answeredMetadataCategories.has(chip.category)">
+            <TokenIcon
+              :token-id="chip.category"
+              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
+              :size="22"
+            />
+            <span class="recentChipAmount" :class="chip.negative ? 'negative' : 'positive'">{{ chip.amountText }}</span>
+            <span class="chip-symbol">{{ chip.symbol }}</span>
+          </template>
+          <template v-else>
+            <span class="chipIconPlaceholder"></span>
+            <span class="placeholder-bar" style="width: 7em;"></span>
+          </template>
         </span>
       </span>
     </button>
@@ -137,6 +138,13 @@
   color: grey;
 }
 .placeholderMark {
+  background-color: var(--surface-strong);
+}
+/* the room of a chip's token icon */
+.chipIconPlaceholder {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
   background-color: var(--surface-strong);
 }
 .recentItem {
