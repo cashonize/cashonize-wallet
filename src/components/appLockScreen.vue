@@ -3,10 +3,9 @@
   import { onMounted, onUnmounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAppLockStore } from 'src/stores/appLockStore'
-  import { useSettingsStore } from 'src/stores/settingsStore'
   import PinEntry from './general/PinEntry.vue'
+  import HeaderLogo from './general/headerLogo.vue'
   const appLock = useAppLockStore()
-  const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
   const screen = ref<HTMLElement>()
@@ -52,17 +51,17 @@
 <template>
   <Teleport to="body">
   <div ref="screen" class="lock-screen" @click.self="pinEntry?.focus()">
-    <img class="lock-logo" :src="settingsStore.darkMode ? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize">
+    <HeaderLogo />
     <div class="lock-card">
       <span class="lock-badge"><q-icon name="lock" size="28px" /></span>
       <div class="lock-title">{{ t('appLock.lockedTitle') }}</div>
       <PinEntry ref="pinEntry" :check="appLock.unlock" :submit-label="t('appLock.unlockButton')" />
-      <span v-if="appLock.biometrics" class="action-link lock-biometrics" @click="tryBiometrics()">
+      <span v-if="appLock.biometrics" class="lock-link lock-biometrics" @click="tryBiometrics()">
         <q-icon name="fingerprint" size="20px" /> {{ t('appLock.useBiometrics') }}
       </span>
     </div>
     <div class="lock-forgot">
-      <span class="action-link lock-forgot-link" @click="showForgot = !showForgot">{{ t('appLock.forgotPin') }}</span>
+      <span class="lock-link lock-forgot-link" @click="showForgot = !showForgot">{{ t('appLock.forgotPin') }}</span>
       <div v-if="showForgot" class="description">{{ t('appLock.forgotPinHint') }}</div>
     </div>
   </div>
@@ -78,14 +77,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 9vh 20px 20px;
+  /* the logo stands where the wallet page's header has it, so unlocking does not move it */
+  padding: calc(15px + var(--safe-area-inset-top, 0px)) 20px 20px;
   overflow-y: auto;
   background: var(--bg-color);
   color: var(--font-color);
-}
-.lock-logo {
-  width: 200px;
-  max-width: 60vw;
 }
 .lock-card {
   display: flex;
@@ -93,7 +89,7 @@
   align-items: center;
   width: 100%;
   max-width: 340px;
-  margin-top: 36px;
+  margin-top: 7vh;
   padding: 26px 20px 22px;
   border: 1px solid var(--surface-line);
   border-radius: 12px;
@@ -113,6 +109,13 @@
   font-weight: 600;
   text-align: center;
 }
+/* the quiet ways around the PIN field: the unlock button is the one thing in the brand colour */
+.lock-link {
+  cursor: pointer;
+}
+.lock-link:hover {
+  text-decoration: underline;
+}
 .lock-biometrics {
   display: inline-flex;
   align-items: center;
@@ -130,6 +133,7 @@
 .lock-forgot-link {
   display: inline-block;
   padding: 12px 16px;
+  color: grey;
 }
 .lock-forgot .description {
   margin-top: 0;
