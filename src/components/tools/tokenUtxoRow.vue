@@ -9,7 +9,7 @@
   import InfoPopup from 'src/components/general/InfoPopup.vue'
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue'
   import TokenIcon from 'src/components/general/TokenIcon.vue'
-  import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue'
+  import utxoRowStatus from 'src/components/tools/utxoRowStatus.vue'
   import { copyToClipboard, formatBch, formatTokenAmount, truncateAddressBody, truncateHash } from 'src/utils/utils'
   import { isFeatureReservation, outpointOf } from 'src/utils/wallet/reservedUtxos'
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels'

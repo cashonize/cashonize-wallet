@@ -5,8 +5,8 @@
   import { copyToClipboard, formatBch, formatBchAmount, formatFiatAmount, formatNumber, getFungibleTokenBalances, getTokenUtxos, satsToBch, truncateAddressBody, truncateHash } from 'src/utils/utils';
   import EmojiItem from 'src/components/general/emojiItem.vue';
   import InfoPopup from 'src/components/general/InfoPopup.vue';
-  import utxoRowStatus from 'src/components/settings/utxoRowStatus.vue';
-  import tokenUtxoRow from 'src/components/settings/tokenUtxoRow.vue';
+  import utxoRowStatus from 'src/components/tools/utxoRowStatus.vue';
+  import tokenUtxoRow from 'src/components/tools/tokenUtxoRow.vue';
   import TokenIcon from 'src/components/general/TokenIcon.vue';
   import { HDWallet, TokenSendRequest } from '@cashonize/bch-wallet-lib';
   import type { Utxo } from '@cashonize/bch-wallet-lib';
@@ -15,7 +15,7 @@
   import { maxUtxoLabelLength } from 'src/utils/wallet/utxoLabels';
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers';
   import { CancelledError, displayAndLogError } from 'src/utils/errorHandling';
-  import SendUtxoDialog from 'src/components/settings/sendUtxoDialog.vue';
+  import SendUtxoDialog from 'src/components/tools/sendUtxoDialog.vue';
   import InlineTextEdit from 'src/components/general/InlineTextEdit.vue';
   import { useStore } from 'src/stores/store'
   import { useQuasar } from 'quasar'

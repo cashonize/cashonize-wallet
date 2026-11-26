@@ -2,7 +2,7 @@
   import BackRow from 'src/components/general/BackRow.vue'
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
-  import EmojiItem from '../general/emojiItem.vue'
+  import EmojiItem from './general/emojiItem.vue'
   const store = useStore()
   const { t } = useI18n()
 
