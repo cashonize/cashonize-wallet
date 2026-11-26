@@ -284,7 +284,9 @@
   display: flex;
   justify-content: center;
   gap: clamp(16px, 8vw, 40px);
-  margin-bottom: 4px;
+  /* The labels under the circles would otherwise sit close on the heading below. This margin and
+     the heading's own top one collapse into the larger of the two, so this is the whole gap. */
+  margin-bottom: 34px;
 }
 /* on a phone an icon in a tinted circle over its label, not chota's grey button */
 .walletAction {
@@ -323,6 +325,7 @@
 @media (min-width: 600px) {
   .walletActions {
     gap: 12px;
+    margin-bottom: 4px;
   }
   .walletAction {
     flex-direction: row;
@@ -380,6 +383,13 @@ body.dark .portfolioLink {
   .walletName {
     max-width: calc(100% - 60px);
     font-size: 1.05em;
+  }
+  /* a BCH amount with all its decimals and its unit on one line, with the eye's room beside it */
+  .balanceMain {
+    font-size: 2em;
+  }
+  .balanceLines {
+    padding: 0 28px;
   }
 }
 </style>
