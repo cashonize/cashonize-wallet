@@ -1623,6 +1623,7 @@
       "themeDark": "Oscuro",
       "walletPageHeading": "Página de la billetera",
       "primaryBalance": "Saldo principal:",
+      "greenActionButtons": "Botones Recibir, Escanear y Enviar en verde",
       "navigationHeading": "Navegación",
       "qrHeading": "Código QR",
       "addressesInNav": "Mostrar la pestaña Direcciones en la navegación superior",

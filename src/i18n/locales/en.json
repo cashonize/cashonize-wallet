@@ -1623,6 +1623,7 @@
       "themeDark": "Dark",
       "walletPageHeading": "Wallet page",
       "primaryBalance": "Main balance:",
+      "greenActionButtons": "Green Receive, Scan and Send buttons",
       "navigationHeading": "Navigation",
       "qrHeading": "QR code",
       "addressesInNav": "Show the Addresses tab in the top navigation",

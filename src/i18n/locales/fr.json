@@ -1623,6 +1623,7 @@
       "themeDark": "Sombre",
       "walletPageHeading": "Page du portefeuille",
       "primaryBalance": "Solde principal :",
+      "greenActionButtons": "Boutons Recevoir, Scanner et Envoyer en vert",
       "navigationHeading": "Navigation",
       "qrHeading": "Code QR",
       "addressesInNav": "Afficher l'onglet Adresses dans la navigation supérieure",

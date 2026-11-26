@@ -103,6 +103,7 @@
   const addressesInNav = ref(settingsStore.addressesInNav);
   const bottomNavOnMobile = ref(settingsStore.bottomNavOnMobile);
   const primaryBalance = ref(settingsStore.primaryBalance);
+  const greenActionButtons = ref(settingsStore.greenActionButtons);
   // advanced settings, for the active network's options: opening a wallet of another network
   // leaves this view, so the network is the same for as long as it is open
   const activeNetwork = store.network;
@@ -466,6 +467,10 @@
     localStorage.setItem("dappActivityInNav", dappActivityInNav.value? "true" : "false");
     settingsStore.dappActivityInNav = dappActivityInNav.value;
   }
+  function toggleGreenActionButtons(){
+    localStorage.setItem("greenActionButtons", greenActionButtons.value? "true" : "false");
+    settingsStore.greenActionButtons = greenActionButtons.value;
+  }
   function changePrimaryBalance(){
     localStorage.setItem("primaryBalance", primaryBalance.value);
     settingsStore.primaryBalance = primaryBalance.value;
@@ -699,6 +704,10 @@
           <option value="bch">BCH</option>
           <option value="fiat">{{ CurrencyShortNames[settingsStore.currency] }}</option>
         </select>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        {{ t('settings.userOptions.greenActionButtons') }} <q-toggle v-model="greenActionButtons" @update:model-value="toggleGreenActionButtons" dense />
       </div>
 
       <div style="font-weight: 600; margin: 25px 0 15px;">{{ t('settings.userOptions.navigationHeading') }}</div>

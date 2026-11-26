@@ -153,7 +153,7 @@
         }) }}
       </div>
     </div>
-    <div class="walletActions">
+    <div class="walletActions" :class="{ green: settingsStore.greenActionButtons }">
       <button type="button" class="walletAction" @click="store.changeView(17)">
         <span class="walletActionIcon"><q-icon name="arrow_downward" size="22px" /></span>
         {{ t('receive.title') }}
@@ -288,7 +288,9 @@
      the heading's own top one collapse into the larger of the two, so this is the whole gap. */
   margin-bottom: 34px;
 }
-/* on a phone an icon in a tinted circle over its label, not chota's grey button */
+/* On a phone an icon in an outlined circle over its label, not chota's grey button. Outlined in
+   the text's colour rather than tinted green: a green circle with an arrow is what marks a
+   received transaction in the list below. */
 .walletAction {
   display: flex;
   flex-direction: column;
@@ -308,15 +310,23 @@
   justify-content: center;
   width: 48px;
   height: 48px;
+  border: 1.5px solid var(--font-color);
   border-radius: 50%;
-  background-color: rgba(10, 193, 143, 0.15);
-  color: var(--color-primary);
-  transition: background-color 0.2s, color 0.2s;
+  transition: background-color 0.2s;
 }
 .walletAction:hover {
   opacity: 1;
 }
 .walletAction:hover .walletActionIcon {
+  background-color: var(--surface-strong);
+}
+/* the user's choice of the accent green for them, tinted as a received transaction's mark is */
+.green .walletActionIcon {
+  border-color: transparent;
+  background-color: rgba(10, 193, 143, 0.15);
+  color: var(--color-primary);
+}
+.green .walletAction:hover .walletActionIcon {
   background-color: var(--color-primary);
   color: white;
 }
@@ -333,19 +343,30 @@
     gap: 8px;
     min-width: 150px;
     padding: 9px 20px;
-    border: 1px solid rgba(10, 193, 143, 0.45);
+    border: 1.5px solid var(--font-color);
     border-radius: 999px;
-    background-color: rgba(10, 193, 143, 0.1);
-    transition: background-color 0.2s, border-color 0.2s;
+    transition: background-color 0.2s;
   }
   .walletAction:hover {
-    border-color: var(--color-primary);
-    background-color: rgba(10, 193, 143, 0.2);
+    background-color: var(--surface-strong);
   }
   .walletActionIcon,
   .walletAction:hover .walletActionIcon {
     width: auto;
     height: auto;
+    border: none;
+    background: none;
+  }
+  .green .walletAction {
+    border-color: rgba(10, 193, 143, 0.45);
+    background-color: rgba(10, 193, 143, 0.1);
+  }
+  .green .walletAction:hover {
+    border-color: var(--color-primary);
+    background-color: rgba(10, 193, 143, 0.2);
+  }
+  .green .walletActionIcon,
+  .green .walletAction:hover .walletActionIcon {
     background: none;
     color: var(--color-primary);
   }

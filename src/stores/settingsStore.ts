@@ -75,7 +75,7 @@ const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 export const settingsMenuKeys = [
   // user options
   "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "explorer-testnet4", "qrAnimation",
-  "dappActivityInNav", "bottomNavOnMobile", "addressesInNav", "primaryBalance",
+  "dappActivityInNav", "bottomNavOnMobile", "addressesInNav", "primaryBalance", "greenActionButtons",
   // token settings
   "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
   "allowDappIdentitySpends",
@@ -138,6 +138,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // the main tabs in a bar at the bottom of the screen, within thumb reach, on narrow screens only;
   // on by default in the Android app, where tablets keep the top nav by being wider
   const bottomNavOnMobile = ref(Boolean(isCapacitor));
+  // the wallet page's Receive, Scan and Send in the accent green rather than outlined
+  const greenActionButtons = ref(localStorage.getItem("greenActionButtons") == "true");
   // What the wallet holds shows as dots, for a screenshot or a look over the shoulder. Switched
   // on the wallet page's balance rather than in the settings, and a matter of display only:
   // amounts to check before acting, a send's confirmation for one, still show.
@@ -686,6 +688,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     addressesInNav,
     bottomNavOnMobile,
     primaryBalance,
+    greenActionButtons,
     hideBalances,
     setHideBalances,
     hasPlayedAnimation,
