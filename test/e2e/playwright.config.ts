@@ -13,8 +13,8 @@ try {
 
 export default defineConfig({
   testDir: '.',
-  // the regtest suite has a config of its own, regtest/playwright.config.ts
-  testIgnore: 'regtest/**',
+  // the regtest and extension suites have configs of their own
+  testIgnore: ['regtest/**', 'extension/**'],
   timeout: 60_000,
   use: {
     headless: true,

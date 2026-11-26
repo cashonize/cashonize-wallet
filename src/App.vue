@@ -9,17 +9,18 @@
   const opened = ref(!appLock.locked)
   watch(() => appLock.locked, (locked) => { if (!locked) opened.value = true })
 
-  // time out of sight after which coming back asks for the PIN again
-  const autoLockMs = 5 * 60_000
-  let hiddenSince: number | undefined
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      hiddenSince = Date.now()
-      return
-    }
-    if (hiddenSince !== undefined && Date.now() - hiddenSince >= autoLockMs) appLock.lock()
-    hiddenSince = undefined
-  })
+  // The time out of sight, after which coming back asks for the PIN again. The extension's pages
+  // count it together instead (utils/bex/sharedUnlock.ts).
+  if (!import.meta.env.QUASAR_BEX_MODE) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        appLock.awaySince = Date.now()
+        return
+      }
+      appLock.lockIfAway()
+      appLock.awaySince = undefined
+    })
+  }
 </script>
 
 <template>

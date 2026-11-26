@@ -125,7 +125,7 @@ test.describe.serial('WizardConnect E2E', () => {
 
     // Wallet: session card shows the dapp name and connected status
     await expect(wizSection(walletPage).getByText('Wiz Test dApp')).toBeVisible({ timeout: RELAY_TIMEOUT })
-    await expect(wizSection(walletPage).getByText('Connected')).toBeVisible()
+    await expect(wizSection(walletPage).getByText('Connected', { exact: true })).toBeVisible()
   })
 
   test('signTransaction — approve (signature VM-verified by the dapp)', async () => {
@@ -179,10 +179,12 @@ test.describe.serial('WizardConnect E2E', () => {
     await walletPage.locator('nav').waitFor({ timeout: 30_000 })
     await walletPage.locator('nav').getByText('Connect', { exact: true }).click()
 
-    // The persisted session reconnects with the same relay identity; the dapp
-    // re-announces itself (dapp_ready) so the session card regains its name.
-    // No consent dialog appears for restored sessions.
-    await expect(wizSection(walletPage).getByText('Wiz Test dApp')).toBeVisible({ timeout: RELAY_TIMEOUT })
+    // The persisted session reconnects with the same relay identity, without a consent dialog.
+    // The card shows the saved name at once and reads Connected only once the dapp has
+    // re-announced itself (dapp_ready) over the restored session, which the disconnect test
+    // needs: a session ended before it is back tells the dapp nothing.
+    await expect(wizSection(walletPage).getByText('Connected', { exact: true })).toBeVisible({ timeout: RELAY_TIMEOUT })
+    await expect(wizSection(walletPage).getByText('Wiz Test dApp')).toBeVisible()
     await expect(walletPage.locator('.q-dialog')).not.toBeVisible()
     await expect(dappPage.locator('#wiz-session-status')).toHaveText('connected')
   })
@@ -195,10 +197,7 @@ test.describe.serial('WizardConnect E2E', () => {
     // Wallet: session removed optimistically
     await expect(wizSection(walletPage).getByText('No sessions currently active.')).toBeVisible({ timeout: 15_000 })
 
-    // dApp: receives the disconnect (after its 8s reconnect-grace window). Not checked in CI: alone
-    // this suite passes every time, but run after the other suites the dapp misses the message
-    // about half the time, for a reason not yet found
-    if (process.env.CI) return
+    // dApp: receives the disconnect (after its 8s reconnect-grace window)
     await expect(dappPage.locator('#wiz-session-status')).toHaveText('disconnected', { timeout: RELAY_TIMEOUT })
   })
 

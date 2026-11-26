@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents working with code in this reposi
 
 ## Project Overview
 
-Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, CashConnect and WizardConnect. Built with Quasar Framework and TypeScript. Uses Vue 3 Composition API (`<script setup>`) and Pinia for state management. Targets multiple platforms: web (SPA), desktop (Electron), and mobile (Capacitor).
+Cashonize is a Bitcoin Cash (BCH) wallet supporting CashTokens, WalletConnect, CashConnect and WizardConnect. Built with Quasar Framework and TypeScript. Uses Vue 3 Composition API (`<script setup>`) and Pinia for state management. Targets multiple platforms: web (SPA), desktop (Electron), mobile (Capacitor), and a Chromium browser extension (BEX).
 
 ## Commands
 
@@ -13,6 +13,8 @@ Uses pnpm (v11). Config (overrides, supply-chain hardening, build-script allowli
 ```bash
 pnpm dev                   # Start development server (opens browser)
 pnpm build                 # Production build (generates dist/stats.html bundle analysis)
+pnpm build:bex             # Chromium extension build (dist/bex-chrome)
+pnpm test:e2e:extension    # Build the extension, then run its Playwright suite
 pnpm lint                  # ESLint check
 pnpm test                  # Run vitest tests
 pnpm test:coverage         # Run vitest once with coverage of src/*.ts
@@ -42,7 +44,7 @@ Reservations split the set into what the wallet may spend and what it holds back
 - `activeWalletName` persisted in localStorage
 
 ### Concurrency
-Only the web (SPA) target can run several live instances at once: browser tabs share localStorage and IndexedDB but nothing in memory (so a dApp request can raise dialogs in every open tab). There is no cross-tab sync: writes to a shared key re-read it first and change only their own entry, and reads trust the copy loaded at wallet activation, so another tab's writes stay invisible until reload. Electron and Android are single-instance by construction.
+The web (SPA) and extension targets can run several live instances at once: browser tabs, and in the extension the toolbar popup and the approval window next to its tabs, share localStorage and IndexedDB but nothing in memory (so a WalletConnect request can raise dialogs in every open instance). There is no cross-tab sync: writes to a shared key re-read it first and change only their own entry, and reads trust the copy loaded at wallet activation, so another tab's writes stay invisible until reload. Electron and Android are single-instance by construction.
 
 Regardless of app instances, the same wallet can be live elsewhere (other devices, other wallet software), so on-chain state can change at any moment: in-memory UTXOs, balance and history are a cache, not a source of truth, and flows holding utxo state across user interaction must tolerate it going stale.
 
@@ -94,6 +96,15 @@ CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). 
 ### WizardConnect
 WizardConnect connects HD wallets to dApps over Nostr relays (`wiz:` URIs); the transport is fully encapsulated in @wizardconnect/core, so no separate nostr dependencies are needed. The wallet shares chain-level xpubs (receive/change/defi) so dApps derive addresses locally; the only interactive request is transaction signing, which MUST use `SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID` (see `wizSigning.ts`). The sign dialog marks the wallet's own inputs and outputs through the request's paths, since the wallet tracks the receive and change chains only. HD wallets only; single-address wallets get a clear error on pairing.
 
+### Browser Extension (BEX)
+The Chromium extension (`src-bex/`) hosts the same wallet UI in its pages and gives sites a provider: `provider.ts` runs in the page's main world as `window.cashonize`/`window.bitcoincash`, `content.ts` relays its WC2-BCH JSON-RPC messages, and the service worker (`background.ts`) answers the read-only methods itself and queues the rest, one dialog at a time and a few per site, for the wallet page, counting them on the toolbar icon. Without an open wallet page it opens the toolbar popup, as a click on the icon does, and an approval window over a window that cannot show it (`stores/bexStore.ts`, `boot/bexBridge.ts`). A request is judged by the browser-attested `port.sender.origin`, never by the dApp's self-declared metadata.
+
+The provider is also a WC2-BCH connector (`IConnector` in `@bch-wc2/interfaces`, the interface dApps code against for WalletConnect and injected wallets), and it serializes the libauth objects a dApp passes, so a dApp moves over by pointing its connector at `window.cashonize`. Beyond IConnector it has `cancelPendingRequests()`, which sends `bch_cancelPendingRequests`. A site's auto-approval of transactions shares WalletConnect's settings and rules under a `bex:<origin>` key (`autoApproveKey`), and holds only while the site's permission does. The worker brings a wallet page in front only when the page asks, as a request needs the user, so an auto-approved one never takes the focus.
+
+It needs Chromium 140 or later, the first to keep `chrome.storage.local` from content scripts; the worker serves nothing where that fails. A dApp sees WalletConnect's error codes where WalletConnect has one (5000 for a request the user or the dApp withdrew) and EIP-1193's otherwise. Limits: only top frames get the provider, the extension's WalletConnect client runs only while one of its pages is open, and any site can read the network, as with any injected provider.
+
+A site's permission is stored under its own key and names the wallet its accounts belong to (`utils/bex/permissions.ts`): while another wallet is open the site sees no accounts and asks again. Provider events come only from the worker, derived from storage changes, so a site hears of its own accounts and of nothing else. Because a content script runs inside a web page, the worker restricts `chrome.storage.local` to extension pages and accepts the wallet page's ports only from the extension's own origin. One of them is Quasar's bridge, whose handshake the page's boot waits for: the worker answers it itself, since Quasar's `createBridge` takes that port from web pages too. Code shared with the other builds checks `import.meta.env.QUASAR_BEX_MODE` before touching `chrome`; the global `src/types/chrome.d.ts` does not catch a slip.
+
 ### Token Metadata (BCMR)
 BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for authchain identities on BCH, tokens being the common case; the rest is under Authchain Identities. Spec: https://github.com/bitjson/chip-bcmr
 
@@ -133,7 +144,7 @@ The portfolio view (`components/portfolio/`) charts the wallet's total value acr
 The menu page (the fifth tab, `settingsMenu`) carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves an identity's UTXO, or the AuthKey that opens its covenant, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. The identities page also holds back what the user never listed; its detection and following paths are described in `docs/bcmr-identities.md`.
 
 ### App Lock
-An optional PIN (`stores/appLockStore.ts`) gates the interface: the wallet is not loaded until the first unlock, and `confirmPin()` is asked before a spend (inside `store.spend.*`), a dApp transaction signature and a seed reveal; message signing asks none. It is not encryption; the seed at rest is unchanged, and anything that spends past `store.spend` has to ask for the PIN itself. On Android a fingerprint or face can stand in for the PIN (`utils/biometrics.ts`), the system prompt passed being as much a gate as a typed PIN, with the PIN as the fallback.
+An optional PIN (`stores/appLockStore.ts`) gates the interface: the wallet is not loaded until the first unlock, and `confirmPin()` is asked before a spend (inside `store.spend.*`), a dApp transaction signature and a seed reveal; message signing asks none. It is not encryption; the seed at rest is unchanged, and anything that spends past `store.spend` has to ask for the PIN itself. On Android a fingerprint or face can stand in for the PIN (`utils/biometrics.ts`), the system prompt passed being as much a gate as a typed PIN, with the PIN as the fallback. The app locks once out of sight for `autoLockMs`, and auto-approval goes through `allowsAutoApproval`: never while locked, nor for a request sent before the unlock (a WalletConnect request carries its send time in its id, an extension request its arrival at the worker). The extension's pages share one unlock and one time away (`utils/bex/sharedUnlock.ts`). A page is handed dApp requests while locked too: `bexStore` holds each until the unlock before it waits for the wallet or shows a dialog, whereas the read-only methods the worker answers itself (a connected site's accounts, the network) need no page and are answered regardless.
 
 ### Component Organization
 Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`.

@@ -1,12 +1,14 @@
 ## Security Considerations
 
-Cashonize is available as a webwallet, an installable web app, and as downloadable desktop (Windows, Linux) and Android (.apk) applications. All variants share the same codebase, but they have different security properties worth understanding.
+Cashonize is available as a webwallet, an installable web app, downloadable desktop (Windows, Linux) and Android (.apk) applications, and a Chromium browser extension. All variants share the same codebase, but they have different security properties worth understanding.
 
 ### Code delivery
 
 **Webwallets fetch a live application each time you visit.** cashonize.com serves whatever is deployed at that moment, so a change to the site reaches every web user on their next visit, without being asked. Every web wallet works this way.
 
 **Downloadable apps pin the code at install time.** The desktop and Android apps run the version you installed until you install another one yourself; they do not update automatically. A bad release only reaches those who download and install it, rather than every user at once the way a change to the website does. The desktop releases are not code-signed, so only download releases from the official GitHub releases page: https://github.com/cashonize/cashonize-wallet/releases
+
+**The browser extension pins the code at install time too.** It is published as a zip on the same GitHub releases page and loaded into the browser by hand, so it runs the version you installed until you install another one.
 
 **Installable web apps share the security model of webwallets.** Adding Cashonize to your home screen makes it feel like a native app, but the code is still loaded from the web. It is a convenience feature, not a security upgrade.
 
@@ -31,12 +33,21 @@ Cashonize currently stores your seed phrase unencrypted in IndexedDB. The actual
 - **On the webwallet and installable web app**, your seed lives in the browser's IndexedDB storage for cashonize.com. Any browser extension with access to that origin, or anything else with access to your browser profile, can read it.
 - **On the desktop app (Electron)**, your seed lives in Electron's IndexedDB store on disk. Anything running on your computer with access to your user account can read it.
 - **On the Android .apk (Capacitor)**, your seed lives in the app's private IndexedDB storage. Android's per-app sandboxing means other apps cannot read it by default, which is a meaningful default protection that the desktop and web variants do not have.
+- **On the browser extension**, your seed lives in the extension's own IndexedDB storage in your browser profile. Websites and other extensions cannot read it, but anything with access to your browser profile can.
 
 ### App lock
 
 An optional PIN can lock the app (under ⋯ → App lock). It is asked when Cashonize opens, after it sat in the background for a few minutes, and before sending, signing a dApp transaction or showing the seed phrase.
 
-The app lock is a gate in the interface, not encryption. It keeps someone holding your unlocked device out of the wallet, but the seed phrase stays in plaintext at rest as described above, so it does not protect against anything that can read the app's storage: in a browser that includes anyone who opens the developer tools, on the desktop anything running under your user account, and WalletConnect requests of a session set to auto-approve are signed without the PIN (granting auto-approve asks for it). A forgotten PIN cannot be reset: clear the app's data and restore from your seed phrase.
+The app lock is a gate in the interface, not encryption. It keeps someone holding your unlocked device out of the wallet, but the seed phrase stays in plaintext at rest as described above, so it does not protect against anything that can read the app's storage: in a browser that includes anyone who opens the developer tools, on the desktop anything running under your user account. A forgotten PIN cannot be reset: clear the app's data and restore from your seed phrase.
+
+A dApp you set to auto-approve (a WalletConnect session, or a site connected to the extension) gets its transactions signed without the PIN while the app is unlocked; granting auto-approve asks for the PIN. Auto-approval stops when the app locks, and a request a dApp sent while the app was locked always waits for your approval, since anyone at your device can make a connected dApp send one.
+
+### Browser extension
+
+The extension gives websites a provider (`window.cashonize`) to connect to your wallet. A site is identified by the origin your browser reports for it, never by the name or icon it gives itself, and sees only the addresses you share with it, and only while the wallet you shared them from is open. Every signature waits for your approval in a Cashonize window, unless you set the site to auto-approve, and the number of requests waiting shows on the extension's toolbar icon.
+
+The extension's own data is separate from the web app's: the app lock, frozen addresses, Flipstarter pledges, labels and notes are not part of the seed phrase, so set them up again after importing a wallet into it. Its windows share one app lock: unlocked in one of them, the extension stays unlocked while one of its windows is in sight and for five minutes after the last one closed or was hidden, so a request in that time opens Cashonize unlocked. Locking it in one window locks them all, and closing the browser locks it.
 
 ### Summary
 
@@ -44,6 +55,7 @@ The app lock is a gate in the interface, not encryption. It keeps someone holdin
 - The webwallet and installable web app carry ongoing exposure on every visit: code is delivered fresh from the web, phishing applies each time you navigate to the URL, and any browser extension with access to the origin can read the seed in IndexedDB.
 - The desktop app pins the code at install time (it changes only when you install an update), but stores the seed in plaintext on your filesystem. Its main advantage over the webwallet is code pinning, not storage isolation.
 - The Android .apk pins code at install and adds per-app sandboxing on top.
+- The browser extension pins code at install and keeps its storage from websites and other extensions, but not from anything with access to your browser profile. Connected sites can ask for signatures, which wait for your approval unless you set a site to auto-approve.
 
 **Recommendations:**
 - Write down your seed phrase before holding meaningful amounts. Without it, no recovery is possible.

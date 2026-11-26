@@ -27,6 +27,7 @@ import { useAppLockStore } from 'src/stores/appLockStore';
 import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
+import type { DappMetadata } from "src/interfaces/interfaces"
 import { displayBroadcastError } from "src/utils/wallet/broadcastErrors"
 import type { ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
 import { reportDappRefusal } from "src/utils/txHelpers"
@@ -79,7 +80,18 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
       }
       // Hide the pending dialog if it matches this request
       if (pendingDialog?.id === request.id) {
+        // read before the hide, which takes a PIN dialog for it along
+        const confirming = useAppLockStore().confirming;
+        const { dappName } = pendingDialog;
         pendingDialog.handle.hide();
+        // the user was typing the PIN to sign it: they are told why it went away
+        if (confirming) {
+          Dialog.create({
+            message: t('dapp.requestWithdrawn', { dapp: dappName }),
+            ok: { label: 'OK', color: 'primary', unelevated: true },
+            class: 'flex justify-center',
+          });
+        }
       }
       await rejectRequest(request);
       cancelledCount++;
@@ -198,7 +210,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
       Dialog.create({
         component: WC2AddressSelectDialog,
         componentProps: {
-          sessionProposalWC: sessionProposal,
+          dappMetadata: sessionProposal.params.proposer.metadata as DappMetadata,
         },
       })
         .onOk((selectedAddresses: string[]) => {
@@ -384,7 +396,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
           component: WC2SignMessageRequest,
           componentProps: {
             dappMetadata,
-            signMessageRequestWC: event,
+            messageRequest: event.params.request.params as WcSignMessageRequest,
             signerAddress: getSessionAddress(topic) ?? walletAddress,
           },
         })
@@ -443,9 +455,11 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         // Auto-approve early return. Not for an identity operation: auto-approve was granted for
         // ordinary spends, and a held back coin is spent only in front of the user.
         const touchesIdentity = arrivalCheck.returning.length > 0;
-        // nor while the app is locked: the request then waits in its dialog for the unlock
-        const locked = useAppLockStore().locked;
-        if (!touchesIdentity && !locked && settingsStore.isAutoApproveValid(topic)) {
+        // Nor while the app is locked, nor for a request sent before its unlock, which the relay
+        // hands over once the app opens: the request then waits in its dialog. A dApp's
+        // WalletConnect client numbers each request by when it sent it, in microseconds.
+        const sentAt = Math.floor(id / 1000);
+        if (!touchesIdentity && useAppLockStore().allowsAutoApproval(sentAt) && settingsStore.isAutoApproveValid(topic)) {
           await signTransactionWC(event)
           // Decrement request count if applicable
           if (settingsStore.getAutoApproveState(topic)?.mode === "count") {

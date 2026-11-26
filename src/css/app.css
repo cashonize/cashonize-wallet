@@ -34,6 +34,14 @@ body {
      platforms they are absent and the page is not drawn edge to edge. */
   padding-bottom: var(--safe-area-inset-bottom, 0px);
 }
+/* The extension's toolbar popup takes the size of its page. It has one fixed size instead, from its
+   first paint, so it neither opens as a sliver when all it shows is the app lock's screen, fixed
+   above an empty page, nor widens as the wallet renders. Other extension pages drop the class
+   before they show anything (boot/bexPageSize.ts). */
+html.toolbar-popup {
+  width: 400px;
+  height: 600px;
+}
 /* same for notifies: fixed elements center on the viewport minus the scrollbar */
 .q-notifications__list {
   padding-left: calc(100vw - 100%);

@@ -10,10 +10,12 @@
   const isMobilePhone = width.value < 480
   const { t } = useI18n()
 
+  // hideSessionId: the browser provider's sites use this dialog too, keyed by site, not session
   const props = defineProps<{
     sessionId: string,
     dappMetadata: DappMetadata,
-    connectedAddresses: string[]
+    connectedAddresses: string[],
+    hideSessionId?: boolean,
   }>();
   const { sessionId } = toRefs(props);
 
@@ -28,7 +30,9 @@
   const autoTimeLeft = ref(undefined as number | undefined);
 
   const safeUrl = sanitizeUrl(props.dappMetadata.url);
-  const displaySessionId = `- ${!isMobilePhone ? t('walletConnect.sessions.session') + ' ' : ''} ${sessionId.value.slice(0, 6)}`
+  const displaySessionId = props.hideSessionId
+    ? ''
+    : `- ${!isMobilePhone ? t('walletConnect.sessions.session') + ' ' : ''} ${sessionId.value.slice(0, 6)}`
 
   function shortenAddress(address: string) {
     const addrWithoutPrefix = address.split(':')[1] ?? "";

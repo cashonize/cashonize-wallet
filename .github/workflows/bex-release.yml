@@ -1,0 +1,35 @@
+name: Browser Extension Release Asset
+
+# Named version releases carry the extension zip next to the desktop and Android builds. The
+# published event runs after the release exists, so the asset upload always has a target.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  attach:
+    # the rolling bex-latest prerelease manages its own asset
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6  # reads pnpm version from package.json "packageManager"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:bex  # also zips the unpacked extension into Packaged.cashonize-wallet.zip
+      - name: Attach the extension to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          asset="cashonize-extension-${{ github.event.release.tag_name }}.zip"
+          mv dist/bex-chrome/Packaged.cashonize-wallet.zip "$asset"
+          gh release upload "${{ github.event.release.tag_name }}" "$asset" --clobber

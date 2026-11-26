@@ -1,5 +1,6 @@
 {
   "common": {
+    "extensionImportNote": "L’extension conserve ses propres données : le verrouillage de l’application, les adresses gelées, les promesses Flipstarter, les étiquettes et les notes de l’application web Cashonize ne font pas partie de la phrase de récupération et restent là-bas. Réactivez ici le verrouillage de l’application, et configurez les gels et les promesses avant d’utiliser des dApps, afin que les pièces qu’ils retiennent restent protégées.",
     "actions": {
       "back": "Retour",
       "send": "Envoyer",
@@ -480,6 +481,23 @@
     "title": "Connecter à une dApp",
     "unavailableOnNetwork": "Les connexions aux dApps ne sont pas disponibles sur {network} : les dApps ne désignent un réseau de test que par son préfixe d'adresse bchtest ou sa version de xpub, qu'il partage avec chipnet.",
     "connectText": "Connectez-vous aux dApps BCH avec les méthodes de connexion prises en charge.",
+    "browserProvider": "Fournisseur du navigateur",
+    "browserProviderNote": "Les sites peuvent aussi se connecter via le fournisseur de l’extension de navigateur Cashonize (window.cashonize).",
+    "disconnect": "Déconnecter",
+    "tiedChipnetCopy": "Ce portefeuille chipnet partage ses clés avec votre portefeuille mainnet : une signature de dApp ici pourrait aussi dépenser des pièces mainnet. Utilisez un portefeuille chipnet distinct pour les dApps : Menu > Paramètres > Paramètres développeur > Ajouter un portefeuille de développement.",
+    "requestWithdrawn": "{dapp} a retiré cette demande, rien n’a donc été signé.",
+    "requestTimedOut": "Cette demande de {dapp} a expiré, rien n’a donc été signé.",
+    "autoApprovingTitle": "Approbation automatique de la transaction",
+    "browserConnect": {
+      "title": "Se connecter à Cashonize",
+      "app": "Application :",
+      "origin": "Origine :",
+      "account": "Compte :",
+      "network": "Réseau :",
+      "notice": "Ce site pourra voir votre adresse et demander des signatures, qui nécessitent votre approbation sauf si vous activez pour lui les approbations automatiques.",
+      "connectButton": "Connecter",
+      "cancelButton": "Annuler"
+    },
     "supportedMethods": "WalletConnect, CashConnect et WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect et CashConnect",
     "supportedMethodsNote": "WizardConnect nécessite un portefeuille HD",

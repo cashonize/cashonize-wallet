@@ -11,6 +11,8 @@ export interface PinRecord {
 
 export const pinMinLength = 4
 export const pinMaxLength = 8
+// time out of sight after which the app locks again
+export const autoLockMs = 5 * 60_000
 // slow enough to cost a guesser time, fast enough for a phone to check a PIN without a wait
 const pinIterations = 200_000
 

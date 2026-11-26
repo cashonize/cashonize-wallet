@@ -17,6 +17,8 @@
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
   const { t } = useI18n()
+  // the extension starts without the web app's local data, which the import note points out
+  const isBex = import.meta.env.QUASAR_BEX_MODE
 
   // Web-only: in the downloaded desktop/Android apps users already know the wallet,
   // so the "learn more" link to the about site is only shown on the web version.
@@ -227,6 +229,7 @@
         </div>
         <div style="margin: 20px 0;">
           <seedPhraseInput v-model="seedPhrase" @validity="(valid) => seedPhraseValid = valid" />
+          <div v-if="isBex" style="font-size: smaller; color: grey; margin-top: 8px;">{{ t('common.extensionImportNote') }}</div>
         </div>
         <div style="margin: 15px 0;">
           <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>

@@ -1,5 +1,6 @@
 {
   "common": {
+    "extensionImportNote": "У расширения свои данные: блокировка приложения, замороженные адреса, взносы Flipstarter, метки и заметки из веб-приложения Cashonize не входят в сид-фразу и остаются там. Снова включите здесь блокировку приложения и настройте заморозки и взносы, прежде чем пользоваться dApp, чтобы удерживаемые ими монеты оставались защищены.",
     "actions": {
       "back": "Назад",
       "send": "Отправить",
@@ -480,6 +481,23 @@
     "title": "Подключиться к dApp",
     "unavailableOnNetwork": "Подключения к dApp недоступны в {network}: dApp определяют тестовую сеть только по префиксу адреса bchtest или версии xpub, которые у неё общие с chipnet.",
     "connectText": "Подключайтесь к dApp на BCH поддерживаемыми способами подключения.",
+    "browserProvider": "Браузерный провайдер",
+    "browserProviderNote": "Сайты также могут подключаться через провайдер браузерного расширения Cashonize (window.cashonize).",
+    "disconnect": "Отключить",
+    "tiedChipnetCopy": "Этот кошелёк chipnet использует те же ключи, что и ваш кошелёк mainnet, поэтому подпись dApp здесь может потратить и монеты mainnet. Используйте для dApp отдельный кошелёк chipnet: Меню > Настройки > Настройки разработчика > Добавить кошелёк для разработки.",
+    "requestWithdrawn": "{dapp}: запрос отозван, поэтому ничего не подписано.",
+    "requestTimedOut": "{dapp}: срок запроса истёк, поэтому ничего не подписано.",
+    "autoApprovingTitle": "Автоодобрение транзакции",
+    "browserConnect": {
+      "title": "Подключение к Cashonize",
+      "app": "Приложение:",
+      "origin": "Источник:",
+      "account": "Аккаунт:",
+      "network": "Сеть:",
+      "notice": "Этот сайт сможет видеть ваш адрес и запрашивать подписи, для которых нужно ваше одобрение, если вы не включите для него автоодобрение.",
+      "connectButton": "Подключить",
+      "cancelButton": "Отмена"
+    },
     "supportedMethods": "WalletConnect, CashConnect и WizardConnect",
     "supportedMethodsSingleAddress": "WalletConnect и CashConnect",
     "supportedMethodsNote": "Для WizardConnect нужен HD-кошелёк",
