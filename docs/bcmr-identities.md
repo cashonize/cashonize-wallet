@@ -75,12 +75,13 @@ and the one the wallet makes itself for a contract's chain, under Spec versus co
 
 ## What the wallet does and does not do
 
-Does: create (a token genesis, or any UTXO at output 0 for an identity that is not a
-token), hold identity outputs and keys back, resolve where each listed identity is held,
-fetch and hash what the published locations serve, build the publication, reserve and
-transfer transactions (all one shape: the old identity output in, the new one at output 0,
-the publication output beside it when there is one), mint from an identity UTXO as the
-authchain operation it is, and read the chain as the identity's history.
+Does: create (a token genesis, kept in this wallet or in an AuthGuard, or any UTXO at
+output 0 for an identity that is not a token), hold identity outputs and keys back, resolve
+where each listed identity is held, fetch and hash what the published locations serve, build
+the publication, reserve and transfer transactions (all one shape: the old identity output
+in, the new one at output 0, the publication output beside it when there is one), mint from
+an identity UTXO as the authchain operation it is, and read the chain as the identity's
+history.
 
 Does not: author or host registries (the generator and the user's hosting do that), build
 covenant spends (Studio does), or let a dapp move an identity out of the wallet.
@@ -89,7 +90,8 @@ covenant spends (Studio does), or let a dapp move an identity out of the wallet.
 
 - **Made here.** The create page lists a genesis and reserves its output 0 before any
   indexer has seen it; the identities page's Add new, behind a user option, does the same
-  for a picked UTXO.
+  for a picked UTXO. A guarded genesis has CashTokens Studio's layout, the guard at output 0
+  and the AuthKey at output 1, which is the coin reserved.
 - **Found in the wallet's own history.** The wallet's transactions are read for two markers,
   through the index that keeps them between opens (`utils/history/transactionIndex.ts`, see
   `transaction-history.md` and `contract-asset-discovery.md`): a genesis these keys made, and

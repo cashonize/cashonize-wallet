@@ -29,7 +29,7 @@
 <template>
   <div class="closed-line description">
     <img src="images/check-circle.svg" class="step-check">
-    <span>{{ t('createTokens.home.chosen') }}</span>
+    <span>{{ t(created.guarded ? 'createTokens.home.chosenGuard' : 'createTokens.home.chosen') }}</span>
   </div>
   <div class="closed-line description">
     <img src="images/check-circle.svg" class="step-check">
@@ -57,12 +57,12 @@
         <span class="mono">{{ truncateHash(created.category) }}<img class="copyIcon" src="images/copyGrey.svg"></span>
       </div>
       <div v-if="created.hasSupply">{{ t('createTokens.created.supply', { amount: createdAmount(created.supply) }) }}</div>
-      <div v-else>{{ t('createTokens.created.mintingNft') }}</div>
+      <div v-else>{{ t(created.guarded ? 'createTokens.created.guardedMintingNft' : 'createTokens.created.mintingNft') }}</div>
       <div v-if="created.hasSupply">
         {{ t('createTokens.created.split', { reserve: createdAmount(created.reserve), circulating: createdAmount(created.circulating) }) }}
       </div>
       <div v-if="created.hasSupply && !created.name">{{ t('createTokens.created.decimals', { decimals: created.decimals }) }}</div>
-      <div class="description">{{ t('createTokens.created.listed') }}</div>
+      <div class="description">{{ t(created.guarded ? 'createTokens.created.guardedListed' : 'createTokens.created.listed') }}</div>
     </div>
   </div>
   <div v-if="!created.name" style="margin-top: 10px;">

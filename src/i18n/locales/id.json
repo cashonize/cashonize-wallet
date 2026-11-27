@@ -134,6 +134,7 @@
       "utxosHeldBack": "Beberapa UTXO ditahan dari pemilihan koin dan tidak dihitung di sini. Halaman Manajemen UTXO menunjukkan mana yang ditahan dan alasannya.",
       "cannotSendPledgedUtxo": "UTXO ini ditahan untuk janji donasi yang masih terbuka. Batalkan janji donasi untuk melepaskannya.",
       "genesisInputUnavailable": "Koin yang dipilih untuk membuat token ini sudah tidak tersedia. Pilih koin lain.",
+      "genesisNotAsPlanned": "Transaksi yang dibuat dompet tidak cocok dengan token yang akan dibuat, sehingga tidak dikirim.",
       "utxoNotAvailable": "Sebuah koin yang dibelanjakan transaksi ini sudah tidak ada di dompet, kemungkinan dibelanjakan di tempat lain. Tunggu sampai dompet diperbarui, lalu coba lagi.",
       "identityLeavesWallet": "Permintaan ini akan memindahkan salah satu identitas Anda ke alamat yang tidak dikenali dompet ini sebagai miliknya, jadi permintaan ditolak. Mentransfer identitas dilakukan dari halaman identitas.",
       "identityMerge": "Permintaan ini akan membelanjakan dua identitas Anda dalam satu transaksi, yang menggabungkannya menjadi satu. Penggabungan identitas belum didukung oleh dompet ini, jadi permintaan ditolak.",
@@ -752,31 +753,23 @@
   "createTokens": {
     "title": "Buat token",
     "home": {
-      "intro": "Buat token baru di sini atau di situs CashTokens Studio. Siapa pun yang memegang identitas token, yaitu satu UTXO, mengendalikan nama, ikon, dan suplai yang belum diterbitkan; pilih di mana menyimpannya.",
+      "intro": "Buat token baru di dompet ini atau di situs CashTokens Studio. Siapa pun yang memegang identitas token, yaitu satu UTXO, mengendalikan nama, ikon, dan suplai yang belum diterbitkan.",
       "wallet": "Di dompet ini",
       "studio": "Dengan CashTokens Studio",
       "chosen": "Identitas token disimpan: di dompet ini",
-      "cardLeads": {
-        "for": "Untuk:",
-        "managed": "Dikelola:"
-      },
-      "walletLines": {
-        "for": "pengguna teknis yang menginginkan kendali penuh.",
-        "managed": "di halaman identitas, di Alat."
-      },
-      "studioLines": {
-        "for": "cara termudah, dan koleksi NFT.",
-        "managed": "di situs CashTokens Studio, terhubung ke dompet ini."
-      },
+      "chosenGuard": "Identitas token disimpan: di AuthGuard, dengan AuthKey di dompet ini",
+      "forLead": "Untuk:",
+      "walletFor": "pengguna teknis yang menginginkan kendali penuh: Anda membuatnya dari dompet ini, meng-hosting file metadata sendiri, dan memilih cara identitas disimpan.",
+      "studioFor": "cara termudah, dan koleksi NFT: CashTokens Studio menulis metadata dan mem-pin-nya ke IPFS.",
       "leads": {
         "protection": "Perlindungan:",
         "metadata": "Metadata:",
         "operations": "Operasi:"
       },
       "walletRows": {
-        "protection": "ditahan dari pengiriman hanya oleh dompet ini; aplikasi lain dengan frasa pemulihan ini dapat membelanjakannya.",
-        "metadata": "file yang Anda hosting, ditautkan di langkah 3 atau nanti dari halaman identitas.",
-        "operations": "di halaman identitas, di Alat.",
+        "protection": "ditahan dari pengiriman oleh dompet ini, atau di AuthGuard dengan AuthKey di dompet ini; Anda yang memilih.",
+        "metadata": "file yang Anda hosting, ditautkan di langkah 4 atau nanti.",
+        "operations": "di halaman identitas, atau di situs CashTokens Studio jika disimpan di AuthGuard.",
         "moveLater": "Anda dapat memindahkan identitas token dari dompet ini ke CashTokens Studio nanti, dan sebaliknya."
       },
       "studioRows": {
@@ -797,8 +790,25 @@
     "stepTitles": {
       "utxo": "pilih id token",
       "shape": "pilih jenis, desimal, dan suplai",
+      "protection": "pilih cara identitas disimpan",
       "metadata": "tautkan file metadata yang di-hosting (opsional)",
       "type": "pilih jenis"
+    },
+    "protection": {
+      "held": {
+        "title": "Ditahan di dompet ini",
+        "line": "Hanya dompet ini yang menahan identitas: aplikasi lain dengan frasa pemulihan ini dapat membelanjakannya. Anda menerbitkan, me-mint, dan memperbarui metadata di sini."
+      },
+      "guard": {
+        "title": "Di AuthGuard",
+        "help": "AuthKey adalah NFT yang membuka AuthGuard, kontrak tempat identitas disimpan, sehingga identitas hanya dapat dibelanjakan dengan AuthKey, aplikasi mana pun yang memegang frasa pemulihan. Dompet lain menampilkan AuthKey sebagai NFT tanpa nama, sehingga bisa saja terkirim atau terbakar; dompet ini menamainya sesuai apa yang dijaganya.",
+        "holds": {
+          "identity": "Sebuah kontrak menyimpan identitas, yang hanya dapat dibelanjakan dengan AuthKey, aplikasi mana pun yang memegang frasa pemulihan. AuthKey tetap di dompet ini; Anda menggunakannya di situs CashTokens Studio.",
+          "reserve": "Sebuah kontrak menyimpan identitas dan cadangan, yang hanya dapat dibelanjakan dengan AuthKey, aplikasi mana pun yang memegang frasa pemulihan. AuthKey tetap di dompet ini; Anda menggunakannya di situs CashTokens Studio.",
+          "minting": "Sebuah kontrak menyimpan identitas dan NFT minting, yang hanya dapat dibelanjakan dengan AuthKey, aplikasi mana pun yang memegang frasa pemulihan. AuthKey tetap di dompet ini; Anda menggunakannya di situs CashTokens Studio.",
+          "both": "Sebuah kontrak menyimpan identitas, cadangan, dan NFT minting, yang hanya dapat dibelanjakan dengan AuthKey, aplikasi mana pun yang memegang frasa pemulihan. AuthKey tetap di dompet ini; Anda menggunakannya di situs CashTokens Studio."
+        }
+      }
     },
     "genesisInput": {
       "explainer": "Txid dari UTXO yang dibelanjakan genesis menjadi id token; UTXO harus berada di output 0.",
@@ -809,6 +819,11 @@
       "none": "Dompet ini belum memiliki UTXO yang dapat membuat token.",
       "unconfirmed": "belum dikonfirmasi",
       "loading": "memuat..."
+    },
+    "authKeyInput": {
+      "id": "id AuthKey:",
+      "missing": "AuthGuard juga memerlukan UTXO kedua di output 0, yang txid-nya menjadi id AuthKey; dompet ini tidak memiliki sisa UTXO seperti itu.",
+      "prepareButton": "Siapkan UTXO untuk AuthKey"
     },
     "prepare": {
       "title": "Siapkan UTXO?",
@@ -826,6 +841,7 @@
     },
     "mintingDescription": "NFT minting membuat NFT-NFT koleksi, dan hanya transaksi pembuatan yang dapat memberikannya.",
     "mintingNote": "NFT di-mint dari daftar token, dengan \"Aktifkan mint NFT\" dinyalakan di pengaturan pengembang.",
+    "guardedMintingNote": "NFT di-mint di situs CashTokens Studio, dengan AuthKey.",
     "decimalsLabel": "Desimal",
     "supplyLabel": "Total suplai token fungible",
     "supplyNote": "Suplai dibuat sekali dan tidak pernah dapat ditambah; simpan sebagian sebagai cadangan untuk dilepas nanti.",
@@ -835,7 +851,8 @@
       "label": "Terbitkan ke peredaran sekarang",
       "placeholder": "Jumlah yang diterbitkan",
       "split": "{reserve} tetap bersama identitas sebagai cadangan, {circulating} masuk ke peredaran.",
-      "note": "Cadangan tetap di UTXO identitas; terbitkan nanti dari halaman identitas."
+      "note": "Cadangan tetap di UTXO identitas; terbitkan nanti dari halaman identitas.",
+      "guardedNote": "Cadangan tetap di AuthGuard; terbitkan nanti di situs CashTokens Studio."
     },
     "errors": {
       "overMaxSupply": "Itu melebihi yang dapat ditampung sebuah token. Maksimumnya {max}.",
@@ -871,6 +888,7 @@
       "button": "Buat",
       "supply": "Total suplai: {supply}",
       "decimals": "Desimal: {decimals}",
+      "guarded": "Identitas disimpan di AuthGuard; NFT AuthKey masuk ke dompet ini.",
       "metadataLinked": "Metadata: {name}, dari {location}",
       "metadataNone": "Metadata: belum ada yang ditautkan. Sampai dipublikasikan, dompet menampilkan token berdasarkan id-nya, dengan jumlah mentah."
     },
@@ -884,8 +902,10 @@
       "title": "Berhasil!",
       "supply": "{amount} dibuat",
       "mintingNft": "Sebuah NFT minting dibuat, di UTXO identitas: mint NFT-NFT koleksi darinya di daftar token.",
+      "guardedMintingNft": "Sebuah NFT minting dibuat, di AuthGuard: mint NFT koleksi darinya di situs CashTokens Studio.",
       "split": "{reserve} bersama identitas sebagai cadangan, {circulating} di dompet ini",
       "listed": "Tercantum di halaman identitas, yang menjaga UTXO-nya keluar dari pengiriman hanya dari dompet ini.",
+      "guardedListed": "Tercantum di halaman identitas. AuthKey yang membuka AuthGuard-nya ada di dompet ini, ditahan dari pengirimannya; gunakan di situs CashTokens Studio.",
       "untilPublished": "Dompet menampilkannya seperti ini sampai Anda {link}.",
       "untilPublishedLink": "memublikasikan metadata",
       "seeToken": "Lihat token di dompet",
