@@ -351,6 +351,9 @@
       "notWebAddress": "keine gültige Webadresse",
       "type": "Typ",
       "commitment": "Commitment",
+      "viewIdentity": "Identität dieses Tokens ansehen",
+      "watchIdentity": "Identität dieses Tokens beobachten",
+      "identityNote": "Wer seine Metadaten aktualisieren kann, und jede bisherige Aktualisierung",
       "seeDetailsOnExplorer": "Auf TokenExplorer ansehen",
       "cauldronSection": "Cauldron DEX",
       "cauldronLiquidity": "BCH in den Pools",
@@ -1680,7 +1683,7 @@
       "qrHeading": "QR-Code",
       "addressesInNav": "Den Tab „Adressen“ in der oberen Navigation anzeigen",
       "addressesInNavHint": "Für HD-Wallets, auf ausreichend breiten Bildschirmen. Ohne den Tab öffnet sich die Adressen-Seite über das ⋯-Menü.",
-      "followTokenIdentities": "Die Identitäten der Tokens in diesem Wallet verfolgen",
+      "followTokenIdentities": "Die Identitäten aller Tokens in diesem Wallet verfolgen",
       "followTokenIdentitiesHint": "Die Liste der Tokens in diesem Wallet geht als Ganzes an den Chaingraph-Server, damit die Identität eines Tokens, die dieses Wallet erreicht, bemerkt und zurückgehalten wird. Standardmäßig aus: dann wird nur die Identität eines Tokens nachgeschlagen, dessen AuthKey dieses Wallet hält. Einschalten schlägt bei jedem Öffnen des Wallets jeden Token im Wallet nach.",
       "allowDappIdentitySpends": "Verbundene Apps dürfen Identitäts-UTXOs ausgeben",
       "allowDappIdentitySpendsHint": "Aus: Eine WalletConnect- oder WizardConnect-Anfrage, die den UTXO einer Identität dieses Wallets ausgibt, wird abgelehnt, so wie ein zugesagter UTXO. An: Die Anfrage erreicht den Bestätigungsdialog, der die Identität nennt und sagt, was ihr UTXO vorher und nachher trägt. Eine Anfrage, die eine Identität aus diesem Wallet bewegen würde, wird in beiden Fällen abgelehnt. AuthKeys sind nicht betroffen: Eine Anfrage, die einen verwendet, wird signiert, wenn der AuthKey zurückkommt, so arbeitet CashTokens Studio.",
@@ -1903,6 +1906,7 @@
       "allFoundAutomaticallyHelp": "Die Schlüssel dieses Wallets haben diese Identitäten erstellt oder ihre Metadaten veröffentlicht, oder dieses Wallet hält den AuthKey, der sie kontrolliert. Ihre Identitäts-UTXOs, oder die AuthKeys, die sie kontrollieren, sind von gewöhnlichen Sendungen ausgenommen; nimm eine von der Liste, wenn dir das lieber ist."
     },
     "ownedCount": "{count} Identität, die dieses Wallet besitzt und verwaltet | {count} Identitäten, die dieses Wallet besitzt und verwaltet",
+    "watchPending": "Es wird gesucht, wo {name} gehalten wird",
     "watchedHeader": "{count} Identität nur beobachtet, nicht von diesem Wallet gehalten | {count} Identitäten nur beobachtet, nicht von diesem Wallet gehalten",
     "follow": {
       "header": "{count} verfolgte Identität eines Tokens in diesem Wallet | {count} verfolgte Identitäten von Tokens in diesem Wallet",
@@ -2164,7 +2168,8 @@
     },
     "errors": {
       "invalidCategory": "Das ist keine Transaktions-Id. Füge die 64-stellige Authbase, eine Token-Id oder die Kategorie eines AuthKeys ein.",
-      "alreadyListed": "Diese Identität ist bereits in der Liste."
+      "alreadyListed": "Diese Identität ist bereits in der Liste.",
+      "busy": "Eine andere Identitätsaktion läuft noch. Versuche es erneut, sobald sie fertig ist."
     },
     "established": {
       "since": "Seit {year}"

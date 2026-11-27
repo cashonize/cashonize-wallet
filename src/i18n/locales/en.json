@@ -351,6 +351,9 @@
       "notWebAddress": "not a valid web address",
       "type": "Type",
       "commitment": "Commitment",
+      "viewIdentity": "View this token's identity",
+      "watchIdentity": "Watch this token's identity",
+      "identityNote": "Who can update its metadata, and every update so far",
       "seeDetailsOnExplorer": "View on TokenExplorer",
       "cauldronSection": "Cauldron DEX",
       "cauldronLiquidity": "BCH in the pools",
@@ -1680,7 +1683,7 @@
       "qrHeading": "QR code",
       "addressesInNav": "Show the Addresses tab in the top navigation",
       "addressesInNavHint": "For HD wallets, on screens wide enough for it. Without the tab, the Addresses page opens from the ⋯ menu.",
-      "followTokenIdentities": "Follow the identities of the tokens in this wallet",
+      "followTokenIdentities": "Follow the identities of all tokens in this wallet",
       "followTokenIdentitiesHint": "The list of tokens in this wallet goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every token in the wallet at every wallet open.",
       "allowDappIdentitySpends": "Let connected apps spend identity UTXOs",
       "allowDappIdentitySpendsHint": "Off: a WalletConnect or WizardConnect request that spends the UTXO of one of this wallet's identities is refused, the way a pledged UTXO is. On: the request reaches the approval dialog, which names the identity and says what its UTXO carries before and after. A request that would move an identity out of this wallet is refused either way. AuthKeys are not affected: a request using one is signed when the AuthKey comes back, which is how CashTokens Studio works.",
@@ -1903,6 +1906,7 @@
       "allFoundAutomaticallyHelp": "This wallet's keys made these identities or published their metadata, or this wallet holds the AuthKey that controls them. Their identity UTXOs, or the AuthKeys that control them, are held back from ordinary sends; remove one from the list if you would rather it were not."
     },
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
+    "watchPending": "Looking up where {name} is held",
     "watchedHeader": "{count} identity watched only, not held by this wallet | {count} identities watched only, not held by this wallet",
     "follow": {
       "header": "{count} followed identity of a token in this wallet | {count} followed identities of tokens in this wallet",
@@ -2164,7 +2168,8 @@
     },
     "errors": {
       "invalidCategory": "That is not a transaction id. Paste the 64-character authbase, a token id, or an AuthKey category.",
-      "alreadyListed": "That identity is already in the list."
+      "alreadyListed": "That identity is already in the list.",
+      "busy": "Another identity action is still running. Try again once it is done."
     },
     "established": {
       "since": "Established {year}"

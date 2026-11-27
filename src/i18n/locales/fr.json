@@ -351,6 +351,9 @@
       "notWebAddress": "pas une adresse web valide",
       "type": "Type",
       "commitment": "Commitment",
+      "viewIdentity": "Voir l'identité de ce jeton",
+      "watchIdentity": "Surveiller l'identité de ce jeton",
+      "identityNote": "Qui peut mettre à jour ses métadonnées, et chaque mise à jour jusqu'ici",
       "seeDetailsOnExplorer": "Voir sur TokenExplorer",
       "cauldronSection": "Cauldron DEX",
       "cauldronLiquidity": "BCH dans les pools",
@@ -1680,7 +1683,7 @@
       "qrHeading": "Code QR",
       "addressesInNav": "Afficher l'onglet Adresses dans la navigation supérieure",
       "addressesInNavHint": "Pour les portefeuilles HD, sur les écrans assez larges. Sans l'onglet, la page Adresses s'ouvre depuis le menu ⋯.",
-      "followTokenIdentities": "Suivre les identités des tokens de ce portefeuille",
+      "followTokenIdentities": "Suivre les identités de tous les tokens de ce portefeuille",
       "followTokenIdentitiesHint": "La liste des tokens de ce portefeuille est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens du portefeuille à chaque ouverture du portefeuille.",
       "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
       "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les AuthKeys ne sont pas concernées : une requête qui en utilise une est signée quand l'AuthKey revient, ce qui est le fonctionnement de CashTokens Studio.",
@@ -1903,6 +1906,7 @@
       "allFoundAutomaticallyHelp": "Les clés de ce portefeuille ont créé ces identités ou publié leurs métadonnées, ou ce portefeuille détient l'AuthKey qui les contrôle. Leurs UTXO d'identité, ou les AuthKeys qui les contrôlent, sont tenus à l'écart des envois ordinaires ; retirez-en une de la liste si vous préférez qu'il en soit autrement."
     },
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
+    "watchPending": "Recherche de l'endroit où {name} est détenue",
     "watchedHeader": "{count} identité seulement surveillée, non détenue par ce portefeuille | {count} identités seulement surveillées, non détenues par ce portefeuille",
     "follow": {
       "header": "{count} identité suivie d'un token de ce portefeuille | {count} identités suivies de tokens de ce portefeuille",
@@ -2164,7 +2168,8 @@
     },
     "errors": {
       "invalidCategory": "Ce n'est pas un id de transaction. Collez l'authbase de 64 caractères, un id de token, ou la catégorie d'une AuthKey.",
-      "alreadyListed": "Cette identité est déjà dans la liste."
+      "alreadyListed": "Cette identité est déjà dans la liste.",
+      "busy": "Une autre action sur une identité est en cours. Réessayez une fois qu'elle est terminée."
     },
     "established": {
       "since": "Depuis {year}"

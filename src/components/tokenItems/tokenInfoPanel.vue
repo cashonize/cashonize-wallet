@@ -1,12 +1,16 @@
 <script setup lang="ts">
   // What a token card's "info" opens: the creator's description, then the facts as a labelled
-  // list, then the way out to an explorer. Rendered only while open, so a long token list pays
-  // nothing for it.
+  // list, then the way out to the token's identity and to an explorer. Rendered only while open,
+  // so a long token list pays nothing for it.
   import { computed, onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { sanitizeUrl } from 'src/utils/utils'
   import type { ParsedField } from 'src/parsing/nftParsing'
+  import { useStore } from 'src/stores/store'
+  import { useIdentitiesStore } from 'src/stores/identitiesStore'
   const { t } = useI18n()
+  const store = useStore()
+  const identitiesStore = useIdentitiesStore()
 
   // a note follows the value in the secondary text style, as a currency value does an amount
   interface Fact { label: string, value: string, mono?: boolean, note?: string }
@@ -22,7 +26,7 @@
     webUrl?: string | undefined,
     // lists under captions of their own that are not the token's metadata, such as market data
     moreSections?: { title: string, facts: Fact[] }[],
-    // with a category the panel ends in the explorer link
+    // with a category the panel ends in the identity and explorer links
     category?: string,
   }>()
 
@@ -51,6 +55,16 @@
       ...(props.moreSections ?? []),
     ].filter(section => section.facts.length)
   })
+
+  // What the indexer serves is shown above; the identities page resolves the chain and checks the
+  // registry against it. An identity with a card there is opened, any other is offered to watch,
+  // which the page confirms before anything is listed or fetched from the registry's host.
+  const hasIdentityCard = computed(() => !!props.category && !!identitiesStore.identityCardFor(props.category))
+  function openIdentity() {
+    if (!props.category) return
+    identitiesStore.requestIdentityCard(props.category)
+    store.changeView(19)
+  }
 
   const httpsWebUrl = computed(() => props.webUrl ? sanitizeUrl(props.webUrl) : undefined)
   // A host on the web is dot-separated names ending in a top-level domain. A single word is a
@@ -114,6 +128,13 @@
       </dl>
     </template>
 
+    <div v-if="category" class="infoLink" @click="openIdentity()">
+      <span>
+        {{ hasIdentityCard ? t('tokenItem.info.viewIdentity') : t('tokenItem.info.watchIdentity') }}
+        <span class="infoLinkNote">{{ t('tokenItem.info.identityNote') }}</span>
+      </span>
+      <q-icon name="chevron_right" size="16px" />
+    </div>
     <a v-if="category" class="infoLink" :href="'https://tokenexplorer.cash/?tokenId=' + category" target="_blank">
       <span>{{ t('tokenItem.info.seeDetailsOnExplorer') }}</span>
       <q-icon name="open_in_new" size="16px" />
@@ -198,9 +219,15 @@
   min-height: 42px;
   padding: 8px 12px;
   color: var(--font-color);
+  cursor: pointer;
 }
 .infoLink span {
   flex: 1;
+}
+.infoLinkNote {
+  display: block;
+  color: grey;
+  font-size: smaller;
 }
 .infoLink .q-icon {
   opacity: 0.6;

@@ -351,6 +351,9 @@
       "notWebAddress": "bukan alamat web yang valid",
       "type": "Jenis",
       "commitment": "Commitment",
+      "viewIdentity": "Lihat identitas token ini",
+      "watchIdentity": "Pantau identitas token ini",
+      "identityNote": "Siapa yang dapat memperbarui metadatanya, dan setiap pembaruan sejauh ini",
       "seeDetailsOnExplorer": "Lihat di TokenExplorer",
       "cauldronSection": "Cauldron DEX",
       "cauldronLiquidity": "BCH di dalam pool",
@@ -1680,7 +1683,7 @@
       "qrHeading": "Kode QR",
       "addressesInNav": "Tampilkan tab Alamat di navigasi atas",
       "addressesInNavHint": "Untuk dompet HD, di layar yang cukup lebar. Tanpa tab, halaman Alamat dibuka dari menu ⋯.",
-      "followTokenIdentities": "Ikuti identitas token di dompet ini",
+      "followTokenIdentities": "Ikuti identitas semua token di dompet ini",
       "followTokenIdentitiesHint": "Daftar token di dompet ini dikirim ke server Chaingraph sebagai satu kumpulan, sehingga identitas token yang masuk ke dompet ini terdeteksi dan ditahan. Nonaktif secara default: maka hanya token yang AuthKey-nya dimiliki dompet ini yang identitasnya dicari. Mengaktifkannya akan mencari setiap token di dompet setiap kali dompet dibuka.",
       "allowDappIdentitySpends": "Izinkan aplikasi terhubung membelanjakan UTXO identitas",
       "allowDappIdentitySpendsHint": "Nonaktif: permintaan WalletConnect atau WizardConnect yang membelanjakan UTXO salah satu identitas dompet ini ditolak, sama seperti UTXO yang dijanjikan. Aktif: permintaan sampai ke dialog persetujuan, yang menyebutkan identitasnya dan apa yang dibawa UTXO-nya sebelum dan sesudah. Permintaan yang akan memindahkan identitas keluar dari dompet ini tetap ditolak. AuthKey tidak terpengaruh: permintaan yang menggunakan AuthKey ditandatangani jika AuthKey tersebut kembali, seperti cara kerja CashTokens Studio.",
@@ -1903,6 +1906,7 @@
       "allFoundAutomaticallyHelp": "Kunci dompet ini membuat identitas-identitas ini atau memublikasikan metadatanya, atau dompet ini memegang AuthKey yang mengendalikannya. UTXO identitasnya, atau AuthKey yang mengendalikannya, ditahan dari pengiriman biasa; hapus salah satunya dari daftar jika Anda tidak menginginkannya."
     },
     "ownedCount": "{count} identitas dimiliki dan dikelola oleh dompet ini | {count} identitas dimiliki dan dikelola oleh dompet ini",
+    "watchPending": "Mencari di mana {name} dipegang",
     "watchedHeader": "{count} identitas hanya dipantau, tidak dipegang oleh dompet ini | {count} identitas hanya dipantau, tidak dipegang oleh dompet ini",
     "follow": {
       "header": "{count} identitas yang diikuti dari token di dompet ini | {count} identitas yang diikuti dari token di dompet ini",
@@ -2164,7 +2168,8 @@
     },
     "errors": {
       "invalidCategory": "Itu bukan id transaksi. Tempel authbase 64 karakter, id token, atau kategori AuthKey.",
-      "alreadyListed": "Identitas tersebut sudah ada di daftar."
+      "alreadyListed": "Identitas tersebut sudah ada di daftar.",
+      "busy": "Tindakan identitas lain masih berjalan. Coba lagi setelah selesai."
     },
     "established": {
       "since": "Didirikan {year}"

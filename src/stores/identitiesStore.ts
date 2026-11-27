@@ -5,7 +5,7 @@
 // and deciding which coin that is, is this one's.
 
 import { defineStore } from "pinia"
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useStore } from "./store"
 import { useSettingsStore } from "./settingsStore"
 import {
@@ -74,7 +74,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Kept beside the identities rather than on them: resolution reads the chain, this reads the
   // hosting, and one can be present without the other.
   const publicationChecks = ref({} as Record<string, PublicationUriStatus[]>);
-  const publicationChecksRunning = ref(false);
+  // a count, since a newly listed identity's check can run beside the page visit's
+  const publicationChecksInFlight = ref(0);
+  const publicationChecksRunning = computed(() => publicationChecksInFlight.value > 0);
   // One resolve at a time: a pass writes the identities list and the 'auth' reservations derived
   // from it whole, so two overlapping passes would undo each other's result. A pass asked for
   // while one runs waits its turn rather than being dropped: an add, or the resolve after the
@@ -587,10 +589,13 @@ export const useIdentitiesStore = defineStore('identities', () => {
   // Fetches every listed identity's published locations and compares what they serve against the
   // hash on chain. Only ever on the user opening the page: this reaches out to the identity's
   // hosting, which is not something to do quietly in the background on every wallet start.
-  async function checkPublications() {
-    const identitiesWithPublication = identities.value?.filter(identity => identity.publication) ?? [];
+  // Narrowed to the given categories for an identity listed during the visit.
+  async function checkPublications(categories?: string[]) {
+    const identitiesWithPublication = identities.value?.filter(identity =>
+      identity.publication && (!categories || categories.includes(identity.category))
+    ) ?? [];
     if (!identitiesWithPublication.length) return;
-    publicationChecksRunning.value = true;
+    publicationChecksInFlight.value++;
     try {
       const started = mainStore.currentInitializationToken();
       const checked = await Promise.all(identitiesWithPublication.map(async identity => {
@@ -601,9 +606,9 @@ export const useIdentitiesStore = defineStore('identities', () => {
         return [identity.category, checks] as const;
       }));
       if (mainStore.walletSwitchedSince(started)) return;
-      publicationChecks.value = Object.fromEntries(checked);
+      publicationChecks.value = { ...publicationChecks.value, ...Object.fromEntries(checked) };
     } finally {
-      publicationChecksRunning.value = false;
+      publicationChecksInFlight.value--;
     }
   }
 
@@ -613,6 +618,17 @@ export const useIdentitiesStore = defineStore('identities', () => {
     return identities.value?.filter(
       identity => identity.authKeyUtxo?.token?.category === keyCategory
     ) ?? [];
+  }
+
+  // The card a token's info can open for its category: the listed identity, the one an AuthKey
+  // guards, or a followed one while the followed list is shown. None means it is not here yet.
+  function identityCardFor(category: string): { category: string, followed: boolean } | undefined {
+    if (identityCategories.value.includes(category)) return { category, followed: false };
+    const guarded = identitiesGuardedByKey(category)[0];
+    if (guarded) return { category: guarded.category, followed: false };
+    const followed = followedTokenIdentities.value?.some(identity => identity.category === category);
+    if (settingsStore.followTokenIdentities && followed) return { category, followed: true };
+    return undefined;
   }
 
   // The identity of a token this wallet holds the authority over, directly or through an AuthKey, so
@@ -743,6 +759,7 @@ export const useIdentitiesStore = defineStore('identities', () => {
     takeLearnRequest,
     requestIdentityCard,
     takeCardRequest,
+    identityCardFor,
     identityPublicationTxids,
     identities,
     followedTokenIdentities,

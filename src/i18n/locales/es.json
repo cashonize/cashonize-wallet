@@ -351,6 +351,9 @@
       "notWebAddress": "no es una dirección web válida",
       "type": "Tipo",
       "commitment": "Commitment",
+      "viewIdentity": "Ver la identidad de este token",
+      "watchIdentity": "Observar la identidad de este token",
+      "identityNote": "Quién puede actualizar sus metadatos, y cada actualización hasta ahora",
       "seeDetailsOnExplorer": "Ver en TokenExplorer",
       "cauldronSection": "Cauldron DEX",
       "cauldronLiquidity": "BCH en los pools",
@@ -1680,7 +1683,7 @@
       "qrHeading": "Código QR",
       "addressesInNav": "Mostrar la pestaña Direcciones en la navegación superior",
       "addressesInNavHint": "Para billeteras HD, en pantallas lo bastante anchas. Sin la pestaña, la página Direcciones se abre desde el menú ⋯.",
-      "followTokenIdentities": "Seguir las identidades de los tokens de esta billetera",
+      "followTokenIdentities": "Seguir las identidades de todos los tokens de esta billetera",
       "followTokenIdentitiesHint": "La lista de tokens de esta billetera se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivado por defecto: entonces solo se consulta la identidad de un token cuya AuthKey tiene esta billetera. Activarlo consulta todos los tokens de la billetera en cada apertura de la billetera.",
       "allowDappIdentitySpends": "Permitir que las apps conectadas gasten UTXOs de identidad",
       "allowDappIdentitySpendsHint": "Apagado: una solicitud de WalletConnect o WizardConnect que gaste el UTXO de una identidad de esta billetera se rechaza, como un UTXO comprometido. Encendido: la solicitud llega al diálogo de aprobación, que nombra la identidad y dice qué lleva su UTXO antes y después. Una solicitud que sacara una identidad de esta billetera se rechaza en ambos casos. Las AuthKeys no se ven afectadas: una solicitud que usa una se firma cuando la AuthKey vuelve, que es como funciona CashTokens Studio.",
@@ -1903,6 +1906,7 @@
       "allFoundAutomaticallyHelp": "Las claves de esta billetera crearon estas identidades o publicaron sus metadatos, o esta billetera tiene la AuthKey que las controla. Sus UTXO de identidad, o las AuthKeys que los controlan, quedan fuera de los envíos ordinarios; quita una de la lista si prefieres que no sea así."
     },
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
+    "watchPending": "Buscando dónde se tiene {name}",
     "watchedHeader": "{count} identidad solo observada, no la tiene esta billetera | {count} identidades solo observadas, no las tiene esta billetera",
     "follow": {
       "header": "{count} identidad seguida de un token de esta billetera | {count} identidades seguidas de tokens de esta billetera",
@@ -2164,7 +2168,8 @@
     },
     "errors": {
       "invalidCategory": "Eso no es un id de transacción. Pega la authbase de 64 caracteres, un id de token o la categoría de una AuthKey.",
-      "alreadyListed": "Esa identidad ya está en la lista."
+      "alreadyListed": "Esa identidad ya está en la lista.",
+      "busy": "Otra acción de identidad sigue en curso. Inténtalo de nuevo cuando termine."
     },
     "established": {
       "since": "Desde {year}"

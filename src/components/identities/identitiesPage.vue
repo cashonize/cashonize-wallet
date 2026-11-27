@@ -7,6 +7,7 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useI18n } from 'vue-i18n'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
+  import TokenIcon from 'src/components/general/TokenIcon.vue'
   import genesisInputPicker from './genesisInputPicker.vue'
   import identityCard from './identityCard.vue'
   import { runIdentityAction, type CardAction, type OpenAction, type Outcome } from './identityActions'
@@ -66,13 +67,20 @@
     if (!settingsStore.followTokenIdentities) return false;
     return identitiesStore.followedTokenIdentities === undefined || identitiesStore.followedTokenIdentities.length > 0;
   });
+  // A token's link to watch its identity waits on the lookup, so the identity it asked for stands
+  // in the watched list, counted, until the lookup lists it or fails
+  const pendingWatch = ref<string | undefined>(undefined);
+  const watchedCount = (listed: number) => listed + (pendingWatch.value ? 1 : 0);
   // a burned identity is nobody's now, so it is listed with the watched ones
   const notOwnedStatuses: IdentityStatus[] = ['notHeld', 'burned'];
   const identityGroups = computed(() => [
     { key: 'held' as const, identities: identities.value.filter(identity => !notOwnedStatuses.includes(identity.status)) },
     { key: 'watched' as const, identities: identities.value.filter(identity => notOwnedStatuses.includes(identity.status)) },
     { key: 'tokens' as const, identities: identitiesStore.followedTokenIdentities ?? [] },
-  ].filter(group => group.key === 'tokens' ? tokenGroupShown.value : group.identities.length > 0));
+  ].filter((group) => {
+    if (group.key === 'tokens') return tokenGroupShown.value;
+    return group.identities.length > 0 || (group.key === 'watched' && !!pendingWatch.value);
+  }));
   // A wallet opening on a dozen identities it found for itself would carry the same pill a dozen
   // times, so the group says it once instead. The pills stay for a mixed group, where they are
   // the only thing saying which ones are new.
@@ -117,7 +125,12 @@
   // The followed list shows what the wallet's open found, which stops at a cap, until this visit's
   // lookups of every held token are in: its count can still grow, and the heading says so
   const lookingUpFollowed = ref(false);
+  // a card's publication check is due from the visit's start, though it runs only at the end; a
+  // count, since a visit can start while the last one's reload still runs
+  const reloadsRunning = ref(0);
+  const reloading = computed(() => reloadsRunning.value > 0);
   async function reloadIdentities() {
+    reloadsRunning.value++;
     try {
       // the names first: the cards are up already, and a name the wallet open failed to fetch
       // would otherwise wait on Chaingraph
@@ -132,6 +145,8 @@
       await identitiesStore.checkPublications();
     } catch (error) {
       displayAndLogError(error);
+    } finally {
+      reloadsRunning.value--;
     }
   }
 
@@ -141,7 +156,7 @@
     mode.value = identitiesStore.takeLearnRequest() ? 'learn' : 'identities';
     foundAutomatically.value = identitiesStore.markIdentitiesSeen();
     const requested = identitiesStore.takeCardRequest();
-    if (requested) openCard(requested.category, requested.action as CardAction | undefined);
+    if (requested) openRequestedCard(requested.category, requested.action as CardAction | undefined);
     void reloadIdentities();
   });
   // The view is kept alive across navigation, so a different wallet's form input must not linger
@@ -150,6 +165,7 @@
     openAction.value = undefined;
     showTokenIdentities.value = false;
     pickedUtxo.value = undefined;
+    pendingWatch.value = undefined;
   });
 
   // The confirm says what was found and where it is, so the name comes first: a fetch that fails
@@ -163,17 +179,31 @@
     }
   }
 
-  async function addIdentity() {
+  // A token's info hands over its category rather than the input field: the same confirm, then the
+  // card it led to, which for an AuthKey is the identity it guards, listed already or not
+  async function addIdentity(requested?: string) {
+    // one action at a time: a request arriving while another runs would be dropped unseen
+    if (requested && busy.value) {
+      Notify.create({ type: 'warning', message: t('identities.errors.busy') });
+      return;
+    }
     await runAction('add', async () => {
-      const category = categoryInput.value.trim().toLowerCase();
+      if (requested) pendingWatch.value = requested;
+      const category = (requested ?? categoryInput.value).trim().toLowerCase();
       if (!/^[0-9a-f]{64}$/i.test(category)) throw new Error(t('identities.errors.invalidCategory'));
       if (identitiesStore.identityCategories.includes(category)) throw new Error(t('identities.errors.alreadyListed'));
       // fetched before the lookup, which reads the key an identity that adopted a guard names there
       await fetchMetadata(category);
+      // the lookup judged against this wallet's coins, so it is not listed in another
+      const started = store.currentInitializationToken();
       const found = await identitiesStore.inspectCategory(category);
+      if (store.walletSwitchedSince(started)) return;
       if (found.status === 'unresolved') throw new Error(t('identities.add.errors.nothingFound'));
       // an AuthKey's category resolves to the identity it guards, which is the one to name and list
-      if (identitiesStore.identityCategories.includes(found.category)) throw new Error(t('identities.errors.alreadyListed'));
+      if (identitiesStore.identityCategories.includes(found.category)) {
+        if (requested) return openCard(found.category);
+        throw new Error(t('identities.errors.alreadyListed'));
+      }
       if (found.category !== category) await fetchMetadata(found.category);
       const name = identityName(found.category) ?? truncateHash(found.category);
       const summary: string[] = [];
@@ -183,16 +213,24 @@
       } else {
         summary.push(t(found.status === 'held' ? 'identities.add.found.held' : 'identities.add.found.watched', { name }));
       }
-      const confirmed = await confirmDialog(
-        t('identities.add.found.title'),
-        summary.join('\n'),
-        t('identities.add.found.button')
-      );
-      if (!confirmed) return;
+      // Watching is what the token's link said it would do, so only holding a coin back, which it
+      // did not say, is asked
+      const holdsBack = found.status === 'held' || found.status === 'heldViaKey';
+      if (!requested || holdsBack) {
+        const confirmed = await confirmDialog(
+          t('identities.add.found.title'),
+          summary.join('\n'),
+          t('identities.add.found.button')
+        );
+        if (!confirmed || store.walletSwitchedSince(started)) return;
+      }
       await identitiesStore.addIdentity(found.category, found);
+      pendingWatch.value = undefined;
+      identitiesStore.checkPublications([found.category]).catch(displayAndLogError);
       await fetchMissingMetadata();
-      categoryInput.value = "";
-    });
+      if (requested) openCard(found.category);
+      else categoryInput.value = "";
+    }).finally(() => { if (requested) pendingWatch.value = undefined; });
   }
 
   // A new identity that is not a token starts from any UTXO at output 0, picked or prepared the
@@ -220,6 +258,18 @@
       Notify.create({ type: 'positive', message: t('identities.create.doneTitle') });
       openCard(picked.txid, 'publish');
     });
+  }
+
+  // The token list asks for a card by category: one that is here opens, a followed one in its
+  // unfolded group, and any other is looked up to be watched
+  function openRequestedCard(category: string, action?: CardAction) {
+    const card = identitiesStore.identityCardFor(category);
+    if (!card) return void addIdentity(category);
+    if (card.followed) {
+      showTokenIdentities.value = true;
+      followSearch.value = '';
+    }
+    openCard(card.category, card.category === category ? action : undefined);
   }
 
   // Lands on one card with one of its forms open, for a hand-over to what comes next; a card that
@@ -430,7 +480,7 @@
         <div>{{ t('identities.chaingraphNotConfigured', { network: store.network }) }}</div>
       </div>
       <div v-if="!identitiesStore.identities" class="description">{{ t('identities.resolving') }} <q-spinner-dots size="1.2em" /></div>
-      <div v-else-if="!identities.length" class="description">
+      <div v-else-if="!identities.length && !pendingWatch" class="description">
         <i18n-t keypath="identities.empty" tag="span">
           <template #link>
             <span class="action-link" @click="mode = 'existing'">{{ t('identities.emptyLink') }}</span>
@@ -440,7 +490,7 @@
 
       <template v-for="group in identityGroups" :key="group.key">
       <div v-if="group.key !== 'tokens'" class="section">
-        {{ group.key === 'held' ? t('identities.ownedCount', group.identities.length) : t('identities.watchedHeader', group.identities.length) }}
+        {{ group.key === 'held' ? t('identities.ownedCount', group.identities.length) : t('identities.watchedHeader', watchedCount(group.identities.length)) }}
         <InfoPopup v-if="group.key === 'held' && heldAllFound">
           <template #trigger>
             <span class="identity-badge">{{ t('identities.detected.allFoundAutomatically') }}</span>
@@ -480,10 +530,16 @@
         :removable="group.key !== 'tokens'"
         :expanded="expandedIdentity === identity.category"
         :found-automatically="showsFoundPill(group.key, identity.category)"
+        :checking-publication="reloading || identitiesStore.publicationChecksRunning"
         v-model:open-action="openAction"
         v-model:running-action="runningAction"
         @toggle="toggleCard(identity.category)"
       />
+      <div v-if="group.key === 'watched' && pendingWatch" class="pending-watch">
+        <TokenIcon :token-id="pendingWatch" :icon-url="settingsStore.disableTokenIcons ? undefined : store.tokenIconUrl(pendingWatch)" :size="40" />
+        <span>{{ t('identities.watchPending', { name: identityName(pendingWatch) ?? truncateHash(pendingWatch) }) }}</span>
+        <q-spinner-dots size="1.2em" />
+      </div>
       </template>
       <!-- The option sits where its list shows: above the followed identities once there are
            any, and here while there are none or the following is off -->
@@ -501,6 +557,12 @@
 </template>
 
 <style scoped>
+.pending-watch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
 /* the description on the left and the way into Learn on the right; on a phone the link
    takes its own line under the description instead */
 .page-head {

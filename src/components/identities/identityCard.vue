@@ -57,6 +57,7 @@
     removable: boolean, // a followed identity is not listed, so there is nothing to remove it from
     expanded: boolean,
     foundAutomatically: boolean,
+    checkingPublication: boolean, // the page's check of the listed identities' publications is due or running
   }>()
   const emit = defineEmits<{ toggle: [] }>()
   const openAction = defineModel<OpenAction | undefined>('openAction', { required: true })
@@ -197,6 +198,12 @@
     const status = summaryOrder.find(candidate => reachable.some(row => row.status === candidate)) ?? 'restricted';
     return { status, text: t(`identities.publication.summary.${status}`) };
   });
+
+  // Held in the badge's place until the check answers, so the card does not grow when it does;
+  // a followed identity's publication is never checked, so it holds no place
+  const publicationPending = computed(() =>
+    props.removable && !!props.identity.publication && !publicationSummary.value && props.checkingPublication
+  );
 
   // A location that did not answer may answer next time, and a restricted gateway is not the
   // publication's problem: neither is the publisher's to act on, so neither reads as a fault.
@@ -516,7 +523,10 @@
 
     <div v-if="carriesLine">{{ carriesLine }}</div>
     <div v-if="issuedLine">{{ issuedLine }}</div>
-    <div v-if="!expanded && publicationSummary" class="publication-badge-row">
+    <div v-if="!expanded && publicationPending" class="publication-badge-row">
+      <span class="publication-badge muted checking">{{ t('identities.publication.checking') }}</span>
+    </div>
+    <div v-else-if="!expanded && publicationSummary" class="publication-badge-row">
       <InfoPopup>
         <template #trigger>
           <span class="publication-badge" :class="badgeTone(publicationSummary.status)">{{ publicationSummary.text }}</span>
@@ -586,7 +596,7 @@
                 {{ t('identities.publication.statusHelp.changedNote') }}
               </div>
             </InfoPopup>
-            <span v-else-if="identitiesStore.publicationChecksRunning" class="description">{{ t('identities.publication.checking') }}</span>
+            <span v-else-if="removable && checkingPublication" class="publication-badge muted checking">{{ t('identities.publication.checking') }}</span>
           </div>
         </div>
         <div class="copy-target" :title="identity.publication.hash" @click="copyToClipboard(identity.publication.hash)">
@@ -904,6 +914,15 @@
 }
 .publication-badge.unreachable {
   color: var(--color-error);
+}
+/* the loading pill, pulsing like the placeholder bars of the wallet's recent activity */
+.publication-badge.checking {
+  animation: placeholderBarPulse 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .publication-badge.checking {
+    animation: none;
+  }
 }
 /* a location that did not answer while another serves the file, and a restricted gateway: a note
    about that location rather than something wrong with the publication */
