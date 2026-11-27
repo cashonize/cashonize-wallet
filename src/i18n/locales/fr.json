@@ -230,7 +230,6 @@
   },
   "portfolio": {
     "title": "Portfolio",
-    "backToWallet": "Retour au portefeuille",
     "description": "La valeur totale de votre portefeuille entre actifs détenus et positions DeFi",
     "pricesInfo": "Les valeurs des tokens sont basées sur les prix du DEX Cauldron",
     "nftsExcluded": "Les NFTs ne sont pas comptés dans le total, sauf ceux représentant une position : prêts et staking ParyonUSD, et cartes-clés Emerald DAO",

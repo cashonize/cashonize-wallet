@@ -230,7 +230,6 @@
   },
   "portfolio": {
     "title": "Portfolio",
-    "backToWallet": "Zurück zum Wallet",
     "description": "Der Gesamtwert deines Wallets über gehaltene Assets und DeFi-Positionen",
     "pricesInfo": "Token-Werte basieren auf den Preisen des Cauldron DEX",
     "nftsExcluded": "NFTs zählen nicht zum Gesamtwert, außer sie stehen für eine Position: ParyonUSD-Darlehen und -Staking sowie Emerald-DAO-Schlüsselkarten",

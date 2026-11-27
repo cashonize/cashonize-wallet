@@ -18,6 +18,7 @@
   import { sharedRun } from 'src/utils/concurrency'
   import TokenIcon from '../general/TokenIcon.vue'
   import InfoPopup from '../general/InfoPopup.vue'
+  import BackRow from '../general/BackRow.vue'
   import loanKeyItem from './loanKeyItem.vue'
   import stakingReceiptItem from './stakingReceiptItem.vue'
   import cauldronPoolItem from './cauldronPoolItem.vue'
@@ -875,16 +876,17 @@
     <legend>{{ t('portfolio.title') }}</legend>
 
     <div class="top-row">
-      <div style="cursor: pointer;" @click="() => store.changeView(1)">
-        ← {{ t('portfolio.backToWallet') }}
-      </div>
+      <!-- the row spaces itself, so the back row's own bottom margin is dropped -->
+      <BackRow style="margin-bottom: 0;" @click="store.changeView(1)" />
       <div class="unit-toggle">
         <button
+          type="button"
           :class="{ active: effectiveUnit === 'currency' }"
+          :aria-pressed="effectiveUnit === 'currency'"
           :disabled="store.exchangeRate === undefined"
           @click="displayUnit = 'currency'"
         >{{ currencyName }}</button>
-        <button :class="{ active: effectiveUnit === 'bch' }" @click="displayUnit = 'bch'">{{ bchUnitName }}</button>
+        <button type="button" :class="{ active: effectiveUnit === 'bch' }" :aria-pressed="effectiveUnit === 'bch'" @click="displayUnit = 'bch'">{{ bchUnitName }}</button>
       </div>
     </div>
 
