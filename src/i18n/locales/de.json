@@ -1272,13 +1272,9 @@
           "answer": "Dein Wallet ist nur auf diesem Computer gespeichert. Geht der Computer verloren, kaputt oder wird er zurückgesetzt, ist auch das Wallet weg. Die seed phrase ist der einzige Weg, es zurückzubekommen: Niemand kann es für dich zurücksetzen oder wiederherstellen, auch Cashonize nicht. Schreib sie jetzt auf, unter „Wallet sichern“ im Menü."
         }
       },
-      "twoAddresses": {
-        "question": "Empfangen hat eine BCH- und eine Token-Adresse. Welche gebe ich weiter?",
-        "answer": "Es sind zwei Formen derselben Adresse. Schau genau hin: Nur das erste und die letzten acht Zeichen unterscheiden sich. Beide zeigen auf dieselbe Stelle in der Blockchain, mit denselben Schlüsseln dahinter. Die Token-Adresse (beginnt mit z) zeigt dem Absender, dass dein Wallet CashTokens unterstützt; gib sie jedem, der dir Tokens oder NFTs schickt. Für reines BCH gib immer die normale Adresse (beginnt mit q) weiter: Börsen und Wallets ohne Token-Unterstützung akzeptieren nur diese Form. Empfangen öffnet mit der BCH-Adresse; der Umschalter „Tokens“ darüber zeigt die Token-Adresse."
-      },
       "addressChanged": {
         "question": "Meine Empfangsadresse hat sich geändert. Funktioniert die bereits weitergegebene noch?",
-        "answer": "Ja. Ein HD-Wallet zeigt nach jeder Zahlung eine neue Adresse, für mehr Privatsphäre, aber jede frühere Adresse bleibt deine und funktioniert weiter. Ein Wallet mit einer einzelnen Adresse zeigt immer dieselbe."
+        "answer": "Ja. Ein HD-Wallet zeigt nach jeder Zahlung eine neue Adresse, für mehr Privatsphäre, aber jede frühere Adresse bleibt deine und funktioniert weiter; auf der Empfangen-Seite kannst du jede davon auswählen. Ein Wallet mit einer einzelnen Adresse zeigt immer dieselbe."
       },
       "bchForTokens": {
         "question": "Ich habe nur Tokens. Warum brauche ich BCH, um sie zu senden?",
@@ -1286,15 +1282,19 @@
       },
       "tokenSupport": {
         "question": "Kann ich Tokens an eine normale BCH-Adresse senden?",
-        "answer": "Nein, zum Senden von Tokens wird eine Token-Adresse (beginnt mit z) verlangt. Diese Form wurde eingeführt, damit der Absender erkennt, dass das empfangende Wallet CashTokens unterstützt. Tokens, die an ein Wallet ohne diese Unterstützung gehen, werden nicht zerstört, aber dieses Wallet kann sie weder sehen noch senden. Derzeit unterstützt keine Börse CashTokens, sende also keine Tokens dorthin. Wenn du sicher bist, dass das empfangende Wallet CashTokens unterstützt, du aber nur seine normale Adresse hast, liefert der Adresskonverter die Token-Form."
+        "answer": "Nein, zum Senden von Tokens wird eine Token-Adresse (beginnt mit z) verlangt. Sie ist die normale Adresse in anderer Form, mit denselben Schlüsseln dahinter. Diese Form wurde eingeführt, damit der Absender erkennt, dass das empfangende Wallet CashTokens unterstützt. Tokens, die an ein Wallet ohne diese Unterstützung gehen, werden nicht zerstört, aber dieses Wallet kann sie weder sehen noch senden. Derzeit unterstützt keine Börse CashTokens, sende also keine Tokens dorthin. Wenn du sicher bist, dass das empfangende Wallet CashTokens unterstützt, du aber nur seine normale Adresse hast, liefert der Adresskonverter die Token-Form."
       },
       "imposterToken": {
         "question": "Wie erkenne ich einen gefälschten Token?",
         "answer": "Jeder kann einen Token erstellen und ihm beliebigen Namen und Icon geben; ein bekannter Name oder ein bekanntes Logo beweist also nichts. Was einen Token eindeutig macht, ist seine Token-ID, die sich nicht kopieren lässt. Vergleiche die Token-ID, die das Wallet anzeigt, mit der einer vertrauenswürdigen Quelle außerhalb des Wallets, etwa der offiziellen Website des Herausgebers. Ein Token ohne Namen oder Bild ist nicht allein deshalb gefälscht: Sein Ersteller hat lediglich keine Metadaten veröffentlicht."
       },
+      "metadataChange": {
+        "question": "Warum haben sich Name oder Bild meines Tokens geändert?",
+        "answer": "Name, Bild und Beschreibung eines Tokens sind nicht im Token selbst gespeichert. Sie werden separat von dem veröffentlicht, der die Identität des Tokens hält, und können jederzeit aktualisiert werden, etwa bei einem Rebranding oder einer neuen Website. Die Token-ID ändert sich nie, deine Tokens sind also nicht betroffen. Um zu sehen, wer die Metadaten eines Tokens aktualisieren kann, und jede bisherige Aktualisierung, öffne die Info des Tokens und folge dem Link zu seiner Identität."
+      },
       "tokenValue": {
         "question": "Warum wird für meinen Token kein Wert angezeigt?",
-        "answer": "Token-Werte stammen von Cauldron, der wichtigsten Börse für CashTokens: Einen offiziellen Preis gibt es nicht. Ein Wert wird nur im Mainnet angezeigt, und nur wenn die Cauldron-Pools des Tokens zusammen mindestens 1 BCH halten, denn der Preis eines kleineren Marktes lässt sich leicht bewegen. Der Wert ist eine Schätzung zum aktuellen Pool-Preis; ein Verkauf kann weniger bringen, vor allem bei einem großen Betrag. Die Werte lassen sich in den Token-Einstellungen ausschalten."
+        "answer": "Token-Werte stammen von Cauldron, der wichtigsten Börse für CashTokens: Einen offiziellen Preis gibt es nicht. Ein Wert wird nur im Mainnet angezeigt, und nur wenn die Cauldron-Pools des Tokens zusammen mindestens 1 BCH halten, denn der Preis eines kleineren Marktes lässt sich leicht bewegen. Der Wert ist eine Schätzung zum aktuellen Pool-Preis; ein Verkauf kann weniger bringen, vor allem bei einem großen Betrag. Die Info eines Tokens zeigt, wie viel BCH seine Pools halten. Die Werte lassen sich in den Token-Einstellungen ausschalten."
       },
       "utxos": {
         "question": "Was ist ein UTXO, und warum bittet mich eine dApp zu konsolidieren?",

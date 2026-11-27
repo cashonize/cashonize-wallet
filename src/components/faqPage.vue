@@ -29,11 +29,11 @@
   // `tool` is the view an answer sends the reader to, named by its menu page label
   const questions = computed(() => [
     { id: losingDeviceVariant },
-    { id: 'twoAddresses' },
     { id: 'addressChanged' },
     { id: 'bchForTokens' },
     { id: 'tokenSupport', tool: { view: 20, label: 'settings.menu.addressConverter' } },
     { id: 'imposterToken' },
+    { id: 'metadataChange' },
     { id: 'tokenValue', tool: { view: menuSectionViewBase + 7, label: 'settings.menu.tokenSettings' } },
     dappConnections.value,
     { id: 'utxos', tool: { view: 7, label: 'settings.menu.utxoManagement' } },

@@ -1272,13 +1272,9 @@
           "answer": "Your wallet is stored only on this computer. If the computer is lost, broken or wiped, the wallet goes with it. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" in the menu."
         }
       },
-      "twoAddresses": {
-        "question": "Receive has a BCH and a token address. Which one do I give people?",
-        "answer": "They are two forms of the same address. Look closely and only the first character and the last eight differ: both point to the same place on the blockchain, with the same keys behind it. The token address (starting with z) tells the sender your wallet supports CashTokens, so give that one to anyone sending tokens or NFTs. For plain BCH, always give the regular one (starting with q): exchanges and wallets without token support only accept that form. Receive opens on the BCH address; the Tokens switch above it shows the token address."
-      },
       "addressChanged": {
         "question": "My receive address changed. Does the one I already shared still work?",
-        "answer": "Yes. An HD wallet shows a fresh address after each payment for privacy, but every earlier address stays yours and keeps working. A single address wallet always shows the same address."
+        "answer": "Yes. An HD wallet shows a fresh address after each payment for privacy, but every earlier address stays yours and keeps working, and the Receive page lets you pick any of them. A single address wallet always shows the same address."
       },
       "bchForTokens": {
         "question": "I only have tokens. Why do I need BCH to send them?",
@@ -1286,15 +1282,19 @@
       },
       "tokenSupport": {
         "question": "Can I send tokens to a normal BCH address?",
-        "answer": "No, sending tokens asks for a token address (starting with z). That form was introduced so the sender can tell the receiving wallet supports CashTokens. Tokens sent to a wallet without that support are not destroyed, but that wallet cannot see or send them. At the moment no exchange supports CashTokens, so don't send tokens to one. If you are sure the receiving wallet supports CashTokens but you only have its regular address, the Address Converter gives you the token form."
+        "answer": "No, sending tokens asks for a token address (starting with z). It is the regular address in another form, with the same keys behind it. That form was introduced so the sender can tell the receiving wallet supports CashTokens. Tokens sent to a wallet without that support are not destroyed, but that wallet cannot see or send them. At the moment no exchange supports CashTokens, so don't send tokens to one. If you are sure the receiving wallet supports CashTokens but you only have its regular address, the Address Converter gives you the token form."
       },
       "imposterToken": {
         "question": "How do I spot an imposter token?",
         "answer": "Anyone can create a token and give it any name and icon, so a familiar name or logo proves nothing. What identifies a token is its token id, which cannot be copied. Compare the token id the wallet shows with the one on a source you trust outside the wallet, such as the issuer's official website. A token with no name or picture is not fake for that reason alone: its creator just published no metadata."
       },
+      "metadataChange": {
+        "question": "Why did my token's name or picture change?",
+        "answer": "A token's name, picture and description are not stored in the token itself. They are published separately by whoever holds the token's identity, who can update them at any time, for a rebrand or a new website. The token id never changes, so your tokens are not affected. To see who can update a token's metadata and every update so far, open the token's info and follow the link to its identity."
+      },
       "tokenValue": {
         "question": "Why does my token show no value?",
-        "answer": "Token values come from Cauldron, the main exchange for CashTokens: there is no official price. A value is shown only on mainnet, and only when the token's Cauldron pools hold at least 1 BCH together, because the price of a smaller market is easy to move. The value is an estimate at the current pool price, and selling can bring less, especially for a large amount. The values can be turned off in the token settings."
+        "answer": "Token values come from Cauldron, the main exchange for CashTokens: there is no official price. A value is shown only on mainnet, and only when the token's Cauldron pools hold at least 1 BCH together, because the price of a smaller market is easy to move. The value is an estimate at the current pool price, and selling can bring less, especially for a large amount. A token's info shows how much BCH its pools hold. The values can be turned off in the token settings."
       },
       "utxos": {
         "question": "What is a UTXO, and why does a dApp ask me to consolidate?",

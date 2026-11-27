@@ -1272,13 +1272,9 @@
           "answer": "Dompet Anda hanya tersimpan di komputer ini. Jika komputer hilang, rusak, atau dihapus isinya, dompet ikut hilang. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" di menu."
         }
       },
-      "twoAddresses": {
-        "question": "Terima memiliki alamat BCH dan alamat token. Mana yang saya berikan?",
-        "answer": "Keduanya adalah dua bentuk dari alamat yang sama. Jika diperhatikan, hanya karakter pertama dan delapan karakter terakhir yang berbeda: keduanya menunjuk ke tempat yang sama di blockchain, dengan kunci yang sama di baliknya. Alamat token (diawali z) memberi tahu pengirim bahwa dompet Anda mendukung CashTokens, jadi berikan alamat itu kepada siapa pun yang mengirim token atau NFT. Untuk BCH biasa, selalu berikan alamat biasa (diawali q): bursa dan dompet tanpa dukungan token hanya menerima bentuk itu. Terima terbuka pada alamat BCH; pilihan \"Token\" di atasnya menampilkan alamat token."
-      },
       "addressChanged": {
         "question": "Alamat penerimaan saya berubah. Apakah alamat yang sudah saya bagikan masih berfungsi?",
-        "answer": "Ya. Dompet HD menampilkan alamat baru setelah setiap pembayaran demi privasi, tetapi setiap alamat sebelumnya tetap milik Anda dan tetap berfungsi. Dompet alamat tunggal selalu menampilkan alamat yang sama."
+        "answer": "Ya. Dompet HD menampilkan alamat baru setelah setiap pembayaran demi privasi, tetapi setiap alamat sebelumnya tetap milik Anda dan tetap berfungsi, dan halaman Terima memungkinkan Anda memilih salah satunya. Dompet alamat tunggal selalu menampilkan alamat yang sama."
       },
       "bchForTokens": {
         "question": "Saya hanya punya token. Mengapa perlu BCH untuk mengirimnya?",
@@ -1286,15 +1282,19 @@
       },
       "tokenSupport": {
         "question": "Bisakah saya mengirim token ke alamat BCH biasa?",
-        "answer": "Tidak, pengiriman token meminta alamat token (diawali z). Bentuk itu diperkenalkan agar pengirim tahu bahwa dompet penerima mendukung CashTokens. Token yang dikirim ke dompet tanpa dukungan itu tidak hancur, tetapi dompet tersebut tidak bisa melihat atau mengirimnya. Saat ini belum ada bursa yang mendukung CashTokens, jadi jangan kirim token ke bursa. Jika Anda yakin dompet penerima mendukung CashTokens tetapi hanya punya alamat biasanya, Konverter Alamat memberi Anda bentuk tokennya."
+        "answer": "Tidak, pengiriman token meminta alamat token (diawali z). Itu adalah alamat biasa dalam bentuk lain, dengan kunci yang sama di baliknya. Bentuk itu diperkenalkan agar pengirim tahu bahwa dompet penerima mendukung CashTokens. Token yang dikirim ke dompet tanpa dukungan itu tidak hancur, tetapi dompet tersebut tidak bisa melihat atau mengirimnya. Saat ini belum ada bursa yang mendukung CashTokens, jadi jangan kirim token ke bursa. Jika Anda yakin dompet penerima mendukung CashTokens tetapi hanya punya alamat biasanya, Konverter Alamat memberi Anda bentuk tokennya."
       },
       "imposterToken": {
         "question": "Bagaimana cara mengenali token tiruan?",
         "answer": "Siapa pun bisa membuat token dan memberinya nama serta ikon apa saja, jadi nama atau logo yang dikenal tidak membuktikan apa pun. Yang mengidentifikasi sebuah token adalah id tokennya, yang tidak bisa ditiru. Bandingkan id token yang ditampilkan dompet dengan id dari sumber tepercaya di luar dompet, misalnya situs web resmi penerbitnya. Token tanpa nama atau gambar tidak palsu hanya karena itu: pembuatnya hanya tidak menerbitkan metadata."
       },
+      "metadataChange": {
+        "question": "Mengapa nama atau gambar token saya berubah?",
+        "answer": "Nama, gambar, dan deskripsi token tidak disimpan di dalam token itu sendiri. Semuanya diterbitkan terpisah oleh pemegang identitas token, yang dapat memperbaruinya kapan saja, misalnya untuk pergantian merek atau situs web baru. Id token tidak pernah berubah, jadi token Anda tidak terpengaruh. Untuk melihat siapa yang dapat memperbarui metadata token dan setiap pembaruan sejauh ini, buka info token dan ikuti tautan ke identitasnya."
+      },
       "tokenValue": {
         "question": "Mengapa token saya tidak menampilkan nilai?",
-        "answer": "Nilai token berasal dari Cauldron, bursa utama untuk CashTokens: tidak ada harga resmi. Nilai hanya ditampilkan di mainnet, dan hanya jika pool Cauldron token tersebut secara gabungan berisi setidaknya 1 BCH, karena harga pasar yang lebih kecil mudah digerakkan. Nilai tersebut adalah perkiraan pada harga pool saat ini, dan hasil penjualan bisa lebih rendah, terutama untuk jumlah besar. Nilai ini dapat dimatikan di pengaturan token."
+        "answer": "Nilai token berasal dari Cauldron, bursa utama untuk CashTokens: tidak ada harga resmi. Nilai hanya ditampilkan di mainnet, dan hanya jika pool Cauldron token tersebut secara gabungan berisi setidaknya 1 BCH, karena harga pasar yang lebih kecil mudah digerakkan. Nilai tersebut adalah perkiraan pada harga pool saat ini, dan hasil penjualan bisa lebih rendah, terutama untuk jumlah besar. Info sebuah token menunjukkan berapa BCH yang ada di pool-nya. Nilai ini dapat dimatikan di pengaturan token."
       },
       "utxos": {
         "question": "Apa itu UTXO, dan mengapa dApp meminta saya melakukan konsolidasi?",

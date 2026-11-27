@@ -1272,13 +1272,9 @@
           "answer": "Tu billetera se guarda solo en este ordenador. Si el ordenador se pierde, se estropea o se borra, la billetera se va con él. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en el menú."
         }
       },
-      "twoAddresses": {
-        "question": "Recibir tiene una dirección de BCH y una de token. ¿Cuál debo dar?",
-        "answer": "Son dos formas de la misma dirección. Si te fijas, solo cambian el primer carácter y los ocho últimos: ambas apuntan al mismo lugar de la blockchain, con las mismas claves detrás. La dirección de token (empieza por z) indica al remitente que tu billetera admite CashTokens, así que dásela a quien te envíe tokens o NFT. Para BCH normal da siempre la normal (empieza por q): los exchanges y las billeteras sin soporte de tokens solo aceptan esa forma. Recibir se abre con la dirección de BCH; el selector «Tokens» que tiene encima muestra la dirección de token."
-      },
       "addressChanged": {
         "question": "Mi dirección de recepción cambió. ¿Sigue funcionando la que ya compartí?",
-        "answer": "Sí. Una billetera HD muestra una dirección nueva después de cada pago, por privacidad, pero todas las anteriores siguen siendo tuyas y siguen funcionando. Una billetera de dirección única muestra siempre la misma."
+        "answer": "Sí. Una billetera HD muestra una dirección nueva después de cada pago, por privacidad, pero todas las anteriores siguen siendo tuyas y siguen funcionando, y en la página Recibir puedes elegir cualquiera de ellas. Una billetera de dirección única muestra siempre la misma."
       },
       "bchForTokens": {
         "question": "Solo tengo tokens. ¿Por qué necesito BCH para enviarlos?",
@@ -1286,15 +1282,19 @@
       },
       "tokenSupport": {
         "question": "¿Puedo enviar tokens a una dirección BCH normal?",
-        "answer": "No, para enviar tokens se pide una dirección de token (empieza por z). Esa forma se introdujo para que el remitente sepa que la billetera receptora admite CashTokens. Los tokens enviados a una billetera sin ese soporte no se destruyen, pero esa billetera no puede verlos ni enviarlos. Por ahora ningún exchange admite CashTokens, así que no envíes tokens a uno. Si tienes la certeza de que la billetera receptora admite CashTokens pero solo tienes su dirección normal, el Conversor de direcciones te da la forma de token."
+        "answer": "No, para enviar tokens se pide una dirección de token (empieza por z). Es la dirección normal en otra forma, con las mismas claves detrás. Esa forma se introdujo para que el remitente sepa que la billetera receptora admite CashTokens. Los tokens enviados a una billetera sin ese soporte no se destruyen, pero esa billetera no puede verlos ni enviarlos. Por ahora ningún exchange admite CashTokens, así que no envíes tokens a uno. Si tienes la certeza de que la billetera receptora admite CashTokens pero solo tienes su dirección normal, el Conversor de direcciones te da la forma de token."
       },
       "imposterToken": {
         "question": "¿Cómo detecto un token impostor?",
         "answer": "Cualquiera puede crear un token y ponerle el nombre y el icono que quiera, así que un nombre o logotipo conocido no prueba nada. Lo que identifica a un token es su id de token, que no se puede copiar. Compara el id de token que muestra la billetera con el de una fuente de confianza fuera de la billetera, como el sitio web oficial del emisor. Un token sin nombre ni imagen no es falso solo por eso: su creador simplemente no publicó metadatos."
       },
+      "metadataChange": {
+        "question": "¿Por qué cambió el nombre o la imagen de mi token?",
+        "answer": "El nombre, la imagen y la descripción de un token no se guardan en el propio token. Los publica aparte quien tiene la identidad del token, que puede actualizarlos en cualquier momento, por un cambio de marca o una web nueva. El id de token nunca cambia, así que tus tokens no se ven afectados. Para ver quién puede actualizar los metadatos de un token y cada actualización hasta ahora, abre la información del token y sigue el enlace a su identidad."
+      },
       "tokenValue": {
         "question": "¿Por qué mi token no muestra ningún valor?",
-        "answer": "Los valores de los tokens vienen de Cauldron, el principal exchange de CashTokens: no existe un precio oficial. Solo se muestra un valor en mainnet, y solo cuando los pools de Cauldron del token suman al menos 1 BCH, porque el precio de un mercado más pequeño es fácil de mover. El valor es una estimación al precio actual del pool, y al vender se puede obtener menos, sobre todo con una cantidad grande. Los valores se pueden desactivar en la configuración de tokens."
+        "answer": "Los valores de los tokens vienen de Cauldron, el principal exchange de CashTokens: no existe un precio oficial. Solo se muestra un valor en mainnet, y solo cuando los pools de Cauldron del token suman al menos 1 BCH, porque el precio de un mercado más pequeño es fácil de mover. El valor es una estimación al precio actual del pool, y al vender se puede obtener menos, sobre todo con una cantidad grande. La información de un token muestra cuánto BCH tienen sus pools. Los valores se pueden desactivar en la configuración de tokens."
       },
       "utxos": {
         "question": "¿Qué es un UTXO y por qué una dApp me pide consolidar?",

@@ -1272,13 +1272,9 @@
           "answer": "Votre portefeuille n'est stocké que sur cet ordinateur. Si l'ordinateur est perdu, en panne ou réinitialisé, le portefeuille disparaît avec lui. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » dans le menu."
         }
       },
-      "twoAddresses": {
-        "question": "Recevoir propose une adresse BCH et une adresse de token. Laquelle donner ?",
-        "answer": "Ce sont deux formes de la même adresse. En regardant de près, seuls le premier caractère et les huit derniers diffèrent : les deux désignent le même endroit sur la blockchain, avec les mêmes clés derrière. L'adresse de token (commençant par z) indique à l'expéditeur que votre portefeuille prend en charge les CashTokens : donnez-la à quiconque vous envoie des jetons ou des NFT. Pour du BCH simple, donnez toujours l'adresse normale (commençant par q) : les plateformes d'échange et les portefeuilles sans prise en charge des jetons n'acceptent que cette forme. Recevoir s'ouvre sur l'adresse BCH ; le sélecteur « Tokens » au-dessus affiche l'adresse de token."
-      },
       "addressChanged": {
         "question": "Mon adresse de réception a changé. Celle que j'ai déjà partagée fonctionne-t-elle encore ?",
-        "answer": "Oui. Un portefeuille HD affiche une nouvelle adresse après chaque paiement, pour la confidentialité, mais chaque adresse précédente reste la vôtre et continue de fonctionner. Un portefeuille à adresse unique affiche toujours la même."
+        "answer": "Oui. Un portefeuille HD affiche une nouvelle adresse après chaque paiement, pour la confidentialité, mais chaque adresse précédente reste la vôtre et continue de fonctionner, et la page Recevoir vous permet de choisir n'importe laquelle. Un portefeuille à adresse unique affiche toujours la même."
       },
       "bchForTokens": {
         "question": "Je n'ai que des jetons. Pourquoi faut-il du BCH pour les envoyer ?",
@@ -1286,15 +1282,19 @@
       },
       "tokenSupport": {
         "question": "Puis-je envoyer des jetons à une adresse BCH normale ?",
-        "answer": "Non, l'envoi de jetons demande une adresse de token (commençant par z). Cette forme a été introduite pour que l'expéditeur sache que le portefeuille destinataire prend en charge les CashTokens. Les jetons envoyés à un portefeuille sans cette prise en charge ne sont pas détruits, mais ce portefeuille ne peut ni les voir ni les envoyer. Pour l'instant aucune plateforme d'échange ne prend en charge les CashTokens : ne leur envoyez donc pas de jetons. Si vous êtes certain que le portefeuille destinataire prend en charge les CashTokens mais n'avez que son adresse normale, le Convertisseur d'adresses vous donne l'adresse de token."
+        "answer": "Non, l'envoi de jetons demande une adresse de token (commençant par z). C'est l'adresse normale sous une autre forme, avec les mêmes clés derrière. Cette forme a été introduite pour que l'expéditeur sache que le portefeuille destinataire prend en charge les CashTokens. Les jetons envoyés à un portefeuille sans cette prise en charge ne sont pas détruits, mais ce portefeuille ne peut ni les voir ni les envoyer. Pour l'instant aucune plateforme d'échange ne prend en charge les CashTokens : ne leur envoyez donc pas de jetons. Si vous êtes certain que le portefeuille destinataire prend en charge les CashTokens mais n'avez que son adresse normale, le Convertisseur d'adresses vous donne l'adresse de token."
       },
       "imposterToken": {
         "question": "Comment repérer un jeton imposteur ?",
         "answer": "N'importe qui peut créer un jeton et lui donner le nom et l'icône de son choix : un nom ou un logo familier ne prouve donc rien. Ce qui identifie un jeton, c'est son id de jeton, qui ne peut pas être copié. Comparez l'id de jeton affiché par le portefeuille avec celui d'une source de confiance extérieure au portefeuille, comme le site officiel de l'émetteur. Un jeton sans nom ni image n'est pas faux pour cette seule raison : son créateur n'a simplement pas publié de métadonnées."
       },
+      "metadataChange": {
+        "question": "Pourquoi le nom ou l'image de mon jeton a-t-il changé ?",
+        "answer": "Le nom, l'image et la description d'un jeton ne sont pas stockés dans le jeton lui-même. Ils sont publiés à part par celui qui détient l'identité du jeton, qui peut les mettre à jour à tout moment, pour un changement de marque ou un nouveau site. L'id de jeton ne change jamais, vos jetons ne sont donc pas concernés. Pour voir qui peut mettre à jour les métadonnées d'un jeton et chaque mise à jour jusqu'ici, ouvrez les infos du jeton et suivez le lien vers son identité."
+      },
       "tokenValue": {
         "question": "Pourquoi mon token n'affiche-t-il aucune valeur ?",
-        "answer": "Les valeurs des tokens viennent de Cauldron, la principale plateforme d'échange de CashTokens : il n'existe pas de prix officiel. Une valeur n'est affichée que sur le mainnet, et seulement si les pools Cauldron du token contiennent ensemble au moins 1 BCH, car le prix d'un marché plus petit est facile à faire bouger. La valeur est une estimation au prix actuel du pool, et une vente peut rapporter moins, surtout pour un montant important. Les valeurs peuvent être désactivées dans les paramètres des tokens."
+        "answer": "Les valeurs des tokens viennent de Cauldron, la principale plateforme d'échange de CashTokens : il n'existe pas de prix officiel. Une valeur n'est affichée que sur le mainnet, et seulement si les pools Cauldron du token contiennent ensemble au moins 1 BCH, car le prix d'un marché plus petit est facile à faire bouger. La valeur est une estimation au prix actuel du pool, et une vente peut rapporter moins, surtout pour un montant important. Les infos d'un token indiquent combien de BCH ses pools contiennent. Les valeurs peuvent être désactivées dans les paramètres des tokens."
       },
       "utxos": {
         "question": "Qu'est-ce qu'un UTXO, et pourquoi une dApp me demande-t-elle de consolider ?",
