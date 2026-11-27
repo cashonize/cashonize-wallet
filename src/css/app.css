@@ -326,6 +326,13 @@ input[type='number'] {
 .chip-symbol {
   word-break: break-word;
 }
+/* a chip waiting on its token's metadata, which decides how its amount reads: the room of the icon */
+.chip-icon-placeholder {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--surface-strong);
+}
 /* the round direction mark of a transaction, in the history and in the wallet page's recent activity */
 .tx-direction {
   width: 36px;

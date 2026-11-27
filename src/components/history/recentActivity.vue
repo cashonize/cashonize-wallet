@@ -90,7 +90,7 @@
             <span class="chip-symbol">{{ chip.symbol }}</span>
           </template>
           <template v-else>
-            <span class="chipIconPlaceholder"></span>
+            <span class="chip-icon-placeholder"></span>
             <span class="placeholder-bar" style="width: 7em;"></span>
           </template>
         </span>
@@ -138,13 +138,6 @@
   color: grey;
 }
 .placeholderMark {
-  background-color: var(--surface-strong);
-}
-/* the room of a chip's token icon */
-.chipIconPlaceholder {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
   background-color: var(--surface-strong);
 }
 .recentItem {

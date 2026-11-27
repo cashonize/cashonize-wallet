@@ -1333,8 +1333,15 @@ export const useStore = defineStore('store', () => {
       const utxos = await wallet.value.getUtxos();
       // the coins of a wallet no longer open
       if (initialization !== currentInitialization) return;
+      // Read before the coins change, as the coin watch does: once this lands first, the watch no
+      // longer sees a token category that is new, a swept or created one, and nothing would fetch
+      // its metadata, which the token list and the history wait on
+      const heldTokens = allTokenList.value;
+      const previous = new Set((walletUtxos.value ?? []).map(outpointOf));
+      const added = walletUtxos.value ? utxos.filter(utxo => !previous.has(outpointOf(utxo))) : [];
       walletUtxos.value = utxos;
       updateTokenList()
+      fetchMetadataForNewTokens(added, heldTokens).catch(error => console.error("Failed to fetch metadata for new tokens:", error));
     } catch(error) {
       warnRefreshFailed(error, initialization);
     }

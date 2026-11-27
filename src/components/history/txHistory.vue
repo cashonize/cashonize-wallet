@@ -333,13 +333,19 @@
               </div>
               <div class="tx-tokens" v-if="transaction.tokenAmountChanges.length">
                 <div class="token-chip" v-for="chip in tokenChangeChips(transaction, store.bcmrRegistries)" :key="chip.key">
-                  <TokenIcon
-                    :token-id="chip.category"
-                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
-                    :size="22"
-                  />
-                  <span class="value" :class="{ negative: chip.negative, positive: !chip.negative }">{{ chip.amountText }}</span>
-                  <span class="chip-symbol">{{ chip.symbol }}</span>
+                  <template v-if="store.answeredMetadataCategories.has(chip.category)">
+                    <TokenIcon
+                      :token-id="chip.category"
+                      :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
+                      :size="22"
+                    />
+                    <span class="value" :class="{ negative: chip.negative, positive: !chip.negative }">{{ chip.amountText }}</span>
+                    <span class="chip-symbol">{{ chip.symbol }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="chip-icon-placeholder"></span>
+                    <span class="placeholder-bar" style="width: 7em;"></span>
+                  </template>
                 </div>
               </div>
             </div>

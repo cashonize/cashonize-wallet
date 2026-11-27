@@ -180,13 +180,19 @@
               </span>
             <div class="tokenChanges" v-if="historyItem.tokenAmountChanges.length">
               <div class="token-chip" v-for="chip in tokenChangeChips(historyItem, store.bcmrRegistries)" :key="chip.key">
-                <TokenIcon
-                  :token-id="chip.category"
-                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
-                  :size="20"
-                />
-                <span class="chip-value" :class="chip.negative ? 'negative' : 'positive'">{{ chip.amountText }}</span>
-                <span class="chip-symbol">{{ chip.symbol }}</span>
+                <template v-if="store.answeredMetadataCategories.has(chip.category)">
+                  <TokenIcon
+                    :token-id="chip.category"
+                    :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(chip.category) : undefined"
+                    :size="20"
+                  />
+                  <span class="chip-value" :class="chip.negative ? 'negative' : 'positive'">{{ chip.amountText }}</span>
+                  <span class="chip-symbol">{{ chip.symbol }}</span>
+                </template>
+                <template v-else>
+                  <span class="chip-icon-placeholder" style="width: 20px; height: 20px;"></span>
+                  <span class="placeholder-bar" style="width: 7em;"></span>
+                </template>
               </div>
             </div>
           </div>
