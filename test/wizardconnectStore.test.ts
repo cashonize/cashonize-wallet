@@ -12,6 +12,8 @@ import { localStorageMock } from './mocks/store.mocks'
 const managers: FakeManager[] = []
 class FakeManager {
   connections: Record<string, RelayConnectionState> = {}
+  // whether the dapps were told their session ended
+  toldDisconnected = false
   private handlers: Record<string, ((...args: unknown[]) => void)[]> = {}
   constructor() { managers.push(this) }
   on(event: string, handler: (...args: unknown[]) => void) {
@@ -36,7 +38,8 @@ class FakeManager {
   getConnections() { return { ...this.connections } }
   disconnect(id: string) { delete this.connections[id] }
   removeAllListeners() { this.handlers = {} }
-  disconnectAll() { this.connections = {} }
+  disconnectAll() { this.connections = {}; this.toldDisconnected = true }
+  closeAll() { this.connections = {} }
 }
 
 // dialogs the store opens, which the tests never reach and vitest does not compile
@@ -60,17 +63,23 @@ const { useWizardconnectStore, removeWizardConnectSessions } = await vi.importAc
 
 const wizUri = 'wiz://test-dapp-pairing'
 
+function hdWallet(name: string) {
+  return Object.assign(new HDWallet(), {
+    name,
+    network: 'mainnet',
+    mnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+    derivation: "m/44'/145'/0'",
+    stop: () => Promise.resolve(),
+  })
+}
+// the key the sessions of the wallet opened below are saved under
+const walletKey = 'mainnet:testWallet'
+
 // A fresh Pinia over the same localStorage is an app reload
 async function openWallet() {
   setActivePinia(createPinia())
   const store = useStore()
-  const wallet = Object.assign(new HDWallet(), {
-    name: 'testWallet',
-    network: 'mainnet',
-    mnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-    derivation: "m/44'/145'/0'",
-  })
-  await store.setWallet(wallet)
+  await store.setWallet(hdWallet('testWallet'))
   const wizardconnectStore = useWizardconnectStore()
   wizardconnectStore.start()
   const manager = managers.at(-1)!
@@ -79,11 +88,10 @@ async function openWallet() {
 }
 
 describe('WizardConnect dapp info across a reload', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     localStorageMock.clear()
     managers.length = 0
-    const { store } = await openWallet()
-    localStorageMock.setItem('wizardConnectUris', JSON.stringify({ [`${store.network}:${store.activeWalletName}`]: [wizUri] }))
+    localStorageMock.setItem('wizardConnectUris', JSON.stringify({ [walletKey]: [wizUri] }))
   })
 
   it('names a restored session after its dapp while waiting for it', async () => {
@@ -126,15 +134,15 @@ describe('WizardConnect clearing all dapp connections', () => {
   })
 
   it('ends the live session and leaves nothing to restore after a reload, for any wallet', async () => {
-    const { store } = await openWallet()
     localStorageMock.setItem('wizardConnectUris', JSON.stringify({
-      [`${store.network}:${store.activeWalletName}`]: [wizUri],
+      [walletKey]: [wizUri],
       'mainnet:otherWallet': ['wiz://other-dapp-pairing'],
     }))
     const before = await openWallet()
     before.manager.dappReady(before.connectionId!, 'Cauldron', null)
 
     expect(before.wizardconnectStore.forgetAllSessions()).toBe(true)
+    expect(before.manager.toldDisconnected).toBe(true)
     expect(before.manager.getConnections()).toEqual({})
     expect(localStorageMock.getItem('wizardConnectUris')).toBeNull()
     expect(localStorageMock.getItem('wizardConnectDappInfo')).toBeNull()
@@ -152,20 +160,31 @@ describe('WizardConnect clearing all dapp connections', () => {
 describe('WizardConnect sessions after the wallet is left', () => {
   const savedUris = () => JSON.parse(localStorageMock.getItem('wizardConnectUris') ?? '{}') as Record<string, string[]>
 
-  beforeEach(async () => {
+  beforeEach(() => {
     localStorageMock.clear()
     managers.length = 0
-    const { store } = await openWallet()
-    localStorageMock.setItem('wizardConnectUris', JSON.stringify({ [`${store.network}:${store.activeWalletName}`]: [wizUri] }))
+    localStorageMock.setItem('wizardConnectUris', JSON.stringify({ [walletKey]: [wizUri] }))
   })
 
-  it('a switch forgets the sessions of the wallet that was left, not of the one switched to', async () => {
-    localStorageMock.setItem('wizardConnectUris', JSON.stringify({ ...savedUris(), 'mainnet:otherWallet': ['wiz://other-dapp-pairing'] }))
-    const { store, wizardconnectStore } = await openWallet()
+  it('a switch closes the sessions without ending them, and switching back resumes them', async () => {
+    const { store, wizardconnectStore, manager } = await openWallet()
     // switchWallet names the new wallet before resetWalletState stops the old one's sessions
     store.activeWalletName = 'otherWallet'
     wizardconnectStore.stop()
-    expect(savedUris()).toEqual({ 'mainnet:otherWallet': ['wiz://other-dapp-pairing'] })
+    expect(manager.getConnections()).toEqual({})
+    expect(manager.toldDisconnected).toBe(false)
+    expect(wizardconnectStore.connections).toEqual({})
+    expect(savedUris()).toEqual({ [walletKey]: [wizUri] })
+
+    // the wallet switched to has no sessions of its own
+    await store.setWallet(hdWallet('otherWallet'))
+    wizardconnectStore.start()
+    expect(wizardconnectStore.connections).toEqual({})
+    wizardconnectStore.stop()
+
+    await store.setWallet(hdWallet('testWallet'))
+    wizardconnectStore.start()
+    expect(Object.values(wizardconnectStore.connections).map(connection => connection.uri)).toEqual([wizUri])
   })
 
   it('deleting a wallet forgets its sessions on every network, so a new wallet under its name restores none', async () => {
@@ -173,11 +192,11 @@ describe('WizardConnect sessions after the wallet is left', () => {
     before.manager.dappReady(before.connectionId!, 'Cauldron', null)
     localStorageMock.setItem('wizardConnectUris', JSON.stringify({
       ...savedUris(),
-      [`chipnet:${before.store.activeWalletName}`]: ['wiz://chipnet-pairing'],
+      'chipnet:testWallet': ['wiz://chipnet-pairing'],
       'mainnet:otherWallet': ['wiz://other-dapp-pairing'],
     }))
 
-    removeWizardConnectSessions(before.store.activeWalletName)
+    removeWizardConnectSessions('testWallet')
     expect(savedUris()).toEqual({ 'mainnet:otherWallet': ['wiz://other-dapp-pairing'] })
     expect(JSON.parse(localStorageMock.getItem('wizardConnectDappInfo') ?? '{}')).not.toHaveProperty([wizUri])
 

@@ -492,7 +492,8 @@
     "noActiveSessions": "Nenhuma sessão ativa no momento.",
     "errors": {
       "invalidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida",
-      "notValidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida"
+      "notValidUri": "URI de WalletConnect, CashConnect ou WizardConnect inválida",
+      "walletSwitched": "A carteira foi trocada enquanto este pedido estava aberto, por isso não foi aprovado."
     },
     "wizardConnectNeedsHd": {
       "title": "WizardConnect precisa de uma carteira HD",
@@ -1541,13 +1542,16 @@
       "noAddressForSession": "Nenhum endereço encontrado para a sessão",
       "addressNotInHdCache": "Endereço não encontrado no cache da carteira HD: {address}",
       "noPrivateKeyForAddress": "Nenhuma chave privada disponível para este endereço (carteira somente leitura)",
+      "sessionAddressNotInWallet": "O endereço da sessão não está nesta carteira: {address}",
       "failedToCompressPublicKey": "Falha ao comprimir chave pública"
     },
     "notifications": {
       "failedToSignMessage": "Falha ao assinar mensagem",
       "failedToSignTransaction": "Falha ao assinar transação",
       "sendingTransaction": "Enviando transação...",
-      "requestExpired": "Requisição expirou, retorne ao {dappName} se deseja tentar novamente"
+      "requestExpired": "Requisição expirou, retorne ao {dappName} se deseja tentar novamente",
+      "requestForOtherWallet": "{dappName} enviou um pedido para a carteira \"{walletName}\". Mude para essa carteira para responder.",
+      "requestForOtherNetwork": "{dappName} enviou um pedido para esta carteira em {network}. Mude para {network} para responder."
     }
   },
   "wizardConnect": {

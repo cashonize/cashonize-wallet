@@ -165,6 +165,7 @@ vi.mock('src/utils/wallet/dbUtils', () => ({
 
 // Mock settingsStore
 export const mockClearWalletSettings = vi.fn()
+export const mockClearAutoApproveState = vi.fn()
 
 vi.mock('src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
@@ -182,14 +183,18 @@ vi.mock('src/stores/settingsStore', () => ({
     getWalletMetadata: vi.fn().mockReturnValue({ walletType: 'single' }),
     setWalletType: vi.fn(),
     clearWalletSettings: mockClearWalletSettings,
+    clearAutoApproveState: mockClearAutoApproveState,
   })),
 }))
 
 // Mock walletconnectStore
+export const mockEndWalletConnectSessions = vi.fn().mockResolvedValue(undefined)
 vi.mock('src/stores/walletconnectStore', () => ({
   useWalletconnectStore: vi.fn(() => ({
     initweb3wallet: vi.fn().mockResolvedValue(undefined),
     web3wallet: null,
+    endSessionsOfWallet: mockEndWalletConnectSessions,
+    dismissPendingRequest: vi.fn(),
   })),
 }))
 

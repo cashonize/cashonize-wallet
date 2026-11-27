@@ -492,7 +492,8 @@
     "noActiveSessions": "Нет активных сессий.",
     "errors": {
       "invalidUri": "Недействительный URI WalletConnect, CashConnect или WizardConnect",
-      "notValidUri": "Это не действительный URI WalletConnect, CashConnect или WizardConnect"
+      "notValidUri": "Это не действительный URI WalletConnect, CashConnect или WizardConnect",
+      "walletSwitched": "Кошелёк был переключён, пока этот запрос был открыт, поэтому он не был одобрен."
     },
     "wizardConnectNeedsHd": {
       "title": "Для WizardConnect нужен HD-кошелёк",
@@ -1541,13 +1542,16 @@
       "noAddressForSession": "Для сессии не найден адрес",
       "addressNotInHdCache": "Адрес не найден в кэше HD-кошелька: {address}",
       "noPrivateKeyForAddress": "Для адреса нет приватного ключа (кошелёк только для просмотра)",
+      "sessionAddressNotInWallet": "Адрес сессии не принадлежит этому кошельку: {address}",
       "failedToCompressPublicKey": "Не удалось сжать публичный ключ"
     },
     "notifications": {
       "failedToSignMessage": "Не удалось подписать сообщение",
       "failedToSignTransaction": "Не удалось подписать транзакцию",
       "sendingTransaction": "Отправка транзакции...",
-      "requestExpired": "Срок запроса истёк. Вернитесь в {dappName}, если хотите повторить"
+      "requestExpired": "Срок запроса истёк. Вернитесь в {dappName}, если хотите повторить",
+      "requestForOtherWallet": "{dappName} отправил запрос для кошелька «{walletName}». Переключитесь на этот кошелёк, чтобы ответить.",
+      "requestForOtherNetwork": "{dappName} отправил запрос для этого кошелька в сети {network}. Переключитесь на {network}, чтобы ответить."
     }
   },
   "wizardConnect": {
