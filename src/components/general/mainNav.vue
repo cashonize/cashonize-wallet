@@ -77,34 +77,34 @@
 
 <template>
   <nav v-if="position === 'top'" class="tabs" :class="{ compact: compactNavTabs }">
-    <div v-for="tab in tabs" :key="tab.id" :class="{ active: tab.active }" @click="store.changeView(tab.view)">
+    <button v-for="tab in tabs" :key="tab.id" type="button" class="plain-button" :class="{ active: tab.active }" :aria-current="tab.active ? 'page' : undefined" @click="store.changeView(tab.view)">
       {{ t(`nav.${tab.id}`) }}
-    </div>
+    </button>
     <div v-if="settingsStore.dappActivityInNav">
       <DappActivityButton icon-only />
     </div>
-    <div class="menu-tab" :class="{ active: onMenuPage }" :aria-label="t('nav.menu')" @click="store.changeView(5)">
+    <button type="button" class="menu-tab plain-button" :class="{ active: onMenuPage }" :aria-label="t('nav.menu')" :aria-current="onMenuPage ? 'page' : undefined" @click="store.changeView(5)">
       <q-icon name="more_horiz" size="22px" />
       <span v-if="showNotificationIcon" class="notification-dot" style="top: 8px; right: 6px;"></span>
-    </div>
+    </button>
   </nav>
   <nav v-else v-show="!textFieldFocused" class="bottom-nav">
-    <div v-for="tab in tabs" :key="tab.id" :class="{ active: tab.active }" @click="store.changeView(tab.view)">
+    <button v-for="tab in tabs" :key="tab.id" type="button" class="plain-button" :class="{ active: tab.active }" :aria-current="tab.active ? 'page' : undefined" @click="store.changeView(tab.view)">
       <q-icon :name="tab.icon" size="24px" :style="tab.id === 'connect' ? 'transform: rotate(-45deg);' : undefined" />
       <span>{{ t(`nav.${tab.id}`) }}</span>
-    </div>
-    <div :class="{ active: onMenuPage }" @click="store.changeView(5)">
+    </button>
+    <button type="button" class="plain-button" :class="{ active: onMenuPage }" :aria-current="onMenuPage ? 'page' : undefined" @click="store.changeView(5)">
       <span style="position: relative;">
         <q-icon name="more_horiz" size="24px" />
         <span v-if="showNotificationIcon" class="notification-dot" style="top: 0; right: -2px;"></span>
       </span>
       <span>{{ t('nav.menu') }}</span>
-    </div>
+    </button>
   </nav>
 </template>
 
 <style scoped>
-.active {
+nav > button.active {
   color: var(--color-primary);
 }
 
@@ -113,13 +113,13 @@
   justify-content: center;
   user-select: none;
 }
-.tabs > div {
+.tabs > * {
   padding: 1rem 2.5rem;
   cursor: pointer;
   border-bottom: 2px solid var(--color-lightGrey);
 }
 /* the tabs' underline carries the page structure, so it stays light in dark mode like the fieldsets */
-:global(body.dark) .tabs > div {
+:global(body.dark) .tabs > * {
   border-color: var(--color-strongOutline);
 }
 .tabs > .menu-tab {
@@ -127,17 +127,17 @@
   position: relative;
 }
 @media only screen and (max-width: 650px) {
-  .tabs > div {
+  .tabs > * {
     padding: 1rem 1.8rem;
   }
 }
 @media only screen and (max-width: 600px) {
-  .tabs > div {
+  .tabs > * {
     padding: 1rem;
   }
 }
 @media only screen and (max-width: 500px) {
-  .tabs.compact > div {
+  .tabs.compact > * {
     padding: 1rem 0.5rem;
   }
 }
@@ -156,7 +156,7 @@
   border-top: 1px solid var(--color-lightGrey);
   user-select: none;
 }
-.bottom-nav > div {
+.bottom-nav > button {
   flex: 1;
   min-width: 0;
   height: var(--bottom-nav-height);
@@ -169,7 +169,7 @@
   gap: 2px;
   font-size: 12px;
 }
-.bottom-nav > div > span:last-child {
+.bottom-nav > button > span:last-child {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;

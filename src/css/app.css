@@ -142,6 +142,28 @@ img {
   line-height: 16px;
   text-align: center;
 }
+/* A native button without chota's button look, for what the app draws as a link, a pill or a tab:
+   it stays reachable and pressable from the keyboard. Ties with chota's [type="button"], so it
+   has to come after the chota import. */
+.plain-button {
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  transform: none;
+}
+.plain-button:hover {
+  opacity: 1;
+}
+/* chota shrinks a pressed button, which would break a tab's stretch of the nav's underline */
+.plain-button:active:not(:disabled) {
+  transform: none;
+}
 .primaryButton {
   background-color: var(--color-primary);
   color: white;

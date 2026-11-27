@@ -155,12 +155,12 @@
         >{{ t(option.label) }}</button>
       </div>
       <input v-if="!isMobile || showSearch" ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('tokens.searchPlaceholder')" class="search-input" autocomplete="off" autocapitalize="none" spellcheck="false">
-      <span v-if="isMobile" class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
+      <button v-if="isMobile" type="button" class="search-toggle plain-button" :class="{ active: showSearch || searchQuery.trim() }" :title="t('common.actions.search')" :aria-label="t('common.actions.search')" :aria-expanded="showSearch" @click="toggleSearch">
         <q-icon name="search" size="22px" />
-      </span>
-      <span class="options-toggle" :class="{ active: showOptions }" :title="t('tokens.options')" @click="showOptions = !showOptions">
+      </button>
+      <button type="button" class="options-toggle plain-button" :class="{ active: showOptions }" :title="t('tokens.options')" :aria-label="t('tokens.options')" :aria-expanded="showOptions" @click="showOptions = !showOptions">
         <q-icon name="tune" size="22px" />
-      </span>
+      </button>
     </div>
 
     <div v-if="store.tokenList?.length && showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">

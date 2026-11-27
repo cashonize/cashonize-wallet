@@ -202,32 +202,33 @@
           spellcheck="false"
         >
         <div v-if="pastedTokenId" class="token-list">
-          <div class="token-item" :title="pastedTokenId" @click="selectPastedTokenId(pastedTokenId)">
+          <button type="button" class="token-item plain-button" :title="pastedTokenId" @click="selectPastedTokenId(pastedTokenId)">
             <q-icon name="search" size="28px" class="lookup-icon" />
-            <div class="token-info">
-              <div class="token-name">
+            <span class="token-info">
+              <span class="token-name">
                 {{ t('requestPayment.lookupTokenId') }}
                 <q-spinner-dots v-if="lookingUpTokenId" size="1.2em" />
-              </div>
-              <div class="token-sub mono">{{ shortCategory(pastedTokenId) }}</div>
-            </div>
-          </div>
+              </span>
+              <span class="token-sub mono">{{ shortCategory(pastedTokenId) }}</span>
+            </span>
+          </button>
           <div v-if="lookupFailed" class="lookup-failed">{{ t('requestPayment.lookupFailed') }}</div>
         </div>
         <div v-else-if="!forSending && !tokenOptions.length" class="no-tokens">{{ t('requestPayment.noFungibleTokens') }}</div>
         <div v-else-if="!searchedTokens.length && !bchOptionShown" class="no-tokens">{{ t('tokens.noMatch') }}</div>
         <div v-else class="token-list">
-          <div v-if="bchOptionShown" class="token-item" @click="onDialogOK('')">
+          <button v-if="bchOptionShown" type="button" class="token-item plain-button" @click="onDialogOK('')">
             <img src="images/bch-icon.svg" alt="" class="bch-icon">
-            <div class="token-info">
-              <div class="token-name">{{ bchName }}</div>
-              <div class="token-sub">{{ bchBalance }}</div>
-            </div>
-          </div>
-          <div
+            <span class="token-info">
+              <span class="token-name">{{ bchName }}</span>
+              <span class="token-sub">{{ bchBalance }}</span>
+            </span>
+          </button>
+          <button
             v-for="option in searchedTokens"
             :key="option.category"
-            class="token-item"
+            type="button"
+            class="token-item plain-button"
             :title="option.category"
             @click="onDialogOK(option.category)"
           >
@@ -235,8 +236,8 @@
               :token-id="option.category"
               :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(option.category) : undefined"
             />
-            <div class="token-info">
-              <div class="token-name">
+            <span class="token-info">
+              <span class="token-name">
                 {{ tokenName(option.category) }}
                 <q-icon
                   v-if="hasNameCollision(option.category)"
@@ -245,12 +246,12 @@
                   class="collision-icon"
                   :title="t('requestPayment.nameCollision')"
                 />
-              </div>
-              <div class="token-sub">
+              </span>
+              <span class="token-sub">
                 <span class="mono">{{ shortCategory(option.category) }}</span> · {{ heldAmount(option) }}
-              </div>
-            </div>
-          </div>
+              </span>
+            </span>
+          </button>
         </div>
       </fieldset>
     </q-card>
@@ -295,6 +296,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  text-align: left;
   border: 1px solid var(--surface-line);
   background-color: var(--surface-faint);
   border-radius: 12px;
@@ -308,6 +311,10 @@
 }
 .token-info {
   min-width: 0;
+}
+.token-name,
+.token-sub {
+  display: block;
 }
 .token-name {
   overflow: hidden;

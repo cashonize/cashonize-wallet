@@ -2,6 +2,7 @@
   "common": {
     "actions": {
       "back": "Kembali",
+      "search": "Cari",
       "send": "Kirim",
       "confirm": "Konfirmasi",
       "broadcastAgain": "Siarkan ulang",
@@ -230,7 +231,6 @@
   },
   "portfolio": {
     "title": "Portofolio",
-    "backToWallet": "Kembali ke dompet",
     "description": "Total nilai dompet Anda dari aset yang dimiliki dan posisi DeFi",
     "pricesInfo": "Nilai token berdasarkan harga DEX Cauldron",
     "nftsExcluded": "NFT tidak dihitung dalam total, kecuali yang mewakili posisi: pinjaman dan staking ParyonUSD, serta keycard Emerald DAO",

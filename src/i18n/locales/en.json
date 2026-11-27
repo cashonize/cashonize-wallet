@@ -2,6 +2,7 @@
   "common": {
     "actions": {
       "back": "Back",
+      "search": "Search",
       "send": "Send",
       "confirm": "Confirm",
       "broadcastAgain": "Broadcast again",
@@ -230,7 +231,6 @@
   },
   "portfolio": {
     "title": "Portfolio",
-    "backToWallet": "Back to wallet",
     "description": "Your total wallet value across held assets and DeFi positions",
     "pricesInfo": "Token values are based on Cauldron DEX prices",
     "nftsExcluded": "NFTs are not counted in the total, except those representing a position: ParyonUSD loans and staking, and Emerald DAO keycards",

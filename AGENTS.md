@@ -161,6 +161,9 @@ Base CSS from a vendored subset of chota (`src/css/chota-subset.css`), custom st
 
 Component styles are plain CSS by default; a few use `<style scoped lang="scss">` where variables or a mixin avoid repeating a block (sass is available through Quasar).
 
+### Accessibility
+Everything clickable is reachable with Tab and pressed with Enter or Space, so it is a native `<button type="button">` (or a link), not an element with a click handler: a `div` with `role="button"` is mouse-only until it is given focus and keys by hand. The `.plain-button` class in `app.css` takes chota's button look off a button that draws itself as a link, pill or tab. A control that shows state says so to screen readers too (`aria-pressed`, `aria-expanded`, `aria-current`).
+
 ### Internationalization (i18n)
 Uses `vue-i18n`. In Vue components use `useI18n()` composable; in utility files use `i18n.global` from `src/boot/i18n.ts`.
 English is bundled as the fallback; every other language is its own chunk, so change the language only through `switchLocale` in `src/boot/i18n.ts`, which loads it first.

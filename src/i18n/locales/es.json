@@ -2,6 +2,7 @@
   "common": {
     "actions": {
       "back": "Volver",
+      "search": "Buscar",
       "send": "Enviar",
       "confirm": "Confirmar",
       "broadcastAgain": "Transmitir de nuevo",
@@ -230,7 +231,6 @@
   },
   "portfolio": {
     "title": "Portafolio",
-    "backToWallet": "Volver a la billetera",
     "description": "El valor total de tu billetera entre activos en posesión y posiciones DeFi",
     "pricesInfo": "Los valores de los tokens se basan en los precios del DEX Cauldron",
     "nftsExcluded": "Los NFTs no se cuentan en el total, excepto los que representan una posición: préstamos y staking de ParyonUSD, y tarjetas llave de Emerald DAO",

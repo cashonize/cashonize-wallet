@@ -247,17 +247,19 @@
           <button
             v-for="option in directionOptions"
             :key="option.value"
+            type="button"
             :class="{ active: directionFilter === option.value, 'combined-pill': option.value === 'combined' }"
+            :aria-pressed="directionFilter === option.value"
             @click="directionFilter = option.value"
           >{{ t(option.label) }}</button>
         </div>
         <input ref="searchInputRef" v-model="searchQuery" type="text" :placeholder="t('history.searchPlaceholder')" class="search-input" :class="{ open: showSearch }" autocomplete="off" autocapitalize="none" spellcheck="false">
-        <span class="search-toggle" :class="{ active: showSearch || searchQuery.trim() }" @click="toggleSearch">
+        <button type="button" class="search-toggle plain-button" :class="{ active: showSearch || searchQuery.trim() }" :title="t('common.actions.search')" :aria-label="t('common.actions.search')" :aria-expanded="showSearch" @click="toggleSearch">
           <q-icon name="search" size="22px" />
-        </span>
-        <span class="options-toggle" :class="{ active: showOptions }" :title="t('history.options')" @click="toggleOptions">
+        </button>
+        <button type="button" class="options-toggle plain-button" :class="{ active: showOptions }" :title="t('history.options')" :aria-label="t('history.options')" :aria-expanded="showOptions" @click="toggleOptions">
           <q-icon name="tune" size="22px" />
-        </span>
+        </button>
       </div>
 
       <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">
