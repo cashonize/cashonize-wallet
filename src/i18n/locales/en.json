@@ -1283,6 +1283,16 @@
       "utxos": {
         "question": "What is a UTXO, and why does a dApp ask me to consolidate?",
         "answer": "Your balance is made of separate coins, called UTXOs, one for each payment you received. Some dApps need a single coin large enough for what you're doing, even when your total is enough. Consolidating in UTXO Management merges your BCH coins into one."
+      },
+      "dappConnections": {
+        "hd": {
+          "question": "What are WalletConnect, CashConnect and WizardConnect?",
+          "answer": "They are three ways to connect this wallet to a dApp: an app that prepares a transaction and asks the wallet to sign it. The dApp shows a link or a QR code, and the Connect page takes all three: paste the link or scan the code, and the wallet sees which one it is. WalletConnect works with a single address, so you pick which of this wallet's addresses the dApp gets. WizardConnect is made for HD wallets and lets the dApp follow all of the wallet's addresses. CashConnect is a connection method made for Bitcoin Cash. Whichever is used, every request is shown to you before anything is signed, unless you enabled auto-approvals for that dApp."
+        },
+        "single": {
+          "question": "What are WalletConnect, CashConnect and WizardConnect?",
+          "answer": "They are three ways to connect this wallet to a dApp: an app that prepares a transaction and asks the wallet to sign it. The dApp shows a link or a QR code, and the Connect page takes WalletConnect and CashConnect: paste the link or scan the code, and the wallet sees which one it is. Every request is shown to you before anything is signed, unless you enabled auto-approvals for that dApp. WizardConnect needs an HD wallet: you can convert this wallet to one under Manage wallets, with the same seed phrase, keeping its coins, name and notes."
+        }
       }
     }
   },

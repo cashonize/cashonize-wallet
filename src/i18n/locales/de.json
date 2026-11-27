@@ -1283,6 +1283,16 @@
       "utxos": {
         "question": "Was ist ein UTXO, und warum bittet mich eine dApp zu konsolidieren?",
         "answer": "Dein Guthaben besteht aus einzelnen Coins, UTXOs genannt, einer für jede erhaltene Zahlung. Manche dApps brauchen einen einzelnen Coin, der groß genug ist, auch wenn dein Gesamtguthaben reicht. Das Konsolidieren in der UTXO-Verwaltung fasst deine BCH-Coins zu einem zusammen."
+      },
+      "dappConnections": {
+        "hd": {
+          "question": "Was sind WalletConnect, CashConnect und WizardConnect?",
+          "answer": "Es sind drei Wege, dieses Wallet mit einer dApp zu verbinden: einer App, die eine Transaktion vorbereitet und das Wallet bittet, sie zu signieren. Die dApp zeigt einen Link oder einen QR-Code, und die Seite Verbinden nimmt alle drei an: Füge den Link ein oder scanne den Code, und das Wallet erkennt, welcher es ist. WalletConnect arbeitet mit einer einzelnen Adresse, daher wählst du, welche Adresse dieses Wallets die dApp bekommt. WizardConnect ist für HD-Wallets gemacht und lässt die dApp allen Adressen des Wallets folgen. CashConnect ist eine für Bitcoin Cash entwickelte Verbindungsmethode. In jedem Fall wird dir jede Anfrage gezeigt, bevor etwas signiert wird, außer du hast für diese dApp Auto-Genehmigungen aktiviert."
+        },
+        "single": {
+          "question": "Was sind WalletConnect, CashConnect und WizardConnect?",
+          "answer": "Es sind drei Wege, dieses Wallet mit einer dApp zu verbinden: einer App, die eine Transaktion vorbereitet und das Wallet bittet, sie zu signieren. Die dApp zeigt einen Link oder einen QR-Code, und die Seite Verbinden nimmt WalletConnect und CashConnect an: Füge den Link ein oder scanne den Code, und das Wallet erkennt, welcher es ist. Jede Anfrage wird dir gezeigt, bevor etwas signiert wird, außer du hast für diese dApp Auto-Genehmigungen aktiviert. WizardConnect benötigt ein HD-Wallet: Unter Wallets verwalten kannst du dieses Wallet in eines umwandeln, mit derselben Seed-Phrase; Guthaben, Name und Notizen bleiben erhalten."
+        }
       }
     }
   },

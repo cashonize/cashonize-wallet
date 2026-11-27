@@ -1283,6 +1283,16 @@
       "utxos": {
         "question": "Apa itu UTXO, dan mengapa dApp meminta saya melakukan konsolidasi?",
         "answer": "Saldo Anda terdiri dari koin-koin terpisah yang disebut UTXO, satu untuk setiap pembayaran yang diterima. Beberapa dApp butuh satu koin yang cukup besar, meski total Anda cukup. Konsolidasi di Manajemen UTXO menggabungkan koin BCH Anda menjadi satu."
+      },
+      "dappConnections": {
+        "hd": {
+          "question": "Apa itu WalletConnect, CashConnect, dan WizardConnect?",
+          "answer": "Ketiganya adalah cara menghubungkan dompet ini ke dApp: aplikasi yang menyiapkan transaksi dan meminta dompet menandatanganinya. dApp menampilkan tautan atau kode QR, dan halaman Hubungkan menerima ketiganya: tempel tautan atau pindai kodenya, dan dompet mengenali yang mana. WalletConnect bekerja dengan satu alamat, jadi Anda memilih alamat dompet ini yang mana yang diberikan ke dApp. WizardConnect dibuat untuk dompet HD dan memungkinkan dApp mengikuti semua alamat dompet. CashConnect adalah metode koneksi yang dibuat untuk Bitcoin Cash. Apa pun yang dipakai, setiap permintaan ditampilkan kepada Anda sebelum ada yang ditandatangani, kecuali Anda mengaktifkan persetujuan otomatis untuk dApp tersebut."
+        },
+        "single": {
+          "question": "Apa itu WalletConnect, CashConnect, dan WizardConnect?",
+          "answer": "Ketiganya adalah cara menghubungkan dompet ini ke dApp: aplikasi yang menyiapkan transaksi dan meminta dompet menandatanganinya. dApp menampilkan tautan atau kode QR, dan halaman Hubungkan menerima WalletConnect dan CashConnect: tempel tautan atau pindai kodenya, dan dompet mengenali yang mana. Setiap permintaan ditampilkan kepada Anda sebelum ada yang ditandatangani, kecuali Anda mengaktifkan persetujuan otomatis untuk dApp tersebut. WizardConnect memerlukan dompet HD: di Kelola dompet Anda dapat mengonversi dompet ini menjadi dompet HD dengan frasa pemulihan yang sama, dengan tetap menyimpan koin, nama, dan catatannya."
+        }
       }
     }
   },

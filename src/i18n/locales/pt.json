@@ -1283,6 +1283,16 @@
       "utxos": {
         "question": "O que é um UTXO, e por que uma dApp pede para consolidar?",
         "answer": "Seu saldo é feito de moedas separadas, chamadas UTXOs, uma para cada pagamento recebido. Algumas dApps precisam de uma única moeda grande o bastante, mesmo quando o total é suficiente. Consolidar no Gerenciamento de UTXOs junta suas moedas de BCH em uma."
+      },
+      "dappConnections": {
+        "hd": {
+          "question": "O que são WalletConnect, CashConnect e WizardConnect?",
+          "answer": "São três formas de conectar esta carteira a uma dApp: um aplicativo que prepara uma transação e pede à carteira que a assine. A dApp mostra um link ou um código QR, e a página Conectar aceita as três: cole o link ou escaneie o código, e a carteira reconhece qual é. O WalletConnect funciona com um único endereço, então você escolhe qual dos endereços desta carteira a dApp recebe. O WizardConnect é feito para carteiras HD e permite que a dApp acompanhe todos os endereços da carteira. O CashConnect é um método de conexão feito para o Bitcoin Cash. Seja qual for, cada solicitação é mostrada a você antes de qualquer assinatura, a menos que você tenha habilitado as aprovações automáticas para essa dApp."
+        },
+        "single": {
+          "question": "O que são WalletConnect, CashConnect e WizardConnect?",
+          "answer": "São três formas de conectar esta carteira a uma dApp: um aplicativo que prepara uma transação e pede à carteira que a assine. A dApp mostra um link ou um código QR, e a página Conectar aceita WalletConnect e CashConnect: cole o link ou escaneie o código, e a carteira reconhece qual é. Cada solicitação é mostrada a você antes de qualquer assinatura, a menos que você tenha habilitado as aprovações automáticas para essa dApp. O WizardConnect precisa de uma carteira HD: em Gerenciar carteiras você pode converter esta carteira em uma, com a mesma seed phrase, mantendo suas moedas, nome e notas."
+        }
       }
     }
   },

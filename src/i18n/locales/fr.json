@@ -1283,6 +1283,16 @@
       "utxos": {
         "question": "Qu'est-ce qu'un UTXO, et pourquoi une dApp me demande-t-elle de consolider ?",
         "answer": "Votre solde est fait de pièces séparées, appelées UTXO, une par paiement reçu. Certaines dApps ont besoin d'une seule pièce assez grande, même si votre total suffit. Consolider dans la Gestion des UTXO fusionne vos pièces de BCH en une seule."
+      },
+      "dappConnections": {
+        "hd": {
+          "question": "Que sont WalletConnect, CashConnect et WizardConnect ?",
+          "answer": "Ce sont trois façons de connecter ce portefeuille à une dApp : une application qui prépare une transaction et demande au portefeuille de la signer. La dApp affiche un lien ou un code QR, et la page Connecter accepte les trois : collez le lien ou scannez le code, et le portefeuille reconnaît lequel c'est. WalletConnect fonctionne avec une seule adresse : vous choisissez donc laquelle des adresses de ce portefeuille la dApp reçoit. WizardConnect est conçu pour les portefeuilles HD et permet à la dApp de suivre toutes les adresses du portefeuille. CashConnect est une méthode de connexion conçue pour Bitcoin Cash. Dans tous les cas, chaque demande vous est montrée avant toute signature, sauf si vous avez activé les approbations automatiques pour cette dApp."
+        },
+        "single": {
+          "question": "Que sont WalletConnect, CashConnect et WizardConnect ?",
+          "answer": "Ce sont trois façons de connecter ce portefeuille à une dApp : une application qui prépare une transaction et demande au portefeuille de la signer. La dApp affiche un lien ou un code QR, et la page Connecter accepte WalletConnect et CashConnect : collez le lien ou scannez le code, et le portefeuille reconnaît lequel c'est. Chaque demande vous est montrée avant toute signature, sauf si vous avez activé les approbations automatiques pour cette dApp. WizardConnect nécessite un portefeuille HD : dans Gérer les portefeuilles, vous pouvez convertir ce portefeuille, avec la même phrase de récupération, en conservant ses fonds, son nom et ses notes."
+        }
       }
     }
   },
