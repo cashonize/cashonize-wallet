@@ -257,9 +257,9 @@
         v-if="searchShown" v-model="searchQuery" class="address-search" :placeholder="t('hdAddresses.searchPlaceholder')"
         autocomplete="off" autocapitalize="none" spellcheck="false"
       >
-      <span class="options-toggle" :class="{ active: showOptions, 'after-search': searchShown }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
+      <button type="button" class="options-toggle plain-button" :class="{ active: showOptions, 'after-search': searchShown }" :title="t('hdAddresses.options')" :aria-label="t('hdAddresses.options')" :aria-expanded="showOptions" @click="showOptions = !showOptions">
         <q-icon name="tune" size="22px" />
-      </span>
+      </button>
     </div>
 
     <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">

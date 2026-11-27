@@ -2,6 +2,7 @@
   "common": {
     "actions": {
       "back": "Kembali",
+      "search": "Cari",
       "send": "Kirim",
       "confirm": "Konfirmasi",
       "broadcastAgain": "Siarkan ulang",

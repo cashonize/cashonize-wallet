@@ -2,6 +2,7 @@
   "common": {
     "actions": {
       "back": "Назад",
+      "search": "Поиск",
       "send": "Отправить",
       "confirm": "Подтвердить",
       "broadcastAgain": "Транслировать снова",

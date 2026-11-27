@@ -2,6 +2,7 @@
   "common": {
     "actions": {
       "back": "Zurück",
+      "search": "Suchen",
       "send": "Senden",
       "confirm": "Bestätigen",
       "broadcastAgain": "Erneut senden",

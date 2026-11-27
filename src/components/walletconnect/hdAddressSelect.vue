@@ -158,9 +158,9 @@
   <div>
     <div class="control-row">
       <span>{{ props.hint ?? t('walletConnect.addressSelect.hint') }}</span>
-      <span v-if="props.allowChangeAddresses" class="options-toggle" :class="{ active: showOptions }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
+      <button v-if="props.allowChangeAddresses" type="button" class="options-toggle plain-button" :class="{ active: showOptions }" :title="t('hdAddresses.options')" :aria-label="t('hdAddresses.options')" :aria-expanded="showOptions" @click="showOptions = !showOptions">
         <q-icon name="tune" size="22px" />
-      </span>
+      </button>
     </div>
 
     <div v-if="showOptions" class="options-panel" :class="{ dark: settingsStore.darkMode }">

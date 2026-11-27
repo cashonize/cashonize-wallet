@@ -369,7 +369,7 @@
 
       <div v-if="mode === 'token'" style="margin-top: 15px;">
         <label>{{ t('requestPayment.tokenLabel') }}</label>
-        <div class="selected-item selectable" :title="t('requestPayment.selectToken')" @click="openTokenSelectDialog()">
+        <button type="button" class="selected-item selectable plain-button" aria-haspopup="dialog" :title="t('requestPayment.selectToken')" @click="openTokenSelectDialog()">
           <TokenIcon
             v-if="selectedCategory"
             :token-id="selectedCategory"
@@ -379,7 +379,7 @@
           <span :class="{ 'no-selection': !selectedCategory }">{{ tokenName ?? t('requestPayment.noTokenSelected') }}</span>
           <span v-if="tokenMetadata?.name" class="token-id">{{ shortCategory }}</span>
           <q-icon name="expand_more" class="select-chevron" size="20px" />
-        </div>
+        </button>
       </div>
 
       <div style="margin-top: 15px;">
@@ -542,6 +542,8 @@ body.dark .currencySelect option {
   opacity: 0.65;
 }
 .selected-item.selectable {
+  width: 100%;
+  text-align: left;
   cursor: pointer;
   transition: background-color 0.2s;
 }

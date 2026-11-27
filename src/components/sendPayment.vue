@@ -321,10 +321,11 @@
   <fieldset class="item" style="padding-bottom: 2rem;">
     <legend>{{ t('common.actions.send') }}</legend>
     <BackRow @click="store.goBack()" />
-    <div
+    <button
       v-if="sendableTokens.length || selectedCategory"
-      class="selectedAsset"
-      role="button"
+      type="button"
+      class="selectedAsset plain-button"
+      aria-haspopup="dialog"
       :title="t('wallet.selectAsset')"
       @click="openAssetSelectDialog()"
     >
@@ -342,7 +343,7 @@
         <span>Bitcoin Cash</span>
       </template>
       <q-icon name="expand_more" class="assetChevron" size="20px" />
-    </div>
+    </button>
     <div style="display: flex; gap: 0.5rem;">
       <input
         v-model="destinationAddr" @input="parseAddrParams()" name="addressInput" autocomplete="off"
@@ -402,6 +403,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  text-align: left;
   margin-bottom: 10px;
   border: 1px solid var(--surface-line);
   background-color: var(--surface-faint);
