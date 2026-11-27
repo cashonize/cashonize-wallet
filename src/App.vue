@@ -2,6 +2,7 @@
   import { ref, watch } from 'vue'
   import { useAppLockStore } from 'src/stores/appLockStore'
   import AppLockScreen from 'src/components/appLockScreen.vue'
+  import HeaderLogo from 'src/components/general/headerLogo.vue'
   const appLock = useAppLockStore()
 
   // A locked app does not load the wallet until its first unlock, so nothing signs or answers a
@@ -25,6 +26,10 @@
 <template>
   <suspense v-if="opened">
     <router-view />
+    <!-- the wallet page's header while it loads the wallet, so the logo stays put after the lock screen -->
+    <template #fallback>
+      <header><HeaderLogo /></header>
+    </template>
   </suspense>
   <AppLockScreen v-if="appLock.locked" />
 </template>
