@@ -6,7 +6,7 @@
   import TokenFiatValue from '../general/TokenFiatValue.vue';
   import tokenInfoPanel from './tokenInfoPanel.vue'
   import type { TokenDataFT, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, formatFiatAmount, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount, hiddenAmount } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount, formatNumber, satsToBch, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount, hiddenAmount } from 'src/utils/utils';
   import { toTypedAmount } from 'src/utils/numberFormat';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
@@ -72,6 +72,35 @@
   // Fiat value of fungible token holdings using Cauldron DEX price data, at the store's BCH rate
   const holdingsFiatValue = computed(() => {
     return shownTokenFiatValue(tokenData.value.category, holding.value);
+  });
+
+  // The BCH in the token's Cauldron pools, which the value above goes by: it is shown only from
+  // enough of it, and never as more than the pools hold. The indexer sums each side over all of
+  // the token's pools; the price is one side over the other.
+  const cauldronLiquidity = computed(() => {
+    if (!settingsStore.showCauldronFTValue) return undefined;
+    const pools = store.cauldronPrices?.[tokenData.value.category];
+    if (!pools) return undefined;
+    const bch = satsToBch(pools.satoshis);
+    const amount = `${formatNumber(bch, 2)} ${store.network === 'mainnet' ? 'BCH' : 'tBCH'}`;
+    let fiat: string | undefined;
+    if (store.network === 'mainnet' && store.exchangeRate !== undefined) {
+      fiat = `(${formatFiatAmount(bch * store.exchangeRate, settingsStore.currency)})`;
+    }
+    return { value: pools.hasSufficientLiquidity ? amount : t('tokenItem.info.cauldronLiquidityThin', { amount }), fiat };
+  });
+  // a section of its own in the info panel: market data, not what the token's creator published
+  const cauldronSection = computed(() => {
+    if (!cauldronLiquidity.value) return [];
+    const facts: { label: string, value: string, note?: string }[] = [{ label: t('tokenItem.info.cauldronLiquidity'), value: cauldronLiquidity.value.value }];
+    if (cauldronLiquidity.value.fiat) facts[0]!.note = cauldronLiquidity.value.fiat;
+    const pooledTokens = store.cauldronPrices?.[tokenData.value.category]?.tokenAmount;
+    if (pooledTokens !== undefined) {
+      // a sum the indexer sends as a json number, close enough to read at any size
+      const amount = formatTokenAmount(BigInt(Math.round(pooledTokens)), tokenMetaData.value?.token?.decimals);
+      facts.push({ label: t('tokenItem.info.cauldronTokens'), value: `${amount} ${tokenMetaData.value?.token?.symbol ?? ''}`.trim() });
+    }
+    return [{ title: t('tokenItem.info.cauldronSection'), facts }];
   });
 
   // Fungible token specific functionality
@@ -230,6 +259,7 @@
             { label: t('tokenItem.info.symbol'), value: tokenMetaData.token?.symbol ?? '' },
             { label: t('tokenItem.info.decimals'), value: String(tokenMetaData.token?.decimals ?? 0) },
           ].filter(fact => fact.value) : []"
+          :more-sections="cauldronSection"
           :web-url="tokenMetaData?.uris?.web"
           :category="tokenData.category"
         />

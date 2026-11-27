@@ -8,7 +8,8 @@
   import type { ParsedField } from 'src/parsing/nftParsing'
   const { t } = useI18n()
 
-  interface Fact { label: string, value: string, mono?: boolean }
+  // a note follows the value in the secondary text style, as a currency value does an amount
+  interface Fact { label: string, value: string, mono?: boolean, note?: string }
 
   const props = defineProps<{
     description?: string | undefined,
@@ -19,6 +20,8 @@
     // the registry's attributes extension, which only a flat record of is shown
     attributes?: string | Record<string, string | Record<string, string>> | undefined,
     webUrl?: string | undefined,
+    // lists under captions of their own that are not the token's metadata, such as market data
+    moreSections?: { title: string, facts: Fact[] }[],
     // with a category the panel ends in the explorer link
     category?: string,
   }>()
@@ -45,6 +48,7 @@
     return [
       { title: props.parsedTitle ?? t('tokenItem.info.parsedFields'), facts: parsed },
       { title: t('tokenItem.info.nftAttributes'), facts: attributes },
+      ...(props.moreSections ?? []),
     ].filter(section => section.facts.length)
   })
 
@@ -95,7 +99,7 @@
       <dl class="infoFacts">
         <div v-for="(fact, index) in section.facts" :key="index">
           <dt>{{ fact.label }}</dt>
-          <dd>{{ fact.value }}</dd>
+          <dd>{{ fact.value }} <span v-if="'note' in fact && fact.note" class="infoNote">{{ fact.note }}</span></dd>
         </div>
       </dl>
     </template>
