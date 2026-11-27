@@ -1643,7 +1643,7 @@
       "identities": "Identities",
       "identitiesDescription": "The metadata identities this wallet holds or follows",
       "newCount": "({count} new) | ({count} new)",
-      "tokenCreation": "Token creation"
+      "tokenCreation": "Identities & token creation"
     },
     "localization": {
       "language": "Language:",

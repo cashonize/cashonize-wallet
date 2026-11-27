@@ -1643,7 +1643,7 @@
       "identities": "Identidades",
       "identitiesDescription": "Las identidades de metadatos que esta billetera tiene o sigue",
       "newCount": "({count} nueva) | ({count} nuevas)",
-      "tokenCreation": "Creación de tokens"
+      "tokenCreation": "Identidades y creación de tokens"
     },
     "localization": {
       "language": "Idioma:",

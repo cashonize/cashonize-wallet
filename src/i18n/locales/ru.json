@@ -1643,7 +1643,7 @@
       "identities": "Идентичности",
       "identitiesDescription": "Идентичности метаданных, которые держит или отслеживает этот кошелёк",
       "newCount": "({count} новая) | ({count} новые) | ({count} новых)",
-      "tokenCreation": "Создание токенов"
+      "tokenCreation": "Идентичности и создание токенов"
     },
     "localization": {
       "language": "Язык:",

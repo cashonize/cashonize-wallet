@@ -1643,7 +1643,7 @@
       "identities": "Identités",
       "identitiesDescription": "Les identités de métadonnées que ce portefeuille détient ou suit",
       "newCount": "({count} nouvelle) | ({count} nouvelles)",
-      "tokenCreation": "Création de tokens"
+      "tokenCreation": "Identités & création de tokens"
     },
     "localization": {
       "language": "Langue :",

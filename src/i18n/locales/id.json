@@ -1643,7 +1643,7 @@
       "identities": "Identitas",
       "identitiesDescription": "Identitas metadata yang dipegang atau diikuti dompet ini",
       "newCount": "({count} baru) | ({count} baru)",
-      "tokenCreation": "Pembuatan token"
+      "tokenCreation": "Identitas & pembuatan token"
     },
     "localization": {
       "language": "Bahasa:",

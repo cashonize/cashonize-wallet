@@ -1643,7 +1643,7 @@
       "identities": "Identidades",
       "identitiesDescription": "As identidades de metadados que esta carteira tem ou segue",
       "newCount": "({count} nova) | ({count} novas)",
-      "tokenCreation": "Criação de tokens"
+      "tokenCreation": "Identidades e criação de tokens"
     },
     "localization": {
       "language": "Idioma:",
