@@ -7,6 +7,7 @@
   import menuPage from 'src/components/menuPage.vue'
   import DappActivityButton from 'src/components/history/dappActivityButton.vue'
   import HeaderLogo from 'src/components/general/headerLogo.vue'
+  import MainNav from 'src/components/general/mainNav.vue'
   import connectDappView from 'src/components/connectDapp.vue'
   import createTokensView from 'src/components/identities/createTokens.vue'
   import utxoManagement from 'src/components/tools/utxoManagement.vue'
@@ -25,7 +26,7 @@
   import aboutCashonizeView from 'src/components/aboutCashonize.vue'
   import networkStatusView from 'src/components/networkStatus.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
-  import { defineComponent, ref, computed, watch, watchEffect, nextTick, onMounted, onUnmounted } from 'vue'
+  import { defineComponent, ref, computed, watch, watchEffect, nextTick, onMounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
   import { preloadIcons } from 'src/utils/icons/preloadIcons'
@@ -48,10 +49,7 @@
   import { useQuasar } from 'quasar'
   const $q = useQuasar()
   import { useI18n } from 'vue-i18n'
-  const { t, locale } = useI18n()
-
-  // French, Portuguese and Russian tab labels are long enough to overflow small phone screens
-  const compactNavTabs = computed(() => ['fr', 'pt', 'ru'].includes(locale.value))
+  const { t } = useI18n()
 
   // Below the width where Addresses leaves the nav, so the bottom bar holds five tabs
   const navAtBottom = computed(() =>
@@ -59,23 +57,6 @@
   );
   // the notifies are mounted outside the page, they keep clear of the bar through the body class
   watchEffect(() => document.body.classList.toggle('bottom-nav', navAtBottom.value));
-
-  // An on-screen keyboard that resizes the page would lift the bar over the form being filled in,
-  // so the bar steps aside while a text field has focus
-  const textFieldFocused = ref(false);
-  function onFocusChange() {
-    const element = document.activeElement;
-    textFieldFocused.value = element instanceof HTMLTextAreaElement
-      || (element instanceof HTMLInputElement && !['checkbox', 'radio'].includes(element.type));
-  }
-  onMounted(() => {
-    document.addEventListener('focusin', onFocusChange);
-    document.addEventListener('focusout', onFocusChange);
-  });
-  onUnmounted(() => {
-    document.removeEventListener('focusin', onFocusChange);
-    document.removeEventListener('focusout', onFocusChange);
-  });
 
   const props = defineProps<{
     uri: string | undefined
@@ -94,8 +75,6 @@
   // KeepAlive stays mounted permanently so the views are cached regardless of navigation.
   // The menu page re-renders on navigation, a placeholder component used for the KeepAlive
   const emptyView = defineComponent({ render: () => null })
-  // the wallet page and the two pages its actions open
-  const onWalletPage = computed(() => [1, 17, 23].includes(store.displayView ?? 0));
   // the menu page and the pages under it, which the menuPage component renders all of
   const onMenuPage = computed(() => store.displayView === 5 || (store.displayView ?? 0) >= menuSectionViewBase);
   const currentView = computed(() => {
@@ -263,22 +242,6 @@
     target.uri.value = content;
   }
 
-  const hasUtxosWithBchAndTokens = computed(() => {
-    if (!store._wallet || !store.walletUtxos) return undefined;
-    return store.walletUtxos?.filter(utxo => utxo.token?.category && utxo.satoshis > 100_000n).length > 0;
-  });
-  const newerReleaseAvailable = computed(() => {
-    if(!import.meta.env.QUASAR_ELECTRON_MODE) return false;
-    const applicationVersion = import.meta.env.version
-    return store.latestGithubRelease && store.latestGithubRelease !== 'v'+applicationVersion
-  });
-  const showNotificationIcon = computed(() => {
-    if (!store._wallet || !store.walletUtxos) return undefined;
-    const needsBackup = settingsStore.getBackupStatus(store.activeWalletName) === 'none';
-    return needsBackup || hasUtxosWithBchAndTokens.value || newerReleaseAvailable.value
-      || identitiesStore.unseenIdentities.length > 0;
-  });
-
   // The store says what to announce; the dialog is opened here and the request cleared. The
   // passes at open announce one after another, so the dialog waits a moment and says them all.
   let announcementTimer: ReturnType<typeof setTimeout> | undefined;
@@ -303,20 +266,7 @@
     <div v-if="navAtBottom && settingsStore.dappActivityInNav" class="header-dapp-activity">
       <DappActivityButton icon-only />
     </div>
-    <nav v-if="store.displayView && !navAtBottom" style="display: flex; justify-content: center; user-select: none;" class="tabs" :class="{ compact: compactNavTabs }">
-      <div @click="store.changeView(1)" :class="{ active: onWalletPage }"> {{ t('nav.wallet') }} </div>
-      <div v-if="settingsStore.addressesInNav && width > addressesNavTabMinWidth && settingsStore.getWalletType(store.activeWalletName) === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
-      <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ t('nav.tokens') }} </div>
-      <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ t('nav.history') }} </div>
-      <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ t('nav.connect') }} </div>
-      <div v-if="settingsStore.dappActivityInNav" class="nav-dapp-activity">
-        <DappActivityButton icon-only />
-      </div>
-      <div @click="store.changeView(5)" :class="{ active: onMenuPage }" :aria-label="t('nav.menu')" style="width: max-content; position: relative;">
-        <q-icon name="more_horiz" size="22px" />
-        <span v-if="showNotificationIcon" class="notification-dot" style="top: 8px; right: 6px;"></span>
-      </div>
-    </nav>
+    <MainNav v-if="store.displayView && !navAtBottom" position="top" />
   </header>
   <main style="margin: 20px auto; max-width: 78rem;">
     <KeepAlive>
@@ -324,37 +274,10 @@
     </KeepAlive>
     <menuPage v-if="onMenuPage" />
   </main>
-  <nav v-if="navAtBottom" v-show="!textFieldFocused" class="bottom-nav">
-    <div @click="store.changeView(1)" :class="{ active: onWalletPage }">
-      <q-icon name="sym_o_account_balance_wallet" size="24px" />
-      <span>{{ t('nav.wallet') }}</span>
-    </div>
-    <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }">
-      <q-icon name="sym_o_toll" size="24px" />
-      <span>{{ t('nav.tokens') }}</span>
-    </div>
-    <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }">
-      <q-icon name="sym_o_history" size="24px" />
-      <span>{{ t('nav.history') }}</span>
-    </div>
-    <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }">
-      <q-icon name="sym_o_link" size="24px" style="transform: rotate(-45deg);" />
-      <span>{{ t('nav.connect') }}</span>
-    </div>
-    <div @click="store.changeView(5)" :class="{ active: onMenuPage }">
-      <span style="position: relative;">
-        <q-icon name="more_horiz" size="24px" />
-        <span v-if="showNotificationIcon" class="notification-dot" style="top: 0; right: -2px;"></span>
-      </span>
-      <span>{{ t('nav.menu') }}</span>
-    </div>
-  </nav>
+  <MainNav v-if="navAtBottom" position="bottom" />
 </template>
 
 <style scoped>
-.active {
-  color: var(--color-primary);
-}
 header {
   position: relative;
 }
@@ -363,38 +286,5 @@ header {
   position: absolute;
   top: calc(15px + var(--safe-area-inset-top, 0px));
   right: 12px;
-}
-.bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  /* Chrome's pattern for bottom bars: a fixed padding of the largest inset, moved down by what is
-     not currently needed, so the bar never relayouts while scrolling */
-  bottom: calc(env(safe-area-inset-bottom, 0px) - var(--safe-area-max-inset-bottom));
-  z-index: 1000;
-  display: flex;
-  padding-bottom: var(--safe-area-max-inset-bottom);
-  background-color: var(--bg-color);
-  border-top: 1px solid var(--color-lightGrey);
-  user-select: none;
-}
-.bottom-nav > div {
-  flex: 1;
-  min-width: 0;
-  height: var(--bottom-nav-height);
-  padding: 0 2px;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  font-size: 12px;
-}
-.bottom-nav > div > span:last-child {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>

@@ -139,7 +139,7 @@ The menu page (the fifth tab, `menuPage`) carries tools that take Cashonize beyo
 An optional PIN (`stores/appLockStore.ts`) gates the interface: the wallet is not loaded until the first unlock, and `confirmPin()` is asked before a spend (inside `store.spend.*`), a dApp transaction signature and a seed reveal; message signing asks none. It is not encryption; the seed at rest is unchanged, and anything that spends past `store.spend` has to ask for the PIN itself. On Android a fingerprint or face can stand in for the PIN (`utils/biometrics.ts`), the system prompt passed being as much a gate as a typed PIN, with the PIN as the fallback.
 
 ### Component Organization
-Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`.
+Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`. The tabs are one list in `general/mainNav.vue`, drawn under the logo or as a bar at the bottom of a phone screen; the page decides which.
 
 `src/components/` holds the four main tab views (`bchWallet`, `myTokens`, `connectDapp`, `menuPage`), the two pages the wallet tab's actions open (`receivePayment`, `sendPayment`), `hdAddresses`, `faqPage`, `aboutCashonize` and `walletOnboarding` at the root, with a folder per area below: `tools/`, `identities/`, `wallets/`, `settings/`, `walletconnect/`, `cashconnect/`, `wizardconnect/`, `history/`, `portfolio/`, `tokenItems/`, `qr/` and `general/` for what several views reuse. `src/utils/` is grouped the same way (`dapp/`, `defi/`, `wallet/`, ...).
 

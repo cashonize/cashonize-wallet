@@ -38,7 +38,7 @@ body {
 .q-notifications__list {
   padding-left: calc(100vw - 100%);
 }
-/* the optional bottom nav bar (WalletPage) is fixed, the page end and the notifies keep clear of it.
+/* the optional bottom nav bar (mainNav) is fixed, the page end and the notifies keep clear of it.
    It follows env() rather than Capacitor's variables: Chrome on Android reports the inset without
    viewport-fit=cover too, changing it as its chin slides away on scroll */
 body.bottom-nav {
@@ -91,8 +91,7 @@ body.dark ::placeholder {
   color: #e7e9ea;
 }
 /* structural outlines stay light in dark mode, they carry the page layout */
-body.dark fieldset,
-body.dark nav div {
+body.dark fieldset {
   border-color: var(--color-strongOutline);
 }
 /* segmented pill bars (.type-filter in several views) and the address list's
@@ -116,11 +115,6 @@ header {
   flex-direction: column;
   text-align: center;
 }
-nav div {
-  padding: 1rem 2.5rem;
-  cursor: pointer;
-  border-bottom: 2px solid var(--color-lightGrey);
-}
 b {
   font-weight: 700;
 }
@@ -133,13 +127,6 @@ a,
 img {
   -webkit-user-drag: none;
   user-select: none;
-}
-.notification-dot {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background-color: var(--color-primary);
-  border-radius: 50%;
 }
 /* the dot with a number in it, for a count of new items */
 .notification-count {
@@ -155,27 +142,6 @@ img {
   line-height: 16px;
   text-align: center;
 }
-/* two gentle pulse rings when the dot appears, then rest */
-.notification-dot::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background-color: var(--color-primary);
-  opacity: 0;
-  animation: notification-pulse 1.6s ease-out 2;
-}
-@keyframes notification-pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
-  100% {
-    transform: scale(3);
-    opacity: 0;
-  }
-}
-
 .primaryButton {
   background-color: var(--color-primary);
   color: white;
@@ -287,7 +253,7 @@ input::-webkit-inner-spin-button {
 }
 /* Firefox */
 input[type='number'] {
-  -moz-appearance: textfield;
+  appearance: textfield;
 }
 /* keyboard focus ring in the brand green instead of the OS accent color */
 :focus-visible {
@@ -812,21 +778,6 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
   }
   .showChildNfts {
     margin-left: 0;
-  }
-}
-@media only screen and (max-width: 650px) {
-  .tabs div {
-    padding: 1rem 1.8rem;
-  }
-}
-@media only screen and (max-width: 600px) {
-  .tabs div {
-    padding: 1rem;
-  }
-}
-@media only screen and (max-width: 500px) {
-  .tabs.compact div {
-    padding: 1rem 0.5rem;
   }
 }
 @media only screen and (max-width: 570px) {

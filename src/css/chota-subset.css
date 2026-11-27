@@ -1,6 +1,6 @@
 /*
  * Curated subset of chota v0.9.2 (https://jenil.github.io/chota/)
- * Includes only what the app actually uses from _base, _form, and _tab.
+ * Includes only what the app actually uses from _base and _form.
  * See issue #165 for rationale.
  */
 
@@ -279,37 +279,4 @@ button:active:not(:disabled) {
 
 .grouped > *:not(:last-child) {
   margin-right: 16px;
-}
-
-/* ==========================================================================
-   Tabs
-   ========================================================================== */
-
-.tabs {
-  display: flex;
-}
-
-.tabs a {
-  text-decoration: none;
-}
-
-.tabs > .dropdown > summary,
-.tabs > a {
-  padding: 1rem 2rem;
-  flex: 0 1 auto;
-  color: var(--color-darkGrey);
-  border-bottom: 2px solid var(--color-lightGrey);
-  text-align: center;
-}
-
-.tabs > a[aria-current="page"],
-.tabs > a.active,
-.tabs > a:hover {
-  opacity: 1;
-  border-bottom: 2px solid var(--color-darkGrey);
-}
-
-.tabs > a[aria-current="page"],
-.tabs > a.active {
-  border-color: var(--color-primary);
 }
