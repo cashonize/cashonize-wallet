@@ -11,7 +11,7 @@
   });
 
   const imageLoadFailed = ref(false);
-  const fallbackRef = ref<HTMLDivElement | null>(null);
+  const fallbackRef = ref<HTMLSpanElement | null>(null);
 
   function appendBlockieIcon() {
     if (!fallbackRef.value) return;
@@ -47,7 +47,8 @@
     :src="iconUrl"
     @error="() => imageLoadFailed = true"
   >
-  <div v-else ref="fallbackRef" class="token-icon-fallback"></div>
+  <!-- a span, since the icon also sits inside buttons, where a div is not allowed -->
+  <span v-else ref="fallbackRef" class="token-icon-fallback"></span>
 </template>
 
 <style scoped>

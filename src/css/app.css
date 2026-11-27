@@ -155,9 +155,14 @@ img {
   font: inherit;
   line-height: inherit;
   text-align: inherit;
+  transform: none;
 }
 .plain-button:hover {
   opacity: 1;
+}
+/* chota shrinks a pressed button, which would break a tab's stretch of the nav's underline */
+.plain-button:active:not(:disabled) {
+  transform: none;
 }
 .primaryButton {
   background-color: var(--color-primary);
