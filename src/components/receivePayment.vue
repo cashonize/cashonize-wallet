@@ -188,7 +188,7 @@
     void setBchAmount();
   }
 
-  // The intro animation plays once per address form, from the code's 'rendered' event
+  // The intro animation plays once per visit and per address form, from the code's 'rendered' event
   function animateQrCode() {
     if (qrCodeRef.value && !settingsStore.hasPlayedAnimation && settingsStore.qrAnimation != 'None') {
       qrCodeRef.value.animate();
@@ -251,6 +251,9 @@
   // rather than stay folded over it
   onActivated(() => {
     if (isRequest.value) showRequestFields.value = true;
+    // Receive is opened on purpose, so the code's intro plays on every visit
+    settingsStore.hasPlayedAnimation = false;
+    animateQrCode();
   });
 
   // Both bch amounts are entered by hand, so they need a nudge when the units they are

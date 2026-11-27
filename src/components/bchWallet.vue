@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, nextTick } from 'vue'
+  import { ref, computed, nextTick, watch } from 'vue'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { formatFiatAmount, formatNumber, convertToCurrency, hiddenAmount } from 'src/utils/utils';
   import { routeScannedCode } from 'src/utils/scanRouting';
@@ -27,6 +27,12 @@
     if(store.network == "mainnet") return settingsStore.bchUnit == "bch"? " BCH" : " satoshis"
     else return settingsStore.bchUnit == "bch"? " tBCH" : " testnet satoshis"
   })
+  // The balance settles into place when it arrives where the placeholder was. Set from here and
+  // not left on: the view is kept alive, and a return to it would replay a class that stays.
+  const balanceArrived = ref(false);
+  watch(() => store.balance, (balance, previous) => {
+    if (previous === undefined && balance !== undefined) balanceArrived.value = true;
+  });
   const displayCurrencyBalance = computed(() => {
     if (store.exchangeRate === undefined || store.balance === undefined) return '';
     const balance = convertToCurrency(store.balance, store.exchangeRate);
@@ -132,7 +138,8 @@
            switch, which is all a touch screen sees of it. -->
       <!-- both lines keep their place while they load, so the page does not shift when they arrive -->
       <div
-        class="balanceLines" :class="{ eyeShown }" role="button" tabindex="0" :title="hideLabel" :aria-label="hideLabel"
+        class="balanceLines" :class="{ eyeShown, arrived: balanceArrived }"
+        @animationend="balanceArrived = false" role="button" tabindex="0" :title="hideLabel" :aria-label="hideLabel"
         @click="toggleHideBalances()"
         @keydown.enter="toggleHideBalances()"
       >
@@ -281,6 +288,17 @@
 }
 .balanceReserved {
   color: grey;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .arrived {
+    animation: balanceArrive 0.25s ease-out;
+  }
+}
+@keyframes balanceArrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 .walletActions {
   display: flex;
