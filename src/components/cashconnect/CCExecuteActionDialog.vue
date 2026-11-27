@@ -2,16 +2,17 @@
 import { computed, ref } from 'vue';
 import { useDialogPluginComponent } from 'quasar'
 import { encodeExtendedJson } from '@cashconnect-js/core/primitives';
-import { type TemplateSegment } from '@cashconnect-js/core/templates';
+import { type TemplateSegment, type UTXOSnapshot, type UTXOBalanceChanges } from '@cashconnect-js/core/templates';
 import { type ExecuteActionRequest, type ExecuteActionResponse } from '@cashconnect-js/nostr';
-import { type WalletSession, formatSegment, formatOraclePrice, formatOracleNumeratorUnitCode, formatOracleDenominatorUnitCode } from '@cashconnect-js/nostr/wallet';
-import { CurrencySymbols } from 'src/interfaces/interfaces';
-import { convertToCurrency, sanitizeUrl, satsToBch } from 'src/utils/utils';
+import { type WalletSession, formatSegment, formatOraclePrice, formatOracleNumeratorUnitCode, formatOracleDenominatorUnitCode, calculateBalanceChanges } from '@cashconnect-js/nostr/wallet';
+import { convertToCurrency, formatFiatAmount, formatTokenAmount, sanitizeUrl } from 'src/utils/utils';
+import { binToHex } from "@bitauth/libauth";
 import { useStore } from 'src/stores/store';
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { caughtErrorToString } from 'src/utils/errorHandling';
 import { type BcmrTokenResponse } from 'src/utils/zodValidation';
 import { useI18n } from 'vue-i18n';
+import { useAppLockStore } from 'src/stores/appLockStore';
 const { t } = useI18n()
 import CCExpansionItem from './CCExpansionItem.vue';
 
@@ -30,8 +31,27 @@ defineEmits([
 
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
+// approving is a spend, so the app lock's PIN is asked first; backing out leaves the request open
+async function approve() {
+  if (await useAppLockStore().confirmPin()) onDialogOK()
+}
+
 const safeUrl = sanitizeUrl(props.session.dapp.url);
 const exchangeRate = computed(() => store.exchangeRate);
+
+//-----------------------------------------------------------------------------
+// Wallet Balance
+//-----------------------------------------------------------------------------
+
+// Calculate Balance Changes.
+const balanceChanges: UTXOBalanceChanges = calculateBalanceChanges(props.response.utxos, (utxo) => store.ownsLockingBytecode(utxo.lockingBytecode));
+
+// Helper to detect whether Wallet Balance has changed.
+const hasBalanceChanges =
+  balanceChanges.bch !== 0n ||
+  Object.values(balanceChanges.tokens).some(
+    (tokenChange) => tokenChange.amount !== 0n || tokenChange.nftsConsumed.length > 0 || tokenChange.nftsEmitted.length > 0
+  );
 
 //-----------------------------------------------------------------------------
 // Tokens
@@ -67,10 +87,21 @@ async function fetchAndSetTokenInfo(tokenId: string) {
     console.error(errorMessage);
   }
 }
+
 const allowedTokens = props.session.allowedTokens ?? [];
+
 // fire-and-forget promises
-for (const tokenId of allowedTokens) {
+for (const tokenId of new Set([...allowedTokens, ...Object.keys(balanceChanges.tokens)])) {
   void fetchAndSetTokenInfo(tokenId);
+}
+
+// Which NFT a balance row is about: the snapshots in nftsConsumed/nftsEmitted always carry
+// one, but the type leaves it optional, so fall back to an empty detail rather than fail.
+function nftDetail(snapshot: UTXOSnapshot): string {
+  const nft = snapshot.token?.nft;
+  if(!nft) return '';
+  const commitment = nft.commitment.length ? binToHex(nft.commitment) : '';
+  return commitment ? `${nft.capability}: ${commitment}` : nft.capability;
 }
 
 //-----------------------------------------------------------------------------
@@ -96,10 +127,11 @@ function formatSegmentCustom(segment: TemplateSegment) {
   return formatSegment(segment);
 }
 
-function addSignPrefixToNumber(value: number | bigint): string {
-  const formatted = Number(value).toLocaleString("en-US");
-  if (Number(value) === 0) return formatted;
-  return Number(value) > 0 ? `+ ${formatted}` : `- ${Number(-(value)).toLocaleString("en-US")}`;
+// A balance change with its sign spaced off, as base units in the given decimals
+function signedAmount(baseUnits: bigint, decimals: number | undefined): string {
+  const formatted = formatTokenAmount(baseUnits < 0n ? -baseUnits : baseUnits, decimals);
+  if (baseUnits === 0n) return formatted;
+  return baseUnits > 0n ? `+ ${formatted}` : `- ${formatted}`;
 };
 </script>
 
@@ -152,21 +184,29 @@ function addSignPrefixToNumber(value: number | bigint): string {
 
         <hr style="margin-top:1em; margin-bottom: 1em" />
 
-        <div class="cc-modal-heading" style="margin-top: 1rem;">{{ t('cashConnect.executeAction.balanceChange') }}</div>
-        <div v-for="(amount, category) of props.response.balanceChanges" :key="category">
-          <div v-if="(category === 'sats')">
-            {{ addSignPrefixToNumber(satsToBch(amount)) + ' BCH ' }}
+        <template v-if="hasBalanceChanges">
+          <div class="cc-modal-heading" style="margin-top: 1rem;">{{ t('cashConnect.executeAction.balanceChange') }}</div>
+          <div>
+            {{ signedAmount(balanceChanges.bch, 8) + ' BCH ' }}
             <!-- Only show fiat equivalent if an exchange rate is available. -->
             <template v-if="exchangeRate">
-              ({{ convertToCurrency(amount, exchangeRate) + ` ${CurrencySymbols[settingsStore.currency]}`}})
+              ({{ formatFiatAmount(convertToCurrency(balanceChanges.bch, exchangeRate), settingsStore.currency) }})
             </template>
           </div>
-          <div v-else>
-            <span>{{ addSignPrefixToNumber(amount) }} <span>{{ getTokenName(category) }} <q-tooltip>{{ category }}</q-tooltip></span></span>
+          <div v-for="(tokenChange, category) of balanceChanges.tokens" :key="category">
+            <div v-if="tokenChange.amount !== 0n">
+              <span>{{ signedAmount(tokenChange.amount, tokens[category]?.token?.decimals) }} <span>{{ getTokenName(category) }} <q-tooltip>{{ category }}</q-tooltip></span></span>
+            </div>
+            <div v-for="(nft, index) of tokenChange.nftsConsumed" :key="'consumed-' + category + '-' + index">
+              <span>- {{ getTokenName(category) }} NFT <q-tooltip>{{ nftDetail(nft) }}</q-tooltip></span>
+            </div>
+            <div v-for="(nft, index) of tokenChange.nftsEmitted" :key="'emitted-' + category + '-' + index">
+              <span>+ {{ getTokenName(category) }} NFT <q-tooltip>{{ nftDetail(nft) }}</q-tooltip></span>
+            </div>
           </div>
-        </div>
 
-        <hr style="margin-top:1em; margin-bottom: 1em" />
+          <hr style="margin-top:1em; margin-bottom: 1em" />
+        </template>
 
         <q-expansion-item :label="t('cashConnect.executeAction.advanced')">
           <!-- NOTE: The "content-inset-level" property pushes these too far in, so we pad manually. -->
@@ -187,7 +227,7 @@ function addSignPrefixToNumber(value: number | bigint): string {
 
         <!-- Approve/Reject Buttons -->
         <div style="margin: 2rem 0; display: flex; gap: 1rem;" class="justify-center">
-          <input type="button" class="primaryButton" :value="t('cashConnect.executeAction.approveButton')" @click="onDialogOK" v-close-popup>
+          <input type="button" class="primaryButton" :value="t('cashConnect.executeAction.approveButton')" @click="approve()">
           <input type="button" :value="t('cashConnect.executeAction.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>
@@ -205,7 +245,7 @@ function addSignPrefixToNumber(value: number | bigint): string {
     white-space: pre-wrap;       /* CSS3 standard */
     word-wrap: break-word !important;       /* For older browsers */
     overflow-wrap: break-word !important;   /* Modern property */
-    word-break: break-all;
+    word-break: break-word;
     font-size: x-small;
   }
 </style>

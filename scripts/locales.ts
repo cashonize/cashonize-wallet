@@ -37,6 +37,7 @@ export function usesIcuSyntax(text: string): boolean {
   return /\{[a-zA-Z0-9_]+,\s*(plural|select|selectordinal)\s*,/.test(text);
 }
 
+// Each placeholder once: a language with more plural forms than English repeats {count} more often
 export function placeholdersOf(text: string): string[] {
-  return [...text.matchAll(/\{[a-zA-Z0-9_]+\}/g)].map(match => match[0]).sort();
+  return [...new Set([...text.matchAll(/\{[a-zA-Z0-9_]+\}/g)].map(match => match[0]))].sort();
 }

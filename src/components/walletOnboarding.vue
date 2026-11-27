@@ -6,11 +6,13 @@
   import { defaultWalletName } from 'src/stores/constants'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import seedPhraseInput from './general/seedPhraseInput.vue'
+  import ThemeSelect from './general/ThemeSelect.vue'
+  import { formatDecimal, numberFormats } from 'src/utils/numberFormat'
   import derivationPathSelect from './general/derivationPathSelect.vue'
   import LanguageSelector from './general/LanguageSelector.vue'
   import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet } from 'src/utils/wallet/walletUtils'
   import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
-  import type { Currency } from 'src/interfaces/interfaces'
+  import { CurrencyShortNames, type Currency } from 'src/interfaces/interfaces'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const $q = useQuasar()
@@ -33,8 +35,9 @@
 
   // Preferences - initialize from settingsStore (which reads from localStorage/system preferences)
   const selectedCurrency = ref<Currency>(settingsStore.currency);
-  const selectedDarkMode = ref(settingsStore.darkMode);
-  const confirmBeforeSending = ref(true);
+  const currencies = Object.keys(CurrencyShortNames) as Currency[];
+  const selectedNumberFormat = ref(settingsStore.numberFormat);
+  const isDesktop = import.meta.env.QUASAR_ELECTRON_MODE;
 
   function selectCreate() {
     mode.value = "create";
@@ -106,23 +109,14 @@
     }
   }
 
-  function applyDarkMode() {
-    document.body.classList.toggle("dark", selectedDarkMode.value);
-  }
-
   function savePreferencesAndFinish() {
     // Save currency
     settingsStore.currency = selectedCurrency.value;
     localStorage.setItem("currency", selectedCurrency.value);
 
-    // Save dark mode
-    settingsStore.darkMode = selectedDarkMode.value;
-    localStorage.setItem("darkMode", selectedDarkMode.value ? "true" : "false");
-    applyDarkMode();
-
-    // Save confirm before sending
-    settingsStore.confirmBeforeSending = confirmBeforeSending.value;
-    localStorage.setItem("confirmBeforeSending", confirmBeforeSending.value ? "true" : "false");
+    // Save number format
+    settingsStore.numberFormat = selectedNumberFormat.value;
+    localStorage.setItem("numberFormat", selectedNumberFormat.value);
 
     // Wallet is already initialized in step 2, just navigate to wallet view
     store.changeView(1);
@@ -147,11 +141,11 @@
           </div>
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>{{ t('onboarding.welcome.featureWalletConnect') }}</span>
+            <span>{{ t('onboarding.welcome.featureDapps') }}</span>
           </div>
           <div class="feature-item">
             <span class="feature-icon">✓</span>
-            <span>{{ t('onboarding.welcome.featureOpenSource') }}</span>
+            <span>{{ t('onboarding.welcome.featurePortfolio') }}</span>
           </div>
         </div>
       </div>
@@ -232,7 +226,7 @@
           </div>
         </div>
         <div style="margin: 20px 0;">
-          <seedPhraseInput v-model="seedPhrase" v-model:isValid="seedPhraseValid" />
+          <seedPhraseInput v-model="seedPhrase" @validity="(valid) => seedPhraseValid = valid" />
         </div>
         <div style="margin: 15px 0;">
           <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
@@ -261,25 +255,25 @@
       <div style="margin-bottom: 20px;">
         <label for="selectCurrency" style="display: block; margin-bottom: 8px;">{{ t('onboarding.preferences.currency.label') }}</label>
         <select v-model="selectedCurrency" id="selectCurrency" style="padding: 8px; min-width: 150px;">
-          <option value="usd">{{ t('onboarding.preferences.currency.usd') }}</option>
-          <option value="eur">{{ t('onboarding.preferences.currency.eur') }}</option>
-          <option value="gbp">{{ t('onboarding.preferences.currency.gbp') }}</option>
-          <option value="cad">{{ t('onboarding.preferences.currency.cad') }}</option>
-          <option value="aud">{{ t('onboarding.preferences.currency.aud') }}</option>
-          <option value="chf">{{ t('onboarding.preferences.currency.chf') }}</option>
-          <option value="brl">{{ t('onboarding.preferences.currency.brl') }}</option>
+          <option v-for="currency in currencies" :key="currency" :value="currency">{{ t(`onboarding.preferences.currency.${currency}`) }}</option>
         </select>
       </div>
 
       <div style="margin-bottom: 20px;">
-        {{ t('onboarding.preferences.darkMode') }} <q-toggle v-model="selectedDarkMode" @update:model-value="applyDarkMode" dense />
+        <label for="selectNumberFormat" style="display: block; margin-bottom: 8px;">{{ t('settings.localization.numberFormat') }}</label>
+        <select v-model="selectedNumberFormat" id="selectNumberFormat" style="padding: 8px; min-width: 150px;">
+          <!-- each format shown by example; the desktop app has no system default to follow -->
+          <option v-for="format in numberFormats.filter(format => !(isDesktop && format === 'auto'))" :key="format" :value="format">
+            <template v-if="format === 'auto'">{{ t('settings.localization.numberFormatAuto', { example: formatDecimal(1234567.89, {}, format) }) }}</template>
+            <template v-else>{{ formatDecimal(1234567.89, {}, format) }}</template>
+          </option>
+        </select>
       </div>
 
-      <div style="margin-bottom: 25px;">
-        {{ t('onboarding.preferences.confirmPayments') }} <q-toggle v-model="confirmBeforeSending" dense />
-        <div style="font-size: smaller; color: grey;">
-          {{ t('onboarding.preferences.confirmPaymentsHint') }}
-        </div>
+      <div style="margin-bottom: 20px;">
+        <!-- applied and stored as it is picked; left alone, the wallet follows the system -->
+        <div style="margin-bottom: 6px;">{{ t('settings.userOptions.themeHeading') }}</div>
+        <ThemeSelect />
       </div>
 
       <input

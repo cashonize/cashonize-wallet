@@ -11,6 +11,11 @@ import {
 import { useStore } from '../src/stores/store'
 import { outpointOf } from '../src/utils/wallet/reservedUtxos'
 import { ActionableError } from '../src/utils/errorHandling'
+import { toTokenAddress } from '../src/utils/addressValidation'
+import { handleTransactionBroadcastSuccess } from '../src/utils/txHelpers'
+
+// the sent dialog a broadcast again ends on is a component, which this suite does not load
+vi.mock('../src/utils/txHelpers', () => ({ handleTransactionBroadcastSuccess: vi.fn() }))
 
 const category = '0123456789abcdef'.repeat(4)
 
@@ -239,6 +244,8 @@ describe('spend paths narrow to the coins the wallet may spend', () => {
     await (error as ActionableError).action.run()
     expect(wallet.submitTransaction).toHaveBeenCalledWith(hexToBin('0200'))
     expect(wallet.send).toHaveBeenCalledTimes(1)
+    // it ends on the sent dialog, which takes the txid apart from its message
+    expect(handleTransactionBroadcastSuccess).toHaveBeenCalledWith(expect.not.stringContaining('again-tx'), 'again-tx', expect.any(String))
   })
 
   // the steps after the broadcast are part of the spend: broadcasting again runs them too
@@ -433,7 +440,10 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
   // an HD wallet whose receive address 0 is used and every other address unused; the library's
   // own picks know nothing of the freeze and take the first unused address
   async function storeWithHdWallet() {
-    const addressAt = (branch: number, index: number) => `bitcoincash:q${branch}x${index}`
+    // real cashaddrs, the token address is converted from the plain one
+    const addressAt = (branch: number, index: number) => encodeCashAddress({
+      prefix: 'bitcoincash', type: 'p2pkh', payload: new Uint8Array(20).fill(index).fill(branch, 0, 1),
+    }).address
     // the store's HDWallet is the mocked class, which a static import here would not be
     const { HDWallet } = await import('@cashonize/bch-wallet-lib')
     const hdWallet = Object.assign(Object.create(HDWallet.prototype) as object, {
@@ -441,7 +451,6 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
       rawHistory: new Map([[0, [[{}]]], [1, []]]),
       walletCache: { getByIndex: (index: number, branch: number) => ({ address: addressAt(branch, index) }) },
       getDepositAddress: (index = 1) => addressAt(0, index),
-      getTokenDepositAddress: (index = 1) => addressAt(0, index) + '-token',
       getAddressByBranch: (branch: number, index: number) => addressAt(branch, index),
     })
     const store = useStore()
@@ -457,7 +466,19 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
     await store.freezeAddress(addressAt(0, 1))
 
     expect(store.currentDepositAddress).toBe(addressAt(0, 2))
-    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 2), token: addressAt(0, 2) + '-token' })
+    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 2), token: toTokenAddress(addressAt(0, 2)) })
+  })
+
+  // with nothing skipped the store leaves the pick to the library, whose next unused address
+  // moves on a receive without anything reactive changing but the wallet's coins
+  it('hands out the next address once the library moved past a used one', async () => {
+    const { store, addressAt } = await storeWithHdWallet()
+    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 1), token: toTokenAddress(addressAt(0, 1)) })
+
+    Object.assign(store.wallet, { getDepositAddress: (index = 2) => addressAt(0, index) })
+    store.walletUtxos = []
+
+    expect(store.walletAddresses()).toEqual({ bch: addressAt(0, 2), token: toTokenAddress(addressAt(0, 2)) })
   })
 
   // a payment beyond the discovery window would never be found by a seed restore
@@ -470,5 +491,39 @@ describe('a frozen address and the addresses the wallet sends to itself', () => 
     expect(await store.freezeAddress(addressAt(0, 20))).toBe(false)
     expect(store.frozenAddresses).not.toContain(addressAt(0, 20))
     expect(store.currentDepositAddress).toBe(addressAt(0, 20))
+  })
+
+  // a pinned address is already given out, a donation address for example
+  it('hands out the next address once the current one is pinned, and the pinned one again when unpinned', async () => {
+    const { store, addressAt } = await storeWithHdWallet()
+
+    expect(store.pinAddress(addressAt(0, 1))).toBe(true)
+    expect(store.currentDepositAddress).toBe(addressAt(0, 2))
+
+    store.unpinAddress(addressAt(0, 1))
+    expect(store.currentDepositAddress).toBe(addressAt(0, 1))
+  })
+
+  it('refuses to pin the last fresh receive address of the discovery window', async () => {
+    const { store, addressAt } = await storeWithHdWallet()
+    for (let index = 1; index < 20; index++) {
+      expect(store.pinAddress(addressAt(0, index))).toBe(true)
+    }
+
+    expect(store.pinAddress(addressAt(0, 20))).toBe(false)
+    expect(store.pinnedAddresses).not.toContain(addressAt(0, 20))
+    expect(store.currentDepositAddress).toBe(addressAt(0, 20))
+  })
+
+  // a marked address was handed to a payer who has not paid yet
+  it('hands out the next address once the current one is marked as used, and the marked one again when unmarked', async () => {
+    const { store, addressAt } = await storeWithHdWallet()
+
+    store.markAddressUsed(addressAt(0, 1))
+    expect(store.addressMarks).toContain(addressAt(0, 1))
+    expect(store.currentDepositAddress).toBe(addressAt(0, 2))
+
+    store.unmarkAddressUsed(addressAt(0, 1))
+    expect(store.currentDepositAddress).toBe(addressAt(0, 1))
   })
 })

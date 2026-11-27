@@ -7,8 +7,11 @@
   import { convert } from '@cashonize/bch-wallet-lib'
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
-  import { formatFiatAmount, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
+  import { formatFixed } from 'src/utils/numberFormat'
+  import { ringChartSize, ringPercent, ringSegmentPath } from 'src/utils/ringChart'
+  import { formatFiatAmount, formatNumber, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
+  import { BADGERCOIN_CATEGORY } from 'src/utils/defi/badgersStake'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
   import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
@@ -27,11 +30,12 @@
 
   // number of individually colored chart segments, all further assets group into 'Other'
   const MAX_SEGMENTS = 4
-  // gap between chart segments, in percent of the circle
-  const SEGMENT_GAP = 0.4
-  // smallest arc a segment is drawn at, in percent of the circle, so that tiny
-  // holdings stay visible; capped to the segment's own share when that is smaller
-  const MIN_SEGMENT_LENGTH = 0.4
+  // Width of the gap between chart segments, in pixels. Three is the least that leaves a pixel of
+  // pure background in a slanted gap on a standard-density screen.
+  const SEGMENT_GAP = 3
+  // smallest arc a segment is drawn at, in percent of the circle: a thinner one is a hairline
+  // against its neighbour and reads as a blurred edge, not as a holding
+  const MIN_SEGMENT_LENGTH = 1
 
   // Chart colors: BCH always keeps the brand green; token segments prefer their
   // icon's dominant color and fall back to the fixed palette when the icon has no
@@ -70,9 +74,6 @@
   const BLOCKS_PER_DAY = 144
   const keycardColor = computed(() => settingsStore.darkMode ? KEYCARD_COLORS.dark : KEYCARD_COLORS.light)
 
-  const amountFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 })
-  const bchValueFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 5 })
-
   // holdings below this share of the total collapse into the 'small balances' section
   const SMALL_SHARE_THRESHOLD = 0.001
 
@@ -84,7 +85,12 @@
   // reserve priced at the pool is a fiction, and selling it would empty the pool. A frozen or
   // pledged coin is an ordinary holding the user chose to protect, and counts.
   const includeReserves = ref(false)
-  const hasReserves = computed(() => (store.tokenList ?? []).some(token => 'amount' in token && token.inReserve))
+  // an unpriced reserve never reaches the total, so the toggle only shows when one has a price
+  const hasPricedReserves = computed(() => (store.tokenList ?? []).some(token => {
+    if (!('amount' in token) || !token.inReserve) return false
+    const poolInfo = store.cauldronPrices?.[token.category]
+    return poolInfo !== undefined && calculateTokenFiatValue(token.inReserve, poolInfo, 1) !== null
+  }))
   // a first lookup or a retry after a failure, not a silent refresh of rows already shown; each
   // part shows as loading in its own place until it lands
   const announcedAssetsLoading = ref(false)
@@ -155,7 +161,6 @@
     amountDisplay: string
   }
 
-
   // undefined while the wallet balance or the token list has not loaded yet. Valued the way the
   // BCH balance is: everything held, a coin held back from spending included
   const assets = computed(() => {
@@ -165,7 +170,7 @@
     const bchEntry: PricedAsset = {
       name: 'Bitcoin Cash',
       symbol: bchUnitName.value,
-      amountDisplay: amountFormatter.format(bchBalance),
+      amountDisplay: formatNumber(bchBalance, 8),
       bchValue: bchBalance
     }
 
@@ -227,7 +232,7 @@
         id: `${pool.txid}:${pool.vout}`,
         category: pool.tokenId,
         name: metadata?.name ?? pool.tokenId.slice(0, 8) + '...',
-        bchDisplay: bchValueFormatter.format(poolBch) + ' ' + bchUnitName.value,
+        bchDisplay: formatNumber(poolBch, 5) + ' ' + bchUnitName.value,
         tokenDisplay: formatTokenAmount(pool.tokenAmount, metadata?.token?.decimals) + (symbol ? ' ' + symbol : ''),
         bchValue: poolBch + (tokenBchValue ?? poolBch)
       }
@@ -391,6 +396,76 @@
       row.kind === 'asset' && row.index !== 0 && assetShare(row.value) < SMALL_SHARE_THRESHOLD
     )
   })
+
+  // What the chart and the list call a position, and the color both give it. Positions that share
+  // both are one kind: one arc in the chart, one group in the list.
+  type PositionRow = Exclude<DisplayRow, AssetRow>
+  function positionLabel(row: PositionRow) {
+    if (row.kind === 'pool') return row.pool.name
+    if (row.kind === 'keycard') return row.keycard.name
+    if (row.kind === 'badgers') return t('portfolio.badgersStake')
+    if (row.kind === 'hodl') return t('portfolio.hodlContract')
+    if (row.kind === 'loan') return row.loan.name
+    return row.receipt.name
+  }
+  function positionColor(row: PositionRow) {
+    if (row.kind === 'pool') return POOL_COLOR
+    if (row.kind === 'keycard') return keycardColor.value
+    if (row.kind === 'badgers') return BADGERS_COLOR
+    if (row.kind === 'hodl') return HODL_COLOR
+    if (row.kind === 'loan') return LOAN_COLOR
+    return STAKING_COLOR
+  }
+  // the token whose icon stands for the kind, none for BCH itself
+  function positionIconCategory(row: PositionRow) {
+    if (row.kind === 'pool') return row.pool.category
+    if (row.kind === 'keycard') return EMERALD_DAO_CATEGORY
+    if (row.kind === 'badgers') return BADGERCOIN_CATEGORY
+    if (row.kind === 'hodl') return undefined
+    if (row.kind === 'loan') return row.loan.category
+    return row.receipt.category
+  }
+
+  // The main list as entries: a row on its own, or the positions of one kind under a header with
+  // their sum, sorted by that sum. Stakes left out of the total stay loose rows, with no sum to show.
+  interface ListEntry {
+    key: string, rows: DisplayRow[], value: number
+    group?: { label: string, color: string, iconCategory: string | undefined }
+  }
+  const mainEntries = computed<ListEntry[]>(() => {
+    const entries: ListEntry[] = []
+    const groups = new Map<string, ListEntry>()
+    for (const row of mainRows.value) {
+      const grouped = row.kind !== 'asset' && (row.kind !== 'staking' || includeStaking.value)
+      if (!grouped) {
+        entries.push({ key: rowKey(row), rows: [row], value: row.value })
+        continue
+      }
+      const label = positionLabel(row)
+      const key = `${row.kind}:${label}`
+      const group = groups.get(key)
+      if (group) {
+        group.rows.push(row)
+        group.value += row.value
+        continue
+      }
+      const entry: ListEntry = { key, rows: [row], value: row.value, group: { label, color: positionColor(row), iconCategory: positionIconCategory(row) } }
+      groups.set(key, entry)
+      entries.push(entry)
+    }
+    // a kind with one position is that position's row, as before
+    for (const entry of entries) if (entry.rows.length === 1) delete entry.group
+    return entries.sort((a, b) => b.value - a.value)
+  })
+  // a long group starts folded to its header, so it does not push the rest off the page
+  const MAX_OPEN_GROUP = 3
+  const groupsOpened = ref<Record<string, boolean>>({})
+  function isGroupOpen(entry: ListEntry) {
+    return groupsOpened.value[entry.key] ?? entry.rows.length <= MAX_OPEN_GROUP
+  }
+  function toggleGroup(entry: ListEntry) {
+    groupsOpened.value[entry.key] = !isGroupOpen(entry)
+  }
 
   function rowKey(row: DisplayRow) {
     if (row.kind === 'asset') return row.asset.category ?? 'bch'
@@ -577,7 +652,7 @@
     // the asking price is a term of the listing, so it always shows in BCH, with the
     // fiat value alongside
     const priceBch = satsToBch(listing.priceSats)
-    let priceDisplay = bchValueFormatter.format(priceBch) + ' ' + bchUnitName.value
+    let priceDisplay = formatNumber(priceBch, 5) + ' ' + bchUnitName.value
     if (store.exchangeRate !== undefined) {
       priceDisplay += ` (${formatFiatAmount(priceBch * store.exchangeRate, settingsStore.currency)})`
     }
@@ -702,16 +777,20 @@
   }
 
   function formatShare(share: number) {
-    if (share > 0 && share < 0.001) return '<0.1%'
-    return (share * 100).toFixed(1) + '%'
+    if (share > 0 && share < 0.001) return `<${formatFixed(0.1, 1)}%`
+    return formatFixed(share * 100, 1) + '%'
   }
 
-  function formatBchValue(bchValue: number) {
+  function formatBchValue(bchValue: number, maxDecimals = 5) {
     if (effectiveUnit.value === 'currency' && store.exchangeRate !== undefined) {
       return formatFiatAmount(bchValue * store.exchangeRate, settingsStore.currency)
     }
-    return bchValueFormatter.format(bchValue) + ' ' + bchUnitName.value
+    return formatNumber(bchValue, maxDecimals) + ' ' + bchUnitName.value
   }
+
+  // the chart's centre line: a decimal fewer than the rows, and set smaller when it would not fit
+  // inside the ring at full size
+  const totalDisplay = computed(() => formatBchValue(totalBchValue.value ?? 0, 4))
 
   // Custom hover tooltip for the chart, positioned relative to the donut wrapper
   const donutWrapRef = ref<HTMLElement | null>(null)
@@ -730,16 +809,27 @@
     tooltipPosition.value = { x: event.clientX - wrapRect.left, y: event.clientY - wrapRect.top }
   }
 
-  // Chart segments as stroke-dasharray fractions of a circle with circumference 100.
-  // Drawn in display-list order so the slices visually map to the rows, with the
-  // 'Other' bucket (tokens beyond the individually colored ones) at the end
+  // Chart segments as slices of a circle of 100, each drawn as its own shape.
+  // Drawn in the list's order so the slices visually map to its entries, with the
+  // 'Other' bucket (tokens beyond the individually colored ones) at the end.
+  // Positions that share a name and a color draw as one arc, as they are one group in the list:
+  // five keycards as five slivers of one green read as a smear, not as five positions.
   const chartSegments = computed(() => {
     const total = totalBchValue.value
     if (!assets.value || !total) return []
 
-    const segments: { label: string, bchValue: number, color: string }[] = []
+    const segments: { label: string, bchValue: number, color: string, count: number }[] = []
+    const addPosition = (label: string, bchValue: number, color: string) => {
+      const sameKind = segments.find(segment => segment.label === label && segment.color === color)
+      if (!sameKind) {
+        segments.push({ label, bchValue, color, count: 1 })
+        return
+      }
+      sameKind.bchValue += bchValue
+      sameKind.count++
+    }
     let otherValue = 0
-    for (const row of displayRows.value) {
+    for (const row of [...mainEntries.value.flatMap(entry => entry.rows), ...smallAssetRows.value]) {
       if (row.kind === 'asset') {
         // an asset gets its own slice only when it shows in the main list (BCH
         // always, tokens above the small-balance threshold) and is within the
@@ -747,40 +837,34 @@
         const hasOwnSegment = row.index < MAX_SEGMENTS
           && (row.index === 0 || assetShare(row.value) >= SMALL_SHARE_THRESHOLD)
         if (hasOwnSegment) {
-          segments.push({ label: row.asset.name, bchValue: row.asset.bchValue, color: segmentColorAt(row.index) })
+          segments.push({ label: row.asset.name, bchValue: row.asset.bchValue, color: segmentColorAt(row.index), count: 1 })
         } else {
           otherValue += row.asset.bchValue
         }
-      } else if (row.kind === 'pool' && row.value > 0) {
-        segments.push({ label: row.pool.name, bchValue: row.value, color: POOL_COLOR })
-      } else if (row.kind === 'keycard' && row.value > 0) {
-        segments.push({ label: row.keycard.name, bchValue: row.value, color: keycardColor.value })
-      } else if (row.kind === 'badgers' && row.value > 0) {
-        segments.push({ label: t('portfolio.badgersStake'), bchValue: row.value, color: BADGERS_COLOR })
-      } else if (row.kind === 'hodl' && row.value > 0) {
-        segments.push({ label: t('portfolio.hodlContract'), bchValue: row.value, color: HODL_COLOR })
-      } else if (row.kind === 'loan' && row.value > 0) {
-        segments.push({ label: row.loan.name, bchValue: row.value, color: LOAN_COLOR })
-      } else if (row.kind === 'staking' && includeStaking.value && row.value > 0) {
-        segments.push({ label: row.receipt.name, bchValue: row.value, color: STAKING_COLOR })
+      } else if (row.value > 0 && (row.kind !== 'staking' || includeStaking.value)) {
+        addPosition(positionLabel(row), row.value, positionColor(row))
       }
     }
-    if (otherValue > 0) segments.push({ label: t('portfolio.other'), bchValue: otherValue, color: otherColor.value })
+    if (otherValue > 0) segments.push({ label: t('portfolio.other'), bchValue: otherValue, color: otherColor.value, count: 1 })
 
     const shown = segments.filter(segment => segment.bchValue > 0)
     const gap = shown.length > 1 ? SEGMENT_GAP : 0
+    // Every slice has room for its smallest arc and the gap beside it. What the small ones are
+    // given comes off the largest, where it does not show; the tooltip keeps the true share.
+    const minSlice = MIN_SEGMENT_LENGTH + ringPercent(gap)
+    const slices = shown.map(segment => Math.max((segment.bchValue / total) * 100, minSlice))
+    const largest = slices.indexOf(Math.max(...slices))
+    const given = slices.reduce((sum, slice) => sum + slice, 0) - 100
+    slices[largest] = Math.max(slices[largest]! - given, minSlice)
     let cumulative = 0
-    return shown.map(segment => {
-      const length = (segment.bchValue / total) * 100
+    return shown.map((segment, index) => {
+      const slice = slices[index]!
       const result = {
         ...segment,
         share: segment.bchValue / total,
-        // never draw an arc longer than the share it owns, a sliver smaller than the
-        // minimum would otherwise run past its slice and paint over the next segment
-        dashLength: Math.min(Math.max(length - gap, MIN_SEGMENT_LENGTH), length),
-        dashOffset: -cumulative
+        path: ringSegmentPath(cumulative, cumulative + slice, gap)
       }
-      cumulative += length
+      cumulative += slice
       return result
     })
   })
@@ -814,7 +898,14 @@
       </InfoPopup>
     </div>
 
-    <div v-if="!assets || !portfolioReady" style="text-align: center;">
+    <!-- the page is amounts from top to bottom, so with balances hidden it says so instead -->
+    <div v-if="settingsStore.hideBalances" class="page-note">
+      {{ t('wallet.balancesHidden') }}
+      <button type="button" class="button" style="display: block; margin: 12px auto 0;" @click="settingsStore.setHideBalances(false)">
+        {{ t('wallet.showBalances') }}
+      </button>
+    </div>
+    <div v-else-if="!assets || !portfolioReady" style="text-align: center;">
       <template v-if="store.walletInitFailed">{{ t('portfolio.loadingFailed') }}</template>
       <template v-else>{{ t('portfolio.loading') }} <q-spinner-dots size="1.2em" /></template>
     </div>
@@ -825,22 +916,17 @@
 
     <template v-else>
       <div class="donut-wrap" ref="donutWrapRef">
-        <svg viewBox="0 0 42 42" aria-hidden="true">
-          <g transform="rotate(-90 21 21)" fill="none" stroke-width="4.5">
-            <circle
-              v-for="(segment, index) in chartSegments"
-              :key="index"
-              cx="21" cy="21" r="15.9155"
-              pathLength="100"
-              stroke="currentColor"
-              :class="{ hovered: hoveredSegmentIndex === index }"
-              :style="{ color: segment.color }"
-              :stroke-dasharray="`${segment.dashLength} ${100 - segment.dashLength}`"
-              :stroke-dashoffset="segment.dashOffset"
-              @mousemove="moveSegmentTooltip($event, index)"
-              @mouseleave="hoveredSegmentIndex = null"
-            />
-          </g>
+        <svg :viewBox="`0 0 ${ringChartSize} ${ringChartSize}`" aria-hidden="true">
+          <path
+            v-for="(segment, index) in chartSegments"
+            :key="index"
+            :d="segment.path"
+            fill="currentColor"
+            :class="{ hovered: hoveredSegmentIndex === index }"
+            :style="{ color: segment.color }"
+            @mousemove="moveSegmentTooltip($event, index)"
+            @mouseleave="hoveredSegmentIndex = null"
+          />
         </svg>
         <div
           v-if="hoveredSegment"
@@ -849,13 +935,13 @@
         >
           <div class="chart-tooltip-title">
             <span class="chart-tooltip-dot" :style="{ backgroundColor: hoveredSegment.color }"></span>
-            {{ hoveredSegment.label }}
+            {{ hoveredSegment.label }}<template v-if="hoveredSegment.count > 1"> ×{{ hoveredSegment.count }}</template>
           </div>
           <div>{{ formatBchValue(hoveredSegment.bchValue) }} ({{ formatShare(hoveredSegment.share) }})</div>
         </div>
         <div class="donut-center">
           <div class="donut-center-label">{{ t('portfolio.totalValue') }}</div>
-          <div class="donut-center-amount">{{ formatBchValue(totalBchValue ?? 0) }}</div>
+          <div class="donut-center-amount" :class="{ long: totalDisplay.length > 11 }">{{ totalDisplay }}</div>
         </div>
       </div>
       <!-- hodl locks count towards the total, so the total says while they may still arrive -->
@@ -863,7 +949,7 @@
         {{ t('portfolio.checkingHodlContracts') }} <q-spinner-dots size="1.2em" />
       </div>
 
-      <div v-if="hasReserves" class="include-staking">
+      <div v-if="hasPricedReserves" class="include-staking">
         {{ t('portfolio.includeReserves') }} <q-toggle v-model="includeReserves" dense />
       </div>
       <div v-if="stakingReceiptNfts.length" class="include-staking">
@@ -871,77 +957,108 @@
       </div>
 
       <div class="asset-list">
-        <template v-for="row in mainRows" :key="rowKey(row)">
-          <div v-if="row.kind === 'asset'" class="asset-row">
-            <span class="dot" :style="{ color: segmentColorAt(row.index) }"></span>
-            <img v-if="!row.asset.category" src="images/bch-icon.svg" class="bch-icon">
+        <div v-for="entry in mainEntries" :key="entry.key" class="asset-entry">
+          <div
+            v-if="entry.group" class="asset-row group-header" :class="{ folded: !isGroupOpen(entry) }"
+            role="button" :aria-expanded="isGroupOpen(entry)" @click="toggleGroup(entry)"
+          >
+            <span class="dot" :style="{ color: entry.group.color }"></span>
             <TokenIcon
-              v-else
-              :token-id="row.asset.category"
-              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(row.asset.category) : undefined"
+              v-if="entry.group.iconCategory"
+              :token-id="entry.group.iconCategory"
+              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(entry.group.iconCategory) : undefined"
               :size="32"
             />
+            <img v-else src="images/bch-icon.svg" class="bch-icon">
             <div class="asset-name">
-              <div>{{ row.asset.name }}</div>
-              <div class="sub">{{ row.asset.amountDisplay }} {{ row.asset.symbol }}</div>
+              <div>
+                {{ entry.group.label }}
+                <q-icon name="expand_more" size="20px" class="chevron group-chevron" :class="{ open: isGroupOpen(entry) }" />
+              </div>
+              <div class="sub">{{ t('portfolio.groupCount', { count: entry.rows.length }) }}</div>
             </div>
             <div class="asset-value">
-              <div>{{ formatBchValue(row.asset.bchValue) }}</div>
-              <div class="sub">{{ formatShare(assetShare(row.asset.bchValue)) }}</div>
+              <div>{{ formatBchValue(entry.value) }}</div>
+              <div class="sub">{{ formatShare(assetShare(entry.value)) }}</div>
             </div>
           </div>
-          <cauldronPoolItem
-            v-else-if="row.kind === 'pool'"
-            :category="row.pool.category"
-            :name="row.pool.name"
-            :dot-color="POOL_COLOR"
-            :bch-display="row.pool.bchDisplay"
-            :token-display="row.pool.tokenDisplay"
-            :value-display="formatBchValue(row.pool.bchValue)"
-            :share-display="row.pool.bchValue > 0 ? formatShare(assetShare(row.pool.bchValue)) : undefined"
-          />
-          <emeraldKeycardItem
-            v-else-if="row.kind === 'keycard'"
-            :name="row.keycard.name"
-            :dot-color="keycardColor"
-            :serial="row.keycard.serial"
-            :value-display="formatBchValue(row.keycard.bchValue)"
-            :share-display="row.keycard.bchValue > 0 ? formatShare(assetShare(row.keycard.bchValue)) : undefined"
-          />
-          <badgerLocksItem
-            v-else-if="row.kind === 'badgers'"
-            :dot-color="BADGERS_COLOR"
-            :unlock-display="lockUnlockDisplay(row.lock)"
-            :value-display="formatBchValue(row.value)"
-            :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
-          />
-          <hodlLockItem
-            v-else-if="row.kind === 'hodl'"
-            :dot-color="HODL_COLOR"
-            :bch-display="bchValueFormatter.format(row.value) + ' ' + bchUnitName"
-            :unlock="hodlUnlockDisplay(row.lock)"
-            :value-display="formatBchValue(row.value)"
-            :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
-          />
-          <loanKeyItem
-            v-else-if="row.kind === 'loan'"
-            :category="row.loan.category"
-            :name="row.loan.name"
-            :dot-color="LOAN_COLOR"
-            :state="loanState(row.loan.utxo)"
-            :net-value-display="loanNetDisplay(row.loan.utxo)"
-            :share-display="loanShareDisplay(row.loan.utxo)"
-          />
-          <stakingReceiptItem
-            v-else
-            :category="row.receipt.category"
-            :name="row.receipt.name"
-            :dot-color="includeStaking ? STAKING_COLOR : undefined"
-            :state="stakingState(row.receipt.utxo)"
-            :estimated-value-display="stakingValueDisplay(row.receipt.utxo)"
-            :share-display="stakingShareDisplay(row.receipt.utxo)"
-          />
-        </template>
+          <div
+            v-if="!entry.group || isGroupOpen(entry)" class="entry-rows" :class="{ 'group-rows': entry.group }"
+            :style="entry.group ? { borderLeftColor: entry.group.color } : undefined"
+          >
+            <template v-for="row in entry.rows" :key="rowKey(row)">
+              <div v-if="row.kind === 'asset'" class="asset-row">
+                <span class="dot" :style="{ color: segmentColorAt(row.index) }"></span>
+                <img v-if="!row.asset.category" src="images/bch-icon.svg" class="bch-icon">
+                <TokenIcon
+                  v-else
+                  :token-id="row.asset.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(row.asset.category) : undefined"
+                  :size="32"
+                />
+                <div class="asset-name">
+                  <div>{{ row.asset.name }}</div>
+                  <div class="sub">{{ row.asset.amountDisplay }} {{ row.asset.symbol }}</div>
+                </div>
+                <div class="asset-value">
+                  <div>{{ formatBchValue(row.asset.bchValue) }}</div>
+                  <div class="sub">{{ formatShare(assetShare(row.asset.bchValue)) }}</div>
+                </div>
+              </div>
+              <cauldronPoolItem
+                v-else-if="row.kind === 'pool'"
+                :category="row.pool.category"
+                :name="row.pool.name"
+                :dot-color="POOL_COLOR"
+                :bch-display="row.pool.bchDisplay"
+                :token-display="row.pool.tokenDisplay"
+                :value-display="formatBchValue(row.pool.bchValue)"
+                :share-display="row.pool.bchValue > 0 ? formatShare(assetShare(row.pool.bchValue)) : undefined"
+              />
+              <emeraldKeycardItem
+                v-else-if="row.kind === 'keycard'"
+                :name="row.keycard.name"
+                :dot-color="keycardColor"
+                :serial="row.keycard.serial"
+                :value-display="formatBchValue(row.keycard.bchValue)"
+                :share-display="row.keycard.bchValue > 0 ? formatShare(assetShare(row.keycard.bchValue)) : undefined"
+              />
+              <badgerLocksItem
+                v-else-if="row.kind === 'badgers'"
+                :dot-color="BADGERS_COLOR"
+                :unlock-display="lockUnlockDisplay(row.lock)"
+                :value-display="formatBchValue(row.value)"
+                :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
+              />
+              <hodlLockItem
+                v-else-if="row.kind === 'hodl'"
+                :dot-color="HODL_COLOR"
+                :bch-display="formatNumber(row.value, 5) + ' ' + bchUnitName"
+                :unlock="hodlUnlockDisplay(row.lock)"
+                :value-display="formatBchValue(row.value)"
+                :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
+              />
+              <loanKeyItem
+                v-else-if="row.kind === 'loan'"
+                :category="row.loan.category"
+                :name="row.loan.name"
+                :dot-color="LOAN_COLOR"
+                :state="loanState(row.loan.utxo)"
+                :net-value-display="loanNetDisplay(row.loan.utxo)"
+                :share-display="loanShareDisplay(row.loan.utxo)"
+              />
+              <stakingReceiptItem
+                v-else
+                :category="row.receipt.category"
+                :name="row.receipt.name"
+                :dot-color="includeStaking ? STAKING_COLOR : undefined"
+                :state="stakingState(row.receipt.utxo)"
+                :estimated-value-display="stakingValueDisplay(row.receipt.utxo)"
+                :share-display="stakingShareDisplay(row.receipt.utxo)"
+              />
+            </template>
+          </div>
+        </div>
       </div>
 
       <template v-if="smallAssetRows.length">
@@ -1086,7 +1203,7 @@ body.dark .unit-toggle button:not(.active) {
 
 .donut-wrap {
   position: relative;
-  width: min(260px, 70vw);
+  width: min(261px, 70vw);
   margin: 10px auto 20px;
 }
 .donut-center {
@@ -1103,16 +1220,21 @@ body.dark .unit-toggle button:not(.active) {
   color: grey;
 }
 .donut-center-amount {
-  font-size: 1.25em;
+  font-size: 1.6em;
   font-weight: 600;
+  line-height: 1.3;
+}
+.donut-center-amount.long {
+  font-size: 1.25em;
 }
 
-/* hovered slice thickens slightly as feedback */
-.donut-wrap svg circle {
-  transition: stroke-width 0.15s;
+/* The other slices dim under a hovered one. Not a slice that grows: its edge would move out from
+   under the pointer, and it would flicker between hovered and not. */
+.donut-wrap svg path {
+  transition: opacity 0.15s;
 }
-.donut-wrap svg circle.hovered {
-  stroke-width: 5.2;
+.donut-wrap svg:has(path.hovered) path:not(.hovered) {
+  opacity: 0.45;
 }
 
 /* cursor-following tooltip, styled like the app's info popups */
@@ -1157,8 +1279,24 @@ body.dark .unit-toggle button:not(.active) {
   padding: 8px 0;
   border-bottom: 1px solid rgba(128, 128, 128, 0.15);
 }
-.asset-list :deep(.asset-row:last-child) {
+.asset-list > .asset-row:last-child,
+.asset-list > .asset-entry:last-child > .entry-rows > .asset-row:last-child,
+.asset-list > .asset-entry:last-child > .group-header.folded {
   border-bottom: none;
+}
+/* the positions of one kind under their header: set in from it, along a line in the kind's color
+   that starts under the header's dot */
+.group-header {
+  cursor: pointer;
+  user-select: none;
+}
+.group-chevron {
+  opacity: 0.6;
+}
+.group-rows {
+  margin-left: 5px;
+  padding-left: 15px;
+  border-left: 2px solid transparent;
 }
 .asset-list :deep(.dot) {
   width: 10px;

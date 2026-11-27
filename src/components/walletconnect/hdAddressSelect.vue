@@ -1,12 +1,12 @@
 <script setup lang="ts">
   import { ref, computed, watch, watchEffect } from 'vue';
-  import { satsToBch, formatFiatAmount } from 'src/utils/utils';
+  import { satsToBch, formatFiatAmount, formatNumber } from 'src/utils/utils';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore';
   import { useI18n } from 'vue-i18n'
   import { CHANGE_BRANCH, DEPOSIT_BRANCH, HDWallet } from '@cashonize/bch-wallet-lib';
   import { useWindowSize } from 'src/utils/composables'
-  import { buildAddressRows, tokenCategoryCount, type AddressRow } from 'src/utils/wallet/addressRows'
+  import { addressRowMatches, addressSearchFrom, buildAddressRows, tokenCategoryCount, type AddressRow } from 'src/utils/wallet/addressRows'
   import AddressTokenChips from 'src/components/general/AddressTokenChips.vue'
   import InfoPopup from 'src/components/general/InfoPopup.vue'
 
@@ -14,16 +14,14 @@
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
 
-  // The wallet tools reuse this selector with their own hint text and, when the picked
-  // address is one to hand out, without the change chain and without hiding the
-  // unused addresses that a payment request wants in the first place
+  // The receive page reuses this selector with its own hint text, for an address to hand out:
+  // receive addresses only, so the pills pick between unused and used ones instead of between the
+  // chains, and with no option to hide the empty addresses a request wants in the first place
   const props = withDefaults(defineProps<{
     hint?: string,
     allowChangeAddresses?: boolean,
-    hideZeroBalancesDefault?: boolean,
   }>(), {
     allowChangeAddresses: true,
-    hideZeroBalancesDefault: true,
   });
 
   const emit = defineEmits<{
@@ -37,7 +35,8 @@
   const changeAddresses = ref<AddressRow[]>([]);
   const selectedChain = ref("receiving" as "receiving" | "change");
   const showOptions = ref(false);
-  const hideZeroBalances = ref(props.hideZeroBalancesDefault);
+  const selectedStatus = ref("unused" as "unused" | "used");
+  const hideZeroBalances = ref(props.allowChangeAddresses);
   const collapsedGroups = ref({ unused: false, used: false });
   const selectedAddress = ref<string | null>(null);
   const expandedTokensKey = ref<string | null>(null);
@@ -77,19 +76,39 @@
     return rows.filter(row => row.balance > 0n);
   }
 
-  const usedReceivingAddresses = computed(() => applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount > 0)));
+
+  // The search of a long list. It reads only while its field shows, so a query typed on one tab
+  // does not go on filtering a shorter one that has no field to clear it in.
+  const searchQuery = ref("");
+  const searchShown = computed(() => {
+    const rows = selectedChain.value === "receiving" ? receivingAddresses.value : changeAddresses.value;
+    return applyBalanceFilter(rows).length >= addressSearchFrom;
+  });
+  const searching = computed(() => searchShown.value && searchQuery.value.trim() !== "");
+  const tokenText = (category: string) => {
+    const metadata = store.bcmrRegistries?.[category];
+    return metadata ? `${metadata.name} ${metadata.token.symbol}` : "";
+  };
+  function applyFilters(rows: AddressRow[]) {
+    const shown = applyBalanceFilter(rows);
+    if (!searching.value) return shown;
+    return shown.filter(row => addressRowMatches(row, searchQuery.value, store.addressLabels[row.address], tokenText));
+  }
+
+  const usedReceivingAddresses = computed(() => applyFilters(receivingAddresses.value.filter(row => row.txCount > 0)));
   // With zero balances hidden and no receive address holding any (an empty wallet), there would be
-  // nothing to share: it gets the receive address the wallet page shows, which skips frozen and
+  // nothing to share: it gets the receive address the receive page shows, which skips frozen and
   // marked addresses, or else its first unused one
   const unusedReceivingAddresses = computed(() => {
-    const unused = applyBalanceFilter(receivingAddresses.value.filter(row => row.txCount === 0));
-    if (unused.length || usedReceivingAddresses.value.length) return unused;
+    const unused = applyFilters(receivingAddresses.value.filter(row => row.txCount === 0));
+    // not while searching, where nothing found is the answer
+    if (unused.length || usedReceivingAddresses.value.length || searching.value) return unused;
     const fallback = receivingAddresses.value.find(row => row.address === store.currentDepositAddress)
       ?? receivingAddresses.value.find(row => row.txCount === 0);
     return fallback ? [fallback] : [];
   });
-  const usedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount > 0)));
-  const unusedChangeAddresses = computed(() => applyBalanceFilter(changeAddresses.value.filter(row => row.txCount === 0)));
+  const usedChangeAddresses = computed(() => applyFilters(changeAddresses.value.filter(row => row.txCount > 0)));
+  const unusedChangeAddresses = computed(() => applyFilters(changeAddresses.value.filter(row => row.txCount === 0)));
 
   const filteredReceivingCount = computed(() => usedReceivingAddresses.value.length + unusedReceivingAddresses.value.length);
   const filteredChangeCount = computed(() => usedChangeAddresses.value.length + unusedChangeAddresses.value.length);
@@ -102,6 +121,9 @@
     const groups: { key: "unused" | "used"; label: string; rows: AddressRow[] }[] = [];
     if (unused.length) groups.push({ key: "unused", label: t('hdAddresses.unusedAddresses'), rows: unused });
     if (used.length) groups.push({ key: "used", label: t('hdAddresses.usedAddresses'), rows: used });
+    // without the chains to pick between, the pills pick the group and only that one is listed;
+    // a search looks in both
+    if (!props.allowChangeAddresses && !searching.value) return groups.filter(group => group.key === selectedStatus.value);
     return groups;
   });
 
@@ -136,7 +158,7 @@
   <div>
     <div class="control-row">
       <span>{{ props.hint ?? t('walletConnect.addressSelect.hint') }}</span>
-      <span class="options-toggle" :class="{ active: showOptions }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
+      <span v-if="props.allowChangeAddresses" class="options-toggle" :class="{ active: showOptions }" :title="t('hdAddresses.options')" @click="showOptions = !showOptions">
         <q-icon name="tune" size="22px" />
       </span>
     </div>
@@ -147,8 +169,8 @@
       </div>
     </div>
 
-    <div v-if="props.allowChangeAddresses" class="filter-row">
-      <div class="type-filter">
+    <div class="filter-row">
+      <div v-if="props.allowChangeAddresses" class="type-filter">
         <button :class="{ active: selectedChain === 'receiving' }" @click="selectedChain = 'receiving'">
           {{ t('hdAddresses.receiving') }} ({{ filteredReceivingCount }})
         </button>
@@ -156,16 +178,29 @@
           {{ t('hdAddresses.change') }} ({{ filteredChangeCount }})
         </button>
       </div>
+      <div v-else class="type-filter">
+        <button :class="{ active: selectedStatus === 'unused' }" @click="selectedStatus = 'unused'">
+          {{ t('hdAddresses.unusedAddresses') }} ({{ unusedReceivingAddresses.length }})
+        </button>
+        <button :class="{ active: selectedStatus === 'used' }" @click="selectedStatus = 'used'">
+          {{ t('hdAddresses.usedAddresses') }} ({{ usedReceivingAddresses.length }})
+        </button>
+      </div>
+      <input
+        v-if="searchShown" v-model="searchQuery" class="address-search" :placeholder="t('hdAddresses.searchPlaceholder')"
+        autocomplete="off" autocapitalize="none" spellcheck="false"
+      >
     </div>
 
-    <div v-if="!addressGroups.length" class="description">{{ t('hdAddresses.noAddresses') }}</div>
+    <div v-if="!addressGroups.length" class="description">{{ searching ? t('hdAddresses.noMatch') : t('hdAddresses.noAddresses') }}</div>
 
     <template v-for="group in addressGroups" :key="group.key">
-      <div class="group-header" @click="toggleGroup(group.key)">
+      <div v-if="props.allowChangeAddresses || searching" class="group-header" @click="toggleGroup(group.key)">
         {{ group.label }} ({{ group.rows.length }})
         <q-icon name="expand_more" class="chevron" :class="{ collapsed: collapsedGroups[group.key] }" />
       </div>
-      <template v-if="!collapsedGroups[group.key]">
+      <!-- with the pills picking the group there is no header to fold it by, outside a search -->
+      <template v-if="!collapsedGroups[group.key] || searching || !props.allowChangeAddresses">
         <template v-for="row in group.rows" :key="row.index">
           <div
             class="address-item"
@@ -182,7 +217,7 @@
                 <span v-if="store.frozenAddresses.includes(row.address)" class="frozen-tag">{{ t('addressManagement.frozenTag') }}</span>
               </div>
               <div class="address-sub">
-                <span class="mono">{{ satsToBch(row.spendableBalance) }} {{ bchDisplayUnit }}</span>
+                <span class="mono">{{ formatNumber(satsToBch(row.spendableBalance), 8) }} {{ bchDisplayUnit }}</span>
                 <template v-if="row.reservedBalance">{{ ' ' + t('hdAddresses.available') }}</template>
                 <span v-if="row.spendableBalance && store.exchangeRate !== undefined">
                   {{ ' (' + formatFiatAmount(satsToBch(row.spendableBalance) * store.exchangeRate, settingsStore.currency) + ')' }}
@@ -194,7 +229,7 @@
                   <template #trigger>
                     <span class="reserved-badge">
                       <q-icon name="lock" size="13px" />
-                      {{ t('hdAddresses.reservedAmount', { amount: satsToBch(row.reservedBalance) + ' ' + bchDisplayUnit }) }}
+                      {{ t('hdAddresses.reservedAmount', { amount: formatNumber(satsToBch(row.reservedBalance), 8) + ' ' + bchDisplayUnit }) }}
                     </span>
                   </template>
                   <div style="max-width: 300px;">{{ t('hdAddresses.reservedDappWarning') }}</div>
@@ -255,7 +290,23 @@
 }
 
 .filter-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin: 10px 0;
+}
+/* at the far end of its row, on a line of its own where the view is narrow */
+.address-search {
+  width: 200px;
+  margin: 0 0 0 auto;
+  padding: 4px 10px;
+}
+@media (max-width: 480px) {
+  .address-search {
+    flex-basis: 100%;
+    width: 100%;
+  }
 }
 
 .description {

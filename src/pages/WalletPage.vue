@@ -1,28 +1,31 @@
 <script setup lang="ts">
   import walletOnboardingView from 'src/components/walletOnboarding.vue'
-  import addWalletView from 'src/components/settings/addWallet.vue'
+  import addWalletView from 'src/components/wallets/addWallet.vue'
   import bchWalletView from 'src/components/bchWallet.vue'
   import myTokensView from 'src/components/myTokens.vue'
   import historyView from 'src/components/history/txHistory.vue'
-  import settingsMenu from 'src/components/settingsMenu.vue'
+  import menuPage from 'src/components/menuPage.vue'
   import DappActivityButton from 'src/components/history/dappActivityButton.vue'
   import HeaderLogo from 'src/components/general/headerLogo.vue'
   import connectDappView from 'src/components/connectDapp.vue'
-  import createTokensView from 'src/components/settings/createTokens.vue'
-  import utxoManagement from 'src/components/settings/utxoManagement.vue'
-  import sweepPrivateKey from 'src/components/settings/sweepPrivateKey.vue'
-  import signVerifyMessageView from 'src/components/settings/signVerifyMessage.vue'
-  import walletToolsView from 'src/components/settings/walletTools.vue'
-  import exportXpubView from 'src/components/settings/exportXpub.vue'
-  import transferAllAssetsView from 'src/components/settings/transferAllAssets.vue'
-  import flipstarterView from 'src/components/settings/flipstarterPledge.vue'
-  import identitiesView from 'src/components/settings/identitiesPage.vue'
-  import addressConverterView from 'src/components/settings/addressConverter.vue'
-  import requestPaymentView from 'src/components/settings/requestPayment.vue'
-  import hdAddressesView from 'src/components/settings/hdAddresses.vue'
-  import aboutCashonizeView from 'src/components/settings/aboutCashonize.vue'
+  import createTokensView from 'src/components/identities/createTokens.vue'
+  import utxoManagement from 'src/components/tools/utxoManagement.vue'
+  import sweepPrivateKey from 'src/components/tools/sweepPrivateKey.vue'
+  import signVerifyMessageView from 'src/components/tools/signVerifyMessage.vue'
+  import exportXpubView from 'src/components/tools/exportXpub.vue'
+  import transferAllAssetsView from 'src/components/tools/transferAllAssets.vue'
+  import flipstarterView from 'src/components/tools/flipstarterPledge.vue'
+  import identitiesView from 'src/components/identities/identitiesPage.vue'
+  import addressConverterView from 'src/components/tools/addressConverter.vue'
+  import faqPageView from 'src/components/faqPage.vue'
+  import appLockView from 'src/components/settings/appLock.vue'
+  import receivePaymentView from 'src/components/receivePayment.vue'
+  import sendPaymentView from 'src/components/sendPayment.vue'
+  import hdAddressesView from 'src/components/hdAddresses.vue'
+  import aboutCashonizeView from 'src/components/aboutCashonize.vue'
+  import networkStatusView from 'src/components/networkStatus.vue'
   import portfolioView from 'src/components/portfolio/portfolioView.vue'
-  import { defineComponent, ref, computed, watch, watchEffect, onMounted, onUnmounted } from 'vue'
+  import { defineComponent, ref, computed, watch, watchEffect, nextTick, onMounted, onUnmounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { waitForInitialized } from 'src/utils/utils'
   import { preloadIcons } from 'src/utils/icons/preloadIcons'
@@ -30,7 +33,9 @@
   import { getAllWalletsWithNetworkInfo } from 'src/utils/wallet/dbUtils'
   import { appNetworks, storedAppNetwork, walletDbName, type AppNetwork } from 'src/utils/wallet/networks'
   import { isDappConnectionUri } from 'src/utils/dapp/dappUri'
+  import { routeScannedCode } from 'src/utils/scanRouting'
   import { useStore } from 'src/stores/store'
+  import { menuSectionViewBase } from 'src/stores/constants'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { Dialog } from 'quasar'
@@ -45,8 +50,8 @@
   import { useI18n } from 'vue-i18n'
   const { t, locale } = useI18n()
 
-  // French and Portuguese tab labels are long enough to overflow small phone screens
-  const compactNavTabs = computed(() => ['fr', 'pt'].includes(locale.value))
+  // French, Portuguese and Russian tab labels are long enough to overflow small phone screens
+  const compactNavTabs = computed(() => ['fr', 'pt', 'ru'].includes(locale.value))
 
   // Below the width where Addresses leaves the nav, so the bottom bar holds five tabs
   const navAtBottom = computed(() =>
@@ -87,15 +92,19 @@
   // The currentView and its viewSpecificProps are computed based on 'store.displayView'
   // and passed to a dynamic component wrapped in KeepAlive to preserve state.
   // KeepAlive stays mounted permanently so the views are cached regardless of navigation.
-  // Settings View re-renders on navigation, a placeholder component used for the KeepAlive
+  // The menu page re-renders on navigation, a placeholder component used for the KeepAlive
   const emptyView = defineComponent({ render: () => null })
+  // the wallet page and the two pages its actions open
+  const onWalletPage = computed(() => [1, 17, 23].includes(store.displayView ?? 0));
+  // the menu page and the pages under it, which the menuPage component renders all of
+  const onMenuPage = computed(() => store.displayView === 5 || (store.displayView ?? 0) >= menuSectionViewBase);
   const currentView = computed(() => {
+    if (onMenuPage.value) return emptyView;
     switch (store.displayView) {
       case 1: return bchWalletView;
       case 2: return myTokensView;
       case 3: return historyView;
       case 4: return connectDappView;
-      case 5: return emptyView;
       case 6: return createTokensView;
       case 7: return utxoManagement;
       case 8: return sweepPrivateKey;
@@ -104,13 +113,16 @@
       case 11: return aboutCashonizeView;
       case 12: return portfolioView;
       case 13: return signVerifyMessageView;
-      case 14: return walletToolsView;
       case 15: return exportXpubView;
       case 16: return transferAllAssetsView;
-      case 17: return requestPaymentView;
+      case 17: return receivePaymentView;
       case 18: return flipstarterView;
       case 19: return identitiesView;
       case 20: return addressConverterView;
+      case 21: return faqPageView;
+      case 22: return appLockView;
+      case 23: return sendPaymentView;
+      case 24: return networkStatusView;
       default: return walletOnboardingView; // undefined or 0 shows onboarding
     }
   });
@@ -119,9 +131,10 @@
     if (!store._wallet) return {};
 
     switch (store.displayView) {
-      case 1: return { bchSendRequest: bchSendRequest.value };
+      case 1: return { onScanned: openScannedCode };
       case 4: return { dappUriUrlParam: dappUriUrlParam.value };
       case 8: return { wif: wifToSweep.value };
+      case 23: return { bchSendRequest: bchSendRequest.value };
       default: return {};
     }
   });
@@ -189,7 +202,7 @@
   if(props?.uri?.startsWith('bitcoincash:')){
     if(walletExists){
       bchSendRequest.value = props.uri
-      store.changeView(1);
+      store.changeView(23);
     } else {
       $q.notify({
         message: t('common.errors.needToInitializeWallet'),
@@ -223,7 +236,7 @@
     // check if BCH send request is passed through props
     if(props?.uri?.startsWith('bitcoincash:')){
       bchSendRequest.value = props.uri
-      store.changeView(1);
+      store.changeView(23);
     }
     // check if sweep request is passed through props
     if(props?.uri?.startsWith('bch-wif:')){
@@ -231,6 +244,24 @@
       store.changeView(8);
     }
   })
+
+  // A code from the general scanner goes to the page that takes it, the way a deep link does.
+  // The page reads it from its prop, which only reaches a view while it is the one shown: so the
+  // view is opened first, and the prop emptied before it is set, for a code scanned twice to count.
+  async function openScannedCode(content: string) {
+    const route = routeScannedCode(content, store.network, store.wallet.networkPrefix);
+    if ('error' in route) return;
+    const targets = {
+      send: { uri: bchSendRequest, view: 23 },
+      connect: { uri: dappUriUrlParam, view: 4 },
+      sweep: { uri: wifToSweep, view: 8 },
+    };
+    const target = targets[route.page];
+    store.changeView(target.view);
+    target.uri.value = undefined;
+    await nextTick();
+    target.uri.value = content;
+  }
 
   const hasUtxosWithBchAndTokens = computed(() => {
     if (!store._wallet || !store.walletUtxos) return undefined;
@@ -273,18 +304,17 @@
       <DappActivityButton icon-only />
     </div>
     <nav v-if="store.displayView && !navAtBottom" style="display: flex; justify-content: center; user-select: none;" class="tabs" :class="{ compact: compactNavTabs }">
-      <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }"> {{ t('nav.wallet') }} </div>
-      <div v-if="width > addressesNavTabMinWidth && settingsStore.getWalletType(store.activeWalletName) === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
+      <div @click="store.changeView(1)" :class="{ active: onWalletPage }"> {{ t('nav.wallet') }} </div>
+      <div v-if="settingsStore.addressesInNav && width > addressesNavTabMinWidth && settingsStore.getWalletType(store.activeWalletName) === 'hd'" @click="store.changeView(10)" :class="{ active: store.displayView == 10 }"> {{ t('nav.addresses') }} </div>
       <div @click="store.changeView(2)" :class="{ active: store.displayView == 2 }"> {{ t('nav.tokens') }} </div>
       <div @click="store.changeView(3)" :class="{ active: store.displayView == 3 }"> {{ t('nav.history') }} </div>
       <div @click="store.changeView(4)" :class="{ active: store.displayView == 4 }"> {{ t('nav.connect') }} </div>
       <div v-if="settingsStore.dappActivityInNav" class="nav-dapp-activity">
         <DappActivityButton icon-only />
       </div>
-      <div @click="store.changeView(5)" style="width: max-content; position: relative;">
-        <img style="vertical-align: text-bottom;" :src="store.displayView == 5 ? 'images/settingsGreen.svg' : (
-          settingsStore.darkMode? 'images/settingsLightGrey.svg' : 'images/settings.svg')">
-        <span v-if="showNotificationIcon" class="notification-dot"></span>
+      <div @click="store.changeView(5)" :class="{ active: onMenuPage }" :aria-label="t('nav.menu')" style="width: max-content; position: relative;">
+        <q-icon name="more_horiz" size="22px" />
+        <span v-if="showNotificationIcon" class="notification-dot" style="top: 8px; right: 6px;"></span>
       </div>
     </nav>
   </header>
@@ -292,10 +322,10 @@
     <KeepAlive>
       <component :is="currentView" v-bind="viewSpecificProps"/>
     </KeepAlive>
-    <settingsMenu v-if="store.displayView == 5" />
+    <menuPage v-if="onMenuPage" />
   </main>
   <nav v-if="navAtBottom" v-show="!textFieldFocused" class="bottom-nav">
-    <div @click="store.changeView(1)" :class="{ active: store.displayView == 1 }">
+    <div @click="store.changeView(1)" :class="{ active: onWalletPage }">
       <q-icon name="sym_o_account_balance_wallet" size="24px" />
       <span>{{ t('nav.wallet') }}</span>
     </div>
@@ -311,12 +341,12 @@
       <q-icon name="sym_o_link" size="24px" style="transform: rotate(-45deg);" />
       <span>{{ t('nav.connect') }}</span>
     </div>
-    <div @click="store.changeView(5)" :class="{ active: store.displayView == 5 }">
+    <div @click="store.changeView(5)" :class="{ active: onMenuPage }">
       <span style="position: relative;">
-        <q-icon name="ion_settings_outline" size="24px" style="transform: scale(0.875);" />
+        <q-icon name="more_horiz" size="24px" />
         <span v-if="showNotificationIcon" class="notification-dot" style="top: 0; right: -2px;"></span>
       </span>
-      <span>{{ t('settings.title') }}</span>
+      <span>{{ t('nav.menu') }}</span>
     </div>
   </nav>
 </template>

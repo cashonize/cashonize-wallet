@@ -3,6 +3,7 @@ import { Config } from "@cashonize/bch-wallet-lib";
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import { BitpayRatesSchema, CoinGeckoRatesSchema, CoinbaseRatesSchema } from "src/utils/zodValidation";
+import { numberFormat, isNumberFormat } from "src/utils/numberFormat";
 import type { QRCodeAnimationName, DateFormat, ExchangeRateProvider, Currency } from "src/interfaces/interfaces";
 import { CurrencySymbols } from "src/interfaces/interfaces";
 import { defaultWalletName } from "./constants";
@@ -37,7 +38,18 @@ const defaultChaingraphs: Record<AppNetwork, string> = {
   chipnet: "",
   testnet4: "",
 };
-const defaultCauldronIndexer = "https://indexer.riften.net";
+// The Cauldron DEX's indexer per network: Riften Labs runs one for mainnet and one for chipnet,
+// and testnet4 has none, "" turning token prices off there. Mainnet keeps the key it always had.
+const defaultCauldronIndexers: Record<AppNetwork, string> = {
+  mainnet: "https://indexer.riften.net",
+  chipnet: "https://indexer-chipnet.riften.net",
+  testnet4: "",
+};
+const cauldronIndexerKeys: Record<AppNetwork, string> = {
+  mainnet: "cauldronIndexer",
+  chipnet: "cauldronIndexer-chipnet",
+  testnet4: "cauldronIndexer-testnet4",
+};
 // The token metadata endpoints: a BCMR indexer that indexes token identities only, keyed by
 // category. Not a way to name a non-token identity, which the identities page reads from its own
 // registry. Stored under the old "bcmrIndexer*" keys, which a user never sees. Testnet4 has none,
@@ -63,20 +75,23 @@ const defaultIpfsGateway = "https://ipfs.filebase.io/ipfs/";
 export const settingsMenuKeys = [
   // user options
   "darkMode", "confirmBeforeSending", "qrScan", "unit", "explorerMainnet", "explorerChipnet", "explorer-testnet4", "qrAnimation",
-  "tokenAddressQrDefault", "enableAddressMarking", "dappActivityInNav", "bottomNavOnMobile",
+  "dappActivityInNav", "bottomNavOnMobile", "addressesInNav", "primaryBalance", "greenActionButtons",
   // token settings
   "showCauldronFTValue", "showCauldronSwap", "disableTokenIcons", "followTokenIdentities",
   "allowDappIdentitySpends",
   // localization, except the language: reset to one the user cannot read, they could not find
   // their way back to the setting
-  "currency", "dateFormat",
+  "currency", "dateFormat", "numberFormat",
   // advanced settings
   "electrum-mainnet", "electrum-chipnet", "electrum-testnet4", "electrumMode-mainnet", "electrumMode-chipnet",
   "electrumMode-testnet4", "chaingraph-mainnet", "chaingraph-chipnet", "chaingraph-testnet4", "cauldronIndexer",
+  "cauldronIndexer-chipnet", "cauldronIndexer-testnet4",
   "bcmrIndexerMainnet", "bcmrIndexerChipnet", "bcmrIndexer-testnet4", "ipfsGateway", "exchangeRateProvider",
   // developer settings
   "mintNfts", "nonTokenIdentities", "strictWcSchema", "showPrivateKeyWif",
 ] as const;
+
+export type ThemeMode = 'system' | 'light' | 'dim' | 'dark';
 
 export type BackupStatus = 'verified' | 'imported' | 'dismissed' | 'none';
 
@@ -103,7 +118,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     testnet4: storedElectrumMode("testnet4"),
   } as Record<AppNetwork, ElectrumServerMode>);
   const chaingraph = ref<Record<AppNetwork, string>>({ ...defaultChaingraphs });
-  const cauldronIndexer = ref(defaultCauldronIndexer);
+  const cauldronIndexer = ref<Record<AppNetwork, string>>({ ...defaultCauldronIndexers });
   const tokenMetadataIndexer = ref<Record<AppNetwork, string>>({ ...defaultTokenMetadataIndexers });
   const ipfsGateway = ref(defaultIpfsGateway);
   const darkMode  = ref(false);
@@ -116,13 +131,22 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   // macro that cannot focus on a QR code held at arm's length, so the choice has to stick.
   const qrScannerCameraId = ref("");
   const qrAnimation = ref("MaterializeIn" as QRCodeAnimationName | 'None')
-  const tokenAddressQrDefault = ref(false);
-  const enableAddressMarking = ref(false);
   // the dapp activity log opens from the dapp sessions; this adds its icon to the top nav as well
   const dappActivityInNav = ref(false);
+  // an HD wallet's Addresses page as a tab of the top nav; without it the page opens from the menu page
+  const addressesInNav = ref(false);
   // the main tabs in a bar at the bottom of the screen, within thumb reach, on narrow screens only;
   // on by default in the Android app, where tablets keep the top nav by being wider
   const bottomNavOnMobile = ref(Boolean(isCapacitor));
+  // the wallet page's Receive, Scan and Send in the accent green rather than outlined
+  const greenActionButtons = ref(localStorage.getItem("greenActionButtons") == "true");
+  // What the wallet holds shows as dots, for a screenshot or a look over the shoulder. Switched
+  // on the wallet page's balance rather than in the settings, and a matter of display only:
+  // amounts to check before acting, a send's confirmation for one, still show.
+  const hideBalances = ref(localStorage.getItem("hideBalances") == "true");
+  // which of the wallet page's two balance lines is the large one: the BCH amount, which is what
+  // the wallet holds and what the rest of the page counts in, or its value in the currency
+  const primaryBalance = ref<'fiat' | 'bch'>('bch');
   const dateFormat = ref<DateFormat>("DD/MM/YY");
   const confirmBeforeSending = ref(true);
   const exchangeRateProvider = ref<ExchangeRateProvider>("default");
@@ -165,6 +189,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   interface WalletMetadata {
     createdAt?: string; // ISO date string
     walletType?: 'single' | 'hd';
+    // until when (ms) the wallet page's backup reminder stays hidden after "remind me later"
+    backupReminderSnoozedUntil?: number;
   }
   const walletMetadata = ref<Record<string, WalletMetadata>>({})
 
@@ -184,7 +210,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readWalletBackupStatus = localStorage.getItem("walletBackupStatus");
   if (readWalletBackupStatus) {
     try {
-      walletBackupStatus.value = JSON.parse(readWalletBackupStatus);
+      walletBackupStatus.value = JSON.parse(readWalletBackupStatus) as Record<string, BackupStatus>;
     } catch { /* ignore parse errors */ }
   }
   // Migration: convert old global 'seedBackedUp' to per-wallet status for defaultWalletName 'mywallet'
@@ -202,7 +228,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readWalletMetadata = localStorage.getItem("walletMetadata");
   if (readWalletMetadata) {
     try {
-      walletMetadata.value = JSON.parse(readWalletMetadata);
+      walletMetadata.value = JSON.parse(readWalletMetadata) as Record<string, WalletMetadata>;
     } catch { /* ignore parse errors */ }
   }
 
@@ -234,28 +260,62 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const readQrAnimation = localStorage.getItem("qrAnimation");
   if(readQrAnimation) qrAnimation.value = readQrAnimation as QRCodeAnimationName | 'None';
 
-  const readTokenAddressQrDefault = localStorage.getItem("tokenAddressQrDefault");
-  if(readTokenAddressQrDefault) tokenAddressQrDefault.value = readTokenAddressQrDefault == "true";
+  // Migration: marking addresses as used was an option, and with it off the marks made earlier
+  // were kept but ignored. Marks now always apply, so those are dropped rather than brought back.
+  const oldEnableAddressMarking = localStorage.getItem("enableAddressMarking");
+  if (oldEnableAddressMarking !== null) {
+    if (oldEnableAddressMarking !== "true") {
+      Object.keys(localStorage)
+        .filter(key => key.startsWith("addressMarks-"))
+        .forEach(key => localStorage.removeItem(key));
+    }
+    localStorage.removeItem("enableAddressMarking");
+  }
 
-  const readEnableAddressMarking = localStorage.getItem("enableAddressMarking");
-  if(readEnableAddressMarking) enableAddressMarking.value = readEnableAddressMarking == "true";
+  const readAddressesInNav = localStorage.getItem("addressesInNav");
+  if(readAddressesInNav) addressesInNav.value = readAddressesInNav == "true";
 
   const readDappActivityInNav = localStorage.getItem("dappActivityInNav");
   if(readDappActivityInNav) dappActivityInNav.value = readDappActivityInNav == "true";
 
+  if(localStorage.getItem("primaryBalance") == "fiat") primaryBalance.value = "fiat";
+
   const readBottomNavOnMobile = localStorage.getItem("bottomNavOnMobile");
   if(readBottomNavOnMobile) bottomNavOnMobile.value = readBottomNavOnMobile == "true";
 
+  // "true" and "false" from when the setting was a toggle, "dim" for the softer dark theme since
   const readDarkMode = localStorage.getItem("darkMode");
-  if(readDarkMode == "true"){
+  if(readDarkMode == "true" || readDarkMode == "dim"){
     document.body.classList.add("dark");
     darkMode.value = true;
   }
-  const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches
-  if(readDarkMode == null && prefersDarkMode){
+  if(readDarkMode == "dim") document.body.classList.add("dim");
+  const systemDarkMode = window.matchMedia("(prefers-color-scheme: dark)")
+  if(readDarkMode == null && systemDarkMode.matches){
     document.body.classList.add("dark");
     darkMode.value = true;
   }
+  // The theme the user chose: light, dim, dark, or the system's, which is no stored value at all,
+  // so a wallet that never chose keeps following the system as it always did. Dim is the dark
+  // theme on softer colours, so everything that asks for darkMode holds for it too.
+  const storedThemes: Record<string, ThemeMode> = { true: 'dark', false: 'light', dim: 'dim' };
+  const themeMode = ref<ThemeMode>(storedThemes[readDarkMode ?? ''] ?? 'system');
+  function applyTheme() {
+    darkMode.value = themeMode.value === 'system' ? systemDarkMode.matches : themeMode.value !== 'light';
+    document.body.classList.toggle("dark", darkMode.value);
+    document.body.classList.toggle("dim", themeMode.value === 'dim');
+  }
+  function setThemeMode(mode: ThemeMode) {
+    themeMode.value = mode;
+    const stored = Object.keys(storedThemes).find(value => storedThemes[value] === mode);
+    if (stored) localStorage.setItem("darkMode", stored);
+    else localStorage.removeItem("darkMode");
+    applyTheme();
+  }
+  // following the system means following it when it changes, at dusk say
+  systemDarkMode.addEventListener('change', () => {
+    if (themeMode.value === 'system') applyTheme();
+  });
 
   const readShowSwap = localStorage.getItem("showCauldronSwap");
   if(readShowSwap == "true"){
@@ -299,6 +359,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     if (readExplorer) explorer.value[network] = readExplorer;
     const readTokenMetadataIndexer = localStorage.getItem(tokenMetadataIndexerKeys[network]);
     if (readTokenMetadataIndexer) tokenMetadataIndexer.value[network] = readTokenMetadataIndexer;
+    const readCauldronIndexer = localStorage.getItem(cauldronIndexerKeys[network]);
+    if (readCauldronIndexer) cauldronIndexer.value[network] = readCauldronIndexer;
   }
 
   function setElectrumMode(network: AppNetwork, mode: ElectrumServerMode) {
@@ -320,6 +382,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem(`chaingraph-${network}`, chaingraphUrl);
   }
   // "" is no indexer, which turns token metadata off
+  function setCauldronIndexer(network: AppNetwork, indexerUrl: string) {
+    cauldronIndexer.value[network] = indexerUrl;
+    localStorage.setItem(cauldronIndexerKeys[network], indexerUrl);
+  }
   function setTokenMetadataIndexer(network: AppNetwork, indexerUrl: string) {
     tokenMetadataIndexer.value[network] = indexerUrl;
     localStorage.setItem(tokenMetadataIndexerKeys[network], indexerUrl);
@@ -340,8 +406,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     if (readChaingraph !== null) chaingraph.value[network] = readChaingraph;
   }
 
-  const readCauldronIndexer = localStorage.getItem("cauldronIndexer") ?? "";
-  if(readCauldronIndexer) cauldronIndexer.value = readCauldronIndexer
   
   const readIpfsGateway = localStorage.getItem("ipfsGateway") ?? "";
   if(readIpfsGateway) ipfsGateway.value = readIpfsGateway
@@ -366,6 +430,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     dateFormat.value = readDateFormat;
   }
 
+  const readNumberFormat = localStorage.getItem("numberFormat");
+  if (readNumberFormat && isNumberFormat(readNumberFormat)) numberFormat.value = readNumberFormat;
+
   const readConfirmBeforeSending = localStorage.getItem("confirmBeforeSending");
   if(readConfirmBeforeSending) confirmBeforeSending.value = readConfirmBeforeSending == "true";
 
@@ -384,7 +451,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   async function getExchangeRateBitpay(symbol: string): Promise<number> {
     const response = await fetch(BITPAY_RATES_API);
-    const json = await response.json();
+    const json: unknown = await response.json();
     const parseResult = BitpayRatesSchema.safeParse(json);
     if (!parseResult.success) {
       console.error(`BitPay rates response validation error: ${parseResult.error.message}`);
@@ -403,7 +470,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   async function getExchangeRateCoinGecko(symbol: string): Promise<number> {
     const normalizedSymbol = symbol.toLowerCase();
     const response = await fetch(COINGECKO_RATES_API + normalizedSymbol);
-    const json = await response.json();
+    const json: unknown = await response.json();
     const parseResult = CoinGeckoRatesSchema.safeParse(json);
     if (!parseResult.success) {
       console.error(`CoinGecko rates response validation error: ${parseResult.error.message}`);
@@ -420,7 +487,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   async function getExchangeRateCoinbase(symbol: string): Promise<number> {
     const response = await fetch(COINBASE_RATES_API);
-    const json = await response.json();
+    const json: unknown = await response.json();
     const parseResult = CoinbaseRatesSchema.safeParse(json);
     if (!parseResult.success) {
       console.error(`Coinbase rates response validation error: ${parseResult.error.message}`);
@@ -470,15 +537,15 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   type AutoApproveSessionReq = ForeverAutoApproveSessionReq | TimeAutoApproveSessionReq | CountAutoApproveSessionReq;
 
   function getAutoApproveState(topic: string) {
-    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}");
-    return state?.[topic] as AutoApproveSessionReq || null;
+    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}") as Record<string, AutoApproveSessionReq>;
+    return state?.[topic] ?? null;
   }
 
   function setAutoApproveState(
     topic: string,
     newState: AutoApproveSessionReq | null
   ) {
-    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}");
+    const state = JSON.parse(localStorage.getItem("auto-approve") || "{}") as Record<string, AutoApproveSessionReq>;
   
     if (!newState) {
       delete state[topic];
@@ -554,6 +621,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
   }
 
+  function setHideBalances(hide: boolean) {
+    hideBalances.value = hide;
+    localStorage.setItem("hideBalances", hide ? "true" : "false");
+  }
+
   function getWalletType(walletName: string): 'single' | 'hd' {
     return walletMetadata.value[walletName]?.walletType || 'single';
   }
@@ -563,6 +635,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
       walletMetadata.value[walletName] = {};
     }
     walletMetadata.value[walletName].walletType = type;
+    localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
+  }
+
+  function snoozeBackupReminder(walletName: string, until: number) {
+    if (!walletMetadata.value[walletName]) {
+      walletMetadata.value[walletName] = {};
+    }
+    walletMetadata.value[walletName].backupReminderSnoozedUntil = until;
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
   }
 
@@ -598,11 +678,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     setExplorer,
     setChaingraph,
     setTokenMetadataIndexer,
+    setCauldronIndexer,
     chaingraph,
     cauldronIndexer,
     tokenMetadataIndexer,
     ipfsGateway,
     darkMode,
+    themeMode,
+    setThemeMode,
     showFiatValueHistory,
     showBalanceInHistory,
     tokenBurn,
@@ -611,10 +694,13 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     qrScan,
     qrScannerCameraId,
     qrAnimation,
-    tokenAddressQrDefault,
-    enableAddressMarking,
     dappActivityInNav,
+    addressesInNav,
     bottomNavOnMobile,
+    primaryBalance,
+    greenActionButtons,
+    hideBalances,
+    setHideBalances,
     hasPlayedAnimation,
     featuredTokens,
     hiddenTokens,
@@ -625,6 +711,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     setBackupStatus,
     clearBackupStatus,
     getWalletMetadata,
+    snoozeBackupReminder,
     setWalletCreatedAt,
     getWalletType,
     setWalletType,
@@ -637,6 +724,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     strictWcSchema,
     showPrivateKeyWif,
     dateFormat,
+    numberFormat,
     confirmBeforeSending,
     disableTokenIcons,
     exchangeRateProvider,

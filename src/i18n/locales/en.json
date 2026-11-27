@@ -13,7 +13,10 @@
     },
     "errors": {
       "somethingWentWrong": "Something went wrong",
-      "commaInAmount": "Use a dot (.) for decimals, without thousands separators",
+      "amountInvalid": "Type the amount in digits, with at most one decimal mark",
+      "amountGrouping": "Type the amount without thousands separators or spaces",
+      "amountAmbiguous": "This amount can be read two ways: type thousands without a separator, like 1000, and decimals like {example} (or pick your number format under Menu → Settings → Localization)",
+      "amountWholeOnly": "Type a whole number, without separators",
       "needToInitializeWallet": "Need to initialize a wallet first",
       "exchangeRateUnavailable": "Could not fetch exchange rate, rejecting dApp request",
       "nothingToTransfer": "No BCH or tokens left to transfer",
@@ -28,7 +31,6 @@
       }
     },
     "attention": "Attention:",
-    "backToSettings": "Back to settings",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "This combines inputs from all your addresses, publicly linking them as one wallet, which sacrifices the privacy benefits of using an HD wallet.",
     "copied": "Copied!",
@@ -43,7 +45,17 @@
     "addresses": "Addresses",
     "tokens": "Tokens",
     "history": "History",
-    "connect": "Connect"
+    "connect": "Connect",
+    "menu": "Menu"
+  },
+  "networkBadge": {
+    "intro": "This wallet is on {network}, a test network: its coins have no value.",
+    "unavailableHeading": "Not available on {network}:",
+    "unavailable": {
+      "tokenMetadata": "Token metadata (names, icons, decimals)",
+      "cauldronPrices": "Cauldron token prices",
+      "dappConnections": "dApp connections"
+    }
   },
   "walletUtils": {
     "errors": {
@@ -56,7 +68,7 @@
       "enterSeedPhrase": "Enter a seed phrase to import wallet",
       "fixInvalidWords": "Please fix invalid words in your seed phrase",
       "invalidSeedPhrase": "Not a valid seed phrase",
-      "convertTiedCopy": "Wallet \"{name}\" also has a copy on {network}. Remove its chipnet copy under Settings > Developer settings first, then convert.",
+      "convertTiedCopy": "Wallet \"{name}\" also has a copy on {network}. Remove its chipnet copy under Menu > Settings > Developer settings first, then convert.",
       "cannotConvert": "Wallet \"{name}\" is not stored as a single address wallet that can be converted, so nothing was changed",
       "conversionRunning": "The wallet is already being converted",
       "failedToConvert": "Failed to convert wallet \"{name}\"",
@@ -96,7 +108,7 @@
     "notifications": {
       "receivedBch": "Received {amount} {unit} ({fiatValue})",
       "receivedTokens": "Received new {tokenType}",
-      "broadcastAgainSent": "Transaction {txId} was broadcast"
+      "broadcastAgainSent": "The transaction was broadcast"
     },
     "errors": {
       "chipnetCopyChanged": "The chipnet copy of {name} changed since it was checked, so nothing was removed.",
@@ -134,10 +146,10 @@
   "onboarding": {
     "welcome": {
       "title": "Welcome to Cashonize",
-      "description": "An easy-to-use Bitcoin Cash wallet with a focus on CashTokens and BCH dApps.",
+      "description": "An easy-to-use, open-source, non-custodial Bitcoin Cash wallet.",
       "featureSendReceive": "Send & receive BCH and CashTokens",
-      "featureWalletConnect": "Connect to dApps via WalletConnect, CashConnect or WizardConnect",
-      "featureOpenSource": "Open-source and non-custodial",
+      "featureDapps": "Connect to any BCH dApp and see what it does before you sign",
+      "featurePortfolio": "See your BCH, tokens and DeFi positions valued together",
       "aboutPrompt": "New to Cashonize? {link}",
       "aboutLinkText": "Learn more about the wallet →"
     },
@@ -145,7 +157,7 @@
       "title": "Create new wallet",
       "description": "Get started with a fresh wallet in seconds",
       "button": "Create new wallet",
-      "seedPhraseNote": "A new seed phrase will be generated. Back it up to secure your wallet.",
+      "seedPhraseNote": "A new seed phrase will be generated. Only you hold it, so back it up to secure your wallet.",
       "submitButton": "Create wallet"
     },
     "import": {
@@ -178,22 +190,21 @@
         "cad": "CAD - Canadian Dollar",
         "aud": "AUD - Australian Dollar",
         "chf": "CHF - Swiss Franc",
-        "brl": "BRL - Brazilian Real"
+        "brl": "BRL - Brazilian Real",
+        "mxn": "MXN - Mexican Peso",
+        "ars": "ARS - Argentine Peso",
+        "rub": "RUB - Russian Ruble"
       },
-      "darkMode": "Dark mode",
-      "confirmPayments": "Confirm payments before sending",
-      "confirmPaymentsHint": "Ask for confirmation after clicking send (recommended)",
       "finishButton": "Finish Setup"
     }
   },
   "wallet": {
-    "balance": "{currency} balance:",
-    "address": "{network} address:",
-    "tokenAddress": "Token address:",
-    "send": "Send {network}:",
+    "selectAsset": "Select what to send",
+    "selectAssetHint": "Bitcoin Cash, or a fungible token this wallet holds",
     "addressPlaceholder": "address",
     "amountPlaceholder": "amount",
-    "max": "max",
+    "available": "Available: {amount}",
+    "useMax": "use max",
     "notEnoughBch": "Not enough BCH in wallet to send",
     "sendingTransaction": "Sending transaction...",
     "sent": "Sent {amount} to {address}",
@@ -211,7 +222,11 @@
       "notCashaddress": "Not a cashaddress on current network",
       "legacyAddress": "Legacy addresses look the same as Bitcoin (BTC) addresses. CashAddr is the standard address format on BCH. If you are sure this is a BCH address, convert it with the Address Converter in Wallet tools."
     },
-    "reservedBalance": "Held back: {amount}"
+    "tokenValueAtCauldron": "Value at Cauldron's price:",
+    "reservedBalance": "Held back: {amount}",
+    "hideBalances": "Hide balances",
+    "showBalances": "Show balances",
+    "balancesHidden": "Balances are hidden."
   },
   "portfolio": {
     "title": "Portfolio",
@@ -225,6 +240,7 @@
     "checkingHodlContracts": "Checking for hodl contracts",
     "checkingTapswapListings": "Checking for TapSwap listings",
     "smallBalances": "Small balances ({count})",
+    "groupCount": "{count} positions",
     "tapswapListings": "TapSwap listings ({count})",
     "askingPrice": "Asking price",
     "manageListings": "Manage your listings on {link}.",
@@ -286,7 +302,6 @@
     "searchPlaceholder": "Search tokens..."
   },
   "tokenItem": {
-    "name": "Name:",
     "tokenId": "TokenId:",
     "amount": "Amount:",
     "commitment": "Commitment:",
@@ -327,21 +342,22 @@
       "unfavoriteToken": "Unfavorite token"
     },
     "info": {
-      "tokenDescription": "Token description:",
-      "nftDescription": "NFT description:",
-      "tokenSymbol": "Token symbol:",
-      "numberOfDecimals": "Number of decimals:",
-      "tokenWebLink": "Token web link:",
+      "showFull": "Show full description",
+      "showLess": "Show less",
+      "symbol": "Symbol",
+      "decimals": "Decimals",
+      "website": "Website",
+      "notHttps": "not a secure (https) link",
+      "type": "Type",
+      "commitment": "Commitment",
       "seeDetailsOnExplorer": "View on TokenExplorer",
-      "nftType": "NFT type:",
       "immutable": "immutable",
       "mutable": "mutable",
       "minting": "minting",
       "nftTypeValue": "{capability} NFT",
-      "nftCommitment": "NFT commitment:",
       "nftAttributes": "NFT attributes",
-      "extensionNote": "Loan data fetched from blockchain:",
-      "parsedFields": "Parsed NFT data:",
+      "extensionNote": "Loan data fetched from blockchain",
+      "parsedFields": "Parsed NFT data",
       "numberNfts": "Number NFTs:",
       "field": "Field {index}",
       "blockHeight": "Block {height}"
@@ -445,9 +461,7 @@
       "insufficientBalance": "Insufficient token balance",
       "invalidAddress": "Invalid BCH address provided",
       "notTokenAddress": "Not a Token Address (should start with z...)",
-      "invalidNumberFormat": "Invalid number format",
       "enterValidAmount": "Enter a valid positive amount",
-      "noDecimalsAllowed": "This token does not allow for decimal places",
       "maxDecimalsAllowed": "This token only allows up to {decimals} decimal places",
       "differentTokenRequest": "This payment request is for a different token",
       "amountMustBeInteger": "Amount tokens to burn must be a valid integer",
@@ -490,6 +504,8 @@
     "loading": "Loading transaction history",
     "loadingFailed": "Failed to load transaction history",
     "noTransactions": "No transactions in this wallet",
+    "recentActivity": "Recent activity",
+    "recentHidden": "Hidden with your balances",
     "title": "Transaction History",
     "transactionCount": "{count} Transactions",
     "options": "Options",
@@ -511,7 +527,7 @@
     "showBalance": "Show balance after transaction",
     "exportCsv": "Export CSV",
     "exportFailed": "CSV export failed",
-    "searchPlaceholder": "Search token, address or tx id...",
+    "searchPlaceholder": "Search history...",
     "noMatch": "No transactions match filter",
     "sent": "Sent",
     "received": "Received",
@@ -587,6 +603,12 @@
     "cancel": "Cancel"
   },
   "backupWallet": {
+    "reminder": {
+      "title": "This wallet is not backed up",
+      "text": "Write down its seed phrase: it is the only way to get your funds back if this device or its data is lost.",
+      "backupNow": "Back up now",
+      "later": "Remind me later"
+    },
     "currentWallet": "Current wallet:",
     "seedPhrase": {
       "title": "Wallet seed phrase",
@@ -704,6 +726,7 @@
       "buttonTitle": "Delete wallet"
     },
     "switchedNetwork": "Switched to {network} for wallet \"{name}\"",
+    "switchedOnTestNetwork": "Switched to \"{name}\" on {network}",
     "switchFailed": "Failed to switch wallet: {error}"
   },
   "convertToHd": {
@@ -809,7 +832,6 @@
       "note": "The reserve stays on the identity's UTXO; issue it later from the identities page."
     },
     "errors": {
-      "invalidAmount": "Enter amounts as a number of tokens, like 1000 or 0.5.",
       "overMaxSupply": "That is more than a token can hold. The most is {max}.",
       "overSupply": "That is more than the total supply.",
       "invalidDecimals": "Decimals must be a whole number from 0 to 18.",
@@ -901,18 +923,8 @@
       "title": "Overview: token UTXOs per category",
       "empty": "This wallet has no token UTXOs."
     },
-    "fungibleList": {
-      "title": "Fungible token UTXOs",
-      "empty": "This wallet has no fungible token UTXOs."
-    },
-    "nftList": {
-      "title": "NFT UTXOs",
-      "empty": "This wallet has no NFT UTXOs."
-    },
-    "ftNftList": {
-      "title": "Fungible token + NFT UTXOs",
-      "empty": "This wallet has no UTXOs holding a fungible amount and an NFT at once."
-    },
+    "searchPlaceholder": "Search UTXOs...",
+    "noMatch": "No UTXOs match your search",
     "reservedSummary": "{count} UTXO held back, kept out of your spendable balance | {count} UTXOs held back, kept out of your spendable balance",
     "reservedTokenSummary": "{count} token UTXO held back, left out of every transfer this app makes | {count} token UTXOs held back, left out of every transfer this app makes",
     "freeze": {
@@ -953,7 +965,6 @@
       "oneUtxo": "only 1"
     },
     "combined": {
-      "title": "Combined BCH + Token UTXOs",
       "description": "Some dApps return UTXOs that combine BCH with tokens, causing the BCH to not show in your balance.",
       "warningCount": "{count} UTXO with combined BCH + Tokens | {count} UTXOs with combined BCH + Tokens",
       "warningCountSingle": "{count} UTXO with combined BCH + Tokens",
@@ -961,7 +972,6 @@
       "splittableAmount": "You have {bch} BCH that can be split from token UTXOs.",
       "nftNote": "Note: This tool can only split BCH from fungible token UTXOs, not NFTs.",
       "viewAffected": "View affected UTXOs",
-      "noIssues": "You have no such UTXOs",
       "splittingButton": "Splitting...",
       "splitButton": "Split BCH from Tokens"
     },
@@ -977,7 +987,11 @@
       "label": "Label",
       "address": "Address",
       "utxoCount": "UTXOs",
-      "bchHeld": "BCH held"
+      "bchHeld": "BCH held",
+      "tokenId": "Token id",
+      "commitment": "Commitment",
+      "outpoint": "Outpoint",
+      "outpointHint": "The transaction id and output number (txid:vout) that identify this UTXO"
     },
     "notifications": {
       "consolidating": "Consolidating BCH UTXOs...",
@@ -987,14 +1001,31 @@
       "somethingWentWrong": "something went wrong"
     }
   },
+  "networkStatus": {
+    "title": "Network status",
+    "description": "The electrum server this wallet is connected to. The wallet trusts what it reports and does not verify it.",
+    "block": "Block {height}",
+    "electrumHeading": "Electrum connection",
+    "server": "Server:",
+    "status": "Status:",
+    "connected": "Connected",
+    "connecting": "Connecting…",
+    "reconnecting": "Connection lost, reconnecting…",
+    "mode": "Server mode:",
+    "blockHeight": "Block height:",
+    "latestBlock": "Latest block:",
+    "seeOnExplorer": "See on block explorer",
+    "changeServer": "Change server"
+  },
   "aboutCashonize": {
     "title": "About Cashonize",
-    "description": "Cashonize is an easy-to-use, multi-platform Bitcoin Cash wallet.",
+    "description": "Your entry point to CashTokens and Bitcoin Cash DeFi.",
     "tagline": "Open-source · Non-custodial · Since 2023",
     "learnMore": "Visit the Cashonize website",
     "downloadPage": "Visit the Cashonize download page",
     "viewSource": "View source code",
     "followOnX": "Follow updates on X",
+    "joinTelegram": "Join us on Telegram",
     "logoHintTaps": "Bored? Give the logo a few quick taps.",
     "logoHintClicks": "Psst... try clicking the logo a few times."
   },
@@ -1009,7 +1040,10 @@
     "change": "Change",
     "usedAddresses": "Used",
     "unusedAddresses": "Unused",
+    "pinnedAddresses": "Pinned",
     "noAddresses": "No addresses scanned yet",
+    "searchPlaceholder": "Search addresses...",
+    "noMatch": "No addresses match your search",
     "options": "Options",
     "hideZeroBalances": "Hide zero balances",
     "showTokenAddresses": "Show addresses in token format",
@@ -1027,19 +1061,20 @@
     "markAddressUsedAction": "Mark address as used and show fresh one",
     "unmarkAddressUsed": "Unmark as used",
     "markedTag": "marked used",
-    "markAddressUsedNote": "Previous addresses keep working. You can unmark addresses on the HD Addresses page.",
     "markedUsedNotify": "Address marked as used",
     "markLimitNotify": "Cannot mark this address, one fresh address has to stay available. Receive a payment to free up more.",
     "markingIntro": "Receiving addresses can be marked as used after sharing them.",
     "markedInfo": "An address you shared stays unused until a payment arrives, so the wallet keeps handing out the same one. Marking it as used moves on to the next address, so every payer gets a different one.",
     "unmarkInfo": "Marked addresses are grouped under used addresses, where you can unmark them.",
-    "freezeOption": "Show freeze buttons",
-    "freezeOptionLocked": "Unfreeze all addresses to turn this off",
+    "moreActions": "More actions",
     "frozenTag": "frozen",
     "frozenTagInfo": "Still receives payments, but is no longer shown as your receive address",
     "freezeAddress": "Freeze address",
     "unfreezeAddress": "Unfreeze address",
     "freezeLimitNotify": "Cannot freeze this address, one fresh address has to stay available. Receive a payment to free up more.",
+    "pinAddress": "Pin address",
+    "unpinAddress": "Unpin address",
+    "pinLimitNotify": "Cannot pin this address, one fresh address has to stay available. Receive a payment to free up more.",
     "freeze": {
       "title": "Freeze this address",
       "message": "UTXOs on a frozen address stay in your wallet, but this app leaves them out of every payment and token transfer and refuses dApp requests that spend them, including UTXOs the address receives later. Unfreeze it from this page at any time.\n\nFreezing only applies here: if you use this seed phrase in another wallet application, freeze the same address there too.",
@@ -1131,8 +1166,14 @@
       "ownAddress": "The destination is an address of this same wallet"
     }
   },
+  "receive": {
+    "title": "Receive",
+    "bchAddressHint": "Your BCH address. Switch to Tokens to receive CashTokens.",
+    "tokenAddressHint": "Your token address, for receiving CashTokens.",
+    "copyAddress": "Copy Address",
+    "requestAmount": "Request an amount"
+  },
   "requestPayment": {
-    "title": "Create Payment Request",
     "description": "Create a payment request to share with whoever is paying you.",
     "descriptionToken": "Create a request for a fungible token to share with whoever is paying you.",
     "bip21Hint": "BCH payment requests use BIP21, a long standing URI standard that BCH wallets widely support.",
@@ -1155,7 +1196,6 @@
     "selectTokenPrompt": "Select a token to request",
     "messageLabel": "Message (optional):",
     "messagePlaceholder": "Note for the payer, like an invoice number",
-    "payToLabel": "Pay to:",
     "selectAddress": "Select from wallet addresses",
     "selectAddressHint": "Choose which address to request to",
     "requesting": "Requesting {amount}",
@@ -1205,6 +1245,109 @@
       "addressNotInWallet": "Signing requires an address of the active wallet"
     }
   },
+  "faq": {
+    "title": "FAQ",
+    "description": "Short answers about Bitcoin Cash and how Cashonize works.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "What happens if I clear my browser data or lose this device?",
+          "answer": "Your wallet is stored only in this browser. Clearing the browser's site data deletes it, and so does losing the device. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" in the menu."
+        },
+        "mobile": {
+          "question": "What happens if I lose my phone or uninstall the app?",
+          "answer": "Your wallet is stored only on this phone. Losing the phone or uninstalling the app means losing the wallet. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" in the menu."
+        },
+        "desktop": {
+          "question": "What happens if my computer breaks or gets replaced?",
+          "answer": "Your wallet is stored only on this computer. If the computer is lost, broken or wiped, the wallet goes with it. The seed phrase is the only way to get it back: nobody can reset or recover it for you, Cashonize included. Write it down now, under \"Backup wallet\" in the menu."
+        }
+      },
+      "twoAddresses": {
+        "question": "Receive has a BCH and a token address. Which one do I give people?",
+        "answer": "They are two forms of the same address. Look closely and only the first character and the last eight differ: both point to the same place on the blockchain, with the same keys behind it. The token address (starting with z) tells the sender your wallet supports CashTokens, so give that one to anyone sending tokens or NFTs. For plain BCH, always give the regular one (starting with q): exchanges and wallets without token support only accept that form. Receive opens on the BCH address; the Tokens switch above it shows the token address."
+      },
+      "addressChanged": {
+        "question": "My receive address changed. Does the one I already shared still work?",
+        "answer": "Yes. An HD wallet shows a fresh address after each payment for privacy, but every earlier address stays yours and keeps working. A single address wallet always shows the same address."
+      },
+      "bchForTokens": {
+        "question": "I only have tokens. Why do I need BCH to send them?",
+        "answer": "Every transaction pays a small fee in BCH, also when it only moves tokens. A very small amount of BCH is enough for many sends. Have it sent to your regular BCH address."
+      },
+      "tokenSupport": {
+        "question": "Can I send tokens to a normal BCH address?",
+        "answer": "No, sending tokens asks for a token address (starting with z). That form was introduced so the sender can tell the receiving wallet supports CashTokens. Tokens sent to a wallet without that support are not destroyed, but that wallet cannot see or send them. At the moment no exchange supports CashTokens, so don't send tokens to one. If you are sure the receiving wallet supports CashTokens but you only have its regular address, the Address Converter gives you the token form."
+      },
+      "imposterToken": {
+        "question": "How do I spot an imposter token?",
+        "answer": "Anyone can create a token and give it any name and icon, so a familiar name or logo proves nothing. What identifies a token is its token id, which cannot be copied. Compare the token id the wallet shows with the one on a source you trust outside the wallet, such as the issuer's official website. A token with no name or picture is not fake for that reason alone: its creator just published no metadata."
+      },
+      "tokenValue": {
+        "question": "Why does my token show no value?",
+        "answer": "Token values come from Cauldron, the main exchange for CashTokens: there is no official price. A value is shown only on mainnet, and only when the token's Cauldron pools hold at least 1 BCH together, because the price of a smaller market is easy to move. The value is an estimate at the current pool price, and selling can bring less, especially for a large amount. The values can be turned off in the token settings."
+      },
+      "utxos": {
+        "question": "What is a UTXO, and why does a dApp ask me to consolidate?",
+        "answer": "Your balance is made of separate coins, called UTXOs, one for each payment you received. Some dApps need a single coin large enough for what you're doing, even when your total is enough. Consolidating in UTXO Management merges your BCH coins into one."
+      },
+      "dappConnections": {
+        "hd": {
+          "question": "What are WalletConnect, CashConnect and WizardConnect?",
+          "answer": "They are three ways to connect this wallet to a dApp: an app that prepares a transaction and asks the wallet to sign it. The dApp shows a link or a QR code, and the Connect page takes all three: paste the link or scan the code, and the wallet sees which one it is. WalletConnect works with a single address, so you pick which of this wallet's addresses the dApp gets. WizardConnect is made for HD wallets and lets the dApp follow all of the wallet's addresses. CashConnect is a connection method made for Bitcoin Cash. Whichever is used, every request is shown to you before anything is signed, unless you enabled auto-approvals for that dApp."
+        },
+        "single": {
+          "question": "What are WalletConnect, CashConnect and WizardConnect?",
+          "answer": "They are three ways to connect this wallet to a dApp: an app that prepares a transaction and asks the wallet to sign it. The dApp shows a link or a QR code, and the Connect page takes WalletConnect and CashConnect: paste the link or scan the code, and the wallet sees which one it is. Every request is shown to you before anything is signed, unless you enabled auto-approvals for that dApp. WizardConnect needs an HD wallet: you can convert this wallet to one under Manage wallets, with the same seed phrase, keeping its coins, name and notes."
+        }
+      }
+    }
+  },
+  "appLock": {
+    "title": "App lock",
+    "on": "On",
+    "off": "Off",
+    "description": "Protect Cashonize with a PIN.",
+    "askedWhen": "The PIN is asked",
+    "askOpen": "when the app opens, or comes back after a few minutes away",
+    "askSpend": "before sending and before signing a dApp transaction",
+    "askSeed": "before showing the seed phrase",
+    "notEncryption": "The app lock keeps someone holding your unlocked device out of the wallet. It locks the app; it does not encrypt the wallet data stored on this device.",
+    "backupFirst": "A forgotten PIN cannot be reset. You would clear the app's data and restore from your seed phrases, so back those up first.",
+    "notBackedUp": "Not backed up yet: {wallets}. With a forgotten PIN, a wallet without a backup is lost.",
+    "backUpNow": "Back up this wallet",
+    "choosePin": "Choose a PIN:",
+    "newPin": "New PIN:",
+    "repeatPin": "Repeat the PIN:",
+    "pinRule": "A PIN is {min} to {max} digits",
+    "pinMismatch": "The two PINs differ",
+    "turnOn": "Turn on app lock",
+    "turnOff": "Turn off",
+    "changePin": "Change PIN",
+    "lockNow": "Lock now",
+    "isOn": "App lock is on.",
+    "turnedOn": "App lock turned on",
+    "turnedOff": "App lock turned off",
+    "pinChanged": "PIN changed",
+    "cancel": "Cancel",
+    "pinPlaceholder": "PIN",
+    "lockedTitle": "Enter your PIN to open the wallet",
+    "unlockButton": "Unlock",
+    "confirmTitle": "Enter your PIN",
+    "confirmButton": "Confirm",
+    "wrongPin": "Wrong PIN",
+    "wrongPinTriesLeft": "Wrong PIN. {count} try left before a wait. | Wrong PIN. {count} tries left before a wait.",
+    "tooManyAttempts": "Too many wrong tries. Try again in {time}.",
+    "forgotPin": "Forgot your PIN?",
+    "forgotPinHint": "A PIN cannot be reset. Clear the data of this app or site, then restore your wallets from their seed phrases. A wallet without a backup is lost.",
+    "usePin": "Use PIN",
+    "useBiometrics": "Use fingerprint or face",
+    "lockedTitleBiometrics": "Unlock Cashonize",
+    "confirmTitleBiometrics": "Confirm it's you",
+    "biometricsSetupTitle": "Confirm to unlock with biometrics",
+    "biometricsToggle": "Unlock with fingerprint or face",
+    "biometricsTurnedOn": "Biometric unlock turned on"
+  },
   "addressConverter": {
     "title": "Address Converter",
     "description": "Enter an address to see all its forms.",
@@ -1246,10 +1389,13 @@
     "bchAddress": "QR code of the Bitcoin Cash address",
     "tokenAddress": "QR code of the token address",
     "xpub": "QR code of the xpub",
-    "paymentRequest": "QR code of the payment request"
+    "paymentRequest": "QR code of the payment request",
+    "enlarge": "Show the QR code full screen",
+    "size": "QR code size"
   },
   "qrScanner": {
     "scanQrCode": "Scan QR Code",
+    "scan": "Scan",
     "chooseImage": "Choose image",
     "switchCamera": "Switch camera",
     "noQrCodeInImage": "No QR code found in image",
@@ -1259,7 +1405,8 @@
       "nonSecureContext": "Unable to acccess camera in non-secure context",
       "unableToAccess": "Unable to access camera",
       "constraintsMismatch": "Constraints don't match any installed camera. Did you ask for the front camera although there is none?",
-      "unknownError": "Unknown error occurred"
+      "unknownError": "Unknown error occurred",
+      "nothingToDo": "Not a BCH address, payment request, dApp connection or private key"
     }
   },
   "relativeTime": {
@@ -1367,6 +1514,9 @@
     "sessionSettings": {
       "title": "Manage Session",
       "enableAutoApprovals": "Enable Auto-Approvals",
+      "autoApprovalsHint": "Transaction and message signing requests from this dApp are signed without asking",
+      "autoApprovalsTrustHint": "Only enable this for a dApp you trust, after double-checking the website's domain",
+      "autoApprovalsLockedHint": "Not while the app is locked: a request arriving then waits for your approval after the unlock",
       "forever": "Forever",
       "for": "For",
       "requests": "requests",
@@ -1439,62 +1589,90 @@
     "version": "Version Cashonize App: {version}",
     "latest": "(latest)",
     "latestRelease": "(latest release is {version})",
-    "allSettings": "All settings",
     "currentWallet": "Current wallet:",
     "menu": {
       "backupWallet": "Backup wallet",
       "important": "(important)",
       "manageWallets": "Manage wallets",
       "userOptions": "User options",
+      "userOptionsDescription": "Confirming payments, QR scanning, BCH or sats, block explorer",
+      "appearance": "Appearance & layout",
+      "appearanceDescription": "Theme, navigation tabs, QR code",
       "tokenSettings": "Token settings",
+      "tokenSettingsDescription": "Token values, icons, burning, identities",
       "localization": "Localization",
+      "localizationDescription": "Language, currency, date and number format",
       "advancedSettings": "Advanced settings",
+      "advancedSettingsDescription": "Electrum, IPFS, exchange rate and indexer servers",
       "dataAndStorage": "Data and storage",
+      "dataAndStorageDescription": "Caches, dApp connections, resetting, deleting wallets",
       "developerSettings": "Developer settings",
+      "developerSettingsDescription": "Test wallets and developer features",
       "tools": "Wallet tools",
       "hdAddresses": "HD Addresses",
-      "requestPayment": "Create Payment Request",
       "utxoManagement": "UTXO Management",
+      "utxoManagementDescription": "See, freeze, send or consolidate individual coins",
       "createTokens": "Create token",
+      "createTokensDescription": "Make a new fungible token or NFT collection",
       "sweepPrivateKey": "Sweep Private Key",
+      "sweepPrivateKeyDescription": "Move the funds of a paper wallet or private key here",
       "transferAllAssets": "Transfer All Assets",
+      "transferAllAssetsDescription": "Send everything in this wallet to another address",
       "signVerifyMessage": "Sign / Verify Message",
+      "signVerifyMessageDescription": "Prove you control an address, or check a signature",
       "exportXpub": "Export Xpub",
+      "exportXpubDescription": "The public key that shows every address of this wallet",
       "addressConverter": "Address Converter",
+      "addressConverterDescription": "See an address in its other formats",
+      "faq": "FAQ",
       "aboutCashonize": "About Cashonize",
       "flipstarter": "Flipstarter",
+      "flipstarterDescription": "Pledge to a crowdfunding campaign",
       "identities": "Identities",
-      "newCount": "({count} new) | ({count} new)"
+      "identitiesDescription": "The metadata identities this wallet holds or follows",
+      "newCount": "({count} new) | ({count} new)",
+      "tokenCreation": "Token creation"
     },
     "localization": {
       "language": "Language:",
       "currency": "Currency:",
       "dateFormat": "Date format:",
+      "numberFormat": "Number format:",
+      "numberFormatAuto": "System default ({example})",
       "languageLoadFailed": "Could not load this language. Check your connection or reload the page."
     },
     "userOptions": {
-      "darkMode": "Dark mode",
       "confirmPayments": "Confirm payments before sending",
-      "confirmPaymentsHint": "Ask for confirmation after clicking send (recommended)",
+      "confirmPaymentsHint": "Shows the amount and address for a final check after you click send. Recommended, since a payment can't be undone.",
       "showCauldronSwap": "Show Cauldron Swap Button",
       "showCauldronFTValue": "Show fiat value in the tokens list",
-      "showCauldronFTValueHint": "Display fiat value on the Tokens tab for fungible tokens with at least 1 BCH combined liquidity across Cauldron DEX pools",
+      "showCauldronFTValueHint": "Display fiat value on the Tokens tab and when sending, for fungible tokens with at least 1 BCH combined liquidity across Cauldron DEX pools",
       "showCauldronFTValuePortfolioNote": "The portfolio view always shows token values",
       "enableTokenBurn": "Show the burn button on tokens",
       "identitiesHeading": "Identities (Advanced)",
       "enableQrScan": "Enable QR scan",
+      "enableQrScanHint": "Shows Scan on the wallet page and a scan button beside address fields. The scanner can also read a code from an image, so it works without a camera.",
       "selectUnit": "Select Bitcoin Cash unit:",
       "bchUnit": "BCH",
       "satUnit": "satoshis",
       "blockExplorer": "Block explorer:",
       "qrAnimation": "QR code animation:",
-      "tokenAddressQrDefault": "Show token address QR code by default",
-      "enableAddressMarking": "Enable advanced address management: mark addresses as used",
-      "enableAddressMarkingHint": "Marking an address as used makes the wallet hand out the next one, so you can share a fresh address with each payer. Applies to HD wallets.",
       "bottomNavOnMobile": "Show the navigation tabs at the bottom on small screens",
       "dappActivityInNav": "Show the dApp activity icon in the top navigation",
-      "followTokenIdentities": "Follow the identities of the tokens you hold",
-      "followTokenIdentitiesHint": "The list of tokens you hold goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every held token at every wallet open.",
+      "themeHeading": "Theme",
+      "themeSystem": "System default",
+      "themeLight": "Light",
+      "themeDim": "Dim",
+      "themeDark": "Dark",
+      "walletPageHeading": "Wallet page",
+      "primaryBalance": "Main balance:",
+      "greenActionButtons": "Green Receive, Scan and Send buttons",
+      "navigationHeading": "Navigation",
+      "qrHeading": "QR code",
+      "addressesInNav": "Show the Addresses tab in the top navigation",
+      "addressesInNavHint": "For HD wallets, on screens wide enough for it. Without the tab, the Addresses page opens from the ⋯ menu.",
+      "followTokenIdentities": "Follow the identities of the tokens in this wallet",
+      "followTokenIdentitiesHint": "The list of tokens in this wallet goes to the Chaingraph server as a set, so that the identity of a token reaching this wallet is noticed and held back. Off by default: then only a token whose AuthKey this wallet holds has its identity looked up. Turning it on looks up every token in the wallet at every wallet open.",
       "allowDappIdentitySpends": "Let connected apps spend identity UTXOs",
       "allowDappIdentitySpendsHint": "Off: a WalletConnect or WizardConnect request that spends the UTXO of one of this wallet's identities is refused, the way a pledged UTXO is. On: the request reaches the approval dialog, which names the identity and says what its UTXO carries before and after. A request that would move an identity out of this wallet is refused either way. AuthKeys are not affected: a request using one is signed when the AuthKey comes back, which is how CashTokens Studio works.",
       "disableTokenIcons": "Disable token image loading",
@@ -1529,6 +1707,8 @@
       "chaingraphNone": "None",
       "cauldronIndexer": "Cauldron indexer:",
       "cauldronIndexerHint": "Used to get token prices from the Cauldron DEX for the portfolio and the token list.",
+      "cauldronIndexerNone": "None",
+      "cauldronIndexerCustomPlaceholder": "e.g. https://indexer.example.com",
       "exchangeRate": "Exchange rate provider:",
       "exchangeRateDefault": "Default (bitcoin.com for USD, BitPay for rest)",
       "deleteAllWallets": "Remove all wallets and all data from {platform}",
@@ -1716,8 +1896,10 @@
     "ownedCount": "{count} identity owned and managed by this wallet | {count} identities owned and managed by this wallet",
     "watchedHeader": "{count} identity watched only, not held by this wallet | {count} identities watched only, not held by this wallet",
     "follow": {
-      "header": "{count} followed identity of a token you hold | {count} followed identities of tokens you hold",
-      "resolving": "Looking up the identities of the tokens you hold"
+      "header": "{count} followed identity of a token in this wallet | {count} followed identities of tokens in this wallet",
+      "resolving": "Looking up the identities of the tokens in this wallet",
+      "searchPlaceholder": "Search identities...",
+      "noMatch": "No identities match your search"
     },
     "unnamedIdentity": "Unnamed identity",
     "authheadLabel": "Identity UTXO:",

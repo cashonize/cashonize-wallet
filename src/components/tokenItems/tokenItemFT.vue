@@ -1,19 +1,22 @@
 <script setup lang="ts">
   import { ref, toRefs, computed } from 'vue';
-  import { TokenSendRequest } from "@cashonize/bch-wallet-lib"
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';
+  import TokenFiatValue from '../general/TokenFiatValue.vue';
+  import tokenInfoPanel from './tokenInfoPanel.vue'
   import type { TokenDataFT, TokenActionType } from "src/interfaces/interfaces"
-  import { copyToClipboard, formatFiatAmount, sanitizeUrl, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount } from 'src/utils/utils';
+  import { copyToClipboard, formatFiatAmount, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount, hiddenAmount } from 'src/utils/utils';
+  import { toTypedAmount } from 'src/utils/numberFormat';
   import { useStore } from 'src/stores/store'
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { parseTokenPaymentRequest } from 'src/utils/payments/paymentRequest'
-  import { getCashAddressScanError, validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
-  import { confirmDialog, confirmSend, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
+  import { getCashAddressScanError } from 'src/utils/payments/recipientAddress'
+  import { sendFungibleTokens } from 'src/utils/payments/sendFungibleTokens'
+  import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
-  import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
+  import { shownTokenFiatValue } from 'src/utils/defi/tokenFiatValue'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -68,10 +71,7 @@
 
   // Fiat value of fungible token holdings using Cauldron DEX price data, at the store's BCH rate
   const holdingsFiatValue = computed(() => {
-    if (!settingsStore.showCauldronFTValue || store.network !== 'mainnet') return null;
-    const poolPriceData = store.cauldronPrices?.[tokenData.value.category];
-    if (!poolPriceData?.hasSufficientLiquidity || store.exchangeRate === undefined) return null;
-    return calculateTokenFiatValue(holding.value, poolPriceData, store.exchangeRate);
+    return shownTokenFiatValue(tokenData.value.category, holding.value);
   });
 
   // Fungible token specific functionality
@@ -79,7 +79,7 @@
     if(!tokenData.value?.amount) return // should never happen
     const decimals = tokenMetaData.value?.token?.decimals ?? 0;
     const targetState = tokenSend? tokenSendAmount : burnAmountFTs;
-    targetState.value = formatTokenAmountFromBigInt(tokenData.value.amount, decimals);
+    targetState.value = toTypedAmount(formatTokenAmountFromBigInt(tokenData.value.amount, decimals));
   }
   function parseAddrParams(){
     const parsed = parseTokenPaymentRequest(destinationAddr.value, tokenData.value.category);
@@ -89,7 +89,7 @@
     // Auto-fill the amount from a token payment request for this category
     if(parsed.category && parsed.fungibleAmount !== undefined){
       const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      tokenSendAmount.value = formatTokenAmountFromBigInt(parsed.fungibleAmount, decimals);
+      tokenSendAmount.value = toTypedAmount(formatTokenAmountFromBigInt(parsed.fungibleAmount, decimals));
     }
   }
   const qrDecode = (content: string) => {
@@ -101,42 +101,11 @@
     if (activeAction.value) return;
     activeAction.value = 'sending';
     try{
-      if((store.spendableBalance ?? 0n) < 550n) throw new Error(t('tokenItem.errors.needBchForFee'));
-      destinationAddr.value = validateTokenRecipientAddress(destinationAddr.value, store.wallet.networkPrefix);
-      if(!tokenSendAmount?.value) throw new Error(t('tokenItem.errors.noValidAmount'));
-      const decimals = tokenMetaData.value?.token?.decimals ?? 0;
-      const amountTokensInt = parseTokenAmountToBigInt(tokenSendAmount.value, decimals);
-      if(amountTokensInt <= 0n) throw new Error(t('tokenItem.errors.noValidAmount'));
-      const amountSentFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
-      if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
-
-      const category = tokenData.value.category;
-      const sendInfo = {
-        recipient: destinationAddr.value,
-        amount: amountSentFormatted,
-        unit: tokenMetaData.value?.token?.symbol ?? category.slice(0, 8),
-        token: { category, iconUrl: store.tokenIconUrl(category) },
-      }
-      // confirm payment if setting is enabled
-      if (settingsStore.confirmBeforeSending && !await confirmSend(sendInfo)) return
-
-      notifySending();
-      const { txId } = await store.spend.send([
-        new TokenSendRequest({
-          cashaddr: destinationAddr.value,
-          amount: amountTokensInt,
-          category: category,
-        }),
-      ]);
-      const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      let alertMessage = t('tokenItem.alerts.sentTokensNoSymbol', { amount: amountSentFormatted, tokenId: displayId, address: destinationAddr.value });
-      if (tokenMetaData.value?.token?.symbol) {
-        alertMessage = t('tokenItem.alerts.sentTokens', { amount: amountSentFormatted, symbol: tokenMetaData.value.token.symbol, address: destinationAddr.value });
-      }
-      tokenSendAmount.value = "";
-      destinationAddr.value = "";
-      displaySendTokens.value = false;
-      await handleTransactionBroadcastSuccess(alertMessage, txId, t('tokenItem.success.transactionSent'), sendInfo);
+      await sendFungibleTokens(tokenData.value.category, destinationAddr.value, tokenSendAmount.value, () => {
+        tokenSendAmount.value = "";
+        destinationAddr.value = "";
+        displaySendTokens.value = false;
+      });
     }catch(error){
       displayAndLogError(error)
     } finally {
@@ -155,7 +124,7 @@
       if(amountTokensInt > tokenData.value.amount) throw new Error(t('tokenItem.errors.insufficientBalance'));
       const category = tokenData.value.category;
 
-      const amountBurnFormatted = formatTokenAmountFromBigInt(amountTokensInt, decimals)
+      const amountBurnFormatted = formatTokenAmount(amountTokensInt, decimals)
       const tokenSymbol = tokenMetaData.value?.token?.symbol ?? t('tokenItem.tokens')
       const confirmed = await confirmDialog(
         t('tokenItem.dialogs.burnTokens.title'),
@@ -200,7 +169,7 @@
         />
         <div class="tokenBaseInfo">
           <div class="tokenBaseInfo1">
-            <div v-if="tokenName">{{ t('tokenItem.name') }} {{ tokenName }}</div>
+            <div v-if="tokenName" class="tokenTitle">{{ tokenName }}</div>
             <div style="word-break: break-all;">
               {{ t('tokenItem.tokenId') }}
               <span @click="copyToClipboard(tokenData.category)">
@@ -215,12 +184,12 @@
           </div>
           <div v-if="holding" class="tokenAmount">
             <div>{{ t('tokenItem.amount') }}
-              {{ formatTokenAmount(holding, tokenMetaData?.token?.decimals) }} {{ tokenMetaData?.token?.symbol }}
-              <span v-if="holdingsFiatValue !== null" style="font-size: smaller; color: grey; white-space: nowrap;">
+              {{ settingsStore.hideBalances ? hiddenAmount : formatTokenAmount(holding, tokenMetaData?.token?.decimals) }} {{ tokenMetaData?.token?.symbol }}
+              <span v-if="holdingsFiatValue !== null && !settingsStore.hideBalances" style="font-size: smaller; color: grey; white-space: nowrap;">
                 ≈ {{ formatFiatAmount(holdingsFiatValue, settingsStore.currency) }}
               </span>
             </div>
-            <div v-if="heldBack" style="color: grey;">{{ heldBackLine }}</div>
+            <div v-if="heldBack && !settingsStore.hideBalances" style="color: grey;">{{ heldBackLine }}</div>
           </div>
         </div>
         <span v-if="settingsStore.showTokenVisibilityToggle" @click="store.toggleHidden(tokenData.category)" class="boxStarIcon" :title="settingsStore.hiddenTokens.includes(tokenData.category) ? t('tokenItem.visibility.unhideToken') : t('tokenItem.visibility.hideToken')">
@@ -254,39 +223,29 @@
             {{ t('tokenItem.actions.burnTokens') }}
           </span>
         </div>
-        <div v-if="displayTokenInfo" class="tokenAction">
-          <div></div>
-          <div v-if="tokenMetaData?.description" class="indentText"> {{ t('tokenItem.info.tokenDescription') }} {{ tokenMetaData.description }} </div>
-          <div v-if="tokenMetaData?.token?.symbol">
-            {{ t('tokenItem.info.tokenSymbol') }} {{ tokenMetaData.token.symbol }}
-          </div>
-          <div v-if="tokenData.amount && tokenMetaData">
-            {{ t('tokenItem.info.numberOfDecimals') }} {{ tokenMetaData?.token?.decimals ?? 0 }}
-          </div>
-          <div v-if="tokenMetaData?.uris?.web">
-            {{ t('tokenItem.info.tokenWebLink') }}
-            <a v-if="sanitizeUrl(tokenMetaData.uris.web)" :href="sanitizeUrl(tokenMetaData.uris.web)" target="_blank">{{ tokenMetaData.uris.web }}</a>
-            <span v-else style="color: var(--color-error);">{{ t('common.unsafeUrl') }}</span>
-          </div>
-          <div>
-            <a style="color: var(--font-color); cursor: pointer;" :href="'https://tokenexplorer.cash/?tokenId=' + tokenData.category" target="_blank">
-              {{ t('tokenItem.info.seeDetailsOnExplorer') }} <img :src="settingsStore.darkMode? 'images/external-link-grey.svg' : 'images/external-link.svg'" style="vertical-align: sub;"/>
-            </a>
-          </div>
-        </div>
+        <tokenInfoPanel
+          v-if="displayTokenInfo"
+          :description="tokenMetaData?.description"
+          :facts="tokenMetaData ? [
+            { label: t('tokenItem.info.symbol'), value: tokenMetaData.token?.symbol ?? '' },
+            { label: t('tokenItem.info.decimals'), value: String(tokenMetaData.token?.decimals ?? 0) },
+          ].filter(fact => fact.value) : []"
+          :web-url="tokenMetaData?.uris?.web"
+          :category="tokenData.category"
+        />
 
         <div v-if="displaySendTokens" class="tokenAction">
           {{ t('tokenItem.sendTokens.title') }}
           <div class="inputGroup">
             <div class="addressInputFtSend">
               <span style="width: 100%; position: relative;">
-                <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
+                <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" autocomplete="off" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
               </span>
               <QrScanButton @click="showQrCodeDialog = true" />
             </div>
             <div class="sendTokenAmount">
               <span style="width: 100%; position: relative;">
-                <input v-model="tokenSendAmount" :placeholder="t('tokenItem.sendTokens.amountPlaceholder')" name="tokenAmountInput">
+                <input v-model="tokenSendAmount" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountPlaceholder')" name="tokenAmountInput" autocomplete="off">
                 <i class="input-icon" style="width: min-content; padding-right: 15px;">
                   {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
                 </i>
@@ -294,13 +253,17 @@
               <button @click="maxTokenAmount(true)">{{ t('tokenItem.actions.max') }}</button>
             </div>
           </div>
-          <input @click="sendTokens()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendTokens.sendingButton') : t('tokenItem.sendTokens.sendButton')" :disabled="activeAction !== null">
+          <!-- the value sits beside the button, under the amount it is the value of, so the button stays where it is -->
+          <div class="sendTokenRow">
+            <input @click="sendTokens()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendTokens.sendingButton') : t('tokenItem.sendTokens.sendButton')" :disabled="activeAction !== null">
+            <TokenFiatValue :category="tokenData.category" :typed-amount="tokenSendAmount" class="sendTokenRowValue" />
+          </div>
         </div>
         <div v-if="displayBurnFungibles" class="tokenAction">
           <div>{{ t('tokenItem.burn.description') }}</div>
           <div style="display: flex">
             <span style="width: 50%; position: relative; display: flex;">
-              <input v-model="burnAmountFTs" :placeholder="t('tokenItem.sendTokens.amountTokensPlaceholder')" name="tokenAmountInput">
+              <input v-model="burnAmountFTs" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountTokensPlaceholder')" name="tokenAmountInput" autocomplete="off">
               <i class="input-icon" style="width: min-content; padding-right: 15px;">
                 {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
               </i>

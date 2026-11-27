@@ -28,17 +28,18 @@ import {
   type TokenGenesisRequest,
   type TokenMintRequest,
   type TokenBurnRequest,
+  decodeHeader,
 } from "@cashonize/bch-wallet-lib"
 import { IndexedDBProvider } from "@cashonize/bch-wallet-lib/indexeddb"
 import {
-  CurrencySymbols,
   type BcmrTokenMetadata,
   type TokenList,
   type WalletHistoryReturnType,
   type WalletType
 } from "../interfaces/interfaces"
-import { electrumWssUrl, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, sameTokenList, STALE_TIP_SECONDS, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
+import { electrumWssUrl, formatFiatAmount, formatNumber, gatewayUrl, getBalanceFromUtxos, loadWalletFromId, sameTokenList, STALE_TIP_SECONDS, staleTipHours, walletTypeFromWalletId } from "src/utils/utils"
 import { electrumServersOf, saveLastGoodElectrumServer } from "src/utils/wallet/electrumServers"
+import { toTokenAddress } from "src/utils/addressValidation"
 import {
   fetchTokenMetadata as fetchTokenMetadataFromIndexer,
   fetchNftMetadata as fetchNftMetadataFromIndexer,
@@ -53,12 +54,14 @@ import { receiptsToAnnounce } from "src/utils/history/txDirection"
 import { Notify } from "quasar";
 import { useSettingsStore } from './settingsStore'
 import { useIdentitiesStore } from "./identitiesStore"
+import { useAppLockStore } from "./appLockStore"
 import { useWalletconnectStore } from "./walletconnectStore"
 import { useCashconnectStore } from "./cashconnectStore"
 import { useWizardconnectStore, removeWizardConnectSessions } from "./wizardconnectStore"
-import { ActionableError, displayAndLogError, isQuotaExceededError } from "src/utils/errorHandling"
+import { ActionableError, CancelledError, displayAndLogError, isQuotaExceededError } from "src/utils/errorHandling"
 import { broadcastErrorMessage, classifyBroadcastError } from "src/utils/wallet/broadcastErrors"
 import { cachedFetch, isFreshLookup } from "src/utils/cacheUtils"
+import { GithubReleaseSchema } from "src/utils/zodValidation"
 import { pruneDeletedWalletCaches, getAllWalletsWithNetworkInfo, type WalletInfo } from "src/utils/wallet/dbUtils"
 import { appNetworkOf, appNetworks, dappsAvailableOn, libraryNetwork, storedAppNetwork, walletDbName, type AppNetwork } from "src/utils/wallet/networks"
 import { removeEmptyChipnetCopy } from "src/utils/wallet/tiedWallets"
@@ -87,6 +90,9 @@ import {
   loadFrozenAddresses,
   saveFrozenAddress,
   deleteFrozenAddress,
+  loadPinnedAddresses,
+  savePinnedAddress,
+  deletePinnedAddress,
   deriveFreshAddressIndex
 } from "src/utils/wallet/addressManagement"
 import {
@@ -214,6 +220,8 @@ export const useStore = defineStore('store', () => {
   const storedReservations = ref({} as ReservedUtxos);
   // HD addresses whose every coin is held back, the ones they receive later included
   const frozenAddresses = ref([] as string[]);
+  // Receive addresses the user keeps in use, listed apart and never handed out as the fresh one
+  const pinnedAddresses = ref([] as string[]);
   // Private labels on the wallet's coins, keyed by outpoint (see utils/wallet/utxoLabels.ts)
   const utxoLabels = ref({} as UtxoLabels);
   const tokenList = ref(null as (TokenList | null))
@@ -222,10 +230,9 @@ export const useStore = defineStore('store', () => {
   const pendingTokenSearch = ref(undefined as (undefined | string));
   // Address whose transactions the history narrows to, set from the addresses page
   const pendingHistorySearch = ref(undefined as (undefined | string));
-  // Settings section to open, set from outside the settings view. The settings view opens it and
-  // clears it again.
-  const pendingSettingsSection = ref(undefined as (undefined | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8));
   const currentBlockHeight = ref(undefined as (number | undefined));
+  // the timestamp (seconds) in the header of that block, as the server reports it
+  const currentBlockTimestamp = ref(undefined as (number | undefined));
   // Token metadata of the wallet's categories. Every fetch fills this one object, adding a category
   // only when it is missing (storeUtils); a reset or an indexer change replaces it, so a late reply
   // fills an object nothing reads any more
@@ -233,6 +240,8 @@ export const useStore = defineStore('store', () => {
   // Set once the opening fetch for the held tokens has landed. The views wait on this rather than on
   // the registries, which a smaller fetch, such as the history's, can start filling first
   const tokenMetadataLoaded = ref(false);
+  // The categories a metadata lookup has come back for, with metadata, without, or failed
+  const answeredMetadataCategories = ref(new Set<string>());
   const cauldronPrices = ref<Record<string, CauldronPriceData> | null>(null);
   // Cauldron liquidity pools owned by the wallet, null until the portfolio view looks them up
   const cauldronPools = ref<CauldronPool[] | null>(null);
@@ -263,6 +272,14 @@ export const useStore = defineStore('store', () => {
   // Computed properties
   const network = computed(() => appNetworkOf(wallet.value.network))
   const explorerUrl = computed(() => settingsStore.explorer[network.value]);
+  // The txid goes after the explorer's path and before any query it carries, which Selene's
+  // explorer uses to pick the network (?network=chipnet)
+  function explorerTxUrl(txid: string) {
+    const [path, query] = explorerUrl.value.split('?');
+    let txUrl = `${path}/${txid}`;
+    if (query) txUrl += `?${query}`;
+    return txUrl;
+  }
 
   // Access to the wallet without a null check at every call site: throws rather than hand out
   // null. Read-only, so replacing the wallet goes through _wallet.
@@ -345,30 +362,34 @@ export const useStore = defineStore('store', () => {
   }
 
   // What the receive address skips: the frozen addresses, a payment to which could not be spent
-  // from here, and the marked ones while marking is on
+  // from here, the pinned ones, which are already given out, and the marked ones
   function skippedReceiveAddresses() {
-    if (!settingsStore.enableAddressMarking) return frozenAddresses.value;
-    return [...addressMarks.value, ...frozenAddresses.value];
+    return [...frozenAddresses.value, ...pinnedAddresses.value, ...addressMarks.value];
   }
 
-  // Index of the receive address shown on the wallet page. For HD wallets this skips the marked
-  // and frozen addresses; undefined for single-address wallets and when every address in the
+  // Index of the receive address shown on the wallet page. For HD wallets this skips the marked,
+  // pinned and frozen addresses; undefined for single-address wallets and when every address in the
   // discovery window is skipped, which marking and freezing refuse to bring about but another
   // open tab doing so at the same time still can
   const currentAddressIndex = computed(() => {
     // rawHistory and walletCache below sit outside Vue reactivity, walletUtxos is the
     // signal that they advanced (see walletHasAddress)
     void walletUtxos.value;
-    // marks are kept but ignored while the setting is off, so with nothing frozen the wallet
-    // hands out the same address it would have without either feature
-    if (!settingsStore.enableAddressMarking && !frozenAddresses.value.length) return undefined;
-    const index = freshReceiveIndex(skippedReceiveAddresses());
-    if (index !== undefined || !settingsStore.enableAddressMarking) return index;
-    // with every address in the window skipped, a marked one is still better than a frozen one
+    // with nothing marked, frozen or pinned the pick is the library's, the address the wallet
+    // would hand out without these features
+    const skippedAddresses = skippedReceiveAddresses();
+    if (!skippedAddresses.length) return undefined;
+    const index = freshReceiveIndex(skippedAddresses);
+    if (index !== undefined) return index;
+    // with every address in the window skipped, a marked or pinned one is still better than a frozen one
     return freshReceiveIndex(frozenAddresses.value);
   })
 
+  // Reads walletUtxos itself: when the pick is left to the library
+  // currentAddressIndex stays undefined across a receive, and a computed whose value did not
+  // change notifies no one
   const currentDepositAddress = computed(() => {
+    void walletUtxos.value;
     const activeWallet = _wallet.value;
     if (!activeWallet) return "";
     if (activeWallet instanceof HDWallet && currentAddressIndex.value !== undefined) {
@@ -378,12 +399,8 @@ export const useStore = defineStore('store', () => {
   })
 
   const currentTokenDepositAddress = computed(() => {
-    const activeWallet = _wallet.value;
-    if (!activeWallet) return "";
-    if (activeWallet instanceof HDWallet && currentAddressIndex.value !== undefined) {
-      return activeWallet.getTokenDepositAddress(currentAddressIndex.value);
-    }
-    return activeWallet.getTokenDepositAddress();
+    if (!currentDepositAddress.value) return "";
+    return toTokenAddress(currentDepositAddress.value);
   })
 
   // Filtered token list based on display filter setting
@@ -476,6 +493,11 @@ export const useStore = defineStore('store', () => {
   });
 
   const canGoBack = computed(() => viewStack.length > 1);
+  // back to the view this one was opened from, as the browser's back button goes
+  function goBack() {
+    if (canGoBack.value) history.back();
+    else changeView(1);
+  }
 
   // The provider of each network's electrum servers, which fails over between them itself (the
   // library's createFailoverProvider). It is also the library's global provider of that network,
@@ -487,6 +509,8 @@ export const useStore = defineStore('store', () => {
   const replacedProviders = new Set<ElectrumNetworkProvider>();
   // The server each network's provider is on, for the messages that name it
   const electrumServerInUse = reactive<Partial<Record<AppNetwork, string>>>({});
+  // Whether that server's connection is lost for now, the provider waiting for it or moving on
+  const electrumConnectionLost = reactive<Partial<Record<AppNetwork, boolean>>>({});
 
   // `fresh` makes a new one for an unchanged choice too, which connects only once it is used
   function providerForSelectedServer(network: AppNetwork, fresh = false): Promise<ElectrumNetworkProvider> {
@@ -505,9 +529,18 @@ export const useStore = defineStore('store', () => {
         electrumServerInUse[network] = server;
         if (mode === 'automatic') saveLastGoodElectrumServer(network, server);
       },
+      onConnectionChange: (connected) => {
+        if (selectedProviders[network]?.provider !== provider) return;
+        electrumConnectionLost[network] = !connected;
+      },
     };
     // a test network's hashrate is too erratic for a gap between blocks to say anything about the server
     if (network === 'mainnet') options.staleTipSeconds = STALE_TIP_SECONDS;
+    // dev builds only, for the regtest e2e suite: its local chain answers as chipnet and can never
+    // reach chipnet's checkpoint, so the library's chain check is skipped
+    if (import.meta.env.QUASAR_DEV && network === 'chipnet' && localStorage.getItem('devSkipChainCheck') === 'true') {
+      options.chain = false;
+    }
     const provider = createFailoverProvider(libraryNetwork(network), urls, options)
       .then((made) => {
         setGlobalProvider(libraryNetwork(network), made);
@@ -515,6 +548,7 @@ export const useStore = defineStore('store', () => {
       });
     selectedProviders[network] = { choice, provider };
     delete electrumServerInUse[network];
+    delete electrumConnectionLost[network];
     // one that cannot be made is not kept, so the next call tries again; its rejection reaches
     // whoever awaits it, and is no unhandled rejection otherwise
     provider.catch(() => {
@@ -578,6 +612,7 @@ export const useStore = defineStore('store', () => {
     addressLabels.value = loadAddressLabels(newNetwork, newWallet.name);
     storedReservations.value = loadReservedUtxos(newNetwork, newWallet.name);
     frozenAddresses.value = loadFrozenAddresses(newNetwork, newWallet.name);
+    pinnedAddresses.value = loadPinnedAddresses(newNetwork, newWallet.name);
     utxoLabels.value = loadUtxoLabels(newNetwork, newWallet.name);
     identitiesStore.loadForWallet(newNetwork, newWallet.name);
   }
@@ -614,7 +649,7 @@ export const useStore = defineStore('store', () => {
   function markAddressUsed(address: string) {
     const activeWallet = wallet.value;
     if (!(activeWallet instanceof HDWallet)) return;
-    const freshIndexAfterMark = freshReceiveIndex([...addressMarks.value, ...frozenAddresses.value, address]);
+    const freshIndexAfterMark = freshReceiveIndex([...skippedReceiveAddresses(), address]);
     if (freshIndexAfterMark === undefined) {
       Notify.create({
         message: t('addressManagement.markLimitNotify'),
@@ -636,10 +671,36 @@ export const useStore = defineStore('store', () => {
     addressMarks.value = deleteAddressMark(network.value, wallet.value.name, address);
   }
 
+  // Pinning takes a receive address out of the rotation, so like marking it refuses to leave no
+  // fresh address inside the discovery window. Returns whether it was pinned.
+  function pinAddress(address: string) {
+    const freshBefore = freshReceiveIndex(skippedReceiveAddresses());
+    const freshAfter = freshReceiveIndex([...skippedReceiveAddresses(), address]);
+    if (freshBefore !== undefined && freshAfter === undefined) {
+      Notify.create({
+        message: t('addressManagement.pinLimitNotify'),
+        icon: 'warning',
+        color: "red"
+      })
+      return false;
+    }
+    try {
+      pinnedAddresses.value = savePinnedAddress(network.value, wallet.value.name, address);
+    } catch (error) {
+      notifyIfStorageFull(error);
+      throw error;
+    }
+    return true;
+  }
+
+  function unpinAddress(address: string) {
+    pinnedAddresses.value = deletePinnedAddress(network.value, wallet.value.name, address);
+  }
+
   // A frozen address keeps receiving, but every coin on it is held back like a reserved one,
   // including the ones it receives later. Like marking, freezing refuses to leave no fresh receive
-  // address in the discovery window; marks are left out of that count, since the receive address
-  // falls back to a marked one before it would to a frozen one. Returns whether it was frozen.
+  // address in the discovery window; marks and pins are left out of that count, since the receive
+  // address falls back to one of those before it would to a frozen one. Returns whether it was frozen.
   async function freezeAddress(address: string) {
     const freshBefore = freshReceiveIndex(frozenAddresses.value);
     const freshAfter = freshReceiveIndex([...frozenAddresses.value, address]);
@@ -824,9 +885,8 @@ export const useStore = defineStore('store', () => {
         maxFractionDigits = 0;
       }
       const currencyValue = await convert(amountInUnit, settingsStore.bchUnit, settingsStore.currency);
-      const formattedAmount = amountInUnit.toLocaleString("en-US", { maximumFractionDigits: maxFractionDigits })
-      const formattedCurrencyValue = currencyValue.toLocaleString("en-US", { maximumFractionDigits: 2 });
-      const formattedFiat = formattedCurrencyValue + CurrencySymbols[settingsStore.currency]
+      const formattedAmount = formatNumber(amountInUnit, maxFractionDigits)
+      const formattedFiat = formatFiatAmount(currencyValue, settingsStore.currency)
       Notify.create({
         type: 'positive',
         message: t('store.notifications.receivedBch', {
@@ -883,6 +943,7 @@ export const useStore = defineStore('store', () => {
     const cancelBlocks = await wallet.value.watchBlocks(header => {
       if (initialization !== currentInitialization) return;
       currentBlockHeight.value = header.height;
+      currentBlockTimestamp.value = decodeHeader(header).timestamp;
       // a test network's hashrate is too erratic for a gap between blocks to say anything about the server
       if (network.value === 'mainnet') warnIfServerTipStale(header);
     }, false);
@@ -961,9 +1022,9 @@ export const useStore = defineStore('store', () => {
     // electrum server change keeps the same wallet, which would otherwise be left spending them
     pendingTokenSearch.value = undefined;
     pendingHistorySearch.value = undefined;
-    pendingSettingsSection.value = undefined;
     tokenList.value = null;
     bcmrRegistries.value = {};
+    answeredMetadataCategories.value = new Set();
     tokenMetadataLoaded.value = false;
     queriedHistoryCategories = [];
     cauldronPrices.value = null;
@@ -978,6 +1039,7 @@ export const useStore = defineStore('store', () => {
     isHistoryPartial.value = false;
     walletTxids.value = new Set();
     currentBlockHeight.value = undefined;
+    currentBlockTimestamp.value = undefined;
     dismissStaleServerWarning?.();
     dismissStaleServerWarning = undefined;
 
@@ -1066,6 +1128,9 @@ export const useStore = defineStore('store', () => {
   interface SwitchWalletResult {
     success: true;
     networkChanged?: AppNetwork; // Set if network was changed to accommodate wallet
+    // Set when a wallet with a mainnet side was opened on the test network switched from, where its
+    // name stands for another row than the one the wallet list usually opens
+    keptTestNetwork?: AppNetwork;
   }
 
   async function switchWallet(walletName: string): Promise<SwitchWalletResult> {
@@ -1073,11 +1138,12 @@ export const useStore = defineStore('store', () => {
     const currentNetwork = storedAppNetwork();
 
     // The network follows the wallet: it opens on its own network, mainnet for an older wallet
-    // that also has its chipnet copy, which opens only from the developer settings
+    // that also has its chipnet copy. A switch made from chipnet stays there when the wallet has a
+    // chipnet side, so a developer moving between such wallets is not sent back to mainnet.
     // (availableWallets may be stale, loadExistingWallet below re-checks IndexedDB)
     let targetNetwork = currentNetwork;
     const walletInfo = availableWallets.value.find(w => w.name === walletName);
-    if (walletInfo?.networks[0]) {
+    if (walletInfo?.networks[0] && !walletInfo.networks.includes(currentNetwork)) {
       targetNetwork = walletInfo.networks[0];
     }
 
@@ -1088,6 +1154,9 @@ export const useStore = defineStore('store', () => {
     await activateWallet(newWallet, targetNetwork);
     if (targetNetwork !== currentNetwork) {
       return { success: true, networkChanged: targetNetwork };
+    }
+    if (targetNetwork !== 'mainnet' && walletInfo?.networks.includes('mainnet')) {
+      return { success: true, keptTestNetwork: targetNetwork };
     }
     return { success: true };
   }
@@ -1317,23 +1386,7 @@ export const useStore = defineStore('store', () => {
       if (count < 0) allHistoryLoaded = initialization;
       // a full load is complete by definition, and a merged one is kept so until the next open
       isHistoryPartial.value = !merge && count > 0 && history.length < rawHistory.length;
-      // Fetch metadata for history tokens no longer in the wallet, so their names, icons
-      // and decimals still display. Fire-and-forget: history renders right away and the
-      // metadata fills in reactively. Held tokens are left to the wallet's own fetch: while that is
-      // loading, this category-only answer could land after it and drop their NFTs' metadata.
-      const missingCategories: string[] = [];
-      for (const tx of history) {
-        for (const tokenChange of tx.tokenAmountChanges) {
-          const category = tokenChange.category;
-          if (bcmrRegistries.value?.[category] || queriedHistoryCategories.includes(category)) continue;
-          if (allTokenList.value?.some(token => token.category === category)) continue;
-          queriedHistoryCategories.push(category);
-          missingCategories.push(category);
-        }
-      }
-      if (missingCategories.length) {
-        void fetchTokenMetadata(missingCategories.map(category => ({ category, amount: 0n })), false);
-      }
+      fetchHistoryTokenMetadata(history);
       return history;
     } catch(error){
       console.error(error)
@@ -1344,6 +1397,26 @@ export const useStore = defineStore('store', () => {
         icon: 'warning',
         color: "red"
       })
+    }
+  }
+
+  // Fetch metadata for history tokens no longer in the wallet, so their names, icons
+  // and decimals still display. Fire-and-forget: history renders right away and the
+  // metadata fills in reactively. Held tokens are left to the wallet's own fetch: while that is
+  // loading, this category-only answer could land after it and drop their NFTs' metadata.
+  function fetchHistoryTokenMetadata(history: TransactionHistoryItem[]) {
+    const missingCategories: string[] = [];
+    for (const tx of history) {
+      for (const tokenChange of tx.tokenAmountChanges) {
+        const category = tokenChange.category;
+        if (bcmrRegistries.value?.[category] || queriedHistoryCategories.includes(category)) continue;
+        if (allTokenList.value?.some(token => token.category === category)) continue;
+        queriedHistoryCategories.push(category);
+        missingCategories.push(category);
+      }
+    }
+    if (missingCategories.length) {
+      void fetchTokenMetadata(missingCategories.map(category => ({ category, amount: 0n })), false);
     }
   }
 
@@ -1420,7 +1493,15 @@ export const useStore = defineStore('store', () => {
 
   // Fetch token metadata from BCMR indexer
   async function fetchTokenMetadata(tokenList: TokenList, fetchNftInfo: boolean) {
-    await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, tokenMetadataIndexer.value, bcmrRegistries.value);
+    const registries = bcmrRegistries.value;
+    try {
+      await fetchTokenMetadataFromIndexer(tokenList, fetchNftInfo, tokenMetadataIndexer.value, registries);
+    } finally {
+      // an answer for registries replaced meanwhile says nothing about the new ones
+      if (registries === bcmrRegistries.value) {
+        for (const token of tokenList) answeredMetadataCategories.value.add(token.category);
+      }
+    }
   }
 
   // The opening fetch, for every token the wallet holds
@@ -1435,9 +1516,12 @@ export const useStore = defineStore('store', () => {
   // Before the wallet's coins are read, the initialization's own load covers it.
   function reloadTokenMetadata() {
     bcmrRegistries.value = {};
+    answeredMetadataCategories.value = new Set();
     tokenMetadataLoaded.value = false;
     queriedHistoryCategories = [];
-    if (allTokenList.value) void loadTokenMetadata();
+    if (!allTokenList.value) return;
+    void loadTokenMetadata();
+    if (walletHistory.value) fetchHistoryTokenMetadata(walletHistory.value);
   }
 
   // Fetch BCH exchange rate for fiat display
@@ -1757,9 +1841,9 @@ export const useStore = defineStore('store', () => {
       const response = await fetch('https://api.github.com/repos/cashonize/cashonize-wallet/releases/latest');
       if (!response.ok) throw new Error('Network response was not ok');
 
-      const releaseData = await response.json();
+      const releaseData: unknown = await response.json();
       // Extract the version tag (e.g. 'v0.2.4')
-      latestGithubRelease.value = releaseData.tag_name;
+      latestGithubRelease.value = GithubReleaseSchema.parse(releaseData).tag_name;
       console.log(latestGithubRelease.value)
     } catch (error) {
       console.error('Error fetching latest GitHub release:', error);
@@ -1920,9 +2004,11 @@ export const useStore = defineStore('store', () => {
       async () => ({ txId: await wallet.value.submitTransaction(hexToBin(transaction)) }),
       afterBroadcast,
     );
-    Notify.create({ type: 'positive', message: t('store.notifications.broadcastAgainSent', { txId }) });
-    await updateWalletUtxos();
-    void updateWalletHistory();
+    // The same dialog a first broadcast ends on, which shortens the txid and links the explorer.
+    // Loaded on use, as it brings a component along that the store's own imports stay free of.
+    const { handleTransactionBroadcastSuccess } = await import('src/utils/txHelpers');
+    const sentMessage = t('store.notifications.broadcastAgainSent');
+    await handleTransactionBroadcastSuccess(sentMessage, txId, sentMessage);
   }
 
   // A spend that names one specific coin, an NFT transfer or burn, cannot fall back on another the
@@ -1958,13 +2044,28 @@ export const useStore = defineStore('store', () => {
     return response;
   }
 
+  // With the app lock on, a spend asks for its PIN first; backing out ends the spend quietly. A
+  // spend right after another does not ask again, so that a run of them, BCH split off several
+  // token coins say, is one prompt.
+  const spendPinGraceMs = 15_000;
+  let spendPinConfirmedAt = 0;
+  async function confirmSpendPin() {
+    if (Date.now() - spendPinConfirmedAt > spendPinGraceMs) {
+      const confirmed = await useAppLockStore().confirmPin();
+      if (!confirmed) throw new CancelledError();
+    }
+    spendPinConfirmedAt = Date.now();
+  }
+
   const spend = {
     // An NFT send names its coins in ensureUtxos: matched by commitment alone, a mutable NFT spent
     // elsewhere since it was shown would be minted anew off the category's minting NFT
     async send(requests: SendRequestType, ensureUtxos: Utxo[] = [], afterBroadcast?: AfterBroadcast, holdBack?: HoldBack) {
+      await confirmSpendPin();
       return spendExplained(() => wallet.value.send(requests, { ...spendExclusions(), ensureUtxos }), afterBroadcast, holdBack);
     },
     async sendMax(cashaddr: string) {
+      await confirmSpendPin();
       return spendExplained(() => wallet.value.sendMax(cashaddr, spendExclusions()));
     },
     // the library takes the first vout-0 BCH coin of the pool it is handed as the genesis input,
@@ -1975,6 +2076,7 @@ export const useStore = defineStore('store', () => {
       genesisRequest: TokenGenesisRequest,
       sendRequests?: SendRequestType | SendRequestType[]
     ) {
+      await confirmSpendPin();
       const outpoint = outpointOf(genesisInput);
       const allUtxos = await wallet.value.getUtxos();
       const spendable = filterSpendableUtxos(allUtxos);
@@ -1988,9 +2090,11 @@ export const useStore = defineStore('store', () => {
     // tokenMint and tokenBurn locate their token input themselves, the minting NFT and the burned
     // coins included, and leave the excluded coins out of that too
     async tokenMint(mintRequests: TokenMintRequest | TokenMintRequest[]) {
+      await confirmSpendPin();
       return spendExplained(() => wallet.value.tokenMint(mintRequests, spendExclusions()));
     },
     async tokenBurn(burnRequest: TokenBurnRequest, message?: string) {
+      await confirmSpendPin();
       return spendExplained(() => wallet.value.tokenBurn(burnRequest, message, spendExclusions()));
     },
     async getMaxAmountToSend() {
@@ -2007,6 +2111,7 @@ export const useStore = defineStore('store', () => {
       categoryUtxos: Utxo[] = [],
       options: { tokenOperation?: 'send' | 'mint' } = {},
     ) {
+      await confirmSpendPin();
       const identitiesStore = useIdentitiesStore();
       // only the token coins the operation asked for, so a supply operation cannot sweep the
       // circulating balance into its own change; the other reservations stay excluded on top, a
@@ -2053,6 +2158,7 @@ export const useStore = defineStore('store', () => {
     // Cancelling a pledge is this coin sent back to the wallet's own deposit address, which
     // makes the signed pledge the campaign holds unusable
     async releaseReservedCoin(utxo: Utxo) {
+      await confirmSpendPin();
       return sendSingleCoin(utxo, currentDepositAddress.value);
     },
 
@@ -2060,6 +2166,7 @@ export const useStore = defineStore('store', () => {
     // campaign holds a signed pledge against it, so cancelling the pledge is its only release.
     // An 'auth' reserved coin passes deliberately, transferring an identity is this same spend.
     async sendUtxo(utxo: Utxo, cashaddr: string) {
+      await confirmSpendPin();
       if (reservedUtxos.value[outpointOf(utxo)] === 'pledge') {
         throw new Error(t('store.errors.cannotSendPledgedUtxo'));
       }
@@ -2125,18 +2232,22 @@ export const useStore = defineStore('store', () => {
     frozenLockingBytecodes,
     freezeAddress,
     unfreezeAddress,
+    pinnedAddresses,
+    pinAddress,
+    unpinAddress,
     setAddressLabel,
     walletInitFailed,
     pendingTokenSearch,
-    pendingSettingsSection,
     pendingHistorySearch,
     dappConnectionStoresInitDone,
     latestGithubRelease,
     network,
     explorerUrl,
+    explorerTxUrl,
     chaingraph,
     bcmrRegistries,
     tokenMetadataLoaded,
+    answeredMetadataCategories,
     reloadTokenMetadata,
     cauldronPrices,
     cauldronPools,
@@ -2147,11 +2258,14 @@ export const useStore = defineStore('store', () => {
     announcedAssetsError,
     exchangeRate,
     currentBlockHeight,
+    currentBlockTimestamp,
     canGoBack,
+    goBack,
     changeView,
     setWallet,
     selectElectrumProvider,
     electrumServerInUse,
+    electrumConnectionLost,
     validateElectrumServer,
     initializeWallet,
     resetWalletState,

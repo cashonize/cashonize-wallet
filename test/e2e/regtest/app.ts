@@ -2,15 +2,17 @@
 // proxy in front of the regtest Fulcrum.
 
 import { expect, type Page } from '@playwright/test'
-import { CASHONIZE_URL, addChipnetWallet } from '../helpers'
+import { CASHONIZE_URL, addChipnetWallet, expectReceiveAddress } from '../helpers'
 import { APP_ELECTRUM_SERVER } from './chain'
 
 // The app's chipnet server is the regtest one from the first load on, with any other settings.
-// The chipnet token metadata indexer knows none of the chain's tokens, so it is not asked.
+// The chipnet token metadata indexer knows none of the chain's tokens, so it is not asked. The
+// chain is far below chipnet's checkpoint, so the dev build's switch for the chain check is set.
 async function pointAppAtRegtest(page: Page, settings: Record<string, string>) {
   await page.route('https://bcmr-chipnet.paytaca.com/**', route => route.abort())
   await page.addInitScript(({ server, settings }) => {
     localStorage.setItem('electrum-chipnet', server)
+    localStorage.setItem('devSkipChainCheck', 'true')
     for (const [key, value] of Object.entries(settings)) localStorage.setItem(key, value)
   }, { server: APP_ELECTRUM_SERVER, settings })
 }
@@ -38,15 +40,16 @@ export async function openRegtestWallet(page: Page, options: WalletOptions = {})
   await addChipnetWallet(page, chipnetOptions)
 }
 
-// Switches the chipnet electrum server the way a user does: a custom server in the advanced settings
+// Switches the chipnet electrum server the way a user does: another custom server in the advanced
+// settings, which already show the single server mode with a custom one, as the app was opened on
 export async function switchChipnetServer(page: Page, server: string) {
-  await page.locator('nav img[src*="settings"]').click()
+  await page.locator('nav').getByLabel('Menu').click()
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
   await page.getByText('Advanced settings').click()
-  await page.locator('div:has(> label:text-is("Electrum server chipnet:")) > select').selectOption('custom')
   const input = page.getByPlaceholder('e.g. 127.0.0.1 or fulcrum.example.com:443')
   await input.fill(server)
   await input.press('Enter')
-  await expect(page.locator('.depositAddr').first()).toHaveText(/^bchtest:/, { timeout: 30_000 })
+  await expectReceiveAddress(page, /^bchtest:/)
 }
 
 // Adds and opens another chipnet wallet
@@ -54,17 +57,37 @@ export async function addWallet(page: Page, name: string, walletType: 'single' |
   await addChipnetWallet(page, { walletName: name, walletType })
 }
 
+// Reads an address off the receive page, which shows one form at a time, and leaves the wallet
+// page open again on the plain form
+async function receiveAddress(page: Page, form: 'bch' | 'token'): Promise<string> {
+  await page.getByRole('button', { name: 'Receive', exact: true }).click()
+  const addressForms = page.locator('.type-filter button')
+  const expectedPrefix = form === 'bch' ? /^bchtest:q/ : /^bchtest:z/
+  await addressForms.nth(form === 'bch' ? 0 : 1).click()
+  await expect(page.locator('.depositAddr')).toHaveText(expectedPrefix, { timeout: 30_000 })
+  const address = (await page.locator('.depositAddr').innerText()).trim()
+  await addressForms.first().click()
+  await page.getByRole('button', { name: 'Back' }).click()
+  return address
+}
+
 export async function depositAddress(page: Page): Promise<string> {
-  return (await page.locator('.depositAddr').first().innerText()).trim()
+  return receiveAddress(page, 'bch')
 }
 
 export async function tokenDepositAddress(page: Page): Promise<string> {
-  return (await page.locator('.depositAddr').nth(1).innerText()).trim()
+  return receiveAddress(page, 'token')
+}
+
+// The send form, opened from the wallet page
+export async function openSendForm(page: Page) {
+  await page.locator('nav').getByText('Wallet', { exact: true }).click()
+  await page.getByRole('button', { name: 'Send', exact: true }).click()
 }
 
 // The wallet's balance line in tBCH, e.g. "0.001 tBCH"
 export async function expectBalance(page: Page, tbch: string) {
-  await expect(page.getByText(`${tbch} tBCH`, { exact: false }).first()).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.balance')).toContainText(`${tbch} tBCH`, { timeout: 30_000 })
 }
 
 // Confirms a payment when the app asks for it (the "Confirm payments" setting), or else goes on once
@@ -97,8 +120,9 @@ export async function broadcastTxid(page: Page): Promise<string> {
   return txid
 }
 
-// Sends BCH from the Wallet tab, confirming the payment when the app asks, and returns the txid
+// Sends BCH from the send form, confirming the payment when the app asks, and returns the txid
 export async function sendBch(page: Page, address: string, tbch: string): Promise<string> {
+  await openSendForm(page)
   await page.locator('input[name="addressInput"]').fill(address)
   await page.locator('input[name="currencyInput"]').fill(tbch)
   await page.locator('input.primaryButton[type="button"]').click()

@@ -8,7 +8,7 @@
 </script>
 
 <template>
-  <div class="scanner-box" ref="box">
+  <div class="scanner-box">
     <div class="scan-layout-design">
       <div class="scan-design1">
         <div class="line-design1"></div>

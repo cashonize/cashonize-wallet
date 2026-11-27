@@ -23,7 +23,7 @@ describe('the setting that follows the identities of held tokens', () => {
     storage.clear()
     vi.stubGlobal('localStorage', storage)
     // the store reads the dark-mode media query and listens for the app being installed
-    vi.stubGlobal('window', { matchMedia: () => ({ matches: false }), addEventListener: () => {} })
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: false, addEventListener: () => {} }), addEventListener: () => {} })
     setActivePinia(createPinia())
   })
 
@@ -54,7 +54,7 @@ describe('the default wallet name', () => {
   beforeEach(() => {
     storage.clear()
     vi.stubGlobal('localStorage', storage)
-    vi.stubGlobal('window', { matchMedia: () => ({ matches: false }), addEventListener: () => {} })
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: false, addEventListener: () => {} }), addEventListener: () => {} })
     setActivePinia(createPinia())
   })
 
@@ -69,5 +69,51 @@ describe('the default wallet name', () => {
 
     expect(useSettingsStore().getBackupStatus('mywallet')).toBe('verified')
     expect(storage.getItem('seedBackedUp')).toBeNull()
+  })
+})
+
+describe('the retired option to mark addresses as used', () => {
+  // the migration looks for the marks by their keys, so here the stored values are the storage's
+  // own properties, as they are on the browser's
+  class KeyedStorage {
+    [key: string]: unknown
+    getItem(key: string) { return Object.hasOwn(this, key) ? this[key] as string : null }
+    setItem(key: string, value: string) { this[key] = value }
+    removeItem(key: string) { delete this[key] }
+  }
+  let keyed: KeyedStorage
+
+  beforeEach(() => {
+    keyed = new KeyedStorage()
+    vi.stubGlobal('localStorage', keyed)
+    vi.stubGlobal('window', { matchMedia: () => ({ matches: false, addEventListener: () => {} }), addEventListener: () => {} })
+    setActivePinia(createPinia())
+    keyed.setItem('addressMarks-mainnet-mywallet', '["bitcoincash:qq"]')
+    keyed.setItem('addressLabels-mainnet-mywallet', '{}')
+  })
+
+  // marks were ignored while the option was off, and would otherwise start moving the receive
+  // address on their own now that they always apply
+  it('drops the marks that were being ignored with the option off', () => {
+    keyed.setItem('enableAddressMarking', 'false')
+    useSettingsStore()
+
+    expect(keyed.getItem('addressMarks-mainnet-mywallet')).toBeNull()
+    expect(keyed.getItem('addressLabels-mainnet-mywallet')).toBe('{}')
+    expect(keyed.getItem('enableAddressMarking')).toBeNull()
+  })
+
+  it('keeps the marks of a wallet that had the option on', () => {
+    keyed.setItem('enableAddressMarking', 'true')
+    useSettingsStore()
+
+    expect(keyed.getItem('addressMarks-mainnet-mywallet')).toBe('["bitcoincash:qq"]')
+    expect(keyed.getItem('enableAddressMarking')).toBeNull()
+  })
+
+  it('leaves marks alone once the option is gone from storage', () => {
+    useSettingsStore()
+
+    expect(keyed.getItem('addressMarks-mainnet-mywallet')).toBe('["bitcoincash:qq"]')
   })
 })

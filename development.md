@@ -68,7 +68,7 @@ Unit testing is done with [Vitest](https://vitest.dev/). Vitest is configured in
 pnpm test
 ```
 
-`pnpm test:coverage` runs them once with v8 coverage of the TypeScript in `src/` (not the `.vue` components): a summary in the terminal and an HTML report in `coverage/lcov-report/`. CI runs it too. Read it as a signal of what is untested, not a target; there are no thresholds.
+`pnpm test:coverage` runs them once with v8 coverage of the TypeScript in `src/` (not the `.vue` components): a summary in the terminal and an HTML report in `coverage/lcov-report/`. Read it as a signal of what is untested, not a target; there are no thresholds.
 
 ### Refresh the Chaingraph schema
 
@@ -108,7 +108,7 @@ There is a test dapp for WalletConnect E2E tests in `test/e2e/test-dapp` with it
 
 `pnpm test:e2e:regtest` runs the app against a fresh local regtest chain instead of public chipnet, with no faucet or funded seed phrase needed. It needs local [BCHN](https://bitcoincashnode.org/) and [Fulcrum](https://github.com/cculianu/Fulcrum) binaries, at `~/BCH-infra/bchn/bin/bitcoind` and `~/BCH-infra/fulcrum/Fulcrum` or wherever `BITCOIND_PATH` and `FULCRUM_PATH` point, and `ss`, `curl` and `openssl`, which the start script and the per-run certificate use. Each run starts its chain in `~/BCH-infra/regtest-cashonize-e2e` (old runs stay until removed) and stops it afterwards.
 
-The app runs in chipnet mode against that chain, through a proxy that maps its `bchtest:` addresses to the chain's `bchreg:` ones. The proxy runs as two instances, one over `ws://` and one over `wss://` with a self-signed certificate, so a test can switch the app between servers from the settings form, and it reports what each instance saw. The tests fund the wallet from coinbases mined to a test key and mine blocks as they need them.
+The app runs in chipnet mode against that chain, through a proxy that maps its `bchtest:` addresses to the chain's `bchreg:` ones. The proxy runs as two instances, one over `ws://` and one over `wss://` with a self-signed certificate, so a test can switch the app between servers from the settings form, and it reports what each instance saw. The chain is far below chipnet's checkpoint, so the suite sets `devSkipChainCheck` in localStorage, which makes a dev build skip the library's chain check for chipnet; production builds have no such switch. The tests fund the wallet from coinbases mined to a test key and mine blocks as they need them.
 
 The suite tests what a user does with the wallet; how transactions are built (coin selection, change, fees, token conservation) is tested in the library. A known bug can go in as a test of the right behavior marked `test.fail()`: it keeps the suite green, and once the bug is fixed the test starts passing, which fails the run until its `test.fail()` is removed and it moves to `regressions.test.ts`, which holds the bugs fixed since.
 

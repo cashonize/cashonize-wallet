@@ -5,12 +5,13 @@
   import { storeToRefs } from 'pinia';
   import { useI18n } from 'vue-i18n'
   import { useStore } from 'src/stores/store'
+  import { menuSectionViewBase } from 'src/stores/constants'
   import { useWalletconnectStore } from 'src/stores/walletconnectStore'
   import { useCashconnectStore } from 'src/stores/cashconnectStore';
   import { useWizardconnectStore } from 'src/stores/wizardconnectStore';
   import { waitForInitialized } from 'src/utils/utils'
   import { confirmDialog } from 'src/utils/txHelpers'
-  import { isWalletConnectUri, isCashConnectUri, isWizardConnectUri } from 'src/utils/dapp/dappUri';
+  import { isWalletConnectUri, isCashConnectUri, isWizardConnectUri, isScannableDappUri } from 'src/utils/dapp/dappUri';
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
   import QrScanButton from './qr/qrScanButton.vue';
 
@@ -113,9 +114,8 @@
       t('dapp.wizardConnectNeedsHd.goButton')
     );
     if (!goToManageWallets) return;
-    // Manage wallets is settings section 5
-    store.pendingSettingsSection = 5;
-    store.changeView(5);
+    // Manage wallets is section 5 of the menu page
+    store.changeView(menuSectionViewBase + 5);
   }
 
   // Handle Props.
@@ -149,18 +149,7 @@
   const qrDecode = async (content: string) => {
     await connectDappUriInput(content)
   }
-  const qrFilter = (content: string) => {
-    const matchWalletConnect = String(content).match(/^wc:([0-9a-fA-F]{64})@(\d+)\?([a-zA-Z0-9\-._~%!$&'()*+,;=:@/?=&]*)$/i);
-    const matchCashConnect = isCashConnectUri(content);
-    // WizardConnect QR codes use an uppercased, percent-escaped alphanumeric-mode form
-    // (WIZ://%3FP%3D...), so only the scheme is matched here; the full URI is validated on pairing
-    const matchWizardConnect = String(content).match(/^wiz:\/\//i);
-
-    if (!matchWalletConnect && !matchCashConnect && !matchWizardConnect) {
-      return t('dapp.errors.notValidUri');
-    }
-    return true;
-}
+  const qrFilter = (content: string) => isScannableDappUri(content) || t('dapp.errors.notValidUri')
 </script>
 
 <template>

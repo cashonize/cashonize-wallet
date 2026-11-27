@@ -284,7 +284,7 @@ the place to use it once a configurable server offers it.
 - `src/utils/tools/tokenCreation.ts`: the genesis amounts and the coins a genesis can spend.
 - `src/utils/wallet/reservedUtxos.ts`, `src/utils/dapp/reservedInputs.ts`: what a
   reservation is, and how a dapp transaction is judged against it.
-- `src/components/settings/identitiesPage.vue`, `identityCard.vue`, `identityHistory.vue`,
+- `src/components/identities/identitiesPage.vue`, `identityCard.vue`, `identityHistory.vue`,
   `identityActions.ts`, `publicationLocations.vue`, `createTokens.vue`,
   `tokenCreationChoice.vue`, `tokenCreated.vue`, `genesisInputPicker.vue`,
   `src/components/general/identitiesFoundDialog.vue`.

@@ -45,7 +45,7 @@
 
 <template>
   <span class="headerLogo" @click="onLogoClick">
-    <img :src="settingsStore.darkMode ? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: a Bitcoin Cash Wallet">
+    <img :src="settingsStore.darkMode ? 'images/cashonize-logo-dark.png' : 'images/cashonize-logo.png'" alt="Cashonize: your gateway to BCH DeFi">
     <span
       v-for="(dot, index) in dots"
       :key="index"

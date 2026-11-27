@@ -10,12 +10,23 @@ function getInitialLocale(): string {
   return isSupportedLocale(browserLang) ? browserLang : defaultLocale;
 }
 
+// Russian counts in three forms (1, 2–4, 5+); a message written with two keeps vue-i18n's default
+function russianPlural(choice: number, choicesLength: number): number {
+  const count = Math.abs(choice);
+  if (choicesLength !== 3) return count === 1 ? 0 : 1;
+  if (count % 100 >= 11 && count % 100 <= 14) return 2;
+  if (count % 10 === 1) return 0;
+  if (count % 10 >= 2 && count % 10 <= 4) return 1;
+  return 2;
+}
+
 // Starts in English; the boot below switches to the chosen language once its messages are loaded
 export const i18n = createI18n<[MessageSchema], string, false>({
   legacy: false,  // Composition API mode
   locale: defaultLocale,
   fallbackLocale: defaultLocale,
-  messages: { [defaultLocale]: defaultMessages }
+  messages: { [defaultLocale]: defaultMessages },
+  pluralRules: { ru: russianPlural },
 });
 
 // the last language asked for, so a slow load cannot override a later pick

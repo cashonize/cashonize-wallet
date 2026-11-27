@@ -45,15 +45,16 @@ A wallet is created or imported on one network: mainnet by default, or a test ne
 or testnet4, from the developer settings ("Add development wallet"). The network follows the
 wallet: the wallet list opens a wallet on its own network, mainnet for a name with rows on both
 mainnet and chipnet (a tied wallet, below, or a chipnet wallet of another seed that early versions
-made under the same name), whose chipnet side opens from the developer settings. There is no
+made under the same name), whose chipnet side opens from the developer settings, or from the
+wallet list when the wallet switched from is open on chipnet. There is no
 network switch of its own. A wallet name belongs to one wallet across all networks, since the
 wallet type, backup status and other settings are keyed by the name alone.
 
 Everything per network goes over `appNetworks`: the wallet list, cache pruning, deletion and the
 per-wallet localStorage keys, the electrum providers, and the per-network settings (electrum
-server and mode, explorer, Chaingraph, token metadata indexer), which settingsStore keeps as one
-entry per network under the keys mainnet and chipnet always had. A network gets what it has a
-backend for: testnet4 has electrum servers and explorers, but no token metadata indexer, Cauldron
+server and mode, explorer, Chaingraph, token metadata and Cauldron indexers), which settingsStore
+keeps as one entry per network under the keys mainnet and chipnet always had. A network gets what
+it has a backend for: testnet4 has electrum servers and explorers, but no token metadata indexer, Cauldron
 or CashTokens Studio, so those are off there, and no Chaingraph instance by default. It also
 makes no dApp connections: WalletConnect and CashConnect name a test network only by its bchtest
 prefix and WizardConnect only by its xpub version, so a dApp could not tell it from chipnet.

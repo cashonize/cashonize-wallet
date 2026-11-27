@@ -3,12 +3,10 @@ import { cachedFetch } from "../cacheUtils";
 import { useSettingsStore } from "src/stores/settingsStore";
 import type { AppNetwork } from "src/utils/wallet/networks";
 
-// The chipnet indexer is not user-configurable, it is the only one serving chipnet
-const CAULDRON_INDEXER_CHIPNET = "https://indexer-chipnet.riften.net";
-// Minimum pool liquidity for a price to be used. Chipnet pools are orders of
+// Minimum pool liquidity for a price to be used. Test network pools are orders of
 // magnitude smaller than mainnet ones, so mainnet's 1 BCH would reject them all
 const MIN_LIQUIDITY_SATS_MAINNET = 100_000_000; // 1 BCH
-const MIN_LIQUIDITY_SATS_CHIPNET = 1_000_000; // 0.01 tBCH
+const MIN_LIQUIDITY_SATS_TEST_NETWORK = 1_000_000; // 0.01 tBCH
 const CAULDRON_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export interface CauldronPriceData {
@@ -17,16 +15,21 @@ export interface CauldronPriceData {
   hasSufficientLiquidity: boolean;
 }
 
-// Fetch prices for multiple tokens; none on a network without a Cauldron indexer (testnet4)
+// Whether the network has a Cauldron indexer set: by default mainnet and chipnet
+export function cauldronAvailableOn(network: AppNetwork): boolean {
+  return useSettingsStore().cauldronIndexer[network] !== "";
+}
+
+// Fetch prices for multiple tokens; none on a network without a Cauldron indexer
 export async function fetchCauldronPrices(
   tokenIds: string[],
   network: AppNetwork
 ): Promise<Record<string, CauldronPriceData>> {
   const results: Record<string, CauldronPriceData> = {};
-  if (network !== 'mainnet' && network !== 'chipnet') return results;
-  const isMainnet = network === 'mainnet';
-  const indexerUrl = isMainnet ? useSettingsStore().cauldronIndexer : CAULDRON_INDEXER_CHIPNET;
-  const minLiquiditySats = isMainnet ? MIN_LIQUIDITY_SATS_MAINNET : MIN_LIQUIDITY_SATS_CHIPNET;
+  if (!cauldronAvailableOn(network)) return results;
+  const indexerUrl = useSettingsStore().cauldronIndexer[network];
+  let minLiquiditySats = MIN_LIQUIDITY_SATS_TEST_NETWORK;
+  if (network === 'mainnet') minLiquiditySats = MIN_LIQUIDITY_SATS_MAINNET;
 
   const fetchPromises = tokenIds.map(async (tokenId) => {
     try {
@@ -34,7 +37,7 @@ export async function fetchCauldronPrices(
         `${indexerUrl}/cauldron/valuelocked/${tokenId}`,
         CAULDRON_CACHE_TTL_MS
       );
-      const json = await response.json();
+      const json: unknown = await response.json();
       const parsed = CauldronValueLockedSchema.safeParse(json);
       if (!parsed.success) {
         console.error(`Cauldron validation error for ${tokenId}:`, parsed.error);

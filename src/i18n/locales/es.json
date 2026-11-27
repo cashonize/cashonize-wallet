@@ -13,7 +13,10 @@
     },
     "errors": {
       "somethingWentWrong": "Algo salió mal",
-      "commaInAmount": "Usa un punto (.) para los decimales, sin separadores de miles",
+      "amountInvalid": "Escribe el importe en cifras, con como máximo un separador decimal",
+      "amountGrouping": "Escribe el importe sin separadores de miles ni espacios",
+      "amountAmbiguous": "Este importe se puede leer de dos maneras: escribe los miles sin separador, como 1000, y los decimales como {example} (o elige tu formato de números en Menú → Configuración → Localización)",
+      "amountWholeOnly": "Escribe un número entero, sin separadores",
       "needToInitializeWallet": "Necesitas inicializar una billetera primero",
       "exchangeRateUnavailable": "No se pudo obtener el tipo de cambio, rechazando la solicitud de la dApp",
       "nothingToTransfer": "No queda BCH ni tokens para transferir",
@@ -28,7 +31,6 @@
       }
     },
     "attention": "Atención:",
-    "backToSettings": "Volver a las configuraciones",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Esto combina entradas de todas tus direcciones, vinculándolas públicamente como una sola billetera, lo que sacrifica los beneficios de privacidad de usar una billetera HD.",
     "copied": "¡Copiado!",
@@ -43,7 +45,17 @@
     "addresses": "Direcciones",
     "tokens": "Tokens",
     "history": "Historial",
-    "connect": "Conectar"
+    "connect": "Conectar",
+    "menu": "Menú"
+  },
+  "networkBadge": {
+    "intro": "Esta billetera está en {network}, una red de prueba: sus monedas no tienen valor.",
+    "unavailableHeading": "No disponible en {network}:",
+    "unavailable": {
+      "tokenMetadata": "Metadatos de tokens (nombres, iconos, decimales)",
+      "cauldronPrices": "Precios de tokens de Cauldron",
+      "dappConnections": "Conexiones con dApps"
+    }
   },
   "walletUtils": {
     "errors": {
@@ -56,7 +68,7 @@
       "enterSeedPhrase": "Ingresa una frase de recuperación para importar la billetera",
       "fixInvalidWords": "Por favor corrige las palabras inválidas en tu frase de recuperación",
       "invalidSeedPhrase": "Frase de recuperación no válida",
-      "convertTiedCopy": "La billetera \"{name}\" también tiene una copia en {network}. Primero elimina su copia de chipnet en Configuración > Configuración de desarrollador y luego conviértela.",
+      "convertTiedCopy": "La billetera \"{name}\" también tiene una copia en {network}. Primero elimina su copia de chipnet en Menú > Configuración > Configuración de desarrollador y luego conviértela.",
       "cannotConvert": "La billetera \"{name}\" no está guardada como una billetera de dirección única convertible, así que no se cambió nada",
       "conversionRunning": "La billetera ya se está convirtiendo",
       "failedToConvert": "Error al convertir la billetera \"{name}\"",
@@ -96,7 +108,7 @@
     "notifications": {
       "receivedBch": "Recibido {amount} {unit} ({fiatValue})",
       "receivedTokens": "Recibido nuevo {tokenType}",
-      "broadcastAgainSent": "La transacción {txId} fue transmitida"
+      "broadcastAgainSent": "La transacción fue transmitida"
     },
     "errors": {
       "chipnetCopyChanged": "La copia de chipnet de {name} cambió desde que se comprobó, así que no se quitó nada.",
@@ -134,10 +146,10 @@
   "onboarding": {
     "welcome": {
       "title": "Bienvenido a Cashonize",
-      "description": "Una billetera de Bitcoin Cash fácil de usar, con enfoque en CashTokens y dApps de BCH.",
+      "description": "Una billetera de Bitcoin Cash fácil de usar, de código abierto y sin custodia.",
       "featureSendReceive": "Envía y recibe BCH y CashTokens",
-      "featureWalletConnect": "Conéctate a dApps mediante WalletConnect, CashConnect o WizardConnect",
-      "featureOpenSource": "Código abierto y sin custodia",
+      "featureDapps": "Conéctate a cualquier dApp de BCH y mira lo que hace antes de firmar",
+      "featurePortfolio": "Mira tus BCH, tokens y posiciones DeFi valorados en conjunto",
       "aboutPrompt": "¿Nuevo en Cashonize? {link}",
       "aboutLinkText": "Conoce más sobre la billetera →"
     },
@@ -145,7 +157,7 @@
       "title": "Crear nueva billetera",
       "description": "Comienza con una billetera nueva en segundos",
       "button": "Crear nueva billetera",
-      "seedPhraseNote": "Se generará una nueva frase semilla. Haz un respaldo para asegurar tu billetera.",
+      "seedPhraseNote": "Se generará una nueva frase semilla. Solo tú la tienes, así que haz un respaldo para asegurar tu billetera.",
       "submitButton": "Crear billetera"
     },
     "import": {
@@ -178,22 +190,21 @@
         "cad": "CAD - Dólar canadiense",
         "aud": "AUD - Dólar australiano",
         "chf": "CHF - Franco suizo",
-        "brl": "BRL - Real brasileño"
+        "brl": "BRL - Real brasileño",
+        "mxn": "MXN - Peso mexicano",
+        "ars": "ARS - Peso argentino",
+        "rub": "RUB - Rublo ruso"
       },
-      "darkMode": "Modo oscuro",
-      "confirmPayments": "Confirmar pagos antes de enviar",
-      "confirmPaymentsHint": "Pedir confirmación después de hacer clic en enviar (recomendado)",
       "finishButton": "Finalizar configuración"
     }
   },
   "wallet": {
-    "balance": "Saldo en {currency}:",
-    "address": "Dirección {network}:",
-    "tokenAddress": "Dirección de token:",
-    "send": "Enviar {network}:",
+    "selectAsset": "Elige qué enviar",
+    "selectAssetHint": "Bitcoin Cash o un token fungible que tenga esta billetera",
     "addressPlaceholder": "dirección",
     "amountPlaceholder": "monto",
-    "max": "máx",
+    "available": "Disponible: {amount}",
+    "useMax": "usar máximo",
     "notEnoughBch": "No hay suficiente BCH en la billetera para enviar",
     "sendingTransaction": "Enviando transacción...",
     "sent": "Enviado {amount} a {address}",
@@ -211,7 +222,11 @@
       "notCashaddress": "No es una cashaddress en la red actual",
       "legacyAddress": "Las direcciones legacy se ven igual que las direcciones de Bitcoin (BTC). CashAddr es el formato de dirección estándar en BCH. Si estás seguro de que es una dirección BCH, conviértela con el conversor de direcciones en las herramientas de billetera."
     },
-    "reservedBalance": "Retenido: {amount}"
+    "tokenValueAtCauldron": "Valor al precio de Cauldron:",
+    "reservedBalance": "Retenido: {amount}",
+    "hideBalances": "Ocultar saldos",
+    "showBalances": "Mostrar saldos",
+    "balancesHidden": "Los saldos están ocultos."
   },
   "portfolio": {
     "title": "Portafolio",
@@ -225,6 +240,7 @@
     "checkingHodlContracts": "Buscando contratos hodl",
     "checkingTapswapListings": "Buscando anuncios en TapSwap",
     "smallBalances": "Saldos pequeños ({count})",
+    "groupCount": "{count} posiciones",
     "tapswapListings": "Anuncios en TapSwap ({count})",
     "askingPrice": "Precio de venta",
     "manageListings": "Gestiona tus anuncios en {link}.",
@@ -286,7 +302,6 @@
     "searchPlaceholder": "Buscar tokens..."
   },
   "tokenItem": {
-    "name": "Nombre:",
     "tokenId": "TokenId:",
     "amount": "Cantidad:",
     "commitment": "Commitment:",
@@ -327,21 +342,22 @@
       "unfavoriteToken": "Quitar de favoritos"
     },
     "info": {
-      "tokenDescription": "Descripción del token:",
-      "nftDescription": "Descripción del NFT:",
-      "tokenSymbol": "Símbolo del token:",
-      "numberOfDecimals": "Número de decimales:",
-      "tokenWebLink": "Enlace web del token:",
+      "showFull": "Mostrar la descripción completa",
+      "showLess": "Mostrar menos",
+      "symbol": "Símbolo",
+      "decimals": "Decimales",
+      "website": "Sitio web",
+      "notHttps": "no es un enlace seguro (https)",
+      "type": "Tipo",
+      "commitment": "Commitment",
       "seeDetailsOnExplorer": "Ver en TokenExplorer",
-      "nftType": "Tipo de NFT:",
       "immutable": "inmutable",
       "mutable": "mutable",
       "minting": "de acuñación",
       "nftTypeValue": "NFT {capability}",
-      "nftCommitment": "Commitment del NFT:",
       "nftAttributes": "Atributos del NFT",
-      "extensionNote": "Datos del préstamo obtenidos de la blockchain:",
-      "parsedFields": "Datos NFT analizados:",
+      "extensionNote": "Datos del préstamo obtenidos de la blockchain",
+      "parsedFields": "Datos NFT analizados",
       "numberNfts": "Número de NFTs:",
       "field": "Campo {index}",
       "blockHeight": "Bloque {height}"
@@ -445,9 +461,7 @@
       "insufficientBalance": "Saldo de tokens insuficiente",
       "invalidAddress": "Se proporcionó una dirección BCH inválida",
       "notTokenAddress": "No es una dirección de token (debe comenzar con z...)",
-      "invalidNumberFormat": "Formato de número inválido",
       "enterValidAmount": "Ingresa un monto positivo válido",
-      "noDecimalsAllowed": "Este token no permite decimales",
       "maxDecimalsAllowed": "Este token solo permite hasta {decimals} decimales",
       "differentTokenRequest": "Esta solicitud de pago es para un token diferente",
       "amountMustBeInteger": "La cantidad de tokens a quemar debe ser un número entero válido",
@@ -490,6 +504,8 @@
     "loading": "Cargando historial de transacciones",
     "loadingFailed": "Error al cargar el historial de transacciones",
     "noTransactions": "No hay transacciones en esta billetera",
+    "recentActivity": "Actividad reciente",
+    "recentHidden": "Oculto junto con tus saldos",
     "title": "Historial de transacciones",
     "transactionCount": "{count} Transacciones",
     "options": "Opciones",
@@ -511,7 +527,7 @@
     "showBalance": "Mostrar saldo después de la transacción",
     "exportCsv": "Exportar CSV",
     "exportFailed": "Error al exportar CSV",
-    "searchPlaceholder": "Buscar token, dirección o id de tx...",
+    "searchPlaceholder": "Buscar en el historial...",
     "noMatch": "Ninguna transacción coincide con el filtro",
     "sent": "Enviado",
     "received": "Recibido",
@@ -587,6 +603,12 @@
     "cancel": "Cancelar"
   },
   "backupWallet": {
+    "reminder": {
+      "title": "Esta billetera no está respaldada",
+      "text": "Anota su frase semilla: es la única forma de recuperar tus fondos si este dispositivo o sus datos se pierden.",
+      "backupNow": "Respaldar ahora",
+      "later": "Recordármelo más tarde"
+    },
     "currentWallet": "Billetera actual:",
     "seedPhrase": {
       "title": "Frase semilla de la billetera",
@@ -704,6 +726,7 @@
       "buttonTitle": "Eliminar billetera"
     },
     "switchedNetwork": "Cambiado a {network} para la billetera \"{name}\"",
+    "switchedOnTestNetwork": "Cambiado a \"{name}\" en {network}",
     "switchFailed": "Error al cambiar de billetera: {error}"
   },
   "convertToHd": {
@@ -809,7 +832,6 @@
       "note": "La reserva se queda en el UTXO de la identidad; emítela después desde la página de identidades."
     },
     "errors": {
-      "invalidAmount": "Escribe las cantidades como número de tokens, p. ej. 1000 o 0.5.",
       "overMaxSupply": "Eso es más de lo que un token puede contener. El máximo es {max}.",
       "overSupply": "Eso es más que el suministro total.",
       "invalidDecimals": "Los decimales deben ser un número entero de 0 a 18.",
@@ -901,18 +923,8 @@
       "title": "Resumen: UTXOs de tokens por categoría",
       "empty": "Esta billetera no tiene UTXOs de tokens."
     },
-    "fungibleList": {
-      "title": "UTXOs de tokens fungibles",
-      "empty": "Esta billetera no tiene UTXOs de tokens fungibles."
-    },
-    "nftList": {
-      "title": "UTXOs de NFTs",
-      "empty": "Esta billetera no tiene UTXOs de NFTs."
-    },
-    "ftNftList": {
-      "title": "UTXOs de tokens fungibles + NFT",
-      "empty": "Esta billetera no tiene UTXOs que contengan a la vez una cantidad fungible y un NFT."
-    },
+    "searchPlaceholder": "Buscar UTXOs...",
+    "noMatch": "Ningún UTXO coincide con tu búsqueda",
     "reservedSummary": "{count} UTXO retenido, fuera de tu saldo disponible | {count} UTXOs retenidos, fuera de tu saldo disponible",
     "reservedTokenSummary": "{count} UTXO de token retenido, fuera de cada transferencia que hace esta app | {count} UTXOs de token retenidos, fuera de cada transferencia que hace esta app",
     "freeze": {
@@ -953,7 +965,6 @@
       "oneUtxo": "solo 1"
     },
     "combined": {
-      "title": "UTXOs combinados de BCH + Tokens",
       "description": "Algunas dApps devuelven UTXOs que combinan BCH con tokens, causando que el BCH no aparezca en tu saldo.",
       "warningCount": "{count} UTXO con BCH + Tokens combinados | {count} UTXOs con BCH + Tokens combinados",
       "warningCountSingle": "{count} UTXO con BCH + Tokens combinados",
@@ -961,7 +972,6 @@
       "splittableAmount": "Tienes {bch} BCH que se pueden separar de los UTXOs de tokens.",
       "nftNote": "Nota: Esta herramienta solo puede separar BCH de UTXOs de tokens fungibles, no de NFTs.",
       "viewAffected": "Ver UTXOs afectados",
-      "noIssues": "No tienes tales UTXOs",
       "splittingButton": "Separando...",
       "splitButton": "Separar BCH de tokens"
     },
@@ -977,7 +987,11 @@
       "label": "Etiqueta",
       "address": "Dirección",
       "utxoCount": "UTXOs",
-      "bchHeld": "BCH retenido"
+      "bchHeld": "BCH retenido",
+      "tokenId": "Id del token",
+      "commitment": "Commitment",
+      "outpoint": "Outpoint",
+      "outpointHint": "El id de transacción y el número de salida (txid:vout) que identifican este UTXO"
     },
     "notifications": {
       "consolidating": "Consolidando UTXOs de BCH...",
@@ -987,14 +1001,31 @@
       "somethingWentWrong": "algo salió mal"
     }
   },
+  "networkStatus": {
+    "title": "Estado de la red",
+    "description": "El servidor Electrum al que está conectada esta billetera. La billetera confía en lo que informa y no lo verifica.",
+    "block": "Bloque {height}",
+    "electrumHeading": "Conexión Electrum",
+    "server": "Servidor:",
+    "status": "Estado:",
+    "connected": "Conectado",
+    "connecting": "Conectando…",
+    "reconnecting": "Conexión perdida, reconectando…",
+    "mode": "Modo de servidor:",
+    "blockHeight": "Altura de bloque:",
+    "latestBlock": "Último bloque:",
+    "seeOnExplorer": "Ver en el explorador de bloques",
+    "changeServer": "Cambiar servidor"
+  },
   "aboutCashonize": {
     "title": "Acerca de Cashonize",
-    "description": "Cashonize es una billetera de Bitcoin Cash fácil de usar y multiplataforma.",
+    "description": "Tu puerta de entrada a CashTokens y al DeFi de Bitcoin Cash.",
     "tagline": "Código abierto · Sin custodia · Desde 2023",
     "learnMore": "Visita el sitio web de Cashonize",
     "downloadPage": "Visita la página de descargas de Cashonize",
     "viewSource": "Ver el código fuente",
     "followOnX": "Sigue las novedades en X",
+    "joinTelegram": "Únete en Telegram",
     "logoHintTaps": "¿Te aburres? Dale unos toques rápidos al logo.",
     "logoHintClicks": "Psst... prueba a hacer clic en el logo varias veces."
   },
@@ -1009,7 +1040,10 @@
     "change": "Cambio",
     "usedAddresses": "Usadas",
     "unusedAddresses": "Sin usar",
+    "pinnedAddresses": "Fijadas",
     "noAddresses": "Aún no se han escaneado direcciones",
+    "searchPlaceholder": "Buscar direcciones...",
+    "noMatch": "Ninguna dirección coincide con la búsqueda",
     "options": "Opciones",
     "hideZeroBalances": "Ocultar saldos en cero",
     "showTokenAddresses": "Mostrar direcciones en formato de token",
@@ -1027,19 +1061,20 @@
     "markAddressUsedAction": "Marcar dirección como usada y mostrar una nueva",
     "unmarkAddressUsed": "Desmarcar como usada",
     "markedTag": "marcada como usada",
-    "markAddressUsedNote": "Las direcciones anteriores siguen funcionando. Puedes desmarcar direcciones en la página de Direcciones HD.",
     "markedUsedNotify": "Dirección marcada como usada",
     "markLimitNotify": "No se puede marcar esta dirección, una dirección nueva debe seguir disponible. Recibe un pago para liberar más.",
     "markingIntro": "Las direcciones de recepción se pueden marcar como usadas después de compartirlas.",
     "markedInfo": "Una dirección que compartiste sigue sin usar hasta que llega un pago, así que la billetera sigue entregando la misma. Marcarla como usada pasa a la siguiente dirección, para que cada pagador reciba una distinta.",
     "unmarkInfo": "Las direcciones marcadas se agrupan con las direcciones usadas, donde puedes desmarcarlas.",
-    "freezeOption": "Mostrar botones de congelar",
-    "freezeOptionLocked": "Descongela todas las direcciones para desactivar esto",
+    "moreActions": "Más acciones",
     "frozenTag": "congelada",
     "frozenTagInfo": "Sigue recibiendo pagos, pero ya no se muestra como tu dirección de recepción",
     "freezeAddress": "Congelar dirección",
     "unfreezeAddress": "Descongelar dirección",
     "freezeLimitNotify": "No se puede congelar esta dirección, una dirección nueva debe seguir disponible. Recibe un pago para liberar más.",
+    "pinAddress": "Fijar dirección",
+    "unpinAddress": "Desfijar dirección",
+    "pinLimitNotify": "No se puede fijar esta dirección, una dirección nueva debe seguir disponible. Recibe un pago para liberar más.",
     "freeze": {
       "title": "Congelar esta dirección",
       "message": "Los UTXO de una dirección congelada permanecen en tu billetera, pero esta app los deja fuera de todos los pagos y transferencias de tokens y rechaza las solicitudes de dApps que los gasten, incluidos los UTXO que la dirección reciba más adelante. Puedes descongelarla en esta página en cualquier momento.\n\nCongelar solo se aplica aquí: si usas esta frase semilla en otra aplicación de billetera, congela también allí la misma dirección.",
@@ -1131,8 +1166,14 @@
       "ownAddress": "El destino es una dirección de esta misma billetera"
     }
   },
+  "receive": {
+    "title": "Recibir",
+    "bchAddressHint": "Tu dirección de BCH. Cambia a Tokens para recibir CashTokens.",
+    "tokenAddressHint": "Tu dirección de token, para recibir CashTokens.",
+    "copyAddress": "Copiar dirección",
+    "requestAmount": "Solicitar una cantidad"
+  },
   "requestPayment": {
-    "title": "Crear solicitud de pago",
     "description": "Crea una solicitud de pago para compartir con quien te va a pagar.",
     "descriptionToken": "Crea una solicitud de un token fungible para compartir con quien te va a pagar.",
     "bip21Hint": "Las solicitudes de pago en BCH usan BIP21, un estándar de URI de larga data que las billeteras de BCH admiten ampliamente.",
@@ -1155,7 +1196,6 @@
     "selectTokenPrompt": "Selecciona un token para solicitar",
     "messageLabel": "Mensaje (opcional):",
     "messagePlaceholder": "Nota para quien paga, como un número de factura",
-    "payToLabel": "Pagar a:",
     "selectAddress": "Seleccionar entre las direcciones de la billetera",
     "selectAddressHint": "Elige a qué dirección solicitar el pago",
     "requesting": "Solicitando {amount}",
@@ -1205,6 +1245,109 @@
       "addressNotInWallet": "Firmar requiere una dirección de la billetera activa"
     }
   },
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "description": "Respuestas breves sobre Bitcoin Cash y sobre cómo funciona Cashonize.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "¿Qué pasa si borro los datos del navegador o pierdo este dispositivo?",
+          "answer": "Tu billetera se guarda solo en este navegador. Borrar los datos del sitio en el navegador la elimina, igual que perder el dispositivo. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en el menú."
+        },
+        "mobile": {
+          "question": "¿Qué pasa si pierdo el teléfono o desinstalo la app?",
+          "answer": "Tu billetera se guarda solo en este teléfono. Perder el teléfono o desinstalar la app significa perder la billetera. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en el menú."
+        },
+        "desktop": {
+          "question": "¿Qué pasa si mi ordenador se estropea o lo cambio?",
+          "answer": "Tu billetera se guarda solo en este ordenador. Si el ordenador se pierde, se estropea o se borra, la billetera se va con él. La frase semilla es la única forma de recuperarla: nadie puede restablecerla ni recuperarla por ti, tampoco Cashonize. Anótala ahora, en «Respaldar billetera» en el menú."
+        }
+      },
+      "twoAddresses": {
+        "question": "Recibir tiene una dirección de BCH y una de token. ¿Cuál debo dar?",
+        "answer": "Son dos formas de la misma dirección. Si te fijas, solo cambian el primer carácter y los ocho últimos: ambas apuntan al mismo lugar de la blockchain, con las mismas claves detrás. La dirección de token (empieza por z) indica al remitente que tu billetera admite CashTokens, así que dásela a quien te envíe tokens o NFT. Para BCH normal da siempre la normal (empieza por q): los exchanges y las billeteras sin soporte de tokens solo aceptan esa forma. Recibir se abre con la dirección de BCH; el selector «Tokens» que tiene encima muestra la dirección de token."
+      },
+      "addressChanged": {
+        "question": "Mi dirección de recepción cambió. ¿Sigue funcionando la que ya compartí?",
+        "answer": "Sí. Una billetera HD muestra una dirección nueva después de cada pago, por privacidad, pero todas las anteriores siguen siendo tuyas y siguen funcionando. Una billetera de dirección única muestra siempre la misma."
+      },
+      "bchForTokens": {
+        "question": "Solo tengo tokens. ¿Por qué necesito BCH para enviarlos?",
+        "answer": "Toda transacción paga una pequeña comisión en BCH, también cuando solo mueve tokens. Una cantidad muy pequeña de BCH alcanza para muchos envíos. Pide que te lo envíen a tu dirección BCH normal."
+      },
+      "tokenSupport": {
+        "question": "¿Puedo enviar tokens a una dirección BCH normal?",
+        "answer": "No, para enviar tokens se pide una dirección de token (empieza por z). Esa forma se introdujo para que el remitente sepa que la billetera receptora admite CashTokens. Los tokens enviados a una billetera sin ese soporte no se destruyen, pero esa billetera no puede verlos ni enviarlos. Por ahora ningún exchange admite CashTokens, así que no envíes tokens a uno. Si tienes la certeza de que la billetera receptora admite CashTokens pero solo tienes su dirección normal, el Conversor de direcciones te da la forma de token."
+      },
+      "imposterToken": {
+        "question": "¿Cómo detecto un token impostor?",
+        "answer": "Cualquiera puede crear un token y ponerle el nombre y el icono que quiera, así que un nombre o logotipo conocido no prueba nada. Lo que identifica a un token es su id de token, que no se puede copiar. Compara el id de token que muestra la billetera con el de una fuente de confianza fuera de la billetera, como el sitio web oficial del emisor. Un token sin nombre ni imagen no es falso solo por eso: su creador simplemente no publicó metadatos."
+      },
+      "tokenValue": {
+        "question": "¿Por qué mi token no muestra ningún valor?",
+        "answer": "Los valores de los tokens vienen de Cauldron, el principal exchange de CashTokens: no existe un precio oficial. Solo se muestra un valor en mainnet, y solo cuando los pools de Cauldron del token suman al menos 1 BCH, porque el precio de un mercado más pequeño es fácil de mover. El valor es una estimación al precio actual del pool, y al vender se puede obtener menos, sobre todo con una cantidad grande. Los valores se pueden desactivar en la configuración de tokens."
+      },
+      "utxos": {
+        "question": "¿Qué es un UTXO y por qué una dApp me pide consolidar?",
+        "answer": "Tu saldo está formado por monedas separadas, llamadas UTXO, una por cada pago recibido. Algunas dApps necesitan una sola moneda lo bastante grande, aunque tu total alcance. Consolidar en Gestión de UTXO une tus monedas de BCH en una."
+      },
+      "dappConnections": {
+        "hd": {
+          "question": "¿Qué son WalletConnect, CashConnect y WizardConnect?",
+          "answer": "Son tres formas de conectar esta billetera a una dApp: una aplicación que prepara una transacción y le pide a la billetera que la firme. La dApp muestra un enlace o un código QR, y la página Conectar acepta las tres: pega el enlace o escanea el código, y la billetera reconoce cuál es. WalletConnect funciona con una sola dirección, así que eliges cuál de las direcciones de esta billetera recibe la dApp. WizardConnect está hecho para billeteras HD y permite que la dApp siga todas las direcciones de la billetera. CashConnect es un método de conexión hecho para Bitcoin Cash. Sea cual sea, cada solicitud se te muestra antes de firmar nada, salvo que hayas habilitado las aprobaciones automáticas para esa dApp."
+        },
+        "single": {
+          "question": "¿Qué son WalletConnect, CashConnect y WizardConnect?",
+          "answer": "Son tres formas de conectar esta billetera a una dApp: una aplicación que prepara una transacción y le pide a la billetera que la firme. La dApp muestra un enlace o un código QR, y la página Conectar acepta WalletConnect y CashConnect: pega el enlace o escanea el código, y la billetera reconoce cuál es. Cada solicitud se te muestra antes de firmar nada, salvo que hayas habilitado las aprobaciones automáticas para esa dApp. WizardConnect necesita una billetera HD: en Administrar billeteras puedes convertir esta billetera en una, con la misma frase semilla, conservando sus monedas, nombre y notas."
+        }
+      }
+    }
+  },
+  "appLock": {
+    "title": "Bloqueo de la app",
+    "on": "Activado",
+    "off": "Desactivado",
+    "description": "Protege Cashonize con un PIN.",
+    "askedWhen": "El PIN se pide",
+    "askOpen": "al abrir la app o al volver tras unos minutos fuera",
+    "askSpend": "antes de enviar y antes de firmar una transacción de una dApp",
+    "askSeed": "antes de mostrar la frase semilla",
+    "notEncryption": "El bloqueo de la app mantiene fuera de la billetera a quien tenga tu dispositivo desbloqueado. Bloquea la app; no cifra los datos de la billetera guardados en este dispositivo.",
+    "backupFirst": "Un PIN olvidado no se puede restablecer. Tendrías que borrar los datos de la app y restaurar con tus frases semilla, así que haz primero una copia de ellas.",
+    "notBackedUp": "Aún sin copia de seguridad: {wallets}. Si olvidas el PIN, una billetera sin copia se pierde.",
+    "backUpNow": "Hacer copia de esta billetera",
+    "choosePin": "Elige un PIN:",
+    "newPin": "PIN nuevo:",
+    "repeatPin": "Repite el PIN:",
+    "pinRule": "Un PIN tiene de {min} a {max} dígitos",
+    "pinMismatch": "Los dos PIN no coinciden",
+    "turnOn": "Activar el bloqueo de la app",
+    "turnOff": "Desactivar",
+    "changePin": "Cambiar PIN",
+    "lockNow": "Bloquear ahora",
+    "isOn": "El bloqueo de la app está activado.",
+    "turnedOn": "Bloqueo de la app activado",
+    "turnedOff": "Bloqueo de la app desactivado",
+    "pinChanged": "PIN cambiado",
+    "cancel": "Cancelar",
+    "pinPlaceholder": "PIN",
+    "lockedTitle": "Introduce tu PIN para abrir la billetera",
+    "unlockButton": "Desbloquear",
+    "confirmTitle": "Introduce tu PIN",
+    "confirmButton": "Confirmar",
+    "wrongPin": "PIN incorrecto",
+    "wrongPinTriesLeft": "PIN incorrecto. Queda {count} intento antes de la espera. | PIN incorrecto. Quedan {count} intentos antes de la espera.",
+    "tooManyAttempts": "Demasiados intentos fallidos. Inténtalo de nuevo en {time}.",
+    "forgotPin": "¿Olvidaste tu PIN?",
+    "forgotPinHint": "Un PIN no se puede restablecer. Borra los datos de esta app o sitio y luego restaura tus billeteras con sus frases semilla. Una billetera sin copia de seguridad se pierde.",
+    "usePin": "Usar PIN",
+    "useBiometrics": "Usar huella o rostro",
+    "lockedTitleBiometrics": "Desbloquear Cashonize",
+    "confirmTitleBiometrics": "Confirma que eres tú",
+    "biometricsSetupTitle": "Confirma para desbloquear con biometría",
+    "biometricsToggle": "Desbloquear con huella o rostro",
+    "biometricsTurnedOn": "Desbloqueo biométrico activado"
+  },
   "addressConverter": {
     "title": "Conversor de direcciones",
     "description": "Introduce una dirección para ver todas sus formas.",
@@ -1246,10 +1389,13 @@
     "bchAddress": "Código QR de la dirección de Bitcoin Cash",
     "tokenAddress": "Código QR de la dirección de token",
     "xpub": "Código QR del xpub",
-    "paymentRequest": "Código QR de la solicitud de pago"
+    "paymentRequest": "Código QR de la solicitud de pago",
+    "enlarge": "Mostrar el código QR a pantalla completa",
+    "size": "Tamaño del código QR"
   },
   "qrScanner": {
     "scanQrCode": "Escanear código QR",
+    "scan": "Escanear",
     "chooseImage": "Elegir imagen",
     "switchCamera": "Cambiar cámara",
     "noQrCodeInImage": "No se encontró código QR en la imagen",
@@ -1259,7 +1405,8 @@
       "nonSecureContext": "No se puede acceder a la cámara en contexto no seguro",
       "unableToAccess": "No se puede acceder a la cámara",
       "constraintsMismatch": "Las restricciones no coinciden con ninguna cámara instalada. ¿Pediste la cámara frontal aunque no hay ninguna?",
-      "unknownError": "Ocurrió un error desconocido"
+      "unknownError": "Ocurrió un error desconocido",
+      "nothingToDo": "No es una dirección de BCH, una solicitud de pago, una conexión de dApp ni una clave privada"
     }
   },
   "relativeTime": {
@@ -1367,6 +1514,9 @@
     "sessionSettings": {
       "title": "Administrar sesión",
       "enableAutoApprovals": "Habilitar aprobaciones automáticas",
+      "autoApprovalsHint": "Las solicitudes de firma de transacciones y mensajes de esta dApp se firman sin preguntar",
+      "autoApprovalsTrustHint": "Actívalo solo para una dApp en la que confíes, tras comprobar bien el dominio del sitio web",
+      "autoApprovalsLockedHint": "No mientras la app está bloqueada: una solicitud que llegue entonces espera tu aprobación tras el desbloqueo",
       "forever": "Para siempre",
       "for": "Por",
       "requests": "solicitudes",
@@ -1439,62 +1589,90 @@
     "version": "Versión de la app Cashonize: {version}",
     "latest": "(última)",
     "latestRelease": "(la última versión es {version})",
-    "allSettings": "Todas las configuraciones",
     "currentWallet": "Billetera actual:",
     "menu": {
       "backupWallet": "Respaldar billetera",
       "important": "(importante)",
       "manageWallets": "Administrar billeteras",
       "userOptions": "Opciones de usuario",
+      "userOptionsDescription": "Confirmar pagos, escaneo QR, BCH o sats, explorador de bloques",
+      "appearance": "Apariencia y diseño",
+      "appearanceDescription": "Tema, pestañas de navegación, código QR",
       "tokenSettings": "Configuración de tokens",
+      "tokenSettingsDescription": "Valores de tokens, iconos, quema, identidades",
       "localization": "Localización",
+      "localizationDescription": "Idioma, moneda, formato de fecha y de números",
       "advancedSettings": "Configuración avanzada",
+      "advancedSettingsDescription": "Servidores Electrum, IPFS, de tipo de cambio e indexadores",
       "dataAndStorage": "Datos y almacenamiento",
+      "dataAndStorageDescription": "Cachés, conexiones con dApps, restablecer, eliminar billeteras",
       "developerSettings": "Configuración de desarrollador",
+      "developerSettingsDescription": "Billeteras de prueba y funciones para desarrolladores",
       "tools": "Herramientas de billetera",
       "hdAddresses": "Direcciones HD",
-      "requestPayment": "Crear solicitud de pago",
       "utxoManagement": "Gestión de UTXO",
+      "utxoManagementDescription": "Ver, congelar, enviar o consolidar monedas individuales",
       "createTokens": "Crear token",
+      "createTokensDescription": "Crea un nuevo token fungible o una colección de NFT",
       "sweepPrivateKey": "Barrer clave privada",
+      "sweepPrivateKeyDescription": "Trae aquí los fondos de una billetera de papel o clave privada",
       "transferAllAssets": "Transferir todos los activos",
+      "transferAllAssetsDescription": "Envía todo lo de esta billetera a otra dirección",
       "signVerifyMessage": "Firmar / Verificar mensaje",
+      "signVerifyMessageDescription": "Demuestra que controlas una dirección o comprueba una firma",
       "exportXpub": "Exportar Xpub",
+      "exportXpubDescription": "La clave pública que muestra todas las direcciones de esta billetera",
       "addressConverter": "Conversor de direcciones",
+      "addressConverterDescription": "Ver una dirección en sus otros formatos",
+      "faq": "Preguntas frecuentes",
       "aboutCashonize": "Acerca de Cashonize",
       "flipstarter": "Flipstarter",
+      "flipstarterDescription": "Compromete fondos para una campaña de financiación colectiva",
       "identities": "Identidades",
-      "newCount": "({count} nueva) | ({count} nuevas)"
+      "identitiesDescription": "Las identidades de metadatos que esta billetera tiene o sigue",
+      "newCount": "({count} nueva) | ({count} nuevas)",
+      "tokenCreation": "Creación de tokens"
     },
     "localization": {
       "language": "Idioma:",
       "currency": "Moneda:",
       "dateFormat": "Formato de fecha:",
+      "numberFormat": "Formato de números:",
+      "numberFormatAuto": "Predeterminado del sistema ({example})",
       "languageLoadFailed": "No se pudo cargar este idioma. Comprueba tu conexión o recarga la página."
     },
     "userOptions": {
-      "darkMode": "Modo oscuro",
       "confirmPayments": "Confirmar pagos antes de enviar",
-      "confirmPaymentsHint": "Pedir confirmación después de hacer clic en enviar (recomendado)",
+      "confirmPaymentsHint": "Muestra el importe y la dirección para una última comprobación después de hacer clic en enviar. Recomendado, ya que un pago no se puede deshacer.",
       "showCauldronSwap": "Mostrar botón de Cauldron Swap",
       "showCauldronFTValue": "Mostrar valor en fiat en la lista de tokens",
-      "showCauldronFTValueHint": "Muestra el valor en fiat en la pestaña Tokens para tokens fungibles con al menos 1 BCH de liquidez combinada en los pools de Cauldron DEX",
+      "showCauldronFTValueHint": "Muestra el valor en fiat en la pestaña Tokens y al enviar, para tokens fungibles con al menos 1 BCH de liquidez combinada en los pools de Cauldron DEX",
       "showCauldronFTValuePortfolioNote": "La vista de portafolio siempre muestra los valores de los tokens",
       "enableTokenBurn": "Mostrar el botón de quemar en los tokens",
       "identitiesHeading": "Identidades (avanzado)",
       "enableQrScan": "Habilitar escaneo QR",
+      "enableQrScanHint": "Muestra Escanear en la página de la billetera y un botón de escaneo junto a los campos de dirección. El escáner también lee un código desde una imagen, así que funciona sin cámara.",
       "selectUnit": "Seleccionar unidad de Bitcoin Cash:",
       "bchUnit": "BCH",
       "satUnit": "satoshis",
       "blockExplorer": "Explorador de bloques:",
       "qrAnimation": "Animación de código QR:",
-      "tokenAddressQrDefault": "Mostrar el código QR de la dirección de token por defecto",
-      "enableAddressMarking": "Habilitar gestión avanzada de direcciones: marcar direcciones como usadas",
-      "enableAddressMarkingHint": "Marcar una dirección como usada hace que la billetera entregue la siguiente, así puedes dar una dirección nueva a cada pagador. Aplica a billeteras HD.",
       "bottomNavOnMobile": "Mostrar las pestañas de navegación abajo en pantallas pequeñas",
       "dappActivityInNav": "Mostrar el icono de actividad de dApps en la navegación superior",
-      "followTokenIdentities": "Seguir las identidades de los tokens que tienes",
-      "followTokenIdentitiesHint": "La lista de tokens que tienes se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivado por defecto: entonces solo se consulta la identidad de un token cuya AuthKey tiene esta billetera. Activarlo consulta todos los tokens que tienes en cada apertura de la billetera.",
+      "themeHeading": "Tema",
+      "themeSystem": "Predeterminado del sistema",
+      "themeLight": "Claro",
+      "themeDim": "Atenuado",
+      "themeDark": "Oscuro",
+      "walletPageHeading": "Página de la billetera",
+      "primaryBalance": "Saldo principal:",
+      "greenActionButtons": "Botones Recibir, Escanear y Enviar en verde",
+      "navigationHeading": "Navegación",
+      "qrHeading": "Código QR",
+      "addressesInNav": "Mostrar la pestaña Direcciones en la navegación superior",
+      "addressesInNavHint": "Para billeteras HD, en pantallas lo bastante anchas. Sin la pestaña, la página Direcciones se abre desde el menú ⋯.",
+      "followTokenIdentities": "Seguir las identidades de los tokens de esta billetera",
+      "followTokenIdentitiesHint": "La lista de tokens de esta billetera se envía al servidor Chaingraph como conjunto, para que la identidad de un token que llegue a esta billetera se note y quede retenida. Desactivado por defecto: entonces solo se consulta la identidad de un token cuya AuthKey tiene esta billetera. Activarlo consulta todos los tokens de la billetera en cada apertura de la billetera.",
       "allowDappIdentitySpends": "Permitir que las apps conectadas gasten UTXOs de identidad",
       "allowDappIdentitySpendsHint": "Apagado: una solicitud de WalletConnect o WizardConnect que gaste el UTXO de una identidad de esta billetera se rechaza, como un UTXO comprometido. Encendido: la solicitud llega al diálogo de aprobación, que nombra la identidad y dice qué lleva su UTXO antes y después. Una solicitud que sacara una identidad de esta billetera se rechaza en ambos casos. Las AuthKeys no se ven afectadas: una solicitud que usa una se firma cuando la AuthKey vuelve, que es como funciona CashTokens Studio.",
       "disableTokenIcons": "Deshabilitar carga de imágenes de tokens",
@@ -1529,6 +1707,8 @@
       "chaingraphNone": "Ninguno",
       "cauldronIndexer": "Indexador de Cauldron:",
       "cauldronIndexerHint": "Se usa para obtener precios de tokens del DEX Cauldron para el portafolio y la lista de tokens.",
+      "cauldronIndexerNone": "Ninguno",
+      "cauldronIndexerCustomPlaceholder": "ej. https://indexer.example.com",
       "exchangeRate": "Proveedor de tasa de cambio:",
       "exchangeRateDefault": "Predeterminado (bitcoin.com para USD, BitPay para el resto)",
       "deleteAllWallets": "Eliminar todas las billeteras y datos de {platform}",
@@ -1716,8 +1896,10 @@
     "ownedCount": "{count} identidad que esta billetera posee y gestiona | {count} identidades que esta billetera posee y gestiona",
     "watchedHeader": "{count} identidad solo observada, no la tiene esta billetera | {count} identidades solo observadas, no las tiene esta billetera",
     "follow": {
-      "header": "{count} identidad seguida de un token que tienes | {count} identidades seguidas de tokens que tienes",
-      "resolving": "Consultando las identidades de los tokens que tienes"
+      "header": "{count} identidad seguida de un token de esta billetera | {count} identidades seguidas de tokens de esta billetera",
+      "resolving": "Consultando las identidades de los tokens de esta billetera",
+      "searchPlaceholder": "Buscar identidades...",
+      "noMatch": "Ninguna identidad coincide con la búsqueda"
     },
     "unnamedIdentity": "Identidad sin nombre",
     "authheadLabel": "UTXO de la identidad:",

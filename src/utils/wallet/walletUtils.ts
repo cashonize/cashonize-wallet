@@ -490,6 +490,13 @@ export async function switchWalletWithNotice(walletName: string) {
         color: "grey-6"
       });
     }
+    if (result.keptTestNetwork) {
+      Notify.create({
+        message: t('walletsOverview.switchedOnTestNetwork', { network: result.keptTestNetwork, name: walletName }),
+        icon: 'info',
+        color: "grey-6"
+      });
+    }
   } catch (error) {
     Notify.create({
       message: t('walletsOverview.switchFailed', { error: error instanceof Error ? error.message : 'Unknown error' }),

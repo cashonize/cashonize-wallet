@@ -99,6 +99,8 @@ BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for authchain i
 
 Cashonize fetches token metadata from the Paytaca BCMR indexer (https://github.com/paytaca/bcmr-indexer) rather than importing full BCMR registry files. The `fetchTokenMetadata` function in `storeUtils.ts` handles this, and the codebase operates on the indexer's response types (`BcmrTokenMetadata`) directly, not full BCMR `Registry` objects. Like blockchain data (see Electrum Trust Model), token metadata is trusted as served: the token displays do not resolve or verify on-chain registries themselves. The indexer indexes token identities only (its identity records root at a token genesis and every route is keyed by category), so a BCH-only identity never enters it; the identities page resolves and verifies any identity's registry from its own publication instead, see Authchain Identities. The setting is therefore the "token metadata indexer" (`tokenMetadataIndexer` in code, with the old `bcmrIndexer*` localStorage keys kept as they are).
 
+Metadata arrives after the coins and transactions it describes and changes how they read (a token amount is counted in the token's decimals), so a view either lets it fill in or holds an amount back until that token's lookup has answered.
+
 ### Parsable NFTs
 When the indexer returns `nft_type: "parsable"` with `token.nfts` parse info (bytecode, types, fields), the wallet runs the parsing bytecode locally in a libauth VM to extract and display structured data from NFT commitments.
 
@@ -122,31 +124,34 @@ An identity can keep its authhead in an AuthGuard covenant instead of in a walle
 An AuthKey's category is its own: the standard's genesis spends the identity's authbase and the AuthKey's in one transaction, so the two chains merge there and share every link after. A chain resolved from an AuthKey therefore ends at the identity's authhead, and the wallet lists the identity, never the AuthKey's category. An AuthKey is held back the way an identity UTXO is; the covenant's own spends belong to the tools that build them.
 
 ### Cauldron DEX
-Fungible token values come from the indexer of Cauldron, the main AMM DEX in the CashTokens ecosystem (`utils/defi/cauldronApi.ts`, one each for mainnet and chipnet, none for testnet4). It runs Riften Labs' indexer (https://gitlab.com/riftenlabs/riftenlabs-indexer), whose source is the reference for its endpoints and answers. The portfolio view always uses Cauldron prices; for the token list they are optional (the `showCauldronFTValue` setting).
+Fungible token values come from the indexer of Cauldron, the main AMM DEX in the CashTokens ecosystem (`utils/defi/cauldronApi.ts`, one each for mainnet and chipnet, none for testnet4). It runs Riften Labs' indexer (https://gitlab.com/riftenlabs/riftenlabs-indexer), whose source is the reference for its endpoints and answers. The portfolio view always uses Cauldron prices; for the token list and the token send forms they are optional (the `showCauldronFTValue` setting).
 
 ### Portfolio Integrations
 The portfolio view (`components/portfolio/`) charts the wallet's total value across held assets plus DeFi positions: Cauldron pools, Badgers.cash locks, Emerald DAO keycards, ParyonUSD loans and staking, TapSwap listings, and hodl timelocks. It is valuation only; acting on a position belongs in the dApps. For now every dApp needs its own custom integration: a `utils/defi/` module paired with a row component. How positions are found and valued differs per protocol (electrum contract lookups, data on held NFTs, or OP_RETURN protocol markers read off the wallet's electrum history) and is documented in each module's header comment; why the history is the source, and what each protocol announces: `docs/contract-asset-discovery.md`.
 
 ### Wallet Tools
-The settings menu carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `settings/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves an identity's UTXO, or the AuthKey that opens its covenant, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. The identities page also holds back what the user never listed; its detection and following paths are described in `docs/bcmr-identities.md`.
+The menu page (the fifth tab, `menuPage`) carries tools that take Cashonize beyond a minimal wallet, from message signing to flipstarter pledging (components in `tools/` and `identities/`, logic in `utils/tools/`). Newer tools track a utxo's lifecycle: a flipstarter pledge reserves its coin and keeps its data keyed by outpoint for as long as the wallet holds the coin, and the identities page reserves an identity's UTXO, or the AuthKey that opens its covenant, re-resolving which outpoint that is on every visit because the coin moves whenever the metadata is updated elsewhere. The identities page also holds back what the user never listed; its detection and following paths are described in `docs/bcmr-identities.md`.
+
+### App Lock
+An optional PIN (`stores/appLockStore.ts`) gates the interface: the wallet is not loaded until the first unlock, and `confirmPin()` is asked before a spend (inside `store.spend.*`), a dApp transaction signature and a seed reveal; message signing asks none. It is not encryption; the seed at rest is unchanged, and anything that spends past `store.spend` has to ask for the PIN itself. On Android a fingerprint or face can stand in for the PIN (`utils/biometrics.ts`), the system prompt passed being as much a gate as a typed PIN, with the PIN as the fallback.
 
 ### Component Organization
 Single-route SPA — views are switched via `store.displayView` in `WalletPage.vue`.
 
-`src/components/` holds the four main tab views (`bchWallet`, `myTokens`, `connectDapp`, `settingsMenu`) plus `walletOnboarding` at the root, with a folder per area below: `settings/`, `walletconnect/`, `cashconnect/`, `wizardconnect/`, `history/`, `portfolio/`, `tokenItems/`, `qr/` and `general/` for what several views reuse. `src/utils/` is grouped the same way (`dapp/`, `defi/`, `wallet/`, ...).
+`src/components/` holds the four main tab views (`bchWallet`, `myTokens`, `connectDapp`, `menuPage`), the two pages the wallet tab's actions open (`receivePayment`, `sendPayment`), `hdAddresses`, `faqPage`, `aboutCashonize` and `walletOnboarding` at the root, with a folder per area below: `tools/`, `identities/`, `wallets/`, `settings/`, `walletconnect/`, `cashconnect/`, `wizardconnect/`, `history/`, `portfolio/`, `tokenItems/`, `qr/` and `general/` for what several views reuse. `src/utils/` is grouped the same way (`dapp/`, `defi/`, `wallet/`, ...).
 
 Two components sit outside their folder's protocol: `WC2TransactionRequest` is shared with wizardconnect, and the WizardConnect sign dialogs are opened from `wizardconnectStore` rather than from a session component.
 
 ### Validation
-Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect params, API responses, BCMR data).
+Zod schemas in `utils/zodValidation.ts` validate external data (WalletConnect params, API responses, BCMR data). External data is typed `unknown` until validated, and the lint keeps untyped values from flowing into typed code; the app's own localStorage is trusted and read with a cast.
 
 ### Quasar Framework
 Docs: https://quasar.dev/docs
 
-- **Boot files** (`src/boot/`): Run at app startup - `icons.ts`, `i18n.ts`, `deepLinking.ts` (Capacitor only), `plausible.ts` (SPA production only)
+- **Boot files** (`src/boot/`): Run at app startup - `icons.ts`, `i18n.ts`, `deepLinking.ts` and `biometrics.ts` (Capacitor only), `plausible.ts` (SPA production only)
 - **Plugins**: `Notify` for toasts, `Dialog` for confirmations and custom dialogs (configured in quasar.config.ts)
 - **Mode/env detection**: In app code, use Quasar v3 `import.meta.env.QUASAR_*` constants, e.g. `import.meta.env.QUASAR_SPA_MODE`.
-- **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking; the runtime copies live in `src-capacitor/`
+- **Capacitor devDependencies**: Capacitor packages are in root `devDependencies` for typechecking only; builds resolve them from `src-capacitor/node_modules`, which web, desktop and CI do not install. Code those builds also load never imports them: Capacitor-only boot files (`deepLinking.ts`, `biometrics.ts`) do, and hand on what is needed
 
 ### Styling
 Base CSS from a vendored subset of chota (`src/css/chota-subset.css`), custom styles in `src/css/`. Material icon names are mapped to SVG constants in `src/boot/icons.ts`; Quasar components use the `svg-material-icons` icon set, with no icon webfont.
@@ -156,7 +161,7 @@ Component styles are plain CSS by default; a few use `<style scoped lang="scss">
 ### Internationalization (i18n)
 Uses `vue-i18n`. In Vue components use `useI18n()` composable; in utility files use `i18n.global` from `src/boot/i18n.ts`.
 English is bundled as the fallback; every other language is its own chunk, so change the language only through `switchLocale` in `src/boot/i18n.ts`, which loads it first.
-Numbers are not localized: amounts are shown in English notation and typed with a dot as the only separator, in every language (`parseTokenAmountToBigInt` in `utils.ts`).
+Numbers follow the region, not the language: amounts are shown in the user's number format setting (English by default, or the system's locale) and typed with a dot or a comma as the decimal mark and no grouping, the format breaking the tie on `1,000` (`utils/numberFormat.ts`). Machine formats (BIP21, dApp payloads, CSV) always use a dot.
 
 ## Testing
 

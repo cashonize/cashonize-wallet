@@ -1,6 +1,7 @@
-import { chaingraphGraphqlUrl, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sameTokenList, sendAmountToSatoshis, newTokenItems } from "../src/utils/utils";
+import { chaingraphGraphqlUrl, electrumWssUrl, staleTipHours, parseExtendedJson, formatTokenAmount, formatTokenAmountFromBigInt, formatTokenAmountWithSymbol, parseTokenAmountToBigInt, sameTokenList, readTypedSatoshis, satoshisToTypedAmount, newTokenItems } from "../src/utils/utils";
 import type { Utxo } from "@cashonize/bch-wallet-lib";
 import type { BcmrTokenMetadata } from "../src/interfaces/interfaces";
+import { numberFormat, decimalMark, formatDecimal, toTypedAmount } from "../src/utils/numberFormat";
 import { cashNinjaJsonString0, cashNinjaDecodedObj0, cashNinjaJsonString1, cashNinjaDecodedObj1 } from "./fixtures/wcFixtures";
 
 describe('test electrumWssUrl', () => {
@@ -59,6 +60,29 @@ describe('formatTokenAmount', () => {
   })
 })
 
+describe('number format setting', () => {
+  afterEach(() => { numberFormat.value = 'en-US'; });
+
+  it('groups and marks decimals the way each format is shown in the settings', () => {
+    const shown = { 'en-US': '1,234,567.89', 'de-DE': '1.234.567,89', 'fr-FR': '1\u202f234\u202f567,89', 'de-CH': "1'234'567.89" };
+    for (const [format, expected] of Object.entries(shown)) {
+      expect(formatDecimal(1234567.89, {}, format as keyof typeof shown)).toBe(expected);
+    }
+  })
+  it('keeps every digit of a token amount, with the format\'s decimal mark', () => {
+    numberFormat.value = 'de-DE';
+    expect(decimalMark()).toBe(',');
+    expect(formatTokenAmount(90_071_992_547_409_931n, 2)).toBe('900.719.925.474.099,31');
+    expect(formatTokenAmount(-50n, 2)).toBe('-0,5');
+    numberFormat.value = 'de-CH';
+    expect(formatTokenAmount(123_456_789n, 4)).toBe("12'345.6789");
+  })
+  it('leaves the amounts machines read with a dot', () => {
+    numberFormat.value = 'de-DE';
+    expect(formatTokenAmountFromBigInt(150n, 2)).toBe('1.5');
+  })
+})
+
 describe('test formatTokenAmountFromBigInt', () => {
   it('should return the base units unchanged for a token without decimals', () => {
     expect(formatTokenAmountFromBigInt(1000n, 0)).toBe("1000");
@@ -91,16 +115,30 @@ describe('test formatTokenAmountFromBigInt', () => {
 
 // A typed amount takes a dot as its only separator, in every language
 describe('parseTokenAmountToBigInt', () => {
+  afterEach(() => { numberFormat.value = 'en-US'; });
+
   it('reads a dot as the decimal separator', () => {
     expect(parseTokenAmountToBigInt('0.5', 8)).toBe(50_000_000n);
     expect(parseTokenAmountToBigInt('.5', 2)).toBe(50n);
     expect(parseTokenAmountToBigInt(' 12 ', 0)).toBe(12n);
   })
-  // dropping the comma read "0,5" as 5 whole tokens
-  it('refuses a comma instead of dropping it, as decimal or as grouping', () => {
-    for (const input of ['0,5', '1,5', '1,000', '1,234.5']) {
-      expect(() => parseTokenAmountToBigInt(input, 8)).toThrow('Use a dot');
+  // dropping the comma once read "0,5" as 5 whole tokens
+  it('reads a comma as the decimal mark, never as grouping', () => {
+    expect(parseTokenAmountToBigInt('0,5', 8)).toBe(50_000_000n);
+    expect(parseTokenAmountToBigInt('1,5', 2)).toBe(150n);
+    for (const input of ['1,000', '1,234.5']) {
+      expect(() => parseTokenAmountToBigInt(input, 8)).toThrow();
     }
+  })
+  // what Max fills in for 1.5 tokens of a 3-decimal token, 1.500, must not be refused as ambiguous
+  it('reads back a filled-in amount in a comma format', () => {
+    numberFormat.value = 'de-DE';
+    expect(parseTokenAmountToBigInt(toTypedAmount(formatTokenAmountFromBigInt(1_500n, 3)), 3)).toBe(1_500n);
+    expect(parseTokenAmountToBigInt(toTypedAmount(formatTokenAmountFromBigInt(1_234n, 3)), 3)).toBe(1_234n);
+  })
+  it('takes no separator at all for a token without decimals', () => {
+    expect(() => parseTokenAmountToBigInt('5.0', 0)).toThrow('whole number');
+    expect(() => parseTokenAmountToBigInt('1.000', 0)).toThrow('whole number');
   })
 })
 
@@ -146,37 +184,50 @@ describe('staleTipHours', () => {
   })
 })
 
-describe('sendAmountToSatoshis', () => {
-  it('converts bch amounts exactly, including those a float product rounds badly', () => {
-    expect(sendAmountToSatoshis(1, 'bch')).toBe(100_000_000n);
-    expect(sendAmountToSatoshis(0.3, 'bch')).toBe(30_000_000n);
-    expect(sendAmountToSatoshis(0.00000001, 'bch')).toBe(1n);
-    expect(sendAmountToSatoshis(1.23456789, 'bch')).toBe(123_456_789n);
-    expect(sendAmountToSatoshis(20999999.99999999, 'bch')).toBe(2_099_999_999_999_999n);
+describe('readTypedSatoshis', () => {
+  afterEach(() => { numberFormat.value = 'en-US'; });
+  const satoshis = (text: string, unit: 'bch' | 'sat') => {
+    const read = readTypedSatoshis(text, unit);
+    return 'satoshis' in read ? read.satoshis : undefined;
+  };
+
+  it('converts bch amounts exactly, with either decimal mark', () => {
+    expect(satoshis('1', 'bch')).toBe(100_000_000n);
+    expect(satoshis('0.3', 'bch')).toBe(30_000_000n);
+    expect(satoshis('0,3', 'bch')).toBe(30_000_000n);
+    expect(satoshis('0.00000001', 'bch')).toBe(1n);
   });
 
   it('refuses a bch amount with more than 8 decimals instead of rounding it', () => {
-    expect(sendAmountToSatoshis(0.000000015, 'bch')).toBeUndefined();
-    expect(sendAmountToSatoshis(1.123456789, 'bch')).toBeUndefined();
+    expect(satoshis('0.000000015', 'bch')).toBeUndefined();
+    expect(satoshis('1.123456789', 'bch')).toBeUndefined();
   });
 
-  it('refuses more bch than will ever exist', () => {
-    expect(sendAmountToSatoshis(21_000_001, 'bch')).toBeUndefined();
-    expect(sendAmountToSatoshis(1e21, 'bch')).toBeUndefined();
+  it('holds the cap of all bch that will ever exist exactly', () => {
+    expect(satoshis('21000000', 'bch')).toBe(2_100_000_000_000_000n);
+    expect(satoshis('21000000.00000001', 'bch')).toBeUndefined();
   });
 
-  it('takes whole satoshis and refuses a fraction of one', () => {
-    expect(sendAmountToSatoshis(1500, 'sat')).toBe(1500n);
-    expect(sendAmountToSatoshis(1.5, 'sat')).toBeUndefined();
-    expect(sendAmountToSatoshis(2 ** 53, 'sat')).toBeUndefined();
+  // in sats a separator can only be grouping, so 1.000 is never read as one satoshi
+  it('takes whole satoshis without any separator', () => {
+    expect(satoshis('1500', 'sat')).toBe(1500n);
+    expect(satoshis('1.5', 'sat')).toBeUndefined();
+    expect(satoshis('1.000', 'sat')).toBeUndefined();
   });
 
-  it('refuses zero, negative and non-finite amounts in either unit', () => {
+  it('refuses zero, a sign and empty input in either unit, with a reason', () => {
     for (const unit of ['bch', 'sat'] as const) {
-      expect(sendAmountToSatoshis(0, unit)).toBeUndefined();
-      expect(sendAmountToSatoshis(-1, unit)).toBeUndefined();
-      expect(sendAmountToSatoshis(NaN, unit)).toBeUndefined();
-      expect(sendAmountToSatoshis(Infinity, unit)).toBeUndefined();
+      for (const input of ['0', '-1', '', '1e5']) expect(readTypedSatoshis(input, unit)).toHaveProperty('error');
+    }
+  });
+
+  // filled in with a dot, 1.234 BCH would be refused as ambiguous in a comma format
+  it('reads back what the app fills into the field, in a comma format too', () => {
+    for (const format of ['en-US', 'de-DE'] as const) {
+      numberFormat.value = format;
+      for (const amount of [123_400_000n, 150_000_000n, 1_234n, 123_456_789n]) {
+        expect(satoshis(satoshisToTypedAmount(amount, 'bch'), 'bch')).toBe(amount);
+      }
     }
   });
 });

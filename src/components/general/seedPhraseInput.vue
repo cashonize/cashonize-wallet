@@ -7,15 +7,14 @@
 
   const emit = defineEmits<{
     'update:modelValue': [value: string]
-    'update:isValid': [value: boolean]
+    validity: [valid: boolean]
   }>()
 
   const props = defineProps<{
     modelValue?: string
-    isValid?: boolean
   }>()
 
-  const seedWords = ref<string[]>(Array(12).fill(''))
+  const seedWords = ref<string[]>(Array<string>(12).fill(''))
   const seedWordCount = ref<12 | 24>(12)
   // Template refs for input elements, used to programmatically focus the next field after paste
   const inputRefs = ref<(HTMLInputElement | null)[]>([])
@@ -42,11 +41,11 @@
   watch(() => props.modelValue, (value) => {
     if (value || !constructedSeedPhrase.value) return
     seedWordCount.value = 12
-    seedWords.value = Array(12).fill('')
+    seedWords.value = Array<string>(12).fill('')
   })
 
   watch(seedPhraseValid, (value) => {
-    emit('update:isValid', value)
+    emit('validity', value)
   }, { immediate: true })
 
   function isValidBip39Word(word: string): boolean {
@@ -83,11 +82,7 @@
   function changeSeedWordCount(count: 12 | 24) {
     seedWordCount.value = count
     // Preserve existing words, expand or truncate array
-    const newWords = Array(count).fill('')
-    for (let i = 0; i < Math.min(seedWords.value.length, count); i++) {
-      newWords[i] = seedWords.value[i]
-    }
-    seedWords.value = newWords
+    seedWords.value = Array.from({ length: count }, (_, i) => seedWords.value[i] ?? '')
   }
 </script>
 

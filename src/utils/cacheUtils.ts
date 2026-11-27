@@ -52,8 +52,8 @@ export async function getIndexedDBObjectStoreSize(
     const objectStore = dbTx.objectStore(storeName);
     const cursorRequest = objectStore.openCursor();
 
-    cursorRequest.onsuccess = (event) => {
-      const cursor = (event.target as IDBRequest).result;
+    cursorRequest.onsuccess = () => {
+      const cursor = cursorRequest.result;
       if (cursor) {
         // characters rather than bytes: the cached transactions and headers are hex and ASCII JSON
         totalSize += JSON.stringify(cursor.value).length;
@@ -141,11 +141,7 @@ export async function cachedFetch(input: string, ttlMs: number = CACHE_TTL_MS): 
     return resp;
   }
 
-  // attach url to error if fetch fails
-  const response = await fetch(input, { signal: AbortSignal.timeout(CACHED_FETCH_TIMEOUT_MS) }).catch(err => {
-    err.url = input;
-    throw err;
-  });
+  const response = await fetch(input, { signal: AbortSignal.timeout(CACHED_FETCH_TIMEOUT_MS) });
 
   if (!response.ok) {
     const err = new Error(`Fetch ${input} failed: ${response.status} ${response.statusText}`)
@@ -155,10 +151,11 @@ export async function cachedFetch(input: string, ttlMs: number = CACHE_TTL_MS): 
   }
   const clonedResponse = response.clone();
   let shouldCache = true;
-  let responseData;
+  let responseData: unknown;
   try {
     responseData = await clonedResponse.json()
-    if ('error' in responseData) {
+    // only JSON objects without an error field are cached
+    if (typeof responseData !== 'object' || responseData === null || 'error' in responseData) {
       shouldCache = false;
     }
   } catch (e) {

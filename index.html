@@ -37,7 +37,7 @@
       {
         // Mirrors the dark-mode startup logic in settingsStore.ts
         const storedDarkMode = localStorage.getItem('darkMode');
-        const darkMode = storedDarkMode === 'true' ||
+        const darkMode = storedDarkMode === 'true' || storedDarkMode === 'dim' ||
           (storedDarkMode === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
         // These public/ assets are referenced from Vue templates, so the browser
         // can't discover them until the app renders, which is gated on wallet

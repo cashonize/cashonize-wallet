@@ -4,6 +4,7 @@
 
 import { TokenSendRequest, type Utxo } from '@cashonize/bch-wallet-lib';
 import type { RegistrySummary } from './registryFile';
+import { readTypedAmount, type TypedAmountProblem } from 'src/utils/numberFormat';
 import { i18n } from 'src/boot/i18n';
 const { t } = i18n.global;
 
@@ -17,7 +18,7 @@ export interface GenesisAmounts {
   circulating: bigint;
   reserve: bigint;
 }
-export type AmountProblem = 'invalidDecimals' | 'invalidAmount' | 'commaInAmount' | 'tooManyDecimals' | 'overMaxSupply' | 'overSupply';
+export type AmountProblem = 'invalidDecimals' | TypedAmountProblem | 'tooManyDecimals' | 'overMaxSupply' | 'overSupply';
 
 export function parseDecimals(text: string): number | undefined {
   if (!/^\d+$/.test(text.trim())) return undefined;
@@ -27,13 +28,12 @@ export function parseDecimals(text: string): number | undefined {
 
 // Tokens typed with up to the chosen decimals, as base units. String math, since these numbers
 // outgrow a float; an empty field is zero, so the split can be read while the other is typed.
-// A dot is the only separator, as for every typed amount (see parseTokenAmountToBigInt).
+// Read as every typed amount is (readTypedAmount).
 function toBaseUnits(text: string, decimals: number): bigint | AmountProblem {
-  const cleaned = text.trim();
-  if (!cleaned) return 0n;
-  if (cleaned.includes(',')) return 'commaInAmount';
-  if (!/^(\d+\.?\d*|\.\d+)$/.test(cleaned)) return 'invalidAmount';
-  const [whole = '', fraction = ''] = cleaned.split('.');
+  if (!text.trim()) return 0n;
+  const read = readTypedAmount(text, decimals === 0);
+  if ('problem' in read) return read.problem;
+  const [whole = '', fraction = ''] = read.amount.split('.');
   if (fraction.length > decimals) return 'tooManyDecimals';
   return BigInt((whole || '0') + fraction.padEnd(decimals, '0'));
 }
@@ -51,20 +51,23 @@ export function genesisAmounts(supplyText: string, circulatingText: string, deci
   return { supply, circulating, reserve: supply - circulating };
 }
 
-// What the wallet fetched from the typed locations and verified names this category
+// What the wallet fetched from the typed locations and verified names the category it was checked for
 export interface CheckedRegistry {
+  category: string;
   uris: string[];
   summary: RegistrySummary;
   hash: string;
 }
 
 // What stands between the typed locations and Create: nothing while none is typed, a check once
-// one is, a fresh check once they were edited, and the registry agreeing on the decimals
+// one is, a fresh check once they or the coin the category comes from changed, and the registry
+// agreeing on the decimals
 export type MetadataReadiness = 'none' | 'unchecked' | 'decimalsMismatch' | 'ready';
 
-export function metadataReadiness(uris: string[], checked: CheckedRegistry | undefined, decimals: number): MetadataReadiness {
+export function metadataReadiness(category: string | undefined, uris: string[], checked: CheckedRegistry | undefined, decimals: number): MetadataReadiness {
   if (!uris.length) return 'none';
-  if (!checked || checked.uris.length !== uris.length || checked.uris.some((uri, index) => uri !== uris[index])) {
+  if (!checked || checked.category !== category) return 'unchecked';
+  if (checked.uris.length !== uris.length || checked.uris.some((uri, index) => uri !== uris[index])) {
     return 'unchecked';
   }
   // a registry that says nothing about decimals means zero, per the spec

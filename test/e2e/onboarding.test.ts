@@ -34,13 +34,16 @@ function addressesAt(mnemonic: string, path: string) {
 }
 
 async function expectShownAddresses(page: Page, expected: { address: string, tokenAddress: string }) {
+  // the receive page shows one address form at a time, and stays on the form last picked
+  await page.getByRole('button', { name: 'Receive', exact: true }).click()
+  const addressForms = page.locator('.type-filter button')
   const shown = page.locator('.depositAddr')
-  await expect(shown.first()).toHaveText(expected.address, { timeout: 30_000 })
-  await expect(shown.nth(1)).toHaveText(expected.tokenAddress)
-}
-
-function preferenceToggle(page: Page, label: string) {
-  return page.locator('div:has(> .q-toggle)').filter({ hasText: label }).locator('.q-toggle')
+  await addressForms.first().click()
+  await expect(shown).toHaveText(expected.address, { timeout: 30_000 })
+  await addressForms.nth(1).click()
+  await expect(shown).toHaveText(expected.tokenAddress)
+  await addressForms.first().click()
+  await page.getByRole('button', { name: 'Back' }).click()
 }
 
 test.use({ colorScheme: 'light' })
@@ -55,7 +58,7 @@ test.afterEach(async () => {
 })
 
 async function shownSeedPhrase(page: Page) {
-  await page.locator('nav img[src*="settings"]').click()
+  await page.locator('nav').getByLabel('Menu').click()
   await page.getByText('Backup wallet').click()
   await page.getByRole('button', { name: 'Show seed phrase' }).click()
   const words = await page.locator('.seedphrase-word').evaluateAll(spans =>
@@ -138,9 +141,7 @@ test.describe('Onboarding import', () => {
     await importWalletOnboarding(page, { seedPhrase: MNEMONIC_12, walletType: 'hd', derivationPath: 'standard', walletName: 'e2e import' })
 
     await page.locator('#selectCurrency').selectOption('eur')
-    // Confirming payments starts on for new users, so clicking turns it off
-    await preferenceToggle(page, 'Dark mode').click()
-    await preferenceToggle(page, 'Confirm payments').click()
+    await page.getByRole('button', { name: 'Dark', exact: true }).click()
     await page.getByRole('button', { name: 'Finish Setup' }).click()
 
     const expected = addressesAt(MNEMONIC_12, "m/44'/145'/0'/0/0")
@@ -149,14 +150,12 @@ test.describe('Onboarding import', () => {
     const stored = await page.evaluate(() => ({
       currency: localStorage.getItem('currency'),
       darkMode: localStorage.getItem('darkMode'),
-      confirmBeforeSending: localStorage.getItem('confirmBeforeSending'),
       activeWalletName: localStorage.getItem('activeWalletName'),
       walletType: JSON.parse(localStorage.getItem('walletMetadata') ?? '{}')['e2e import']?.walletType,
     }))
     expect(stored).toEqual({
       currency: 'eur',
       darkMode: 'true',
-      confirmBeforeSending: 'false',
       activeWalletName: 'e2e import',
       walletType: 'hd',
     })

@@ -13,7 +13,10 @@
     },
     "errors": {
       "somethingWentWrong": "Une erreur s'est produite",
-      "commaInAmount": "Utilisez un point (.) pour les décimales, sans séparateur de milliers",
+      "amountInvalid": "Saisissez le montant en chiffres, avec au plus un séparateur décimal",
+      "amountGrouping": "Saisissez le montant sans séparateur de milliers ni espace",
+      "amountAmbiguous": "Ce montant peut se lire de deux façons : saisissez les milliers sans séparateur, comme 1000, et les décimales comme {example} (ou choisissez votre format des nombres dans Menu → Paramètres → Localisation)",
+      "amountWholeOnly": "Saisissez un nombre entier, sans séparateur",
       "needToInitializeWallet": "Vous devez d'abord initialiser un portefeuille",
       "exchangeRateUnavailable": "Impossible de récupérer le taux de change, rejet de la demande de la dApp",
       "nothingToTransfer": "Il ne reste aucun BCH ni token à transférer",
@@ -28,7 +31,6 @@
       }
     },
     "attention": "Attention :",
-    "backToSettings": "Retour aux paramètres",
     "nftCount": "{count} NFT | {count} NFTs",
     "hdPrivacyWarning": "Cela combine des entrées de toutes vos adresses, les liant publiquement comme un seul portefeuille, ce qui sacrifie les avantages de confidentialité d'un portefeuille HD.",
     "copied": "Copié !",
@@ -43,7 +45,17 @@
     "addresses": "Adresses",
     "tokens": "Tokens",
     "history": "Historique",
-    "connect": "Connecter"
+    "connect": "Connecter",
+    "menu": "Menu"
+  },
+  "networkBadge": {
+    "intro": "Ce portefeuille est sur {network}, un réseau de test : ses pièces n'ont aucune valeur.",
+    "unavailableHeading": "Non disponible sur {network} :",
+    "unavailable": {
+      "tokenMetadata": "Métadonnées des tokens (noms, icônes, décimales)",
+      "cauldronPrices": "Prix des tokens sur Cauldron",
+      "dappConnections": "Connexions aux dApps"
+    }
   },
   "walletUtils": {
     "errors": {
@@ -56,7 +68,7 @@
       "enterSeedPhrase": "Entrez une phrase de récupération pour importer le portefeuille",
       "fixInvalidWords": "Veuillez corriger les mots invalides dans votre phrase de récupération",
       "invalidSeedPhrase": "Phrase de récupération invalide",
-      "convertTiedCopy": "Le portefeuille « {name} » a aussi une copie sur {network}. Supprimez d'abord sa copie chipnet dans Paramètres > Paramètres développeur, puis convertissez.",
+      "convertTiedCopy": "Le portefeuille « {name} » a aussi une copie sur {network}. Supprimez d'abord sa copie chipnet dans Menu > Paramètres > Paramètres développeur, puis convertissez.",
       "cannotConvert": "Le portefeuille « {name} » n'est pas enregistré comme un portefeuille à adresse unique convertible, rien n'a donc été modifié",
       "conversionRunning": "Le portefeuille est déjà en cours de conversion",
       "failedToConvert": "Échec de la conversion du portefeuille « {name} »",
@@ -96,7 +108,7 @@
     "notifications": {
       "receivedBch": "Reçu {amount} {unit} ({fiatValue})",
       "receivedTokens": "Reçu nouveau {tokenType}",
-      "broadcastAgainSent": "La transaction {txId} a été diffusée"
+      "broadcastAgainSent": "La transaction a été diffusée"
     },
     "errors": {
       "chipnetCopyChanged": "La copie chipnet de {name} a changé depuis la vérification, rien n'a donc été retiré.",
@@ -134,10 +146,10 @@
   "onboarding": {
     "welcome": {
       "title": "Bienvenue sur Cashonize",
-      "description": "Un portefeuille Bitcoin Cash facile à utiliser, axé sur les CashTokens et les dApps BCH.",
+      "description": "Un portefeuille Bitcoin Cash open source, non-custodial et facile à utiliser.",
       "featureSendReceive": "Envoyez et recevez des BCH et CashTokens",
-      "featureWalletConnect": "Connectez-vous aux dApps via WalletConnect, CashConnect ou WizardConnect",
-      "featureOpenSource": "Open source et non-custodial",
+      "featureDapps": "Connectez-vous à n'importe quelle dApp BCH et voyez ce qu'elle fait avant de signer",
+      "featurePortfolio": "Voyez vos BCH, tokens et positions DeFi valorisés ensemble",
       "aboutPrompt": "Nouveau sur Cashonize ? {link}",
       "aboutLinkText": "En savoir plus sur le portefeuille →"
     },
@@ -145,7 +157,7 @@
       "title": "Créer un nouveau portefeuille",
       "description": "Commencez avec un nouveau portefeuille en quelques secondes",
       "button": "Créer un nouveau portefeuille",
-      "seedPhraseNote": "Une nouvelle phrase de récupération sera générée. Sauvegardez-la pour sécuriser votre portefeuille.",
+      "seedPhraseNote": "Une nouvelle phrase de récupération sera générée. Vous seul la détenez : sauvegardez-la pour sécuriser votre portefeuille.",
       "submitButton": "Créer le portefeuille"
     },
     "import": {
@@ -178,22 +190,21 @@
         "cad": "CAD - Dollar canadien",
         "aud": "AUD - Dollar australien",
         "chf": "CHF - Franc suisse",
-        "brl": "BRL - Réal brésilien"
+        "brl": "BRL - Réal brésilien",
+        "mxn": "MXN - Peso mexicain",
+        "ars": "ARS - Peso argentin",
+        "rub": "RUB - Rouble russe"
       },
-      "darkMode": "Mode sombre",
-      "confirmPayments": "Confirmer les paiements avant l'envoi",
-      "confirmPaymentsHint": "Demander une confirmation après avoir cliqué sur envoyer (recommandé)",
       "finishButton": "Terminer la configuration"
     }
   },
   "wallet": {
-    "balance": "Solde en {currency} :",
-    "address": "Adresse {network} :",
-    "tokenAddress": "Adresse de token :",
-    "send": "Envoyer {network} :",
+    "selectAsset": "Choisissez quoi envoyer",
+    "selectAssetHint": "Bitcoin Cash, ou un token fongible que ce portefeuille détient",
     "addressPlaceholder": "adresse",
     "amountPlaceholder": "montant",
-    "max": "max",
+    "available": "Disponible : {amount}",
+    "useMax": "utiliser le maximum",
     "notEnoughBch": "Pas assez de BCH dans le portefeuille pour envoyer",
     "sendingTransaction": "Envoi de la transaction...",
     "sent": "Envoyé {amount} à {address}",
@@ -211,7 +222,11 @@
       "notCashaddress": "Ce n'est pas une cashaddress sur le réseau actuel",
       "legacyAddress": "Les adresses legacy sont identiques aux adresses Bitcoin (BTC). CashAddr est le format d'adresse standard sur BCH. Si vous êtes sûr qu'il s'agit d'une adresse BCH, convertissez-la avec le convertisseur d'adresses dans les outils du portefeuille."
     },
-    "reservedBalance": "Retenu : {amount}"
+    "tokenValueAtCauldron": "Valeur au prix de Cauldron :",
+    "reservedBalance": "Retenu : {amount}",
+    "hideBalances": "Masquer les soldes",
+    "showBalances": "Afficher les soldes",
+    "balancesHidden": "Les soldes sont masqués."
   },
   "portfolio": {
     "title": "Portfolio",
@@ -225,6 +240,7 @@
     "checkingHodlContracts": "Recherche de contrats hodl",
     "checkingTapswapListings": "Recherche d’annonces TapSwap",
     "smallBalances": "Petits soldes ({count})",
+    "groupCount": "{count} positions",
     "tapswapListings": "Annonces TapSwap ({count})",
     "askingPrice": "Prix demandé",
     "manageListings": "Gérez vos annonces sur {link}.",
@@ -286,7 +302,6 @@
     "searchPlaceholder": "Rechercher..."
   },
   "tokenItem": {
-    "name": "Nom :",
     "tokenId": "TokenId :",
     "amount": "Quantité :",
     "commitment": "Commitment :",
@@ -327,21 +342,22 @@
       "unfavoriteToken": "Retirer des favoris"
     },
     "info": {
-      "tokenDescription": "Description du token :",
-      "nftDescription": "Description du NFT :",
-      "tokenSymbol": "Symbole du token :",
-      "numberOfDecimals": "Nombre de décimales :",
-      "tokenWebLink": "Lien web du token :",
+      "showFull": "Afficher la description complète",
+      "showLess": "Afficher moins",
+      "symbol": "Symbole",
+      "decimals": "Décimales",
+      "website": "Site web",
+      "notHttps": "pas un lien sécurisé (https)",
+      "type": "Type",
+      "commitment": "Commitment",
       "seeDetailsOnExplorer": "Voir sur TokenExplorer",
-      "nftType": "Type de NFT :",
       "immutable": "immuable",
       "mutable": "mutable",
       "minting": "de création",
       "nftTypeValue": "NFT {capability}",
-      "nftCommitment": "Commitment du NFT :",
       "nftAttributes": "Attributs du NFT",
-      "extensionNote": "Données du prêt récupérées de la blockchain :",
-      "parsedFields": "Données NFT analysées :",
+      "extensionNote": "Données du prêt récupérées de la blockchain",
+      "parsedFields": "Données NFT analysées",
       "numberNfts": "Nombre de NFTs :",
       "field": "Champ {index}",
       "blockHeight": "Bloc {height}"
@@ -445,9 +461,7 @@
       "insufficientBalance": "Solde de tokens insuffisant",
       "invalidAddress": "Adresse BCH invalide fournie",
       "notTokenAddress": "Ce n'est pas une adresse de token (doit commencer par z...)",
-      "invalidNumberFormat": "Format de nombre invalide",
       "enterValidAmount": "Entrez un montant positif valide",
-      "noDecimalsAllowed": "Ce token n'autorise pas les décimales",
       "maxDecimalsAllowed": "Ce token n'autorise que {decimals} décimales maximum",
       "differentTokenRequest": "Cette demande de paiement concerne un token différent",
       "amountMustBeInteger": "La quantité de tokens à brûler doit être un nombre entier valide",
@@ -490,6 +504,8 @@
     "loading": "Chargement de l'historique des transactions",
     "loadingFailed": "Échec du chargement de l'historique des transactions",
     "noTransactions": "Aucune transaction dans ce portefeuille",
+    "recentActivity": "Activité récente",
+    "recentHidden": "Masqué avec vos soldes",
     "title": "Historique des transactions",
     "transactionCount": "{count} Transactions",
     "options": "Options",
@@ -511,7 +527,7 @@
     "showBalance": "Afficher le solde après la transaction",
     "exportCsv": "Exporter en CSV",
     "exportFailed": "Échec de l'export CSV",
-    "searchPlaceholder": "Rechercher token, adresse ou id de tx...",
+    "searchPlaceholder": "Rechercher dans l'historique...",
     "noMatch": "Aucune transaction ne correspond au filtre",
     "sent": "Envoyé",
     "received": "Reçu",
@@ -587,6 +603,12 @@
     "cancel": "Annuler"
   },
   "backupWallet": {
+    "reminder": {
+      "title": "Ce portefeuille n'est pas sauvegardé",
+      "text": "Notez sa phrase de récupération : c'est le seul moyen de retrouver vos fonds si cet appareil ou ses données sont perdus.",
+      "backupNow": "Sauvegarder maintenant",
+      "later": "Me le rappeler plus tard"
+    },
     "currentWallet": "Portefeuille actuel :",
     "seedPhrase": {
       "title": "Phrase de récupération du portefeuille",
@@ -704,6 +726,7 @@
       "buttonTitle": "Supprimer le portefeuille"
     },
     "switchedNetwork": "Basculé vers {network} pour le portefeuille « {name} »",
+    "switchedOnTestNetwork": "Basculé vers « {name} » sur {network}",
     "switchFailed": "Échec du changement de portefeuille : {error}"
   },
   "convertToHd": {
@@ -809,7 +832,6 @@
       "note": "La réserve reste sur l'UTXO de l'identité ; émettez-la plus tard depuis la page des identités."
     },
     "errors": {
-      "invalidAmount": "Saisissez les montants en nombre de tokens, par ex. 1000 ou 0.5.",
       "overMaxSupply": "C'est plus qu'un token ne peut contenir. Le maximum est {max}.",
       "overSupply": "C'est plus que l'offre totale.",
       "invalidDecimals": "Les décimales doivent être un nombre entier de 0 à 18.",
@@ -901,18 +923,8 @@
       "title": "Aperçu : UTXOs de tokens par catégorie",
       "empty": "Ce portefeuille n'a pas d'UTXOs de tokens."
     },
-    "fungibleList": {
-      "title": "UTXOs de tokens fongibles",
-      "empty": "Ce portefeuille n'a pas d'UTXOs de tokens fongibles."
-    },
-    "nftList": {
-      "title": "UTXOs de NFTs",
-      "empty": "Ce portefeuille n'a pas d'UTXOs de NFTs."
-    },
-    "ftNftList": {
-      "title": "UTXOs de tokens fongibles + NFT",
-      "empty": "Ce portefeuille n'a pas d'UTXOs contenant à la fois un montant fongible et un NFT."
-    },
+    "searchPlaceholder": "Rechercher...",
+    "noMatch": "Aucun UTXO ne correspond à votre recherche",
     "reservedSummary": "{count} UTXO retenu, hors de votre solde disponible | {count} UTXOs retenus, hors de votre solde disponible",
     "reservedTokenSummary": "{count} UTXO de jeton retenu, écarté de chaque transfert que fait cette application | {count} UTXO de jetons retenus, écartés de chaque transfert que fait cette application",
     "freeze": {
@@ -953,7 +965,6 @@
       "oneUtxo": "seulement 1"
     },
     "combined": {
-      "title": "UTXOs combinés BCH + Tokens",
       "description": "Certaines dApps renvoient des UTXOs qui combinent BCH avec des tokens, ce qui fait que le BCH n'apparaît pas dans votre solde.",
       "warningCount": "{count} UTXO avec BCH + Tokens combinés | {count} UTXOs avec BCH + Tokens combinés",
       "warningCountSingle": "{count} UTXO avec BCH + Tokens combinés",
@@ -961,7 +972,6 @@
       "splittableAmount": "Vous avez {bch} BCH qui peuvent être séparés des UTXOs de tokens.",
       "nftNote": "Remarque : Cet outil ne peut séparer le BCH que des UTXOs de tokens fongibles, pas des NFTs.",
       "viewAffected": "Voir les UTXOs affectés",
-      "noIssues": "Vous n'avez pas de tels UTXOs",
       "splittingButton": "Séparation...",
       "splitButton": "Séparer BCH des tokens"
     },
@@ -977,7 +987,11 @@
       "label": "Étiquette",
       "address": "Adresse",
       "utxoCount": "UTXOs",
-      "bchHeld": "BCH retenu"
+      "bchHeld": "BCH retenu",
+      "tokenId": "Id du token",
+      "commitment": "Commitment",
+      "outpoint": "Outpoint",
+      "outpointHint": "L'id de transaction et le numéro de sortie (txid:vout) qui identifient cet UTXO"
     },
     "notifications": {
       "consolidating": "Consolidation des UTXOs BCH...",
@@ -987,14 +1001,31 @@
       "somethingWentWrong": "une erreur s'est produite"
     }
   },
+  "networkStatus": {
+    "title": "État du réseau",
+    "description": "Le serveur Electrum auquel ce portefeuille est connecté. Le portefeuille se fie à ce qu'il indique et ne le vérifie pas.",
+    "block": "Bloc {height}",
+    "electrumHeading": "Connexion Electrum",
+    "server": "Serveur :",
+    "status": "État :",
+    "connected": "Connecté",
+    "connecting": "Connexion en cours…",
+    "reconnecting": "Connexion perdue, reconnexion…",
+    "mode": "Mode de serveur :",
+    "blockHeight": "Hauteur de bloc :",
+    "latestBlock": "Dernier bloc :",
+    "seeOnExplorer": "Voir dans l'explorateur de blocs",
+    "changeServer": "Changer de serveur"
+  },
   "aboutCashonize": {
     "title": "À propos de Cashonize",
-    "description": "Cashonize est un portefeuille Bitcoin Cash facile à utiliser et multiplateforme.",
+    "description": "Votre porte d'entrée vers les CashTokens et la DeFi de Bitcoin Cash.",
     "tagline": "Open source · Non-custodial · Depuis 2023",
     "learnMore": "Visitez le site web de Cashonize",
     "downloadPage": "Visitez la page de téléchargement de Cashonize",
     "viewSource": "Voir le code source",
     "followOnX": "Suivez les actualités sur X",
+    "joinTelegram": "Rejoignez-nous sur Telegram",
     "logoHintTaps": "Vous vous ennuyez ? Tapotez rapidement le logo quelques fois.",
     "logoHintClicks": "Psst... essayez de cliquer plusieurs fois sur le logo."
   },
@@ -1009,7 +1040,10 @@
     "change": "Monnaie",
     "usedAddresses": "Utilisées",
     "unusedAddresses": "Non utilisées",
+    "pinnedAddresses": "Épinglées",
     "noAddresses": "Aucune adresse analysée pour le moment",
+    "searchPlaceholder": "Rechercher des adresses...",
+    "noMatch": "Aucune adresse ne correspond à la recherche",
     "options": "Options",
     "hideZeroBalances": "Masquer les soldes nuls",
     "showTokenAddresses": "Afficher les adresses au format token",
@@ -1027,19 +1061,20 @@
     "markAddressUsedAction": "Marquer l'adresse comme utilisée et en afficher une nouvelle",
     "unmarkAddressUsed": "Ne plus marquer comme utilisée",
     "markedTag": "marquée utilisée",
-    "markAddressUsedNote": "Les adresses précédentes restent valables. Vous pouvez retirer le marquage sur la page Adresses HD.",
     "markedUsedNotify": "Adresse marquée comme utilisée",
     "markLimitNotify": "Impossible de marquer cette adresse, une nouvelle adresse doit rester disponible. Recevez un paiement pour en libérer d'autres.",
     "markingIntro": "Les adresses de réception peuvent être marquées comme utilisées après les avoir partagées.",
     "markedInfo": "Une adresse que vous avez partagée reste inutilisée jusqu'à l'arrivée d'un paiement, le portefeuille propose donc toujours la même. La marquer comme utilisée passe à l'adresse suivante, pour que chaque payeur en reçoive une différente.",
     "unmarkInfo": "Les adresses marquées sont regroupées avec les adresses utilisées, où vous pouvez les démarquer.",
-    "freezeOption": "Afficher les boutons de gel",
-    "freezeOptionLocked": "Dégelez toutes les adresses pour désactiver ceci",
+    "moreActions": "Plus d'actions",
     "frozenTag": "gelée",
     "frozenTagInfo": "Continue de recevoir des paiements, mais n'est plus proposée comme votre adresse de réception",
     "freezeAddress": "Geler l'adresse",
     "unfreezeAddress": "Dégeler l'adresse",
     "freezeLimitNotify": "Impossible de geler cette adresse, une nouvelle adresse doit rester disponible. Recevez un paiement pour en libérer d'autres.",
+    "pinAddress": "Épingler l'adresse",
+    "unpinAddress": "Désépingler l'adresse",
+    "pinLimitNotify": "Impossible d'épingler cette adresse, une nouvelle adresse doit rester disponible. Recevez un paiement pour en libérer d'autres.",
     "freeze": {
       "title": "Geler cette adresse",
       "message": "Les UTXO d'une adresse gelée restent dans votre portefeuille, mais cette app les exclut de tous les paiements et transferts de tokens et refuse les requêtes de dApp qui les dépensent, y compris les UTXO que l'adresse recevra plus tard. Dégelez-la depuis cette page à tout moment.\n\nLe gel ne s'applique qu'ici : si vous utilisez cette phrase de récupération dans une autre application de portefeuille, gelez-y aussi la même adresse.",
@@ -1131,8 +1166,14 @@
       "ownAddress": "La destination est une adresse de ce même portefeuille"
     }
   },
+  "receive": {
+    "title": "Recevoir",
+    "bchAddressHint": "Votre adresse BCH. Passez à Tokens pour recevoir des CashTokens.",
+    "tokenAddressHint": "Votre adresse de token, pour recevoir des CashTokens.",
+    "copyAddress": "Copier l'adresse",
+    "requestAmount": "Demander un montant"
+  },
   "requestPayment": {
-    "title": "Créer une demande de paiement",
     "description": "Créez une demande de paiement à partager avec la personne qui vous paie.",
     "descriptionToken": "Créez une demande de token fongible à partager avec la personne qui vous paie.",
     "bip21Hint": "Les demandes de paiement en BCH utilisent BIP21, un standard d'URI de longue date largement pris en charge par les portefeuilles BCH.",
@@ -1155,7 +1196,6 @@
     "selectTokenPrompt": "Sélectionnez un token à demander",
     "messageLabel": "Message (facultatif) :",
     "messagePlaceholder": "Note pour le payeur, comme un numéro de facture",
-    "payToLabel": "Payer à :",
     "selectAddress": "Sélectionner parmi les adresses du portefeuille",
     "selectAddressHint": "Choisissez l'adresse sur laquelle demander le paiement",
     "requesting": "Demande de {amount}",
@@ -1205,6 +1245,109 @@
       "addressNotInWallet": "La signature nécessite une adresse du portefeuille actif"
     }
   },
+  "faq": {
+    "title": "FAQ",
+    "description": "Des réponses courtes sur Bitcoin Cash et sur le fonctionnement de Cashonize.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "Que se passe-t-il si j'efface les données de mon navigateur ou si je perds cet appareil ?",
+          "answer": "Votre portefeuille n'est stocké que dans ce navigateur. Effacer les données de site du navigateur le supprime, tout comme la perte de l'appareil. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » dans le menu."
+        },
+        "mobile": {
+          "question": "Que se passe-t-il si je perds mon téléphone ou si je désinstalle l'application ?",
+          "answer": "Votre portefeuille n'est stocké que sur ce téléphone. Perdre le téléphone ou désinstaller l'application, c'est perdre le portefeuille. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » dans le menu."
+        },
+        "desktop": {
+          "question": "Que se passe-t-il si mon ordinateur tombe en panne ou est remplacé ?",
+          "answer": "Votre portefeuille n'est stocké que sur cet ordinateur. Si l'ordinateur est perdu, en panne ou réinitialisé, le portefeuille disparaît avec lui. La phrase de récupération est le seul moyen de le retrouver : personne ne peut le réinitialiser ou le récupérer pour vous, pas même Cashonize. Notez-la maintenant, sous « Sauvegarder le portefeuille » dans le menu."
+        }
+      },
+      "twoAddresses": {
+        "question": "Recevoir propose une adresse BCH et une adresse de token. Laquelle donner ?",
+        "answer": "Ce sont deux formes de la même adresse. En regardant de près, seuls le premier caractère et les huit derniers diffèrent : les deux désignent le même endroit sur la blockchain, avec les mêmes clés derrière. L'adresse de token (commençant par z) indique à l'expéditeur que votre portefeuille prend en charge les CashTokens : donnez-la à quiconque vous envoie des jetons ou des NFT. Pour du BCH simple, donnez toujours l'adresse normale (commençant par q) : les plateformes d'échange et les portefeuilles sans prise en charge des jetons n'acceptent que cette forme. Recevoir s'ouvre sur l'adresse BCH ; le sélecteur « Tokens » au-dessus affiche l'adresse de token."
+      },
+      "addressChanged": {
+        "question": "Mon adresse de réception a changé. Celle que j'ai déjà partagée fonctionne-t-elle encore ?",
+        "answer": "Oui. Un portefeuille HD affiche une nouvelle adresse après chaque paiement, pour la confidentialité, mais chaque adresse précédente reste la vôtre et continue de fonctionner. Un portefeuille à adresse unique affiche toujours la même."
+      },
+      "bchForTokens": {
+        "question": "Je n'ai que des jetons. Pourquoi faut-il du BCH pour les envoyer ?",
+        "answer": "Chaque transaction paie de petits frais en BCH, même si elle ne déplace que des jetons. Une très petite quantité de BCH suffit pour de nombreux envois. Faites-la envoyer à votre adresse BCH normale."
+      },
+      "tokenSupport": {
+        "question": "Puis-je envoyer des jetons à une adresse BCH normale ?",
+        "answer": "Non, l'envoi de jetons demande une adresse de token (commençant par z). Cette forme a été introduite pour que l'expéditeur sache que le portefeuille destinataire prend en charge les CashTokens. Les jetons envoyés à un portefeuille sans cette prise en charge ne sont pas détruits, mais ce portefeuille ne peut ni les voir ni les envoyer. Pour l'instant aucune plateforme d'échange ne prend en charge les CashTokens : ne leur envoyez donc pas de jetons. Si vous êtes certain que le portefeuille destinataire prend en charge les CashTokens mais n'avez que son adresse normale, le Convertisseur d'adresses vous donne l'adresse de token."
+      },
+      "imposterToken": {
+        "question": "Comment repérer un jeton imposteur ?",
+        "answer": "N'importe qui peut créer un jeton et lui donner le nom et l'icône de son choix : un nom ou un logo familier ne prouve donc rien. Ce qui identifie un jeton, c'est son id de jeton, qui ne peut pas être copié. Comparez l'id de jeton affiché par le portefeuille avec celui d'une source de confiance extérieure au portefeuille, comme le site officiel de l'émetteur. Un jeton sans nom ni image n'est pas faux pour cette seule raison : son créateur n'a simplement pas publié de métadonnées."
+      },
+      "tokenValue": {
+        "question": "Pourquoi mon token n'affiche-t-il aucune valeur ?",
+        "answer": "Les valeurs des tokens viennent de Cauldron, la principale plateforme d'échange de CashTokens : il n'existe pas de prix officiel. Une valeur n'est affichée que sur le mainnet, et seulement si les pools Cauldron du token contiennent ensemble au moins 1 BCH, car le prix d'un marché plus petit est facile à faire bouger. La valeur est une estimation au prix actuel du pool, et une vente peut rapporter moins, surtout pour un montant important. Les valeurs peuvent être désactivées dans les paramètres des tokens."
+      },
+      "utxos": {
+        "question": "Qu'est-ce qu'un UTXO, et pourquoi une dApp me demande-t-elle de consolider ?",
+        "answer": "Votre solde est fait de pièces séparées, appelées UTXO, une par paiement reçu. Certaines dApps ont besoin d'une seule pièce assez grande, même si votre total suffit. Consolider dans la Gestion des UTXO fusionne vos pièces de BCH en une seule."
+      },
+      "dappConnections": {
+        "hd": {
+          "question": "Que sont WalletConnect, CashConnect et WizardConnect ?",
+          "answer": "Ce sont trois façons de connecter ce portefeuille à une dApp : une application qui prépare une transaction et demande au portefeuille de la signer. La dApp affiche un lien ou un code QR, et la page Connecter accepte les trois : collez le lien ou scannez le code, et le portefeuille reconnaît lequel c'est. WalletConnect fonctionne avec une seule adresse : vous choisissez donc laquelle des adresses de ce portefeuille la dApp reçoit. WizardConnect est conçu pour les portefeuilles HD et permet à la dApp de suivre toutes les adresses du portefeuille. CashConnect est une méthode de connexion conçue pour Bitcoin Cash. Dans tous les cas, chaque demande vous est montrée avant toute signature, sauf si vous avez activé les approbations automatiques pour cette dApp."
+        },
+        "single": {
+          "question": "Que sont WalletConnect, CashConnect et WizardConnect ?",
+          "answer": "Ce sont trois façons de connecter ce portefeuille à une dApp : une application qui prépare une transaction et demande au portefeuille de la signer. La dApp affiche un lien ou un code QR, et la page Connecter accepte WalletConnect et CashConnect : collez le lien ou scannez le code, et le portefeuille reconnaît lequel c'est. Chaque demande vous est montrée avant toute signature, sauf si vous avez activé les approbations automatiques pour cette dApp. WizardConnect nécessite un portefeuille HD : dans Gérer les portefeuilles, vous pouvez convertir ce portefeuille, avec la même phrase de récupération, en conservant ses fonds, son nom et ses notes."
+        }
+      }
+    }
+  },
+  "appLock": {
+    "title": "Verrouillage de l'application",
+    "on": "Activé",
+    "off": "Désactivé",
+    "description": "Protégez Cashonize avec un code PIN.",
+    "askedWhen": "Le code PIN est demandé",
+    "askOpen": "à l'ouverture de l'application, ou au retour après quelques minutes",
+    "askSpend": "avant d'envoyer et avant de signer une transaction de dApp",
+    "askSeed": "avant d'afficher la phrase de récupération",
+    "notEncryption": "Le verrouillage tient à l'écart du portefeuille quelqu'un qui a votre appareil déverrouillé. Il verrouille l'application ; il ne chiffre pas les données du portefeuille stockées sur cet appareil.",
+    "backupFirst": "Un code PIN oublié ne peut pas être réinitialisé. Il faudrait effacer les données de l'application et restaurer à partir de vos phrases de récupération. Sauvegardez-les donc d'abord.",
+    "notBackedUp": "Pas encore sauvegardé : {wallets}. Si le code PIN est oublié, un portefeuille sans sauvegarde est perdu.",
+    "backUpNow": "Sauvegarder ce portefeuille",
+    "choosePin": "Choisissez un code PIN :",
+    "newPin": "Nouveau code PIN :",
+    "repeatPin": "Répétez le code PIN :",
+    "pinRule": "Un code PIN compte {min} à {max} chiffres",
+    "pinMismatch": "Les deux codes PIN sont différents",
+    "turnOn": "Activer le verrouillage",
+    "turnOff": "Désactiver",
+    "changePin": "Changer le code PIN",
+    "lockNow": "Verrouiller maintenant",
+    "isOn": "Le verrouillage de l'application est activé.",
+    "turnedOn": "Verrouillage activé",
+    "turnedOff": "Verrouillage désactivé",
+    "pinChanged": "Code PIN modifié",
+    "cancel": "Annuler",
+    "pinPlaceholder": "Code PIN",
+    "lockedTitle": "Saisissez votre code PIN pour ouvrir le portefeuille",
+    "unlockButton": "Déverrouiller",
+    "confirmTitle": "Saisissez votre code PIN",
+    "confirmButton": "Confirmer",
+    "wrongPin": "Code PIN incorrect",
+    "wrongPinTriesLeft": "Code PIN incorrect. Encore {count} essai avant l'attente. | Code PIN incorrect. Encore {count} essais avant l'attente.",
+    "tooManyAttempts": "Trop de tentatives incorrectes. Réessayez dans {time}.",
+    "forgotPin": "Code PIN oublié ?",
+    "forgotPinHint": "Un code PIN ne peut pas être réinitialisé. Effacez les données de cette application ou de ce site, puis restaurez vos portefeuilles à partir de leurs phrases de récupération. Un portefeuille sans sauvegarde est perdu.",
+    "usePin": "Utiliser le code PIN",
+    "useBiometrics": "Utiliser l'empreinte ou le visage",
+    "lockedTitleBiometrics": "Déverrouiller Cashonize",
+    "confirmTitleBiometrics": "Confirmez votre identité",
+    "biometricsSetupTitle": "Confirmez pour déverrouiller par biométrie",
+    "biometricsToggle": "Déverrouiller par empreinte ou visage",
+    "biometricsTurnedOn": "Déverrouillage biométrique activé"
+  },
   "addressConverter": {
     "title": "Convertisseur d'adresses",
     "description": "Saisissez une adresse pour voir toutes ses formes.",
@@ -1246,10 +1389,13 @@
     "bchAddress": "QR code de l'adresse Bitcoin Cash",
     "tokenAddress": "QR code de l'adresse de token",
     "xpub": "QR code du xpub",
-    "paymentRequest": "QR code de la demande de paiement"
+    "paymentRequest": "QR code de la demande de paiement",
+    "enlarge": "Afficher le QR code en plein écran",
+    "size": "Taille du QR code"
   },
   "qrScanner": {
     "scanQrCode": "Scanner le code QR",
+    "scan": "Scanner",
     "chooseImage": "Choisir une image",
     "switchCamera": "Changer de caméra",
     "noQrCodeInImage": "Aucun code QR trouvé dans l'image",
@@ -1259,7 +1405,8 @@
       "nonSecureContext": "Impossible d'accéder à la caméra dans un contexte non sécurisé",
       "unableToAccess": "Impossible d'accéder à la caméra",
       "constraintsMismatch": "Les contraintes ne correspondent à aucune caméra installée. Avez-vous demandé la caméra frontale alors qu'il n'y en a pas ?",
-      "unknownError": "Une erreur inconnue s'est produite"
+      "unknownError": "Une erreur inconnue s'est produite",
+      "nothingToDo": "Ce n'est ni une adresse BCH, ni une demande de paiement, ni une connexion dApp, ni une clé privée"
     }
   },
   "relativeTime": {
@@ -1367,6 +1514,9 @@
     "sessionSettings": {
       "title": "Gérer la session",
       "enableAutoApprovals": "Activer les approbations automatiques",
+      "autoApprovalsHint": "Les demandes de signature de transactions et de messages de cette dApp sont signées sans confirmation",
+      "autoApprovalsTrustHint": "N'activez ceci que pour une dApp de confiance, après avoir bien vérifié le domaine du site web",
+      "autoApprovalsLockedHint": "Pas tant que l'application est verrouillée : une demande reçue à ce moment attend votre approbation après le déverrouillage",
       "forever": "Pour toujours",
       "for": "Pour",
       "requests": "requêtes",
@@ -1439,62 +1589,90 @@
     "version": "Version de l'app Cashonize : {version}",
     "latest": "(dernière)",
     "latestRelease": "(la dernière version est {version})",
-    "allSettings": "Tous les paramètres",
     "currentWallet": "Portefeuille actuel :",
     "menu": {
       "backupWallet": "Sauvegarder le portefeuille",
       "important": "(important)",
       "manageWallets": "Gérer les portefeuilles",
       "userOptions": "Options utilisateur",
+      "userOptionsDescription": "Confirmation des paiements, scan QR, BCH ou sats, explorateur de blocs",
+      "appearance": "Apparence et disposition",
+      "appearanceDescription": "Thème, onglets de navigation, code QR",
       "tokenSettings": "Paramètres des tokens",
+      "tokenSettingsDescription": "Valeurs des tokens, icônes, destruction, identités",
       "localization": "Localisation",
+      "localizationDescription": "Langue, devise, format de date et des nombres",
       "advancedSettings": "Paramètres avancés",
+      "advancedSettingsDescription": "Serveurs Electrum, IPFS, de taux de change et indexeurs",
       "dataAndStorage": "Données et stockage",
+      "dataAndStorageDescription": "Caches, connexions dApp, réinitialisation, suppression des portefeuilles",
       "developerSettings": "Paramètres développeur",
+      "developerSettingsDescription": "Portefeuilles de test et fonctions développeur",
       "tools": "Outils du portefeuille",
       "hdAddresses": "Adresses HD",
-      "requestPayment": "Créer une demande de paiement",
       "utxoManagement": "Gestion des UTXO",
+      "utxoManagementDescription": "Voir, geler, envoyer ou consolider des pièces individuelles",
       "createTokens": "Créer un token",
+      "createTokensDescription": "Créer un nouveau token fongible ou une collection de NFT",
       "sweepPrivateKey": "Balayer une clé privée",
+      "sweepPrivateKeyDescription": "Rapatrier ici les fonds d'un portefeuille papier ou d'une clé privée",
       "transferAllAssets": "Transférer tous les actifs",
+      "transferAllAssetsDescription": "Envoyer tout le contenu de ce portefeuille vers une autre adresse",
       "signVerifyMessage": "Signer / Vérifier un message",
+      "signVerifyMessageDescription": "Prouver que vous contrôlez une adresse, ou vérifier une signature",
       "exportXpub": "Exporter la xpub",
+      "exportXpubDescription": "La clé publique qui révèle toutes les adresses de ce portefeuille",
       "addressConverter": "Convertisseur d'adresses",
+      "addressConverterDescription": "Voir une adresse dans ses autres formats",
+      "faq": "FAQ",
       "aboutCashonize": "À propos de Cashonize",
       "flipstarter": "Flipstarter",
+      "flipstarterDescription": "Promettre un montant à une campagne de financement participatif",
       "identities": "Identités",
-      "newCount": "({count} nouvelle) | ({count} nouvelles)"
+      "identitiesDescription": "Les identités de métadonnées que ce portefeuille détient ou suit",
+      "newCount": "({count} nouvelle) | ({count} nouvelles)",
+      "tokenCreation": "Création de tokens"
     },
     "localization": {
       "language": "Langue :",
       "currency": "Devise :",
       "dateFormat": "Format de date :",
+      "numberFormat": "Format des nombres :",
+      "numberFormatAuto": "Valeur par défaut du système ({example})",
       "languageLoadFailed": "Impossible de charger cette langue. Vérifiez votre connexion ou rechargez la page."
     },
     "userOptions": {
-      "darkMode": "Mode sombre",
       "confirmPayments": "Confirmer les paiements avant l'envoi",
-      "confirmPaymentsHint": "Demander une confirmation après avoir cliqué sur envoyer (recommandé)",
+      "confirmPaymentsHint": "Affiche le montant et l'adresse pour une dernière vérification après avoir cliqué sur envoyer. Recommandé, car un paiement ne peut pas être annulé.",
       "showCauldronSwap": "Afficher le bouton Cauldron Swap",
       "showCauldronFTValue": "Afficher la valeur en devise dans la liste des tokens",
-      "showCauldronFTValueHint": "Affiche la valeur en devise dans l'onglet Tokens pour les tokens fongibles avec au moins 1 BCH de liquidité combinée dans les pools de Cauldron DEX",
+      "showCauldronFTValueHint": "Affiche la valeur en devise dans l'onglet Tokens et lors d'un envoi, pour les tokens fongibles avec au moins 1 BCH de liquidité combinée dans les pools de Cauldron DEX",
       "showCauldronFTValuePortfolioNote": "La vue portfolio affiche toujours les valeurs des tokens",
       "enableTokenBurn": "Afficher le bouton de destruction sur les tokens",
       "identitiesHeading": "Identités (avancé)",
       "enableQrScan": "Activer le scan QR",
+      "enableQrScanHint": "Affiche Scanner sur la page du portefeuille et un bouton de scan à côté des champs d'adresse. Le scanner lit aussi un code depuis une image, il fonctionne donc sans caméra.",
       "selectUnit": "Sélectionner l'unité Bitcoin Cash :",
       "bchUnit": "BCH",
       "satUnit": "satoshis",
       "blockExplorer": "Explorateur de blocs :",
       "qrAnimation": "Animation du code QR :",
-      "tokenAddressQrDefault": "Afficher le code QR de l'adresse de token par défaut",
-      "enableAddressMarking": "Activer la gestion avancée des adresses : marquer les adresses comme utilisées",
-      "enableAddressMarkingHint": "Marquer une adresse comme utilisée fait passer le portefeuille à la suivante, pour donner une nouvelle adresse à chaque payeur. S'applique aux portefeuilles HD.",
       "bottomNavOnMobile": "Afficher les onglets de navigation en bas sur les petits écrans",
       "dappActivityInNav": "Afficher l'icône d'activité dApp dans la navigation supérieure",
-      "followTokenIdentities": "Suivre les identités des tokens que vous détenez",
-      "followTokenIdentitiesHint": "La liste des tokens que vous détenez est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens détenus à chaque ouverture du portefeuille.",
+      "themeHeading": "Thème",
+      "themeSystem": "Par défaut du système",
+      "themeLight": "Clair",
+      "themeDim": "Tamisé",
+      "themeDark": "Sombre",
+      "walletPageHeading": "Page du portefeuille",
+      "primaryBalance": "Solde principal :",
+      "greenActionButtons": "Boutons Recevoir, Scanner et Envoyer en vert",
+      "navigationHeading": "Navigation",
+      "qrHeading": "Code QR",
+      "addressesInNav": "Afficher l'onglet Adresses dans la navigation supérieure",
+      "addressesInNavHint": "Pour les portefeuilles HD, sur les écrans assez larges. Sans l'onglet, la page Adresses s'ouvre depuis le menu ⋯.",
+      "followTokenIdentities": "Suivre les identités des tokens de ce portefeuille",
+      "followTokenIdentitiesHint": "La liste des tokens de ce portefeuille est envoyée au serveur Chaingraph comme un ensemble, pour que l'identité d'un token qui atteint ce portefeuille soit remarquée et retenue. Désactivé par défaut : seule l'identité d'un token dont ce portefeuille détient l'AuthKey est alors recherchée. L'activer recherche tous les tokens du portefeuille à chaque ouverture du portefeuille.",
       "allowDappIdentitySpends": "Laisser les applications connectées dépenser les UTXO d'identité",
       "allowDappIdentitySpendsHint": "Désactivé : une requête WalletConnect ou WizardConnect qui dépense l'UTXO d'une identité de ce portefeuille est refusée, comme un UTXO engagé. Activé : la requête atteint le dialogue d'approbation, qui nomme l'identité et dit ce que son UTXO porte avant et après. Une requête qui ferait sortir une identité de ce portefeuille est refusée dans les deux cas. Les AuthKeys ne sont pas concernées : une requête qui en utilise une est signée quand l'AuthKey revient, ce qui est le fonctionnement de CashTokens Studio.",
       "disableTokenIcons": "Désactiver le chargement des images de tokens",
@@ -1529,6 +1707,8 @@
       "chaingraphNone": "Aucun",
       "cauldronIndexer": "Indexeur Cauldron :",
       "cauldronIndexerHint": "Utilisé pour obtenir les prix des tokens depuis le DEX Cauldron pour le portfolio et la liste des tokens.",
+      "cauldronIndexerNone": "Aucun",
+      "cauldronIndexerCustomPlaceholder": "ex. https://indexer.example.com",
       "exchangeRate": "Fournisseur de taux de change :",
       "exchangeRateDefault": "Par défaut (bitcoin.com pour USD, BitPay pour le reste)",
       "deleteAllWallets": "Supprimer tous les portefeuilles et données de {platform}",
@@ -1716,8 +1896,10 @@
     "ownedCount": "{count} identité détenue et gérée par ce portefeuille | {count} identités détenues et gérées par ce portefeuille",
     "watchedHeader": "{count} identité seulement surveillée, non détenue par ce portefeuille | {count} identités seulement surveillées, non détenues par ce portefeuille",
     "follow": {
-      "header": "{count} identité suivie d'un token détenu | {count} identités suivies de tokens détenus",
-      "resolving": "Recherche des identités des tokens que vous détenez"
+      "header": "{count} identité suivie d'un token de ce portefeuille | {count} identités suivies de tokens de ce portefeuille",
+      "resolving": "Recherche des identités des tokens de ce portefeuille",
+      "searchPlaceholder": "Rechercher des identités...",
+      "noMatch": "Aucune identité ne correspond à la recherche"
     },
     "unnamedIdentity": "Identité sans nom",
     "authheadLabel": "UTXO de l'identité :",

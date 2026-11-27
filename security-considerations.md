@@ -32,6 +32,12 @@ Cashonize currently stores your seed phrase unencrypted in IndexedDB. The actual
 - **On the desktop app (Electron)**, your seed lives in Electron's IndexedDB store on disk. Anything running on your computer with access to your user account can read it.
 - **On the Android .apk (Capacitor)**, your seed lives in the app's private IndexedDB storage. Android's per-app sandboxing means other apps cannot read it by default, which is a meaningful default protection that the desktop and web variants do not have.
 
+### App lock
+
+An optional PIN can lock the app (under ⋯ → App lock). It is asked when Cashonize opens, after it sat in the background for a few minutes, and before sending, signing a dApp transaction or showing the seed phrase.
+
+The app lock is a gate in the interface, not encryption. It keeps someone holding your unlocked device out of the wallet, but the seed phrase stays in plaintext at rest as described above, so it does not protect against anything that can read the app's storage: in a browser that includes anyone who opens the developer tools, on the desktop anything running under your user account, and WalletConnect requests of a session set to auto-approve are signed without the PIN (granting auto-approve asks for it). A forgotten PIN cannot be reset: clear the app's data and restore from your seed phrase.
+
 ### Summary
 
 **Risk by platform:**

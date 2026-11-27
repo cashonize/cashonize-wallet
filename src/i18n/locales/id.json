@@ -1,0 +1,2214 @@
+{
+  "common": {
+    "actions": {
+      "back": "Kembali",
+      "send": "Kirim",
+      "confirm": "Konfirmasi",
+      "broadcastAgain": "Siarkan ulang",
+      "dismiss": "Tutup",
+      "done": "Selesai"
+    },
+    "status": {
+      "sending": "Mengirim..."
+    },
+    "errors": {
+      "somethingWentWrong": "Terjadi kesalahan",
+      "amountInvalid": "Ketik jumlah dalam angka, dengan paling banyak satu tanda desimal",
+      "amountGrouping": "Ketik jumlah tanpa pemisah ribuan atau spasi",
+      "amountAmbiguous": "Jumlah ini bisa dibaca dengan dua cara: ketik ribuan tanpa pemisah, seperti 1000, dan desimal seperti {example} (atau pilih format angka Anda di Menu → Pengaturan → Lokalisasi)",
+      "amountWholeOnly": "Ketik bilangan bulat, tanpa pemisah",
+      "needToInitializeWallet": "Dompet harus diinisialisasi terlebih dahulu",
+      "exchangeRateUnavailable": "Tidak dapat mengambil kurs, permintaan dApp ditolak",
+      "nothingToTransfer": "Tidak ada BCH atau token tersisa untuk ditransfer",
+      "broadcast": {
+        "conflict": "Transaksi ditolak karena salah satu UTXO-nya baru saja dibelanjakan oleh transaksi lain, misalnya oleh seseorang yang memakai kontrak yang sama pada saat yang sama. Tidak ada yang terkirim, jadi Anda bisa mencoba lagi.",
+        "conflictDapp": "Transaksi ditolak karena salah satu UTXO-nya baru saja dibelanjakan oleh transaksi lain, misalnya oleh seseorang yang memakai kontrak yang sama pada saat yang sama. Tidak ada yang terkirim. dApp harus menyusun transaksi lagi: muat ulang dApp dan ulangi tindakannya.",
+        "missingInputs": "Transaksi ditolak karena salah satu UTXO-nya tidak ada atau sudah dibelanjakan. Tidak ada yang terkirim, jadi Anda bisa mencoba lagi.",
+        "missingInputsDapp": "Transaksi ditolak karena salah satu UTXO-nya tidak ada atau sudah dibelanjakan. Tidak ada yang terkirim. dApp harus menyusun transaksi lagi: muat ulang dApp dan ulangi tindakannya.",
+        "notYetFinal": "Transaksi ditolak karena terkunci waktu dan kuncinya belum tercapai. Mencoba lagi sekarang tidak akan membantu, tunggu sampai kuncinya terlewati.",
+        "unknownOutcome": "Server tidak dapat memastikan apakah transaksi sudah keluar, jadi transaksi mungkin terkirim atau mungkin tidak. Periksa riwayat transaksi Anda, atau siarkan ulang transaksi yang sama, yang tidak akan pernah membayar dua kali. Jangan mengirimnya lagi sebagai pembayaran baru.",
+        "unknownOutcomeDapp": "Server tidak dapat memastikan apakah transaksi dApp sudah keluar, jadi transaksi mungkin terkirim atau mungkin tidak. Periksa riwayat transaksi Anda, atau siarkan ulang transaksi yang sama, yang tidak akan pernah membayar dua kali."
+      }
+    },
+    "attention": "Perhatian:",
+    "nftCount": "{count} NFT | {count} NFT",
+    "hdPrivacyWarning": "Ini menggabungkan input dari semua alamat Anda, sehingga secara publik menautkannya sebagai satu dompet, yang mengorbankan manfaat privasi dari dompet HD.",
+    "copied": "Disalin!",
+    "unsafeUrl": "URL disembunyikan (protokol tidak aman)",
+    "wallet": "dompet",
+    "wallets": "dompet",
+    "unconfirmed": "Belum dikonfirmasi",
+    "tokenUnit": "token | token"
+  },
+  "nav": {
+    "wallet": "Dompet",
+    "addresses": "Alamat",
+    "tokens": "Token",
+    "history": "Riwayat",
+    "connect": "Hubungkan",
+    "menu": "Menu"
+  },
+  "networkBadge": {
+    "intro": "Dompet ini berada di {network}, jaringan uji: koinnya tidak bernilai.",
+    "unavailableHeading": "Tidak tersedia di {network}:",
+    "unavailable": {
+      "tokenMetadata": "Metadata token (nama, ikon, desimal)",
+      "cauldronPrices": "Harga token Cauldron",
+      "dappConnections": "Koneksi dApp"
+    }
+  },
+  "walletUtils": {
+    "errors": {
+      "enterWalletName": "Masukkan nama dompet",
+      "walletNameTooLong": "Nama dompet terlalu panjang (maks. {max} karakter)",
+      "walletNameInvalidChars": "Nama dompet berisi karakter yang tidak valid",
+      "walletAlreadyExists": "Dompet \"{name}\" sudah ada",
+      "storageFull": "Penyimpanan penuh - tidak dapat menyimpan dompet. Periksa pengaturan penyimpanan browser.",
+      "failedToCreateWallet": "Gagal membuat dompet",
+      "enterSeedPhrase": "Masukkan frasa pemulihan untuk mengimpor dompet",
+      "fixInvalidWords": "Perbaiki kata yang tidak valid dalam frasa pemulihan Anda",
+      "invalidSeedPhrase": "Bukan frasa pemulihan yang valid",
+      "convertTiedCopy": "Dompet \"{name}\" juga memiliki salinan di {network}. Hapus dulu salinan chipnet-nya di Menu > Pengaturan > Pengaturan pengembang, lalu konversi.",
+      "cannotConvert": "Dompet \"{name}\" tidak tersimpan sebagai dompet satu alamat yang dapat dikonversi, jadi tidak ada yang diubah",
+      "conversionRunning": "Dompet sedang dikonversi",
+      "failedToConvert": "Gagal mengonversi dompet \"{name}\"",
+      "walletChangedBeforeConversion": "Dompet \"{name}\" berubah sejak diperiksa, jadi tidak ada yang dikonversi",
+      "convertedReloadToOpen": "Dompet \"{name}\" telah dikonversi dan akan terbuka sebagai dompet HD setelah dimuat ulang"
+    }
+  },
+  "bip21": {
+    "errors": {
+      "unsupportedPaymentRequest": "Permintaan pembayaran tidak didukung",
+      "duplicateParameters": "Permintaan pembayaran tidak valid: parameter ganda",
+      "invalidAmountFormat": "Permintaan pembayaran memiliki format jumlah yang tidak valid",
+      "conflictingAmounts": "Permintaan pembayaran tidak valid: menetapkan amount dan s sekaligus",
+      "invalidExpiration": "Permintaan pembayaran memiliki masa berlaku yang tidak valid",
+      "requestExpired": "Permintaan pembayaran ini sudah kedaluwarsa"
+    }
+  },
+  "chaingraph": {
+    "errors": {
+      "requestFailed": "Permintaan Chaingraph gagal: {status}",
+      "unreachable": "Tidak dapat menjangkau server Chaingraph.",
+      "timeout": "Server Chaingraph tidak merespons dalam {seconds} detik.",
+      "rejected": "Server Chaingraph menolak permintaan: {reason}",
+      "invalidResponse": "Server tidak mengembalikan respons Chaingraph yang valid.",
+      "tokenNotFound": "Token tidak ditemukan",
+      "authchainNotFound": "Server Chaingraph tidak menemukan riwayat identitas untuk id tersebut. Periksa id-nya; jika sudah benar, server mungkin tidak mengindeks chain ini.",
+      "notConfigured": "Tidak ada server Chaingraph yang dikonfigurasi untuk jaringan ini. Atur di pengaturan lanjutan."
+    }
+  },
+  "exchangeRate": {
+    "errors": {
+      "validationError": "Kesalahan validasi respons kurs {provider}",
+      "currencyNotSupported": "Mata uang '{symbol}' tidak didukung"
+    }
+  },
+  "store": {
+    "notifications": {
+      "receivedBch": "Diterima {amount} {unit} ({fiatValue})",
+      "receivedTokens": "Diterima {tokenType} baru",
+      "broadcastAgainSent": "Transaksi telah disiarkan"
+    },
+    "errors": {
+      "chipnetCopyChanged": "Salinan chipnet dari {name} berubah sejak diperiksa, jadi tidak ada yang dihapus.",
+      "noTokenMetadataIndexer": "Tidak ada pengindeks metadata token untuk {network}.",
+      "chipnetCopyRemovalRunning": "Sebuah salinan chipnet sedang dihapus. Coba lagi setelah selesai.",
+      "chipnetCopyHoldsCoins": "Salinan chipnet dari {name} menyimpan koin chipnet, jadi tidak ada yang dihapus.",
+      "cannotDeleteActiveWallet": "Tidak dapat menghapus dompet yang sedang aktif",
+      "cachedKeysNotCleared": "Dompet telah dihapus, tetapi kunci yang di-cache-nya tidak dapat dihapus.",
+      "walletNotFoundOnNetwork": "Dompet \"{name}\" tidak ada di {network}",
+      "errorInitializingWalletConnect": "Kesalahan saat menginisialisasi WalletConnect",
+      "errorInitializingCashConnect": "Kesalahan saat menginisialisasi CashConnect",
+      "errorInitializingWizardConnect": "Kesalahan saat menginisialisasi WizardConnect",
+      "errorFetchingUtxos": "Kesalahan saat mengambil UTXO dompet",
+      "walletRefreshFailed": "Tidak dapat memperbarui dompet dari server, jadi saldo yang ditampilkan mungkin tidak terbaru",
+      "storageFullNotHeld": "Penyimpanan penuh, jadi ini tidak dapat ditahan. Mengosongkan cache metadata token di pengaturan akan memberi ruang; lalu coba lagi.",
+      "errorFetchingHistory": "Kesalahan saat mengambil riwayat dompet",
+      "unableToConnectElectrum": "Tidak dapat terhubung ke server Electrum '{server}'",
+      "staleElectrumServer": "Server Electrum '{server}' tampaknya tidak mutakhir: blok terbarunya berumur {hours} jam, jadi saldo dan riwayat Anda mungkin tidak memuat transaksi terbaru. Anda dapat mengganti server di pengaturan lanjutan.",
+      "deviceOffline": "Tidak ada koneksi internet",
+      "bcmrIndexerValidationError": "Kesalahan validasi respons indexer BCMR",
+      "tokenUtxoHeldBack": "UTXO ini ditahan dari pemilihan koin. Halaman Manajemen UTXO menunjukkan koin mana yang ditahan, alasannya, dan cara melepaskan masing-masing.",
+      "identityUtxoHeldBack": "NFT ini adalah UTXO identitas dari tokennya, ditahan dari pemilihan koin. NFT ini dikelola dari halaman identitas.",
+      "utxosHeldBack": "Beberapa UTXO ditahan dari pemilihan koin dan tidak dihitung di sini. Halaman Manajemen UTXO menunjukkan mana yang ditahan dan alasannya.",
+      "cannotSendPledgedUtxo": "UTXO ini ditahan untuk janji donasi yang masih terbuka. Batalkan janji donasi untuk melepaskannya.",
+      "genesisInputUnavailable": "Koin yang dipilih untuk membuat token ini sudah tidak tersedia. Pilih koin lain.",
+      "utxoNotAvailable": "Sebuah koin yang dibelanjakan transaksi ini sudah tidak ada di dompet, kemungkinan dibelanjakan di tempat lain. Tunggu sampai dompet diperbarui, lalu coba lagi.",
+      "identityLeavesWallet": "Permintaan ini akan memindahkan salah satu identitas Anda ke alamat yang tidak dikenali dompet ini sebagai miliknya, jadi permintaan ditolak. Mentransfer identitas dilakukan dari halaman identitas.",
+      "identityMerge": "Permintaan ini akan membelanjakan dua identitas Anda dalam satu transaksi, yang menggabungkannya menjadi satu. Penggabungan identitas belum didukung oleh dompet ini, jadi permintaan ditolak.",
+      "reservedInputs": "Permintaan ini akan membelanjakan UTXO yang sedang ditahan dompet, jadi permintaan ditolak. Halaman Manajemen UTXO menunjukkan UTXO mana yang ditahan dan alasannya.",
+      "identityHeld": "Permintaan ini akan membelanjakan UTXO identitas dari {name}, yang tidak boleh dilakukan aplikasi terhubung, jadi permintaan ditolak. Untuk mengelola identitas melalui aplikasi terhubung, aktifkan \"Izinkan aplikasi terhubung membelanjakan UTXO identitas\" di opsi pengguna.",
+      "dappRefusedTitle": "Permintaan ditolak",
+      "broadcastAgainWalletSwitched": "Dompet lain sedang terbuka. Beralih kembali ke dompet yang membuat transaksi untuk menyiarkannya ulang."
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Selamat datang di Cashonize",
+      "description": "Dompet Bitcoin Cash open-source dan non-kustodian yang mudah digunakan.",
+      "featureSendReceive": "Kirim & terima BCH dan CashTokens",
+      "featureDapps": "Hubungkan ke dApp BCH mana pun dan lihat apa yang dilakukannya sebelum menandatangani",
+      "featurePortfolio": "Lihat nilai BCH, token, dan posisi DeFi Anda secara bersamaan",
+      "aboutPrompt": "Baru mengenal Cashonize? {link}",
+      "aboutLinkText": "Pelajari lebih lanjut tentang dompet ini →"
+    },
+    "create": {
+      "title": "Buat dompet baru",
+      "description": "Mulai dengan dompet baru dalam hitungan detik",
+      "button": "Buat dompet baru",
+      "seedPhraseNote": "Frasa pemulihan baru akan dibuat. Hanya Anda yang memegangnya, jadi cadangkan untuk mengamankan dompet Anda.",
+      "submitButton": "Buat dompet"
+    },
+    "import": {
+      "title": "Impor dompet yang ada",
+      "description": "Pulihkan dengan frasa pemulihan Anda",
+      "button": "Impor dompet",
+      "submitButton": "Impor dompet"
+    },
+    "walletName": {
+      "label": "Nama dompet:",
+      "placeholder": "Masukkan nama dompet",
+      "tip": "Tips: beri nama dompet sesuai kegunaannya, seperti \"tabungan\" atau \"trading\""
+    },
+    "walletType": {
+      "label": "Jenis dompet:",
+      "hd": "Dompet HD (banyak alamat)",
+      "single": "Satu alamat",
+      "hdDescription": "Menggunakan alamat baru untuk setiap transaksi demi privasi yang lebih baik. Saat terhubung dengan WalletConnect, Anda memilih alamat mana yang dibagikan.",
+      "singleDescription": "Menggunakan satu alamat tetap untuk semua transaksi. Semua aset di satu tempat, tetapi kurang privat. Metode koneksi WizardConnect tidak didukung.",
+      "singleAddressNote": "Catatan: Hanya alamat pertama dari frasa pemulihan Anda yang akan digunakan. Jika Anda pernah memakai frasa ini di dompet lain, dana di alamat lain tidak akan muncul."
+    },
+    "preferences": {
+      "title": "Atur preferensi Anda",
+      "description": "Hampir selesai! Atur preferensi Anda di bawah ini.",
+      "currency": {
+        "label": "Mata uang pilihan:",
+        "usd": "USD - Dolar AS (default)",
+        "eur": "EUR - Euro",
+        "gbp": "GBP - Pound Inggris",
+        "cad": "CAD - Dolar Kanada",
+        "aud": "AUD - Dolar Australia",
+        "chf": "CHF - Franc Swiss",
+        "brl": "BRL - Real Brasil",
+        "mxn": "MXN - Peso Meksiko",
+        "ars": "ARS - Peso Argentina",
+        "rub": "RUB - Rubel Rusia"
+      },
+      "finishButton": "Selesaikan Pengaturan"
+    }
+  },
+  "wallet": {
+    "selectAsset": "Pilih yang akan dikirim",
+    "selectAssetHint": "Bitcoin Cash, atau token fungible yang disimpan dompet ini",
+    "addressPlaceholder": "alamat",
+    "amountPlaceholder": "jumlah",
+    "available": "Tersedia: {amount}",
+    "useMax": "gunakan maks",
+    "notEnoughBch": "BCH di dompet tidak cukup untuk dikirim",
+    "sendingTransaction": "Mengirim transaksi...",
+    "sent": "Terkirim {amount} ke {address}",
+    "transactionSuccess": "Transaksi berhasil dikirim!",
+    "openInTokens": "Buka token",
+    "errors": {
+      "tokenPaymentRequest": "Ini adalah permintaan pembayaran untuk {token}, yang dibayar dari token itu sendiri.",
+      "tokenPaymentRequestNotHeld": "Ini adalah permintaan pembayaran untuk {token}, yang tidak dimiliki dompet ini.",
+      "noBalance": "Dompet tidak menyimpan Bitcoin Cash",
+      "noDestination": "Alamat tujuan tidak diisi",
+      "noAmount": "Jumlah yang valid tidak diisi",
+      "invalidAmount": "Masukkan jumlah positif: satoshi bulat, atau BCH dengan paling banyak 8 desimal",
+      "insufficientFunds": "BCH di dompet tidak cukup",
+      "invalidAddress": "Alamat BCH yang diberikan tidak valid",
+      "notCashaddress": "Bukan cashaddress di jaringan saat ini",
+      "legacyAddress": "Alamat legacy terlihat sama dengan alamat Bitcoin (BTC). CashAddr adalah format alamat standar di BCH. Jika Anda yakin ini alamat BCH, konversikan dengan Konverter Alamat di Alat dompet."
+    },
+    "tokenValueAtCauldron": "Nilai pada harga Cauldron:",
+    "reservedBalance": "Ditahan: {amount}",
+    "hideBalances": "Sembunyikan saldo",
+    "showBalances": "Tampilkan saldo",
+    "balancesHidden": "Saldo disembunyikan."
+  },
+  "portfolio": {
+    "title": "Portofolio",
+    "backToWallet": "Kembali ke dompet",
+    "description": "Total nilai dompet Anda dari aset yang dimiliki dan posisi DeFi",
+    "pricesInfo": "Nilai token berdasarkan harga DEX Cauldron",
+    "nftsExcluded": "NFT tidak dihitung dalam total, kecuali yang mewakili posisi: pinjaman dan staking ParyonUSD, serta keycard Emerald DAO",
+    "totalValue": "Nilai total",
+    "other": "Lainnya",
+    "noPriceData": "Tanpa data harga ({count})",
+    "checkingHodlContracts": "Memeriksa kontrak hodl",
+    "checkingTapswapListings": "Memeriksa listing TapSwap",
+    "smallBalances": "Saldo kecil ({count})",
+    "groupCount": "{count} posisi",
+    "tapswapListings": "Listing TapSwap ({count})",
+    "askingPrice": "Harga jual",
+    "manageListings": "Kelola listing Anda di {link}.",
+    "tapswapInfo": "Aset yang di-listing tetap milik dompet tetapi disimpan dalam kontrak penjualan TapSwap, jadi tidak muncul di daftar token dompet. Harga jual tidak dihitung dalam total.",
+    "collateral": "Jaminan",
+    "debt": "Utang",
+    "netValue": "Nilai bersih",
+    "staked": "Di-stake",
+    "epoch": "Epoch",
+    "stakedValue": "Nilai stake",
+    "includeStaked": "Sertakan stake ParyonUSD dalam total",
+    "includeReserves": "Sertakan cadangan identitas dalam total",
+    "cauldronPool": "Pool likuiditas Cauldron",
+    "poolValue": "Nilai pool",
+    "poolInfo": "Dana dalam pool likuiditas disimpan oleh kontrak pool, jadi bukan bagian dari saldo dompet. Pembagian antara BCH dan token bergeser seiring pool diperdagangkan.",
+    "keycardNumber": "Keycard #{serial}",
+    "lockedValue": "Nilai terkunci",
+    "keycardInfo": "BCH yang mendukung sebuah keycard disimpan dalam kontrak safebox, jadi bukan bagian dari saldo dompet. Keycard dapat dibakar untuk membuka safebox-nya.",
+    "badgersStake": "Badgers.cash",
+    "lockedBch": "BCH terkunci",
+    "unlocksIn": "Terbuka dalam ~{count} hari | Terbuka dalam ~{count} hari",
+    "unlocksInBlocks": "Terbuka dalam {count} blok | Terbuka dalam {count} blok",
+    "unlockable": "Siap dibuka",
+    "badgersInfo": "BCH yang dikunci di kontrak Badgers.cash untuk mendapatkan BadgerCoins. BCH ini disimpan oleh kontrak sampai kuncinya berakhir, jadi bukan bagian dari saldo dompet, dan akan kembali ke alamat yang menguncinya.",
+    "hodlContract": "Kontrak hodl",
+    "unlocksOn": "Terbuka {date}",
+    "hodlInfo": "BCH yang dikunci dalam kontrak hodl, disimpan oleh kontrak sampai waktu pembukaannya, jadi bukan bagian dari saldo dompet. Bahkan pemiliknya tidak dapat membukanya lebih awal: dana terbukti tidak dapat dipindahkan sebelum waktu pembukaan, yang bisa menjadi bagian dari pengaturan keamanan.",
+    "stakingInfo": "Tanda terima staking mencatat jumlah yang di-stake pada epoch tertentu. Stake saat ini bisa lebih rendah saat ditarik, jadi nilai ini adalah perkiraan.",
+    "noAssets": "Belum ada BCH atau token di dompet ini",
+    "loading": "Memuat data dompet",
+    "loadingFailed": "Gagal memuat data dompet",
+    "announcedAssetsLoadingFailed": "Gagal memuat listing TapSwap dan kontrak hodl"
+  },
+  "tokens": {
+    "loading": "Memuat data token",
+    "loadingFailed": "Gagal memuat data token",
+    "count": "{count} Token",
+    "favoriteCount": "{count} token favorit",
+    "hiddenCount": "{count} token tersembunyi",
+    "totalCount": "Total {count} token",
+    "noTokens": "Tidak ada token di dompet",
+    "noMatch": "Tidak ada token yang cocok dengan filter",
+    "options": "Opsi",
+    "filter": {
+      "label": "Tampilkan:",
+      "default": "Default",
+      "favoritesOnly": "Hanya favorit",
+      "all": "Semua token",
+      "hiddenOnly": "Hanya tersembunyi"
+    },
+    "typeFilter": {
+      "all": "Semua",
+      "fungibles": "Fungible",
+      "nfts": "NFT"
+    },
+    "editVisibility": "Ubah visibilitas",
+    "valueFilterLabel": "Hanya tampilkan token di atas",
+    "hiddenByValueFilter": "{count} token disembunyikan oleh filter nilai",
+    "searchPlaceholder": "Cari token..."
+  },
+  "tokenItem": {
+    "tokenId": "TokenId:",
+    "amount": "Jumlah:",
+    "commitment": "Commitment:",
+    "empty": "kosong",
+    "seeParsedData": "Lihat data NFT yang diurai di 'info'",
+    "keycard": "Keycard",
+    "loadingLoanData": "Memuat data pinjaman...",
+    "tokens": "token",
+    "actions": {
+      "send": "kirim",
+      "info": "info",
+      "swap": "swap",
+      "burnTokens": "bakar token",
+      "burnNft": "bakar NFT",
+      "mintNfts": "mint NFT",
+      "batchTransfer": "transfer massal",
+      "all": "semua",
+      "clear": "hapus",
+      "select": "pilih",
+      "selected": "dipilih",
+      "max": "maks"
+    },
+    "authKey": {
+      "name": "AuthKey",
+      "manage": "kelola",
+      "controls": "Mengendalikan {names}",
+      "transfer": "transfer AuthKey",
+      "infoAction": "Info AuthKey",
+      "info": "AuthKey ini mengendalikan {count} identitas. Memegangnya berarti mengendalikan identitas tersebut: UTXO-nya berada dalam covenant yang hanya melepaskannya kepada siapa pun yang menunjukkan NFT ini. | AuthKey ini mengendalikan {count} identitas. Memegangnya berarti mengendalikan identitas-identitas tersebut: UTXO-nya berada dalam covenant yang hanya melepaskannya kepada siapa pun yang menunjukkan NFT ini.",
+      "guardAddress": "Alamat covenant:",
+      "heldBack": "Dikecualikan dari pengiriman biasa dari aplikasi ini. Dompet lain dengan frasa pemulihan yang sama tetap dapat membelanjakannya.",
+      "andMore": "dan {count} lainnya"
+    },
+    "visibility": {
+      "hideToken": "Sembunyikan token",
+      "unhideToken": "Tampilkan token",
+      "favoriteToken": "Jadikan favorit",
+      "unfavoriteToken": "Hapus dari favorit"
+    },
+    "info": {
+      "showFull": "Tampilkan deskripsi lengkap",
+      "showLess": "Tampilkan lebih sedikit",
+      "symbol": "Simbol",
+      "decimals": "Desimal",
+      "website": "Situs web",
+      "notHttps": "bukan tautan aman (https)",
+      "type": "Jenis",
+      "commitment": "Commitment",
+      "seeDetailsOnExplorer": "Lihat di TokenExplorer",
+      "immutable": "immutable",
+      "mutable": "mutable",
+      "minting": "minting",
+      "nftTypeValue": "NFT {capability}",
+      "nftAttributes": "Atribut NFT",
+      "extensionNote": "Data pinjaman yang diambil dari blockchain",
+      "parsedFields": "Data NFT yang diurai",
+      "numberNfts": "Jumlah NFT:",
+      "field": "Kolom {index}",
+      "blockHeight": "Blok {height}"
+    },
+    "sendTokens": {
+      "title": "Kirim token ini ke",
+      "addressPlaceholder": "alamat token",
+      "amountPlaceholder": "jumlah",
+      "amountTokensPlaceholder": "jumlah token",
+      "sendButton": "Kirim",
+      "sendingButton": "Mengirim..."
+    },
+    "sendNft": {
+      "title": "Kirim NFT ini ke",
+      "sendButton": "Kirim NFT",
+      "sendingButton": "Mengirim..."
+    },
+    "batchTransfer": {
+      "titleAll": "Kirim semua {count} NFT dari kategori ini ke",
+      "titleSelected": "Kirim {count} NFT terpilih ke",
+      "transferButton": "Transfer Massal",
+      "transferringButton": "Mengirim..."
+    },
+    "burn": {
+      "description": "Membakar token menghapusnya dari suplai selamanya",
+      "burnButton": "bakar token",
+      "burningButton": "Membakar...",
+      "burnNftButton": "bakar NFT",
+      "burnMintingDescription": "Bakar NFT ini agar tidak ada NFT baru dari kategori ini yang dapat di-mint",
+      "burnNftDescription": "Membakar NFT ini untuk menghapusnya dari dompet Anda selamanya"
+    },
+    "mint": {
+      "modeLabel": "Mode:",
+      "modeSingle": "Satu jenis",
+      "modeCollection": "Koleksi",
+      "titleSingle": "Mint satu atau lebih NFT dengan jenis yang sama, dengan commitment dan capability tertentu",
+      "titleCollection": "Mint koleksi NFT bernomor berurutan",
+      "capabilityImmutable": "immutable",
+      "capabilityMutable": "mutable",
+      "capabilityMinting": "minting",
+      "numberingLabel": "Penomoran:",
+      "vmNumbers": "Angka VM (default)",
+      "hexNumbers": "Angka hex",
+      "quantityPlaceholder": "kuantitas",
+      "collectionSizePlaceholder": "ukuran koleksi",
+      "startingNumberPlaceholder": "nomor awal",
+      "commitmentPlaceholder": "commitment (hex)",
+      "destinationPlaceholder": "Alamat tujuan opsional",
+      "mintButton": "Mint NFT",
+      "mintingButton": "Minting..."
+    },
+    "loading": {
+      "nftMetadata": "memuat metadata NFT...",
+      "nftMetadataShort": "memuat..."
+    },
+    "dialogs": {
+      "confirmMint": {
+        "title": "Konfirmasi Mint",
+        "message": "Mint {count} NFT kategori {tokenId} ke\n{address}",
+        "messageSingle": "Mint 1 NFT kategori {tokenId} ke\n{address}"
+      },
+      "burnTokens": {
+        "title": "Bakar Token",
+        "message": "Anda akan membakar {amount} {symbol}, ini tidak dapat dibatalkan.\nApakah Anda yakin ingin membakar token tersebut?",
+        "burnButton": "Bakar"
+      },
+      "burnNft": {
+        "title": "Bakar NFT",
+        "message": "Anda akan membakar {nftType}, ini tidak dapat dibatalkan.\nApakah Anda yakin ingin membakar NFT tersebut?",
+        "nftTypeMinting": "sebuah NFT minting",
+        "nftTypeRegular": "sebuah NFT",
+        "burnButton": "Bakar"
+      },
+      "confirmButton": "Konfirmasi"
+    },
+    "success": {
+      "transactionSent": "Transaksi berhasil dikirim!",
+      "burnSuccessful": "Pembakaran berhasil",
+      "mintSuccessful": "Mint berhasil"
+    },
+    "alerts": {
+      "sentTokens": "Terkirim {amount} {symbol} ke {address}",
+      "sentTokensNoSymbol": "Terkirim {amount} token fungible kategori {tokenId} ke {address}",
+      "sentNft": "Terkirim NFT kategori {tokenId} ke {address}",
+      "sentAllNfts": "Terkirim semua NFT kategori {tokenId} ke {address}",
+      "sentNfts": "Terkirim {count} NFT kategori {tokenId} ke {address}",
+      "sentNftNamed": "Terkirim NFT {name} ke {address}",
+      "sentAllNftsNamed": "Terkirim semua NFT {name} ke {address}",
+      "sentNftsNamed": "Terkirim {count} NFT {name} ke {address}",
+      "burnedTokens": "Dibakar {amount} {symbol}",
+      "burnedTokensNoSymbol": "Dibakar {amount} token kategori {tokenId}",
+      "burnedNft": "Dibakar {nftType} kategori {tokenId}",
+      "mintedNft": "Di-mint NFT immutable kategori {tokenId}",
+      "mintedNftWithCommitment": "Di-mint NFT immutable kategori {tokenId} dengan commitment {commitment}",
+      "mintedNfts": "Di-mint {amount} NFT kategori {tokenId}"
+    },
+    "errors": {
+      "needBchForFee": "Perlu sedikit BCH untuk menutup biaya transaksi",
+      "noDestination": "Alamat tujuan tidak diisi",
+      "noValidAmount": "Jumlah yang valid tidak diisi",
+      "insufficientBalance": "Saldo token tidak cukup",
+      "invalidAddress": "Alamat BCH yang diberikan tidak valid",
+      "notTokenAddress": "Bukan Alamat Token (harus diawali z...)",
+      "enterValidAmount": "Masukkan jumlah positif yang valid",
+      "maxDecimalsAllowed": "Token ini hanya mengizinkan hingga {decimals} angka desimal",
+      "differentTokenRequest": "Permintaan pembayaran ini untuk token yang berbeda",
+      "amountMustBeInteger": "Jumlah token yang dibakar harus bilangan bulat yang valid",
+      "invalidAmountNfts": "jumlah NFT untuk di-mint tidak valid",
+      "tooManyNfts": "Tidak dapat mint lebih dari {max} NFT dalam satu transaksi",
+      "invalidStartingNumber": "nomor awal tidak valid",
+      "commitmentMustBeHex": "nftCommitment '{commitment}' harus berupa heksadesimal",
+      "noNftsSelected": "Tidak ada NFT yang dipilih",
+      "notCashaddress": "Bukan cashaddress di jaringan saat ini"
+    },
+    "heldBack": "Ditahan dari pemilihan koin",
+    "identity": {
+      "held": "Dompet ini mengendalikan identitas token ini.",
+      "manage": "kelola identitas | kelola identitas"
+    }
+  },
+  "dapp": {
+    "title": "Hubungkan ke dApp",
+    "unavailableOnNetwork": "Koneksi dApp tidak tersedia di {network}: dApp hanya mengenali jaringan uji dari prefiks alamat bchtest atau versi xpub-nya, yang sama dengan chipnet.",
+    "connectText": "Hubungkan ke dApp BCH dengan metode koneksi yang didukung.",
+    "supportedMethods": "WalletConnect, CashConnect dan WizardConnect",
+    "supportedMethodsSingleAddress": "WalletConnect dan CashConnect",
+    "supportedMethodsNote": "WizardConnect memerlukan dompet HD",
+    "exploreDapps": "Jelajahi daftar dApp BCH di {link}.",
+    "uriPlaceholder": "URI koneksi",
+    "connectButton": "Hubungkan dApp Baru",
+    "sessionsTitle": "Sesi dApp",
+    "noActiveSessions": "Tidak ada sesi yang aktif saat ini.",
+    "errors": {
+      "invalidUri": "URI WalletConnect, CashConnect atau WizardConnect tidak valid",
+      "notValidUri": "Bukan URI WalletConnect, CashConnect atau WizardConnect yang valid"
+    },
+    "wizardConnectNeedsHd": {
+      "title": "WizardConnect memerlukan dompet HD",
+      "message": "WizardConnect memerlukan dompet HD, sedangkan dompet ini menggunakan satu alamat. Di Kelola dompet Anda dapat mengonversinya menjadi dompet HD dengan frasa pemulihan yang sama, dengan tetap menyimpan koin, nama, dan catatannya. Tautan koneksi tetap di sini, jadi Anda dapat terhubung setelah konversi.",
+      "goButton": "Buka Kelola dompet"
+    }
+  },
+  "history": {
+    "loading": "Memuat riwayat transaksi",
+    "loadingFailed": "Gagal memuat riwayat transaksi",
+    "noTransactions": "Tidak ada transaksi di dompet ini",
+    "recentActivity": "Aktivitas terbaru",
+    "recentHidden": "Disembunyikan bersama saldo Anda",
+    "title": "Riwayat Transaksi",
+    "transactionCount": "{count} Transaksi",
+    "options": "Opsi",
+    "filter": {
+      "label": "Tampilkan:",
+      "all": "Semua",
+      "bchTxs": "Tx BCH",
+      "tokenTxs": "Tx token",
+      "dappTxs": "Tx dApp",
+      "dateRange": "Rentang filter:"
+    },
+    "directionFilter": {
+      "all": "Semua",
+      "incoming": "Masuk",
+      "outgoing": "Keluar",
+      "combined": "Gabungan"
+    },
+    "showFiatValue": "Tampilkan nilai fiat",
+    "showBalance": "Tampilkan saldo setelah transaksi",
+    "exportCsv": "Ekspor CSV",
+    "exportFailed": "Ekspor CSV gagal",
+    "searchPlaceholder": "Cari di riwayat...",
+    "noMatch": "Tidak ada transaksi yang cocok dengan filter",
+    "sent": "Terkirim",
+    "received": "Diterima",
+    "combined": "Gabungan",
+    "selfSend": "Dikirim ke diri sendiri",
+    "dapp": "dApp",
+    "identity": {
+      "metadataUpdate": "pembaruan metadata",
+      "metadataUpdateNamed": "pembaruan metadata {name}",
+      "identityOperation": "identitas",
+      "identityOperationNamed": "identitas {name}"
+    },
+    "today": "Hari ini",
+    "yesterday": "Kemarin",
+    "balanceLabel": "Saldo:",
+    "addNote": "tambah catatan",
+    "csv": {
+      "date": "Tanggal (UTC)",
+      "transactionId": "Id Transaksi",
+      "amount": "Jumlah ({unit})",
+      "balance": "Saldo ({unit})",
+      "tokenChanges": "Perubahan Token",
+      "direction": "Arah",
+      "dapp": "dApp",
+      "note": "Catatan"
+    },
+    "pending": "tertunda",
+    "confirmationsProgress": "{count}/6 konfirmasi",
+    "unconfirmedChain": "rantai belum dikonfirmasi",
+    "unconfirmedChainTooltip": "Transaksi ini bergantung pada transaksi lain yang belum dikonfirmasi, yang meningkatkan risiko transaksi ini tidak terkonfirmasi.",
+    "lowFee": "biaya rendah",
+    "lowFeeTooltip": "Transaksi ini membayar kurang dari 1 sat/byte yang diteruskan node secara default, jadi mungkin butuh waktu lama untuk dikonfirmasi atau mungkin tidak pernah dikonfirmasi.",
+    "transactionCountPartial": "{count}+ Transaksi",
+    "loadingFullHistory": "Memuat riwayat lengkap"
+  },
+  "transactionDialog": {
+    "title": "Transaksi",
+    "copied": "Disalin!",
+    "unknownToken": "Token tidak dikenal",
+    "txIdShort": "TxId:",
+    "txIdFull": "ID Transaksi:",
+    "linkToExplorer": "Tautan ke BlockExplorer",
+    "status": "Status:",
+    "unconfirmed": "belum dikonfirmasi",
+    "confirmations": "{count} konfirmasi (ditambang di blok #{block})",
+    "confirmationsProgress": "{count}/6 konfirmasi (ditambang di blok #{block})",
+    "date": "Tanggal:",
+    "balanceChange": "Perubahan saldo:",
+    "size": "Ukuran:",
+    "sizeValue": "{bytes} byte",
+    "fee": "Biaya:",
+    "feesCollected": "Biaya terkumpul:",
+    "feeSats": "{sats} sat",
+    "feeSatsWithFiat": "{fiat} atau {sats} sat",
+    "feeRate": "{rate} sat/byte",
+    "inputs": "Input",
+    "outputs": "Output",
+    "coinbase": "coinbase",
+    "notePlaceholder": "Tambahkan catatan pribadi",
+    "fullDetails": "Detail Lengkap Transaksi"
+  },
+  "alertDialog": {
+    "transactionSent": "Transaksi Terkirim!",
+    "txId": "ID Transaksi:",
+    "linkExplorer": "Tautan blockexplorer"
+  },
+  "sendSuccess": {
+    "to": "ke"
+  },
+  "sendConfirm": {
+    "title": "Tinjau pengiriman",
+    "to": "Ke",
+    "cancel": "Batal"
+  },
+  "backupWallet": {
+    "reminder": {
+      "title": "Dompet ini belum dicadangkan",
+      "text": "Tuliskan frasa pemulihannya: hanya dengan itu dana Anda bisa dipulihkan jika perangkat ini atau datanya hilang.",
+      "backupNow": "Cadangkan sekarang",
+      "later": "Ingatkan saya nanti"
+    },
+    "currentWallet": "Dompet saat ini:",
+    "seedPhrase": {
+      "title": "Frasa pemulihan dompet",
+      "showButton": "Tampilkan frasa pemulihan",
+      "hideButton": "Sembunyikan frasa pemulihan",
+      "verifyButton": "Verifikasi cadangan Anda",
+      "dismissButton": "Tutup pengingat cadangan",
+      "dismissHint": "Ini adalah dompet {network}, yang tidak menyimpan dana sungguhan: pengingat cadangan dapat dimatikan.",
+      "dismissed": "Pengingat cadangan dimatikan: ini adalah dompet {network}.",
+      "copyButton": "Salin Frasa Pemulihan",
+      "copyTitle": "Salin Frasa Pemulihan",
+      "copyMessage": "Menyalin frasa pemulihan ke clipboard tidak disarankan demi keamanan, tetapi diizinkan untuk kemudahan.\nAnda dapat mengosongkan clipboard setelahnya dengan menyalin hal lain.",
+      "copiedNotification": "Frasa pemulihan disalin ke clipboard"
+    },
+    "privateKey": {
+      "title": "Kunci privat WIF",
+      "showButton": "Tampilkan WIF",
+      "hideButton": "Sembunyikan WIF",
+      "copyButton": "Salin WIF",
+      "copyTitle": "Salin WIF",
+      "copyMessage": "Menyalin WIF ke clipboard tidak disarankan demi keamanan, tetapi diizinkan untuk kemudahan.\nAnda dapat mengosongkan clipboard setelahnya dengan menyalin hal lain.",
+      "copiedNotification": "WIF disalin ke clipboard",
+      "hdNotSupported": "Dompet HD menggunakan WIF terpisah untuk setiap alamat; ekspor WIF per alamat belum didukung."
+    },
+    "backupStatus": {
+      "verified": "Cadangan terverifikasi",
+      "imported": "Dompet impor",
+      "importedHint": "— tidak perlu verifikasi cadangan tambahan",
+      "notBackedUp": "Belum dicadangkan",
+      "notBackedUpHint": "— klik \"Verifikasi cadangan Anda\" untuk mengonfirmasi"
+    },
+    "verification": {
+      "title": "Tes verifikasi cadangan",
+      "subtitle": "Masukkan kata-kata berikut dari cadangan tertulis Anda untuk memastikan Anda menyimpannya dengan benar.",
+      "wordLabel": "Kata {index}",
+      "verifyButton": "Verifikasi",
+      "successNotification": "Cadangan berhasil diverifikasi!",
+      "failureNotification": "Beberapa kata tidak cocok. Periksa dan coba lagi."
+    },
+    "derivationPath": {
+      "label": "Jalur derivasi",
+      "standard": "Standar BCH",
+      "bitcoindotcom": "legacy, kompatibel dengan dompet Bitcoin.com",
+      "slp": "legacy, kompatibel dengan dompet SLP",
+      "custom": "kustom"
+    },
+    "persistentStorage": {
+      "granted": "Persistensi data diizinkan oleh browser",
+      "grantedHint": "— ini melindungi data dompet agar tidak terhapus",
+      "denied": "Data dompet tidak terlindungi",
+      "deniedHint": "— minta persistensi data dari browser",
+      "checking": "Memeriksa...",
+      "hint": "Dalam kasus yang jarang, browser dapat menghapus data situs secara otomatis. Untuk mencegahnya, kami meminta persistensi data.",
+      "requestButton": "Minta persistensi data",
+      "grantedNotification": "Penyimpanan persisten diizinkan - data dompet Anda terlindungi",
+      "deniedNotification": "Penyimpanan persisten ditolak - dalam kasus yang jarang browser dapat menghapus data situs. Pastikan Anda memiliki cadangan frasa pemulihan Anda",
+      "deniedNotificationBrave": "Penyimpanan persisten ditolak - coba bookmark Cashonize terlebih dahulu, lalu minta lagi"
+    }
+  },
+  "addWallet": {
+    "title": "Tambah Dompet",
+    "onNetwork": "Dompet ini dibuat hanya di {network}.",
+    "networkLabel": "Jaringan:",
+    "walletName": {
+      "label": "Nama dompet:",
+      "placeholder": "Masukkan nama dompet",
+      "emptyError": "Masukkan nama dompet",
+      "existsError": "Dompet \"{name}\" sudah ada"
+    },
+    "continueButton": "Lanjutkan",
+    "backButton": "← Kembali",
+    "creating": "Membuat dompet:",
+    "importing": "Mengimpor dompet:",
+    "createNew": {
+      "hint": "Frasa pemulihan baru akan dibuat. Cadangkan untuk mengamankan dompet Anda.",
+      "button": "Buat dompet baru"
+    },
+    "importExisting": {
+      "hint": "Atau pulihkan dompet dengan frasa pemulihan yang sudah Anda miliki.",
+      "button": "Impor dompet yang ada"
+    },
+    "singleAddressNote": "Catatan: Hanya alamat pertama dari frasa pemulihan Anda yang akan digunakan. Jika Anda pernah memakai frasa ini di dompet lain, dana di alamat lain tidak akan muncul.",
+    "importButton": "Impor"
+  },
+  "walletsOverview": {
+    "currentWallet": "Dompet saat ini:",
+    "yourWallets": "Dompet Anda ({count}):",
+    "mainnetWallets": "Dompet mainnet ({count}):",
+    "devWallets": "Dompet pengembangan ({count}):",
+    "current": "(saat ini)",
+    "walletTypeLabel": "Jenis: ",
+    "walletTypeHD": "Dompet HD",
+    "walletTypeSingle": "satu alamat",
+    "addNewWallet": "→ Tambah dompet baru",
+    "walletLimitReached": "Jumlah dompet untuk saat ini dibatasi hingga {max}",
+    "dateLabels": {
+      "imported": "diimpor",
+      "created": "dibuat",
+      "importDate": "Tanggal impor:",
+      "creationDate": "Tanggal dibuat:",
+      "unknown": "Tidak diketahui"
+    },
+    "backupLabels": {
+      "notBackedUp": "belum dicadangkan",
+      "imported": "diimpor",
+      "dismissed": "cadangan diabaikan",
+      "backedUp": "sudah dicadangkan"
+    },
+    "deleteWallet": {
+      "title": "Hapus Dompet",
+      "message": "Apakah Anda yakin ingin menghapus dompet \"{name}\"?\nTindakan ini tidak dapat dibatalkan.",
+      "cannotDeleteActive": "Tidak dapat menghapus dompet yang sedang aktif",
+      "deleted": "Dompet \"{name}\" dihapus",
+      "failed": "Gagal menghapus dompet",
+      "buttonTitle": "Hapus dompet"
+    },
+    "switchedNetwork": "Beralih ke {network} untuk dompet \"{name}\"",
+    "switchedOnTestNetwork": "Beralih ke \"{name}\" di {network}",
+    "switchFailed": "Gagal beralih dompet: {error}"
+  },
+  "convertToHd": {
+    "label": "Dompet saat ini adalah dompet satu alamat. Dompet HD memiliki kelebihan, seperti privasi yang lebih baik dan dukungan untuk WizardConnect.",
+    "button": "Konversi ke dompet HD",
+    "hint": "Dompet HD menggunakan alamat baru untuk setiap pembayaran, yang membuat pembayaran Anda lebih privat, dan diperlukan untuk WizardConnect. Frasa pemulihan, koin, nama, dan catatannya tetap sama.",
+    "hintNote": "Konversi tidak dapat dibatalkan: sejak saat itu, pulihkan frasa pemulihan ini sebagai dompet HD.",
+    "cashConnectNote": "Tidak disarankan jika Anda menggunakan dApp CashConnect. dApp tersebut akan melihat dompet ini sebagai akun baru.",
+    "confirmTitle": "Konversi ke dompet HD?",
+    "intro": "Dompet ini menjadi dompet HD dengan frasa pemulihan yang sama, sehingga dapat terhubung ke dApp WizardConnect, dan menggunakan alamat baru untuk setiap pembayaran. Koin, nama, dan catatannya tetap ada.",
+    "consequences": "Ini tidak dapat dibatalkan.\n\nSetelah konversi, koin juga masuk ke alamat-alamat baru. Sejak saat itu, selalu pulihkan frasa pemulihan ini sebagai dompet HD. Dompet satu alamat dengan frasa pemulihan ini tidak akan menampilkan koin di alamat-alamat baru tersebut, baik di Cashonize maupun di aplikasi dompet lain.",
+    "cashConnectAccount": "dApp CashConnect akan melihat dompet ini sebagai akun baru. Untuk kembali ke akun lama Anda, impor juga frasa pemulihan ini sebagai dompet satu alamat.",
+    "walletConnectSessions": "{count} dApp WalletConnect diputuskan, dan dapat dihubungkan lagi setelahnya. | {count} dApp WalletConnect diputuskan, dan dapat dihubungkan lagi setelahnya.",
+    "confirmButton": "Konversi",
+    "converted": "Dompet \"{name}\" sekarang adalah dompet HD"
+  },
+  "createTokens": {
+    "title": "Buat token",
+    "home": {
+      "intro": "Buat token baru di sini atau di situs CashTokens Studio. Siapa pun yang memegang identitas token, yaitu satu UTXO, mengendalikan nama, ikon, dan suplai yang belum diterbitkan; pilih di mana menyimpannya.",
+      "wallet": "Di dompet ini",
+      "studio": "Dengan CashTokens Studio",
+      "chosen": "Identitas token disimpan: di dompet ini",
+      "cardLeads": {
+        "for": "Untuk:",
+        "managed": "Dikelola:"
+      },
+      "walletLines": {
+        "for": "pengguna teknis yang menginginkan kendali penuh.",
+        "managed": "di halaman identitas, di Alat."
+      },
+      "studioLines": {
+        "for": "cara termudah, dan koleksi NFT.",
+        "managed": "di situs CashTokens Studio, terhubung ke dompet ini."
+      },
+      "leads": {
+        "protection": "Perlindungan:",
+        "metadata": "Metadata:",
+        "operations": "Operasi:"
+      },
+      "walletRows": {
+        "protection": "ditahan dari pengiriman hanya oleh dompet ini; aplikasi lain dengan frasa pemulihan ini dapat membelanjakannya.",
+        "metadata": "file yang Anda hosting, ditautkan di langkah 3 atau nanti dari halaman identitas.",
+        "operations": "di halaman identitas, di Alat.",
+        "moveLater": "Anda dapat memindahkan identitas token dari dompet ini ke CashTokens Studio nanti, dan sebaliknya."
+      },
+      "studioRows": {
+        "protection": "hanya dapat dibelanjakan dengan AuthKey; di dompet lain tampil sebagai NFT tanpa nama, jadi simpan baik-baik.",
+        "protectionHelp": "AuthKey adalah NFT yang membuka AuthGuard, kontrak tempat CashTokens Studio menyimpan identitas, sehingga identitas hanya dapat dibelanjakan dengan AuthKey, aplikasi mana pun yang memegang frasa pemulihan. Dompet lain menampilkan AuthKey sebagai NFT tanpa nama, sehingga bisa saja terkirim atau terbakar; dompet ini menamainya sesuai apa yang dijaganya.",
+        "metadata": "ditulis dan di-pin ke IPFS oleh CashTokens Studio; disarankan menyimpan salinannya.",
+        "metadataHelp": "Pin IPFS dimiliki CashTokens Studio. Jika suatu saat berakhir, file dapat di-hosting di mana saja dan hash yang dipublikasikan tetap cocok, tetapi hanya untuk file yang persis sama: simpan salinannya.",
+        "operations": "metadata, penerbitan, dan pelepasan, di situs CashTokens Studio, terhubung ke dompet ini.",
+        "moveLater": "Anda dapat memindahkan identitas token dari CashTokens Studio ke dompet ini nanti, dan sebaliknya."
+      },
+      "studioBox": "Setelah membuat token di aplikasi CashTokens Studio, AuthKey muncul di tab Token dan identitasnya di halaman identitas di bawah Alat.",
+      "openStudio": "Buka CashTokens Studio",
+      "continueButton": "Lanjutkan",
+      "connectButton": "Buka tab Hubungkan"
+    },
+    "change": "ubah",
+    "step": "Langkah {current} dari {total}",
+    "stepTitles": {
+      "utxo": "pilih id token",
+      "shape": "pilih jenis, desimal, dan suplai",
+      "metadata": "tautkan file metadata yang di-hosting (opsional)",
+      "type": "pilih jenis"
+    },
+    "genesisInput": {
+      "explainer": "Txid dari UTXO yang dibelanjakan genesis menjadi id token; UTXO harus berada di output 0.",
+      "needBch": "Dompet ini memerlukan sedikit BCH untuk membuat token: UTXO yang disiapkan dan biayanya berasal dari situ.",
+      "prepareButton": "Siapkan UTXO",
+      "chooseExisting": "Atau pilih UTXO yang sudah dimiliki dompet ini | Atau pilih satu-satunya UTXO yang sudah dimiliki dompet ini | Atau pilih salah satu dari {count} UTXO yang sudah dimiliki dompet ini",
+      "rule": "Hanya UTXO di output 0 tanpa token yang ditampilkan; yang belum dikonfirmasi juga bisa.",
+      "none": "Dompet ini belum memiliki UTXO yang dapat membuat token.",
+      "unconfirmed": "belum dikonfirmasi",
+      "loading": "memuat..."
+    },
+    "prepare": {
+      "title": "Siapkan UTXO?",
+      "message": "Ini mengirim {amount} ke diri Anda sendiri sekarang, sehingga genesis memiliki UTXO baru di output 0 untuk dibelanjakan. Jumlahnya tetap milik Anda; hanya biayanya yang terpakai."
+    },
+    "preparingButton": "Menyiapkan...",
+    "plannedTokenId": "Id token:",
+    "shapeLabel": "Jenis token",
+    "closedSupply": "{supply} token, {decimals} desimal",
+    "nextButton": "Lanjutkan",
+    "shapes": {
+      "fungible": "Token fungible",
+      "mintingNft": "Sebuah NFT minting",
+      "both": "Token fungible dan sebuah NFT minting"
+    },
+    "mintingDescription": "NFT minting membuat NFT-NFT koleksi, dan hanya transaksi pembuatan yang dapat memberikannya.",
+    "mintingNote": "NFT di-mint dari daftar token, dengan \"Aktifkan mint NFT\" dinyalakan di pengaturan pengembang.",
+    "decimalsLabel": "Desimal",
+    "supplyLabel": "Total suplai token fungible",
+    "supplyNote": "Suplai dibuat sekali dan tidak pernah dapat ditambah; simpan sebagian sebagai cadangan untuk dilepas nanti.",
+    "supplyPlaceholder": "total suplai",
+    "supplyOnChain": "{tokens} token, {base} unit dasar di chain",
+    "circulation": {
+      "label": "Terbitkan ke peredaran sekarang",
+      "placeholder": "Jumlah yang diterbitkan",
+      "split": "{reserve} tetap bersama identitas sebagai cadangan, {circulating} masuk ke peredaran.",
+      "note": "Cadangan tetap di UTXO identitas; terbitkan nanti dari halaman identitas."
+    },
+    "errors": {
+      "overMaxSupply": "Itu melebihi yang dapat ditampung sebuah token. Maksimumnya {max}.",
+      "overSupply": "Itu melebihi total suplai.",
+      "invalidDecimals": "Desimal harus bilangan bulat dari 0 sampai 18.",
+      "emptyReserve": "Sisakan setidaknya {minimum} sebagai cadangan: UTXO identitas adalah UTXO token dan harus membawa sebagian suplai."
+    },
+    "metadataNote": "Dompet ini tidak mengunggah apa pun: nama dan ikon adalah file yang Anda tulis dengan {generator}, di-hosting bersama ikonnya di situs web atau IPFS, dan ditautkan di sini atau nanti dari halaman identitas.",
+    "locationHint": "Domain, URL HTTPS lengkap, atau CID IPFS; domain saja berarti jalur metadata well-known-nya.",
+    "sameFile": "Setiap lokasi harus menyajikan file yang sama.",
+    "check": {
+      "decimalsReminder": "File metadata harus menyebut decimals: {decimals}.",
+      "button": "Periksa",
+      "checking": "Memeriksa...",
+      "needed": "Periksa lokasinya sebelum membuat.",
+      "howShown": "Bagaimana dompet akan menampilkannya",
+      "summary": "{name}, desimal: {decimals}",
+      "hash": "Hash: {hash}",
+      "decimalsMismatch": "File metadata menyebut decimals: {registry}; token ini akan dibuat dengan {chosen}. Ubah salah satunya."
+    },
+    "howTo": "Cara menulis dan meng-hosting file",
+    "steps": {
+      "author": "Tulis file metadata dengan {generator}, dengan menyebut id token di atas.",
+      "host": "Hosting file tersebut beserta ikon yang disebutnya di situs web Anda sendiri atau di IPFS.",
+      "verify": "Masukkan lokasi hosting-nya di atas. Dompet ini mengambilnya dan memeriksa bahwa file tersebut menyebut token ini.",
+      "create": "Buat token: transaksi yang sama memublikasikan hash file dan tempat menemukannya."
+    },
+    "noHosting": "Tidak punya tempat untuk meng-hosting file? Pilih CashTokens Studio, yang meng-hosting-nya untuk identitas yang dipegangnya.",
+    "createButton": "Buat",
+    "creatingTokensButton": "Membuat Token...",
+    "confirm": {
+      "title": "Buat token ini?",
+      "button": "Buat",
+      "supply": "Total suplai: {supply}",
+      "decimals": "Desimal: {decimals}",
+      "metadataLinked": "Metadata: {name}, dari {location}",
+      "metadataNone": "Metadata: belum ada yang ditautkan. Sampai dipublikasikan, dompet menampilkan token berdasarkan id-nya, dengan jumlah mentah."
+    },
+    "notifications": {
+      "preparingPreGenesis": "Menyiapkan UTXO...",
+      "transactionSent": "Transaksi berhasil dikirim!",
+      "creatingTokens": "Membuat token...",
+      "bcmrWrongIdentity": "File metadata tersebut tidak menggambarkan token yang sedang dibuat. Periksa bahwa file menyebut id token ini."
+    },
+    "created": {
+      "title": "Berhasil!",
+      "supply": "{amount} dibuat",
+      "mintingNft": "Sebuah NFT minting dibuat, di UTXO identitas: mint NFT-NFT koleksi darinya di daftar token.",
+      "split": "{reserve} bersama identitas sebagai cadangan, {circulating} di dompet ini",
+      "listed": "Tercantum di halaman identitas, yang menjaga UTXO-nya keluar dari pengiriman hanya dari dompet ini.",
+      "untilPublished": "Dompet menampilkannya seperti ini sampai Anda {link}.",
+      "untilPublishedLink": "memublikasikan metadata",
+      "seeToken": "Lihat token di dompet",
+      "seeIdentity": "Lihat identitas di dompet",
+      "viewTransaction": "Lihat transaksi",
+      "createAnother": "Buat token lain",
+      "decimals": "Desimal: {decimals}, file metadata harus menyebut angka ini"
+    },
+    "decimalsNote": "Desimal dibaca dari file metadata, bukan dari chain, jadi file tersebut harus menyebut angka ini."
+  },
+  "utxoManagement": {
+    "title": "Manajemen UTXO",
+    "description": "UTXO individual yang membentuk saldo Anda.",
+    "usageHint": "Setiap pembayaran membelanjakan UTXO secara utuh dan mengembalikan kembaliannya sebagai UTXO baru, sehingga jumlah dan ukurannya berubah dengan setiap transaksi. Dompet lain menyebutnya koin, dan menyebut pemilihan di antaranya coin control.",
+    "loading": "Memuat data UTXO",
+    "loadingFailed": "Gagal memuat data UTXO",
+    "markers": {
+      "bchOnToken": "Menyimpan lebih banyak BCH daripada yang dibutuhkan UTXO token",
+      "largeBch": "Menyimpan BCH dalam jumlah besar",
+      "reserved": "Ditahan untuk janji Flipstarter yang masih terbuka, sehingga pembelanjaan dari dompet ini tidak akan memakainya.",
+      "reservedRelease": "Batalkan janji di halaman Flipstarter untuk melepaskan UTXO ini.",
+      "reservedAuth": "Ditahan karena merupakan UTXO sebuah identitas (authhead-nya), sehingga pembelanjaan dari dompet ini tidak akan memakainya.",
+      "reservedAuthRelease": "Pindahkan identitas atau hapus di halaman Identitas untuk melepaskan UTXO ini.",
+      "frozenAddress": "Dibekukan bersama alamatnya, sehingga pembelanjaan dari dompet ini tidak akan memakainya.",
+      "frozenAddressRelease": "Cairkan alamat di halaman Alamat Dompet HD untuk melepaskan UTXO ini.",
+      "frozen": "Dibekukan oleh Anda, klik untuk mencairkan",
+      "unfreeze": "Cairkan",
+      "availableShort": "Tersedia",
+      "frozenShort": "Beku",
+      "reservedShort": "Dicadangkan"
+    },
+    "filters": {
+      "bch": "BCH",
+      "tokens": "Token"
+    },
+    "bchList": {
+      "title": "UTXO khusus BCH",
+      "empty": "Dompet ini tidak memiliki UTXO khusus BCH."
+    },
+    "tokenList": {
+      "title": "Ikhtisar: UTXO token per kategori",
+      "empty": "Dompet ini tidak memiliki UTXO token."
+    },
+    "searchPlaceholder": "Cari UTXO...",
+    "noMatch": "Tidak ada UTXO yang cocok dengan pencarian",
+    "reservedSummary": "{count} UTXO ditahan, tidak dihitung dalam saldo yang dapat dibelanjakan | {count} UTXO ditahan, tidak dihitung dalam saldo yang dapat dibelanjakan",
+    "reservedTokenSummary": "{count} UTXO token ditahan, tidak diikutkan dalam setiap transfer yang dibuat aplikasi ini | {count} UTXO token ditahan, tidak diikutkan dalam setiap transfer yang dibuat aplikasi ini",
+    "freeze": {
+      "title": "Bekukan UTXO ini",
+      "message": "UTXO yang dibekukan tetap ada di dompet Anda tetapi tidak diikutkan dalam setiap pembayaran yang dibuat aplikasi ini, sehingga saldo yang dapat dibelanjakan berkurang sebesar {amount}. Cairkan kapan saja dari daftar ini.\n\nPembekuan hanya berlaku di sini: jika Anda menggunakan frasa pemulihan ini di aplikasi dompet lain, bekukan juga UTXO yang sama di sana.",
+      "button": "Bekukan",
+      "messageToken": "UTXO yang dibekukan tetap ada di dompet Anda tetapi tidak diikutkan dalam setiap pembayaran dan transfer token yang dibuat aplikasi ini, sehingga token di dalamnya dan {amount} yang disimpannya tidak dapat dibelanjakan dari sini. Cairkan kapan saja dari daftar ini.\n\nPembekuan hanya berlaku di sini: jika Anda menggunakan frasa pemulihan ini di aplikasi dompet lain, bekukan juga UTXO yang sama di sana."
+    },
+    "send": {
+      "title": "Kirim UTXO ini",
+      "description": "Mengirim seluruh UTXO ini ke alamat tujuan, dikurangi biaya jaringan. Tidak ada UTXO lain yang ikut dalam pembayaran dan tidak ada kembalian.",
+      "frozenNote": "UTXO ini dibekukan. Mengirimnya akan membelanjakan UTXO tersebut, sehingga pembekuannya berakhir.",
+      "destinationLabel": "Alamat tujuan:",
+      "destinationPlaceholder": "Tempel alamat Bitcoin Cash",
+      "cancelButton": "Batal",
+      "sent": "UTXO ini ({amount}) telah dikirim ke {address}",
+      "success": "UTXO berhasil dikirim!"
+    },
+    "label": {
+      "title": "Beri label UTXO ini",
+      "placeholder": "Tambahkan label UTXO"
+    },
+    "stats": {
+      "totalUtxos": "Total UTXO",
+      "bchOnlyUtxos": "UTXO khusus BCH",
+      "tokenUtxos": "UTXO token",
+      "reservedUtxos": "UTXO dicadangkan"
+    },
+    "consolidate": {
+      "title": "Konsolidasi UTXO BCH",
+      "description": "Gabungkan semua UTXO khusus BCH menjadi satu UTXO. Jika sebuah dApp meminta Anda untuk \"mengonsolidasikan dana\" padahal saldo Anda cukup, artinya Anda memiliki terlalu banyak UTXO kecil.",
+      "usageHint": "Sebuah dApp mungkin meminta Anda mengonsolidasi jika cara ia menyusun transaksi atau kontraknya hanya dapat menerima satu input dari Anda. UTXO tunggal itu kemudian harus menutupi seluruh jumlah, berapa pun total yang Anda miliki.",
+      "heldExcluded": "Ini tidak mencakup UTXO BCH yang ditandai sebagai dicadangkan atau dibekukan.",
+      "consolidatingButton": "Mengonsolidasi...",
+      "consolidateButton": "Konsolidasi BCH",
+      "alreadyConsolidated": "Jumlah UTXO khusus BCH di dompet Anda sudah {status}.",
+      "noUtxos": "nol",
+      "oneUtxo": "hanya 1"
+    },
+    "combined": {
+      "description": "Beberapa dApp mengembalikan UTXO yang menggabungkan BCH dengan token, sehingga BCH tersebut tidak muncul di saldo Anda.",
+      "warningCount": "{count} UTXO dengan gabungan BCH + Token | {count} UTXO dengan gabungan BCH + Token",
+      "warningCountSingle": "{count} UTXO dengan gabungan BCH + Token",
+      "warningCountPlural": "{count} UTXO dengan gabungan BCH + Token",
+      "splittableAmount": "Anda memiliki {bch} BCH yang dapat dipisahkan dari UTXO token.",
+      "nftNote": "Catatan: Alat ini hanya dapat memisahkan BCH dari UTXO token fungible, bukan NFT.",
+      "viewAffected": "Lihat UTXO yang terdampak",
+      "splittingButton": "Memisahkan...",
+      "splitButton": "Pisahkan BCH dari Token"
+    },
+    "tableHeaders": {
+      "number": "#",
+      "bch": "BCH",
+      "token": "Token",
+      "type": "Jenis",
+      "txId": "TxId",
+      "vout": "Vout",
+      "status": "Status",
+      "action": "Aksi",
+      "label": "Label",
+      "address": "Alamat",
+      "utxoCount": "UTXO",
+      "bchHeld": "BCH disimpan",
+      "tokenId": "Id token",
+      "commitment": "Commitment",
+      "outpoint": "Outpoint",
+      "outpointHint": "Id transaksi dan nomor output (txid:vout) yang mengidentifikasi UTXO ini"
+    },
+    "notifications": {
+      "consolidating": "Mengonsolidasi UTXO BCH...",
+      "consolidatedSuccess": "UTXO BCH berhasil dikonsolidasi!",
+      "splitting": "Memisahkan BCH dari UTXO token...",
+      "splitSuccess": "BCH berhasil dipisahkan dari UTXO token!",
+      "somethingWentWrong": "terjadi kesalahan"
+    }
+  },
+  "networkStatus": {
+    "title": "Status jaringan",
+    "description": "Server Electrum yang terhubung dengan dompet ini. Dompet memercayai apa yang dilaporkannya dan tidak memverifikasinya.",
+    "block": "Blok {height}",
+    "electrumHeading": "Koneksi Electrum",
+    "server": "Server:",
+    "status": "Status:",
+    "connected": "Terhubung",
+    "connecting": "Menghubungkan…",
+    "reconnecting": "Koneksi terputus, menghubungkan kembali…",
+    "mode": "Mode server:",
+    "blockHeight": "Tinggi blok:",
+    "latestBlock": "Blok terbaru:",
+    "seeOnExplorer": "Lihat di block explorer",
+    "changeServer": "Ganti server"
+  },
+  "aboutCashonize": {
+    "title": "Tentang Cashonize",
+    "description": "Pintu masuk Anda ke CashTokens dan DeFi Bitcoin Cash.",
+    "tagline": "Sumber terbuka · Non-kustodial · Sejak 2023",
+    "learnMore": "Kunjungi situs web Cashonize",
+    "downloadPage": "Kunjungi halaman unduhan Cashonize",
+    "viewSource": "Lihat kode sumber",
+    "followOnX": "Ikuti kabar terbaru di X",
+    "joinTelegram": "Bergabung di Telegram",
+    "logoHintTaps": "Bosan? Ketuk logonya beberapa kali dengan cepat.",
+    "logoHintClicks": "Psst... coba klik logonya beberapa kali."
+  },
+  "hdAddresses": {
+    "title": "Alamat Dompet HD",
+    "intro": "Ikhtisar semua alamat dompet, dikelompokkan menjadi belum dipakai dan sudah dipakai.",
+    "infoReceivingChange": "Alamat penerima adalah alamat yang Anda bagikan untuk menerima pembayaran. Alamat kembalian dipakai secara internal: saat mengirim transaksi, dompet mengembalikan sisa kembalian ke alamat kembalian barunya sendiri.",
+    "infoPrivacyNote": "Menggunakan alamat baru untuk setiap pembayaran membantu melindungi privasi Anda.",
+    "currentTag": "saat ini",
+    "showHistory": "Tampilkan di riwayat",
+    "receiving": "Penerima",
+    "change": "Kembalian",
+    "usedAddresses": "Terpakai",
+    "unusedAddresses": "Belum dipakai",
+    "pinnedAddresses": "Disematkan",
+    "noAddresses": "Belum ada alamat yang dipindai",
+    "searchPlaceholder": "Cari alamat...",
+    "noMatch": "Tidak ada alamat yang cocok dengan pencarian",
+    "options": "Opsi",
+    "hideZeroBalances": "Sembunyikan saldo nol",
+    "showTokenAddresses": "Tampilkan alamat dalam format token",
+    "changeToTokenAddress": "Ubah ke alamat token",
+    "changeToRegularAddress": "Ubah ke alamat biasa",
+    "txCount": "{count} tx",
+    "reservedAmount": "Dicadangkan: {amount}",
+    "available": "tersedia",
+    "reservedDappWarning": "Permintaan dApp yang akan membelanjakan UTXO yang dicadangkan akan ditolak, sehingga aksi dApp yang memakai alamat ini bisa gagal.",
+    "reservedWhere": "Halaman Manajemen UTXO menunjukkan UTXO mana yang dicadangkan dan alasannya.",
+    "tokenCount": "{count} token | {count} token"
+  },
+  "addressManagement": {
+    "markAddressUsed": "Tandai alamat sebagai terpakai",
+    "markAddressUsedAction": "Tandai alamat sebagai terpakai dan tampilkan yang baru",
+    "unmarkAddressUsed": "Hapus tanda terpakai",
+    "markedTag": "ditandai terpakai",
+    "markedUsedNotify": "Alamat ditandai sebagai terpakai",
+    "markLimitNotify": "Alamat ini tidak dapat ditandai, satu alamat baru harus tetap tersedia. Terima pembayaran untuk membebaskan lebih banyak.",
+    "markingIntro": "Alamat penerima dapat ditandai sebagai terpakai setelah dibagikan.",
+    "markedInfo": "Alamat yang Anda bagikan tetap belum terpakai sampai ada pembayaran masuk, sehingga dompet terus memberikan alamat yang sama. Menandainya sebagai terpakai akan beralih ke alamat berikutnya, sehingga setiap pembayar mendapat alamat yang berbeda.",
+    "unmarkInfo": "Alamat yang ditandai dikelompokkan di bawah alamat terpakai, tempat Anda dapat menghapus tandanya.",
+    "moreActions": "Tindakan lainnya",
+    "frozenTag": "beku",
+    "frozenTagInfo": "Masih menerima pembayaran, tetapi tidak lagi ditampilkan sebagai alamat penerima Anda",
+    "freezeAddress": "Bekukan alamat",
+    "unfreezeAddress": "Cairkan alamat",
+    "freezeLimitNotify": "Alamat ini tidak dapat dibekukan, satu alamat baru harus tetap tersedia. Terima pembayaran untuk membebaskan lebih banyak.",
+    "pinAddress": "Sematkan alamat",
+    "unpinAddress": "Lepas sematan alamat",
+    "pinLimitNotify": "Alamat ini tidak dapat disematkan, satu alamat baru harus tetap tersedia. Terima pembayaran untuk membebaskan lebih banyak.",
+    "freeze": {
+      "title": "Bekukan alamat ini",
+      "message": "UTXO pada alamat yang dibekukan tetap ada di dompet Anda, tetapi aplikasi ini tidak mengikutkannya dalam setiap pembayaran dan transfer token serta menolak permintaan dApp yang membelanjakannya, termasuk UTXO yang diterima alamat tersebut nanti. Cairkan kapan saja dari halaman ini.\n\nPembekuan hanya berlaku di sini: jika Anda menggunakan frasa pemulihan ini di aplikasi dompet lain, bekukan juga alamat yang sama di sana.",
+      "button": "Bekukan"
+    },
+    "editLabel": "Ubah label alamat",
+    "labelPlaceholder": "Tambahkan label alamat"
+  },
+  "sweepPrivateKey": {
+    "title": "Sweep Kunci Privat",
+    "description": "Pindahkan BCH dan token dari dompet kertas, cashstamp, atau kunci privat:",
+    "placeholder": "Masukkan kunci privat",
+    "encryptedKeySupported": "Dompet kertas yang dilindungi frasa sandi (BIP38) didukung. Masukkan atau pindai kunci terenkripsi dan Cashonize akan meminta frasa sandinya.",
+    "encryptedKey": "Kunci privat ini terenkripsi (BIP38). Masukkan frasa sandi yang digunakan untuk melindunginya:",
+    "passphrasePlaceholder": "Masukkan frasa sandi",
+    "showPassphrase": "Tampilkan",
+    "hidePassphrase": "Sembunyikan",
+    "unlockButton": "Buka kunci",
+    "unlockingButton": "Mendekripsi...",
+    "unlockedKey": "Terbuka",
+    "sweepingButton": "Menyapu...",
+    "sweepButton": "Sweep",
+    "previewButton": "Pratinjau",
+    "loadingButton": "Memuat...",
+    "emptyWallet": "Tidak ada saldo pada kunci privat ini",
+    "preview": {
+      "bchBalance": "Saldo BCH:",
+      "tokens": "Token:",
+      "nfts": "NFT:",
+      "noTokens": "Tidak ada token",
+      "noFreeBchWarning": "Alamat ini memiliki token tetapi tidak ada BCH yang tersedia untuk membayar biaya transaksi. Kirim sedikit BCH ke alamat ini terlebih dahulu untuk menutupi biaya penyapuan token."
+    },
+    "notifications": {
+      "noWifProvided": "Tidak ada kunci privat yang diberikan untuk di-sweep",
+      "sweepingTokens": "Menyapu token...",
+      "sweepingNfts": "Menyapu NFT...",
+      "sweepingBch": "Menyapu BCH...",
+      "success": "Dana berhasil dipindahkan dari kunci privat"
+    },
+    "errors": {
+      "invalidEncryptedKey": "Ini bukan kunci privat terenkripsi yang valid",
+      "incorrectPassphrase": "Frasa sandi salah, ini bukan frasa sandi yang digunakan untuk melindungi kunci ini",
+      "noPassphraseProvided": "Tidak ada frasa sandi yang diberikan untuk membuka kunci privat",
+      "keyLocked": "Buka dulu kunci privat terenkripsi ini dengan frasa sandinya",
+      "uncompressedKey": "Kunci privat ini menggunakan alamat tidak terkompresi, yang belum dapat di-sweep oleh Cashonize"
+    },
+    "qrErrors": {
+      "notWif": "Bukan kode QR yang berisi Kunci Privat dalam format WIF",
+      "notMainnetWif": "Bukan kode QR yang berisi Kunci Privat mainnet dalam format WIF",
+      "notTestnetWif": "Bukan kode QR yang berisi Kunci Privat {network} dalam format WIF"
+    }
+  },
+  "transferAllAssets": {
+    "title": "Transfer Semua Aset",
+    "description": "Pindahkan semua BCH dan token dari dompet ini ke alamat lain.",
+    "usageHint": "Berguna untuk memindahkan semuanya ke pengaturan keamanan baru, seperti dompet dengan cadangan baru atau brankas multisig, atau untuk menggabungkan dana dan token dari beberapa dompet menjadi satu.",
+    "usageHintNote": "Saat berpindah dari perangkat yang tidak lagi Anda percayai, buat dompet baru di perangkat lain.",
+    "emptyWallet": "Dompet ini tidak menyimpan BCH atau token untuk ditransfer",
+    "toTransfer": "Akan ditransfer:",
+    "bchBalance": "BCH",
+    "transactionCount": "Transaksi yang dibutuhkan: {count}.",
+    "transactionCountNote": "Transaksi dikirim satu per satu dan masing-masing memerlukan beberapa detik, jadi biarkan Cashonize tetap terbuka sampai selesai.",
+    "heldBack": "{count} UTXO tertinggal: UTXO ini ditahan dari pemilihan koin, sehingga transfer ini tidak memakainya. Memindahkannya nanti memerlukan BCH di dompet ini untuk biaya. | {count} UTXO tertinggal: UTXO ini ditahan dari pemilihan koin, sehingga transfer ini tidak memakainya. Memindahkannya nanti memerlukan BCH di dompet ini untuk biaya.",
+    "destinationLabel": "Alamat tujuan:",
+    "destinationTokenLabel": "Alamat token tujuan:",
+    "destinationPlaceholder": "Alamat tujuan transfer semuanya",
+    "destinationTokenPlaceholder": "Alamat token tujuan transfer semuanya",
+    "transferButton": "Transfer Semua Aset",
+    "transferringButton": "Mentransfer...",
+    "partialTransfer": "Transfer berhenti lebih awal, apa pun yang belum ditransfer masih ada di dompet ini. Jalankan transfer lagi untuk memindahkan sisanya.",
+    "phases": {
+      "fungibleTokens": "Token fungible",
+      "nfts": "NFT",
+      "bch": "BCH"
+    },
+    "phaseStatus": {
+      "pending": "menunggu",
+      "none": "tidak ada"
+    },
+    "confirm": {
+      "title": "Transfer semua aset?",
+      "message": "Semua BCH dan token di dompet ini akan ditransfer ke alamat di bawah. Ini tidak dapat dibatalkan.",
+      "button": "Transfer"
+    },
+    "notifications": {
+      "success": "Semua aset berhasil ditransfer"
+    },
+    "errors": {
+      "ownAddress": "Tujuannya adalah alamat dari dompet yang sama ini"
+    }
+  },
+  "receive": {
+    "title": "Terima",
+    "bchAddressHint": "Alamat BCH Anda. Beralih ke Token untuk menerima CashTokens.",
+    "tokenAddressHint": "Alamat token Anda, untuk menerima CashTokens.",
+    "copyAddress": "Salin Alamat",
+    "requestAmount": "Minta sejumlah dana"
+  },
+  "requestPayment": {
+    "description": "Buat permintaan pembayaran untuk dibagikan kepada siapa pun yang membayar Anda.",
+    "descriptionToken": "Buat permintaan token fungible untuk dibagikan kepada siapa pun yang membayar Anda.",
+    "bip21Hint": "Permintaan pembayaran BCH menggunakan BIP21, standar URI yang sudah lama ada dan didukung luas oleh dompet BCH.",
+    "tokenStandardHint": "Permintaan token menambahkan kategori token dan jumlahnya ke alamat, seperti yang dijelaskan standar PayPro yang lebih baru untuk CashTokens.",
+    "tokenStandardHintNote": "NFT tidak dapat diminta dengan cara ini.",
+    "amountLabel": "Jumlah:",
+    "amountPlaceholder": "Jumlah yang diminta",
+    "amountNote": "Permintaan pembayaran menetapkan jumlah {network}. Nilai {currency} masih dapat berubah sebelum permintaan dibayar.",
+    "tokensMode": "Token",
+    "tokenLabel": "Token:",
+    "selectToken": "Pilih token",
+    "selectTokenHint": "Pilih token yang akan diminta",
+    "noTokenSelected": "Tidak ada token yang dipilih",
+    "noFungibleTokens": "Dompet ini tidak menyimpan token fungible, tempel id token untuk memintanya",
+    "searchOrPasteId": "Cari token atau tempel id token",
+    "lookupTokenId": "Cari id token ini",
+    "lookupFailed": "Tidak ditemukan metadata untuk id token ini",
+    "nameCollision": "Lebih dari satu token dalam daftar ini memakai nama ini, periksa id tokennya",
+    "tokenSupportWarning": "Tidak semua dompet dapat membaca permintaan pembayaran token. Cashonize dan Selene bisa, dompet lain hanya akan melihat alamatnya.",
+    "selectTokenPrompt": "Pilih token yang akan diminta",
+    "messageLabel": "Pesan (opsional):",
+    "messagePlaceholder": "Catatan untuk pembayar, seperti nomor faktur",
+    "selectAddress": "Pilih dari alamat dompet",
+    "selectAddressHint": "Pilih alamat tujuan permintaan",
+    "requesting": "Meminta {amount}",
+    "enterAmountHint": "Masukkan jumlah untuk menjadikannya permintaan pembayaran",
+    "copyButton": "Salin Permintaan"
+  },
+  "exportXpub": {
+    "title": "Ekspor Xpub",
+    "description": "Xpub memungkinkan aplikasi lain memantau dompet ini, tanpa dapat membelanjakan.",
+    "usageHint": "Aplikasi pemantau dapat melihat saldo dan seluruh riwayat dompet serta membuat alamat penerima baru. Berguna untuk pelacak portofolio atau salinan khusus-pantau di perangkat lain.",
+    "usageHintNote": "Menghubungkan aplikasi melalui WizardConnect sudah membagikan xpub kepadanya di latar belakang.",
+    "privacyWarning": "Siapa pun yang memiliki xpub Anda dapat melihat semua alamat dan transaksi dompet ini, baik yang lalu maupun yang akan datang. Membagikannya tidak dapat dibatalkan. Bagikan hanya kepada layanan yang Anda percayai dengan seluruh riwayat keuangan Anda.",
+    "revealButton": "Tampilkan Xpub",
+    "hideButton": "Sembunyikan",
+    "derivationPath": "Jalur derivasi:",
+    "copyButton": "Salin Xpub",
+    "safetyHint": "Dompet khusus-pantau yang dibuat dari xpub ini tidak dapat membelanjakan dana Anda."
+  },
+  "signVerifyMessage": {
+    "title": "Tanda Tangani / Verifikasi Pesan",
+    "descriptionSign": "Tanda tangani pesan dengan alamat dompet Anda untuk membuktikan bahwa Anda menguasainya.",
+    "descriptionVerify": "Periksa bahwa sebuah pesan ditandatangani oleh alamat tertentu.",
+    "usageHint": "Beberapa layanan meminta Anda menandatangani pesan untuk membuktikan bahwa sebuah alamat milik Anda, misalnya bursa yang menautkan alamat penarikan ke akun Anda. Pesan yang ditandatangani juga memungkinkan Anda membuktikan bahwa Anda menguasai dana di sebuah alamat tanpa memindahkannya.",
+    "safetyHint": "Menandatangani pesan tidak memberikan akses ke dana Anda: dompet hanya menandatangani teks dengan awalan khusus, yang tidak pernah valid sebagai transaksi.",
+    "usageHintNote": "Tanda tangani hanya pesan yang Anda pahami, pesan yang ditandatangani dapat ditunjukkan kepada orang lain sebagai bukti.",
+    "selectAddress": "Pilih dari alamat dompet",
+    "selectAddressHint": "Pilih alamat untuk menandatangani",
+    "messageLabel": "Pesan:",
+    "addressLabel": "Alamat:",
+    "signatureLabel": "Tanda tangan:",
+    "signMode": "Tanda tangani",
+    "verifyMode": "Verifikasi",
+    "messagePlaceholder": "Pesan untuk ditandatangani atau diverifikasi",
+    "noAddressSelected": "Tidak ada alamat yang dipilih",
+    "addressPlaceholderVerify": "Alamat yang digunakan untuk menandatangani pesan",
+    "signaturePlaceholderVerify": "Tempel tanda tangan untuk diverifikasi",
+    "signButton": "Tanda Tangani Pesan",
+    "verifyButton": "Verifikasi",
+    "copyButton": "Salin Tanda Tangan",
+    "copyAllButton": "Salin Semua",
+    "shareHint": "Agar orang lain dapat memverifikasi tanda tangan, bagikan pesan, alamat, dan tanda tangan bersama-sama, kecuali mereka sudah mengetahui pesan dan alamatnya.",
+    "validSignature": "Tanda tangan valid untuk alamat ini",
+    "invalidSignature": "Tanda tangan tidak valid untuk alamat ini",
+    "errors": {
+      "invalidAddress": "Alamat BCH tidak valid",
+      "wrongNetworkAddress": "Alamat tidak cocok dengan jaringan saat ini",
+      "addressNotInWallet": "Penandatanganan memerlukan alamat dari dompet yang aktif"
+    }
+  },
+  "faq": {
+    "title": "FAQ",
+    "description": "Jawaban singkat tentang Bitcoin Cash dan cara kerja Cashonize.",
+    "questions": {
+      "losingDevice": {
+        "browser": {
+          "question": "Apa yang terjadi jika data browser saya dihapus atau perangkat ini hilang?",
+          "answer": "Dompet Anda hanya tersimpan di browser ini. Menghapus data situs di browser akan menghapusnya, begitu juga jika perangkat hilang. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" di menu."
+        },
+        "mobile": {
+          "question": "Apa yang terjadi jika ponsel saya hilang atau aplikasinya saya hapus?",
+          "answer": "Dompet Anda hanya tersimpan di ponsel ini. Kehilangan ponsel atau menghapus aplikasi berarti kehilangan dompet. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" di menu."
+        },
+        "desktop": {
+          "question": "Apa yang terjadi jika komputer saya rusak atau diganti?",
+          "answer": "Dompet Anda hanya tersimpan di komputer ini. Jika komputer hilang, rusak, atau dihapus isinya, dompet ikut hilang. Frasa pemulihan adalah satu-satunya cara untuk mendapatkannya kembali: tidak ada yang bisa mengatur ulang atau memulihkannya untuk Anda, termasuk Cashonize. Catat sekarang, di \"Cadangkan dompet\" di menu."
+        }
+      },
+      "twoAddresses": {
+        "question": "Terima memiliki alamat BCH dan alamat token. Mana yang saya berikan?",
+        "answer": "Keduanya adalah dua bentuk dari alamat yang sama. Jika diperhatikan, hanya karakter pertama dan delapan karakter terakhir yang berbeda: keduanya menunjuk ke tempat yang sama di blockchain, dengan kunci yang sama di baliknya. Alamat token (diawali z) memberi tahu pengirim bahwa dompet Anda mendukung CashTokens, jadi berikan alamat itu kepada siapa pun yang mengirim token atau NFT. Untuk BCH biasa, selalu berikan alamat biasa (diawali q): bursa dan dompet tanpa dukungan token hanya menerima bentuk itu. Terima terbuka pada alamat BCH; pilihan \"Token\" di atasnya menampilkan alamat token."
+      },
+      "addressChanged": {
+        "question": "Alamat penerimaan saya berubah. Apakah alamat yang sudah saya bagikan masih berfungsi?",
+        "answer": "Ya. Dompet HD menampilkan alamat baru setelah setiap pembayaran demi privasi, tetapi setiap alamat sebelumnya tetap milik Anda dan tetap berfungsi. Dompet alamat tunggal selalu menampilkan alamat yang sama."
+      },
+      "bchForTokens": {
+        "question": "Saya hanya punya token. Mengapa perlu BCH untuk mengirimnya?",
+        "answer": "Setiap transaksi membayar biaya kecil dalam BCH, juga saat hanya memindahkan token. Sedikit sekali BCH sudah cukup untuk banyak pengiriman. Mintalah BCH dikirim ke alamat BCH biasa Anda."
+      },
+      "tokenSupport": {
+        "question": "Bisakah saya mengirim token ke alamat BCH biasa?",
+        "answer": "Tidak, pengiriman token meminta alamat token (diawali z). Bentuk itu diperkenalkan agar pengirim tahu bahwa dompet penerima mendukung CashTokens. Token yang dikirim ke dompet tanpa dukungan itu tidak hancur, tetapi dompet tersebut tidak bisa melihat atau mengirimnya. Saat ini belum ada bursa yang mendukung CashTokens, jadi jangan kirim token ke bursa. Jika Anda yakin dompet penerima mendukung CashTokens tetapi hanya punya alamat biasanya, Konverter Alamat memberi Anda bentuk tokennya."
+      },
+      "imposterToken": {
+        "question": "Bagaimana cara mengenali token tiruan?",
+        "answer": "Siapa pun bisa membuat token dan memberinya nama serta ikon apa saja, jadi nama atau logo yang dikenal tidak membuktikan apa pun. Yang mengidentifikasi sebuah token adalah id tokennya, yang tidak bisa ditiru. Bandingkan id token yang ditampilkan dompet dengan id dari sumber tepercaya di luar dompet, misalnya situs web resmi penerbitnya. Token tanpa nama atau gambar tidak palsu hanya karena itu: pembuatnya hanya tidak menerbitkan metadata."
+      },
+      "tokenValue": {
+        "question": "Mengapa token saya tidak menampilkan nilai?",
+        "answer": "Nilai token berasal dari Cauldron, bursa utama untuk CashTokens: tidak ada harga resmi. Nilai hanya ditampilkan di mainnet, dan hanya jika pool Cauldron token tersebut secara gabungan berisi setidaknya 1 BCH, karena harga pasar yang lebih kecil mudah digerakkan. Nilai tersebut adalah perkiraan pada harga pool saat ini, dan hasil penjualan bisa lebih rendah, terutama untuk jumlah besar. Nilai ini dapat dimatikan di pengaturan token."
+      },
+      "utxos": {
+        "question": "Apa itu UTXO, dan mengapa dApp meminta saya melakukan konsolidasi?",
+        "answer": "Saldo Anda terdiri dari koin-koin terpisah yang disebut UTXO, satu untuk setiap pembayaran yang diterima. Beberapa dApp butuh satu koin yang cukup besar, meski total Anda cukup. Konsolidasi di Manajemen UTXO menggabungkan koin BCH Anda menjadi satu."
+      },
+      "dappConnections": {
+        "hd": {
+          "question": "Apa itu WalletConnect, CashConnect, dan WizardConnect?",
+          "answer": "Ketiganya adalah cara menghubungkan dompet ini ke dApp: aplikasi yang menyiapkan transaksi dan meminta dompet menandatanganinya. dApp menampilkan tautan atau kode QR, dan halaman Hubungkan menerima ketiganya: tempel tautan atau pindai kodenya, dan dompet mengenali yang mana. WalletConnect bekerja dengan satu alamat, jadi Anda memilih alamat dompet ini yang mana yang diberikan ke dApp. WizardConnect dibuat untuk dompet HD dan memungkinkan dApp mengikuti semua alamat dompet. CashConnect adalah metode koneksi yang dibuat untuk Bitcoin Cash. Apa pun yang dipakai, setiap permintaan ditampilkan kepada Anda sebelum ada yang ditandatangani, kecuali Anda mengaktifkan persetujuan otomatis untuk dApp tersebut."
+        },
+        "single": {
+          "question": "Apa itu WalletConnect, CashConnect, dan WizardConnect?",
+          "answer": "Ketiganya adalah cara menghubungkan dompet ini ke dApp: aplikasi yang menyiapkan transaksi dan meminta dompet menandatanganinya. dApp menampilkan tautan atau kode QR, dan halaman Hubungkan menerima WalletConnect dan CashConnect: tempel tautan atau pindai kodenya, dan dompet mengenali yang mana. Setiap permintaan ditampilkan kepada Anda sebelum ada yang ditandatangani, kecuali Anda mengaktifkan persetujuan otomatis untuk dApp tersebut. WizardConnect memerlukan dompet HD: di Kelola dompet Anda dapat mengonversi dompet ini menjadi dompet HD dengan frasa pemulihan yang sama, dengan tetap menyimpan koin, nama, dan catatannya."
+        }
+      }
+    }
+  },
+  "appLock": {
+    "title": "Kunci aplikasi",
+    "on": "Aktif",
+    "off": "Nonaktif",
+    "description": "Lindungi Cashonize dengan PIN.",
+    "askedWhen": "PIN diminta",
+    "askOpen": "saat aplikasi dibuka, atau kembali setelah beberapa menit",
+    "askSpend": "sebelum mengirim dan sebelum menandatangani transaksi dApp",
+    "askSeed": "sebelum menampilkan frasa seed",
+    "notEncryption": "Kunci aplikasi mencegah orang yang memegang perangkat Anda yang tidak terkunci masuk ke dompet. Ini mengunci aplikasi; tidak mengenkripsi data dompet yang tersimpan di perangkat ini.",
+    "backupFirst": "PIN yang terlupa tidak dapat diatur ulang. Anda harus menghapus data aplikasi dan memulihkan dari frasa seed, jadi cadangkan dulu.",
+    "notBackedUp": "Belum dicadangkan: {wallets}. Jika PIN terlupa, dompet tanpa cadangan akan hilang.",
+    "backUpNow": "Cadangkan dompet ini",
+    "choosePin": "Pilih PIN:",
+    "newPin": "PIN baru:",
+    "repeatPin": "Ulangi PIN:",
+    "pinRule": "PIN terdiri dari {min} sampai {max} digit",
+    "pinMismatch": "Kedua PIN tidak sama",
+    "turnOn": "Aktifkan kunci aplikasi",
+    "turnOff": "Nonaktifkan",
+    "changePin": "Ubah PIN",
+    "lockNow": "Kunci sekarang",
+    "isOn": "Kunci aplikasi aktif.",
+    "turnedOn": "Kunci aplikasi diaktifkan",
+    "turnedOff": "Kunci aplikasi dinonaktifkan",
+    "pinChanged": "PIN diubah",
+    "cancel": "Batal",
+    "pinPlaceholder": "PIN",
+    "lockedTitle": "Masukkan PIN Anda untuk membuka dompet",
+    "unlockButton": "Buka kunci",
+    "confirmTitle": "Masukkan PIN Anda",
+    "confirmButton": "Konfirmasi",
+    "wrongPin": "PIN salah",
+    "wrongPinTriesLeft": "PIN salah. Tersisa {count} percobaan sebelum harus menunggu. | PIN salah. Tersisa {count} percobaan sebelum harus menunggu.",
+    "tooManyAttempts": "Terlalu banyak percobaan yang salah. Coba lagi dalam {time}.",
+    "forgotPin": "Lupa PIN?",
+    "forgotPinHint": "PIN tidak dapat diatur ulang. Hapus data aplikasi atau situs ini, lalu pulihkan dompet Anda dari frasa seed-nya. Dompet tanpa cadangan akan hilang.",
+    "usePin": "Gunakan PIN",
+    "useBiometrics": "Gunakan sidik jari atau wajah",
+    "lockedTitleBiometrics": "Buka Cashonize",
+    "confirmTitleBiometrics": "Konfirmasi bahwa ini Anda",
+    "biometricsSetupTitle": "Konfirmasi untuk membuka dengan biometrik",
+    "biometricsToggle": "Buka dengan sidik jari atau wajah",
+    "biometricsTurnedOn": "Buka kunci biometrik diaktifkan"
+  },
+  "addressConverter": {
+    "title": "Konverter Alamat",
+    "description": "Masukkan alamat untuk melihat semua bentuknya.",
+    "formsInfo": "CashAddr, alamat token, legacy, dan locking bytecode adalah cara berbeda untuk menuliskan tujuan yang sama. Koin yang dikirim ke salah satunya berakhir di tempat yang sama.",
+    "inputPlaceholder": "CashAddr, alamat legacy, atau locking bytecode (hex)",
+    "cashAddress": "CashAddr:",
+    "tokenAddress": "Alamat token:",
+    "legacyAddress": "Legacy:",
+    "lockingBytecode": "Locking bytecode:",
+    "type": "Jenis:",
+    "network": "Jaringan:",
+    "none": "tidak ada",
+    "tokenWarning": "Gunakan bentuk ini hanya jika dompet penerima mendukung CashTokens. Dompet lain mungkin tidak menampilkan token, atau dapat memusnahkannya saat membelanjakan.",
+    "activeNetworkNote": "(diasumsikan: locking bytecode tidak memiliki jaringan)",
+    "legacyWarning": "Alamat legacy terlihat sama di BCH dan BTC. Berhati-hatilah ekstra agar tidak ada yang terkirim di chain yang salah.",
+    "notAnAddress": "Bukan alamat: masukkan CashAddr, alamat legacy, atau locking bytecode dari output P2PKH atau P2SH.",
+    "ownAddress": "Alamat ini milik dompet ini."
+  },
+  "derivationPathSelect": {
+    "label": "Jalur derivasi:",
+    "standard": "standar",
+    "bitcoindotcom": "Dompet Bitcoin.com",
+    "slp": "SLP",
+    "scanPrompt": "Tidak yakin? {link}",
+    "scanLinkText": "Pindai aktivitas dompet",
+    "scanning": "Memeriksa aktivitas dompet...",
+    "detected": "Aktivitas dompet ditemukan, {path} dipilih",
+    "detectedMultiple": "Aktivitas dompet ditemukan di beberapa jalur derivasi: {paths}",
+    "noneFound": "Tidak ditemukan aktivitas dompet di jalur derivasi mana pun",
+    "multiAddressWarning": "Frasa pemulihan ini telah digunakan dengan beberapa alamat. Dompet alamat tunggal tidak akan menampilkan dana tersebut. Dompet HD disarankan.",
+    "slpWarning": "Jalur ini digunakan oleh dompet SLP. Cashonize tidak mengenali token SLP, sehingga membelanjakan dari dompet ini akan memusnahkan token SLP apa pun yang disimpannya. Sebagian besar token SLP sudah tidak memiliki nilai atau infrastruktur lagi."
+  },
+  "seedPhraseInput": {
+    "label": "Frasa pemulihan:",
+    "words12": "12 kata",
+    "words24": "24 kata"
+  },
+  "qrCode": {
+    "bchAddress": "Kode QR alamat Bitcoin Cash",
+    "tokenAddress": "Kode QR alamat token",
+    "xpub": "Kode QR xpub",
+    "paymentRequest": "Kode QR permintaan pembayaran",
+    "enlarge": "Tampilkan kode QR layar penuh",
+    "size": "Ukuran kode QR"
+  },
+  "qrScanner": {
+    "scanQrCode": "Pindai Kode QR",
+    "scan": "Pindai",
+    "chooseImage": "Pilih gambar",
+    "switchCamera": "Ganti kamera",
+    "noQrCodeInImage": "Tidak ada kode QR di gambar",
+    "errors": {
+      "permissionRequired": "Izin diperlukan untuk mengakses kamera",
+      "noCamera": "Tidak ada kamera di perangkat ini",
+      "nonSecureContext": "Tidak dapat mengakses kamera dalam konteks yang tidak aman",
+      "unableToAccess": "Tidak dapat mengakses kamera",
+      "constraintsMismatch": "Batasan tidak cocok dengan kamera terpasang mana pun. Apakah Anda meminta kamera depan padahal tidak ada?",
+      "unknownError": "Terjadi kesalahan yang tidak diketahui",
+      "nothingToDo": "Bukan alamat BCH, permintaan pembayaran, koneksi dApp, atau kunci privat"
+    }
+  },
+  "relativeTime": {
+    "secondsAgo": "{count} detik yang lalu",
+    "minuteAgo": "{count} menit yang lalu",
+    "minutesAgo": "{count} menit yang lalu",
+    "hourAgo": "{count} jam yang lalu",
+    "hoursAgo": "{count} jam yang lalu",
+    "dayAgo": "{count} hari yang lalu",
+    "daysAgo": "{count} hari yang lalu",
+    "monthsAgo": "{months} bln yang lalu",
+    "monthsDaysAgo": "{months} bln, {days} hr yang lalu"
+  },
+  "cashConnect": {
+    "sessions": {
+      "title": "CashConnect (Alpha)"
+    },
+    "sessionProposal": {
+      "title": "Setujui Sesi?",
+      "template": "Templat:",
+      "untrusted": "(Tidak tepercaya)",
+      "willSeeTokens": "Akan dapat melihat Token:",
+      "willInvokeMethods": "Akan dapat memanggil Metode/Event:",
+      "approveButton": "Setujui",
+      "rejectButton": "Tolak"
+    },
+    "executeAction": {
+      "untitledAction": "Aksi Tanpa Judul",
+      "noDescription": "Tidak ada deskripsi.",
+      "balanceChange": "Perubahan Saldo:",
+      "unknownToken": "Token tidak dikenal",
+      "advanced": "Lanjutan",
+      "inputParameters": "Parameter Input",
+      "inputParametersCaption": "Parameter yang diberikan dApp untuk menjalankan aksi ini",
+      "returnedData": "Data yang Dikembalikan",
+      "returnedDataCaption": "Informasi yang akan dikembalikan ke dApp untuk eksekusi",
+      "approveButton": "Setujui",
+      "rejectButton": "Tolak"
+    },
+    "viewTemplate": {
+      "title": "Templat",
+      "closeButton": "Tutup"
+    },
+    "error": {
+      "title": "Kesalahan",
+      "stackTrace": "Stack Trace:",
+      "okButton": "OK"
+    },
+    "notifications": {
+      "sessionApproved": "Sesi disetujui",
+      "successfullySignedTransaction": "Transaksi berhasil ditandatangani",
+      "networkMismatch": "dApp ini memerlukan dompet di {network}. Buka dompet {network} untuk menggunakan dApp ini.",
+      "networkMismatchChipnet": "dApp ini memerlukan dompet di {network}. Buka dompet {network} untuk menggunakan dApp ini: dompet yang juga memiliki salinan chipnet lama dapat dibuka di chipnet dari pengaturan pengembang.",
+      "notStarted": "CashConnect belum dimulai.",
+      "privateKeyNotFound": "Kunci privat tidak ditemukan untuk alamat: {address}",
+      "failedToConvertCashAddr": "Gagal mengonversi CashAddr ke Locking Bytecode",
+      "failedToDeriveHdNode": "Gagal menurunkan HDNode dari seed",
+      "walletTypeNotSupported": "WalletType tidak didukung: harus berupa Dompet Alamat Tunggal atau HDWallet."
+    }
+  },
+  "walletConnect": {
+    "sessions": {
+      "title": "WalletConnect",
+      "session": "sesi"
+    },
+    "transactionRequest": {
+      "title": "Tanda Tangani Transaksi",
+      "origin": "Asal:",
+      "balanceChange": "Perubahan Saldo:",
+      "fullDetails": "Detail Lengkap Transaksi",
+      "inputs": "Input:",
+      "outputs": "Output:",
+      "thisWallet": "(dompet ini)",
+      "contract": "Kontrak:",
+      "function": "Fungsi:",
+      "nft": "NFT:",
+      "token": "Token:",
+      "amount": "Jumlah:",
+      "commitment": "Commitment:",
+      "capability": "Capability:",
+      "signButton": "Tanda tangani",
+      "cancelButton": "Batal",
+      "networkFee": "Biaya Jaringan:",
+      "lowFeeWarning": "Transaksi ini membayar {rate} sat/byte. Node secara default meneruskan transaksi pada 1 sat/byte, jadi transaksi ini mungkin ditolak saat disiarkan.",
+      "highFeeWarning": "Transaksi ini membayar {rate} sat/byte, jauh lebih banyak daripada 1 sat/byte yang biasanya dibayar transaksi.",
+      "unverifiedTokenNote": "{count, plural, one {Token} other {Token}} tidak ada di dompet Anda. Metadata baru diambil untuk pratinjau.",
+      "unverifiedTokenNoteSingular": "Token tidak ada di dompet Anda. Metadata baru diambil untuk pratinjau.",
+      "unverifiedTokenNotePlural": "Token-token tidak ada di dompet Anda. Metadata baru diambil untuk pratinjau.",
+      "identityKeyReturns": "Ini menggunakan kunci identitas Anda, yang kembali ke dompet Anda.",
+      "identityStays": "Ini membelanjakan UTXO identitas {name}. Identitas tetap berada di dompet ini.",
+      "identityReserve": "Pasokan cadangan pada identitas: {before} sebelum, {after} sesudah.",
+      "identityMintingStays": "NFT minting tetap berada pada identitas.",
+      "identityMintingLeaves": "NFT minting dilepas dari identitas."
+    },
+    "sessionRequest": {
+      "title": "Setujui Sesi?",
+      "approveButton": "Setujui",
+      "rejectButton": "Tolak"
+    },
+    "addressSelect": {
+      "title": "Pilih Alamat untuk Dihubungkan",
+      "hint": "Pilih alamat yang akan dibagikan dengan dApp ini",
+      "selectedTag": "dipilih"
+    },
+    "sessionSettings": {
+      "title": "Kelola Sesi",
+      "enableAutoApprovals": "Aktifkan Persetujuan Otomatis",
+      "autoApprovalsHint": "Permintaan tanda tangan transaksi dan pesan dari dApp ini ditandatangani tanpa bertanya",
+      "autoApprovalsTrustHint": "Aktifkan hanya untuk dApp yang Anda percayai, setelah memeriksa ulang domain situs webnya",
+      "autoApprovalsLockedHint": "Tidak saat aplikasi terkunci: permintaan yang masuk saat itu menunggu persetujuan Anda setelah kunci dibuka",
+      "forever": "Selamanya",
+      "for": "Untuk",
+      "requests": "permintaan",
+      "minutes": "menit",
+      "left": "tersisa"
+    },
+    "signMessage": {
+      "title": "Tanda Tangani Pesan",
+      "origin": "Asal:",
+      "signer": "Penanda tangan:",
+      "message": "Pesan:",
+      "signButton": "Tanda tangani",
+      "cancelButton": "Batal"
+    },
+    "errors": {
+      "notInitialized": "WalletConnect belum diinisialisasi. Silakan coba lagi sebentar lagi.",
+      "unsupportedBlockchain": "Mencoba menghubungkan aplikasi dari blockchain yang tidak didukung: {chains}",
+      "failedToApproveSession": "Gagal menyetujui sesi",
+      "invalidTransactionSchema": "Kesalahan saat memvalidasi skema permintaan transaksi WalletConnect",
+      "invalidSignMessageSchema": "Kesalahan saat memvalidasi skema permintaan tanda tangan pesan WalletConnect",
+      "errorSendingTransaction": "Kesalahan saat mengirim transaksi",
+      "noAddressForSession": "Tidak ditemukan alamat untuk sesi",
+      "addressNotInHdCache": "Alamat tidak ditemukan di cache dompet HD: {address}",
+      "noPrivateKeyForAddress": "Tidak ada kunci privat untuk alamat ini (dompet khusus-pantau)",
+      "failedToCompressPublicKey": "Gagal mengompresi kunci publik"
+    },
+    "notifications": {
+      "failedToSignMessage": "Gagal menandatangani pesan",
+      "failedToSignTransaction": "Gagal menandatangani transaksi",
+      "sendingTransaction": "Mengirim transaksi...",
+      "requestExpired": "Permintaan kedaluwarsa, silakan kembali ke {dappName} jika Anda ingin mencoba lagi"
+    }
+  },
+  "wizardConnect": {
+    "sessions": {
+      "title": "WizardConnect",
+      "unknownDapp": "dApp tidak dikenal",
+      "session": "sesi",
+      "statusConnected": "Terhubung",
+      "statusWaitingForDapp": "Menunggu dApp...",
+      "statusReconnecting": "Menghubungkan ulang...",
+      "statusDisconnected": "Terputus"
+    },
+    "pairing": {
+      "title": "Bagikan alamat dompet dengan dApp ini?",
+      "intro": "Menghubungkan akan membagikan seluruh daftar alamat dompet Anda saat ini dan di masa depan (xpub) dengan dApp.",
+      "bulletHistory": "dApp dapat melihat seluruh saldo dan riwayat transaksi Anda, bahkan setelah koneksi diputus.",
+      "bulletPrivacy": "Anda kehilangan privasi dari penggunaan alamat dompet HD yang baru.",
+      "bulletSpending": "Membelanjakan dana Anda tetap memerlukan persetujuan Anda untuk setiap transaksi.",
+      "dappInfoNote": "Catatan: nama dan ikon dApp baru diterima setelah terhubung.",
+      "connectButton": "Hubungkan",
+      "cancelButton": "Batal"
+    },
+    "errors": {
+      "hdWalletRequired": "WizardConnect memerlukan dompet HD",
+      "notInitialized": "WizardConnect belum diinisialisasi. Silakan coba lagi sebentar lagi.",
+      "invalidUri": "Bukan URI WizardConnect yang valid",
+      "invalidTransactionSchema": "Kesalahan saat memvalidasi skema permintaan transaksi WizardConnect",
+      "failedToSignTransaction": "Gagal menandatangani transaksi",
+      "errorSendingTransaction": "Kesalahan saat mengirim transaksi"
+    },
+    "notifications": {
+      "sendingTransaction": "Mengirim transaksi...",
+      "requestCancelled": "Permintaan tanda tangan dibatalkan oleh {dappName}",
+      "dappDisconnected": "Sesi WizardConnect diputus oleh {dappName}"
+    }
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "version": "Versi Aplikasi Cashonize: {version}",
+    "latest": "(terbaru)",
+    "latestRelease": "(rilis terbaru adalah {version})",
+    "currentWallet": "Dompet saat ini:",
+    "menu": {
+      "backupWallet": "Cadangkan dompet",
+      "important": "(penting)",
+      "manageWallets": "Kelola dompet",
+      "userOptions": "Opsi pengguna",
+      "userOptionsDescription": "Konfirmasi pembayaran, pindai QR, BCH atau sats, penjelajah blok",
+      "appearance": "Tampilan & tata letak",
+      "appearanceDescription": "Tema, tab navigasi, kode QR",
+      "tokenSettings": "Pengaturan token",
+      "tokenSettingsDescription": "Nilai token, ikon, pembakaran, identitas",
+      "localization": "Lokalisasi",
+      "localizationDescription": "Bahasa, mata uang, format tanggal dan angka",
+      "advancedSettings": "Pengaturan lanjutan",
+      "advancedSettingsDescription": "Server Electrum, IPFS, nilai tukar, dan pengindeks",
+      "dataAndStorage": "Data dan penyimpanan",
+      "dataAndStorageDescription": "Cache, koneksi dApp, atur ulang, hapus dompet",
+      "developerSettings": "Pengaturan pengembang",
+      "developerSettingsDescription": "Dompet uji dan fitur pengembang",
+      "tools": "Alat dompet",
+      "hdAddresses": "Alamat HD",
+      "utxoManagement": "Manajemen UTXO",
+      "utxoManagementDescription": "Lihat, bekukan, kirim, atau gabungkan koin satu per satu",
+      "createTokens": "Buat token",
+      "createTokensDescription": "Buat token fungible baru atau koleksi NFT",
+      "sweepPrivateKey": "Sweep Kunci Privat",
+      "sweepPrivateKeyDescription": "Pindahkan dana dari dompet kertas atau kunci privat ke sini",
+      "transferAllAssets": "Transfer Semua Aset",
+      "transferAllAssetsDescription": "Kirim semua isi dompet ini ke alamat lain",
+      "signVerifyMessage": "Tanda Tangani / Verifikasi Pesan",
+      "signVerifyMessageDescription": "Buktikan Anda menguasai sebuah alamat, atau periksa tanda tangan",
+      "exportXpub": "Ekspor Xpub",
+      "exportXpubDescription": "Kunci publik yang menampilkan semua alamat dompet ini",
+      "addressConverter": "Konverter Alamat",
+      "addressConverterDescription": "Lihat sebuah alamat dalam format lainnya",
+      "faq": "FAQ",
+      "aboutCashonize": "Tentang Cashonize",
+      "flipstarter": "Flipstarter",
+      "flipstarterDescription": "Berjanji mendanai kampanye urun dana",
+      "identities": "Identitas",
+      "identitiesDescription": "Identitas metadata yang dipegang atau diikuti dompet ini",
+      "newCount": "({count} baru) | ({count} baru)",
+      "tokenCreation": "Pembuatan token"
+    },
+    "localization": {
+      "language": "Bahasa:",
+      "currency": "Mata uang:",
+      "dateFormat": "Format tanggal:",
+      "numberFormat": "Format angka:",
+      "numberFormatAuto": "Bawaan sistem ({example})",
+      "languageLoadFailed": "Tidak dapat memuat bahasa ini. Periksa koneksi Anda atau muat ulang halaman."
+    },
+    "userOptions": {
+      "confirmPayments": "Konfirmasi pembayaran sebelum mengirim",
+      "confirmPaymentsHint": "Menampilkan jumlah dan alamat untuk pemeriksaan terakhir setelah Anda mengklik kirim. Disarankan, karena pembayaran tidak dapat dibatalkan.",
+      "showCauldronSwap": "Tampilkan Tombol Swap Cauldron",
+      "showCauldronFTValue": "Tampilkan nilai fiat di daftar token",
+      "showCauldronFTValueHint": "Tampilkan nilai fiat di tab Token dan saat mengirim, untuk token fungible dengan likuiditas gabungan minimal 1 BCH di seluruh pool Cauldron DEX",
+      "showCauldronFTValuePortfolioNote": "Tampilan portofolio selalu menampilkan nilai token",
+      "enableTokenBurn": "Tampilkan tombol bakar pada token",
+      "identitiesHeading": "Identitas (Lanjutan)",
+      "enableQrScan": "Aktifkan pindai QR",
+      "enableQrScanHint": "Menampilkan Pindai di halaman dompet dan tombol pindai di samping kolom alamat. Pemindai juga dapat membaca kode dari gambar, jadi berfungsi tanpa kamera.",
+      "selectUnit": "Pilih satuan Bitcoin Cash:",
+      "bchUnit": "BCH",
+      "satUnit": "satoshi",
+      "blockExplorer": "Block explorer:",
+      "qrAnimation": "Animasi kode QR:",
+      "bottomNavOnMobile": "Tampilkan tab navigasi di bagian bawah pada layar kecil",
+      "dappActivityInNav": "Tampilkan ikon aktivitas dApp di navigasi atas",
+      "themeHeading": "Tema",
+      "themeSystem": "Bawaan sistem",
+      "themeLight": "Terang",
+      "themeDim": "Redup",
+      "themeDark": "Gelap",
+      "walletPageHeading": "Halaman dompet",
+      "primaryBalance": "Saldo utama:",
+      "greenActionButtons": "Tombol Terima, Pindai, dan Kirim berwarna hijau",
+      "navigationHeading": "Navigasi",
+      "qrHeading": "Kode QR",
+      "addressesInNav": "Tampilkan tab Alamat di navigasi atas",
+      "addressesInNavHint": "Untuk dompet HD, di layar yang cukup lebar. Tanpa tab, halaman Alamat dibuka dari menu ⋯.",
+      "followTokenIdentities": "Ikuti identitas token di dompet ini",
+      "followTokenIdentitiesHint": "Daftar token di dompet ini dikirim ke server Chaingraph sebagai satu kumpulan, sehingga identitas token yang masuk ke dompet ini terdeteksi dan ditahan. Nonaktif secara default: maka hanya token yang AuthKey-nya dimiliki dompet ini yang identitasnya dicari. Mengaktifkannya akan mencari setiap token di dompet setiap kali dompet dibuka.",
+      "allowDappIdentitySpends": "Izinkan aplikasi terhubung membelanjakan UTXO identitas",
+      "allowDappIdentitySpendsHint": "Nonaktif: permintaan WalletConnect atau WizardConnect yang membelanjakan UTXO salah satu identitas dompet ini ditolak, sama seperti UTXO yang dijanjikan. Aktif: permintaan sampai ke dialog persetujuan, yang menyebutkan identitasnya dan apa yang dibawa UTXO-nya sebelum dan sesudah. Permintaan yang akan memindahkan identitas keluar dari dompet ini tetap ditolak. AuthKey tidak terpengaruh: permintaan yang menggunakan AuthKey ditandatangani jika AuthKey tersebut kembali, seperti cara kerja CashTokens Studio.",
+      "disableTokenIcons": "Nonaktifkan pemuatan gambar token",
+      "disableTokenIconsHint": "Gambar token dan NFT dapat dihosting di server mana pun yang dipilih pembuat token, yang dapat melihat alamat IP Anda saat gambar dimuat."
+    },
+    "advanced": {
+      "electrumServerOn": "Server Electrum {network}:",
+      "electrumInvalidUrl": "Alamat server Electrum tidak valid",
+      "electrumHint": "Koneksi dompet ke jaringan BCH. Saldo, riwayat transaksi, dan pengiriman semuanya melalui server ini.",
+      "electrumModeAutomatic": "Otomatis (disarankan)",
+      "electrumModePreferred": "Server pilihan, dengan cadangan",
+      "electrumModeSingle": "Hanya server ini",
+      "electrumModeHint": "Otomatis dan pilihan beralih ke server lain dari daftar jika server yang dipakai tetap tidak dapat dijangkau, dan server tersebut kemudian melihat alamat-alamat dompet ini. 'Hanya server ini' tidak pernah menghubungi server lain, misalnya saat Anda menjalankan server sendiri.",
+      "electrumInUse": "Dipakai: {server}",
+      "tokenMetadataIndexer": "Pengindeks metadata token:",
+      "tokenMetadataIndexerHint": "Pengindeks BCMR yang menyajikan metadata token per kategori: nama, ikon, desimal, jenis NFT. Hanya identitas token; identitas lain dibaca dari registri mereka sendiri oleh halaman identitas.",
+      "tokenMetadataIndexerNone": "Tidak ada",
+      "tokenMetadataIndexerCustomPlaceholder": "mis. https://bcmr.example.com/api",
+      "electrumCustomPlaceholder": "mis. 127.0.0.1 atau fulcrum.example.com:443",
+      "electrumCustomHint": "Memerlukan WSS, port 50004 diasumsikan kecuali ditentukan lain.",
+      "electrumSelfSignedBrowser": "Menggunakan sertifikat self-signed? {link} untuk menerima sertifikat terlebih dahulu.",
+      "electrumSelfSignedVisit": "Kunjungi di sini",
+      "electrumSelfSignedApp": "Catatan: sertifikat self-signed saat ini tidak didukung di aplikasi.",
+      "ipfsGateway": "Gateway IPFS:",
+      "ipfsGatewayHint": "Digunakan untuk memuat ikon token dan media token lain yang dihosting di IPFS.",
+      "chaingraph": "Server Chaingraph:",
+      "chaingraphHint": "Pengindeks blockchain BCH, hanya digunakan untuk identitas: untuk mencari identitas yang dimiliki dan diikuti dompet ini.",
+      "chaingraphCustomPlaceholder": "mis. https://chaingraph.example.com",
+      "chaingraphCustomHint": "/v1/graphql ditambahkan otomatis jika hanya host yang diberikan.",
+      "chaingraphInvalidUrl": "URL server Chaingraph tidak valid",
+      "chaingraphChecking": "Memeriksa server Chaingraph",
+      "chaingraphNone": "Tidak ada",
+      "cauldronIndexer": "Pengindeks Cauldron:",
+      "cauldronIndexerHint": "Digunakan untuk mendapatkan harga token dari Cauldron DEX untuk portofolio dan daftar token.",
+      "cauldronIndexerNone": "Tidak ada",
+      "cauldronIndexerCustomPlaceholder": "mis. https://indexer.example.com",
+      "exchangeRate": "Penyedia kurs:",
+      "exchangeRateDefault": "Default (bitcoin.com untuk USD, BitPay untuk lainnya)",
+      "deleteAllWallets": "Hapus semua dompet dan semua data dari {platform}",
+      "deleteSingleWalletNote": "Dompet tunggal dapat dihapus di \"{page}\", kecuali dompet saat ini.",
+      "deleteAllWalletsButton": "Hapus semua dompet",
+      "deleteAllWalletsTitle": "Hapus Semua Dompet",
+      "deleteAllWalletsConfirm": "Anda akan menghapus semua dompet dan data Cashonize dari {platform} ini.\nApakah Anda yakin ingin menghapus semuanya?",
+      "deleteAllWalletsPwaWarning": "Anda akan menghapus semua dompet dan data Cashonize dari {platform} ini.\nIni juga akan menghapusnya dari browser Anda!\nApakah Anda yakin ingin menghapus semuanya?",
+      "deleteAllButton": "Hapus Semua",
+      "pwaDeleteWarning": "Menghapus semua dompet dari 'Aplikasi web terinstal' juga akan menghapusnya dari browser Anda!",
+      "browserDeleteWarning": "Menghapus semua dompet dari browser juga akan menghapusnya dari 'Aplikasi web terinstal' mana pun.",
+      "clearHistoryCache": "Hapus cache riwayat dompet",
+      "clearHistoryCacheFrom": "Hapus cache riwayat dompet dari {platform}",
+      "clearHistoryCacheButton": "Hapus cache riwayat",
+      "clearHistoryCacheHint": "Diunduh lagi pada pemuatan berikutnya. Catatan dan label tetap disimpan.",
+      "clearMetadataCache": "Hapus cache metadata token",
+      "clearMetadataCacheFrom": "Hapus cache metadata token dari {platform}",
+      "clearMetadataCacheButton": "Hapus cache token",
+      "clearMetadataCacheHint": "Gunakan ini jika nama atau ikon token telah berubah tetapi yang lama masih muncul.",
+      "clearDappConnections": "Putuskan semua dApp dan hapus data koneksinya (memuat ulang aplikasi)",
+      "clearDappConnectionsButton": "Hapus koneksi",
+      "resetSettings": "Kembalikan opsi di halaman pengaturan ke default, kecuali bahasa (memuat ulang aplikasi)",
+      "resetSettingsButton": "Atur ulang pengaturan",
+      "resetSettingsTitle": "Atur ulang pengaturan",
+      "resetSettingsConfirm": "Setiap opsi di halaman pengaturan kembali ke default, termasuk server tetapi tidak termasuk bahasa. Dompet Anda dan datanya, seperti catatan dan label, serta koneksi dApp Anda tidak terpengaruh.",
+      "custom": "Kustom",
+      "default": "(default)"
+    },
+    "developer": {
+      "enableMintNfts": "Aktifkan mint NFT",
+      "enableMintNftsHint": "Menambahkan aksi mint ke NFT minting, sehingga Anda dapat membuat lebih banyak NFT dalam kategori yang sama",
+      "strictWcSchema": "Validasi ketat permintaan dApp",
+      "strictWcSchemaHint": "Memeriksa permintaan WalletConnect dan WizardConnect terhadap format persisnya, dan menampilkan alasan lengkap saat permintaan ditolak. Aktifkan ini saat mengembangkan dApp untuk menemukan payload yang tidak sesuai.",
+      "showPrivateKeyWif": "Tampilkan kunci privat WIF di halaman cadangan",
+      "showPrivateKeyWifHint": "Menambahkan kunci privat WIF ke halaman cadangan untuk dompet alamat tunggal.",
+      "nonTokenIdentities": "Aktifkan pembuatan identitas non-token",
+      "nonTokenIdentitiesHint": "Menampilkan Tambah baru di halaman identitas, yang membuat identitas dari UTXO mana pun di dompet ini, bukan dari token. Identitas orang, organisasi, dan kontrak masih baru, dan belum banyak alat yang membacanya.",
+      "developerFeaturesHeading": "Fitur pengembang",
+      "addDevWallet": "→ Tambah dompet pengembangan",
+      "addDevWalletHint": "Membuat atau mengimpor dompet di jaringan uji, chipnet atau testnet4, dan hanya di sana.",
+      "alsoOnNetwork": "Dompet juga ada di {network}",
+      "sameKeysHint": "{name} memiliki salinan di jaringan lain dengan kunci yang sama, dari masa ketika Cashonize menyimpan setiap dompet di mainnet dan chipnet. Dari daftar dompet, {name} dibuka di mainnet.",
+      "otherKeysHint": "{name} juga ada di jaringan lain, dengan kunci yang berbeda. Dari daftar dompet, {name} dibuka di mainnet.",
+      "openOnNetwork": "Buka di {network}",
+      "removeChipnetCopy": "Hapus salinan chipnet",
+      "removeChipnetCopyTitle": "Hapus salinan chipnet?",
+      "removeChipnetCopyConfirm": "Menghapus salinan chipnet dari {name} membuat {name} hanya ada di mainnet. Kuncinya tetap ada di dompet mainnet.",
+      "chipnetCopyHoldsCoins": "Salinan chipnet dari {name} menyimpan koin chipnet, jadi salinan ini tetap ada. Untuk menghapusnya, kirim koin tersebut ke dompet chipnet lain lalu periksa lagi.",
+      "chipnetCopyRemoved": "Salinan chipnet dari {name} telah dihapus.",
+      "checkChipnetCopy": "Periksa apakah bisa dihapus",
+      "checkingChipnetCopy": "Memeriksa riwayat chipnet…",
+      "chipnetCopyUnused": "Salinan chipnet dari {name} tidak pernah digunakan, jadi dapat dihapus.",
+      "chipnetCopyEmpty": "Salinan chipnet dari {name} pernah digunakan tetapi tidak menyimpan koin, jadi dapat dihapus. Riwayat chipnet-nya tetap ada di chain.",
+      "chipnetCopyCheckFailed": "Tidak dapat membaca koin salinan chipnet. Periksa server chipnet dan coba lagi."
+    },
+    "madeWith": "Dibuat dengan {heart} oleh Mathieu G."
+  },
+  "flipstarter": {
+    "title": "Flipstarter",
+    "description": "Berikan janji donasi ke kampanye Flipstarter. Tempel permintaan janji donasi dari halaman kampanye, dan dompet ini memberi Anda janji donasi yang sudah ditandatangani untuk ditempel kembali di sana.",
+    "newPledgeMode": "Janji donasi baru",
+    "step": "Langkah {current} dari {total}",
+    "templateLabel": "Permintaan janji donasi",
+    "templatePlaceholder": "Tempel permintaan janji donasi dari halaman kampanye",
+    "recipientCount": "{count} penerima | {count} penerima",
+    "expires": "Kampanye berakhir: {date}",
+    "pledgeLabel": "Janji donasi Flipstarter, kampanye berakhir: {date}",
+    "ecPluginCompatible": "Cashonize kompatibel dengan alur EC Plugin.",
+    "ecPluginCompatibleDetail": "Cashonize menghasilkan janji donasi yang sama seperti plugin Electron Cash, jadi langkah-langkah plugin di kampanye juga berlaku di sini, dan langkah \"Copy details\"-nya memberi Anda permintaan janji donasi untuk ditempel di atas.",
+    "readTemplate": "Tinjau janji donasi",
+    "startOver": "Mulai ulang",
+    "aliasLabel": "Nama",
+    "aliasPlaceholder": "Nama yang ingin Anda tampilkan (opsional)",
+    "commentLabel": "Komentar",
+    "commentPlaceholder": "Komentar untuk ditampilkan di halaman kampanye (opsional)",
+    "dataPublished": "Nama dan komentar Anda dipublikasikan di halaman kampanye.",
+    "pledgeButton": "Siapkan janji donasi",
+    "pledgingButton": "Menyiapkan...",
+    "preparingCoin": "Menyiapkan UTXO janji donasi...",
+    "warnings": {
+      "notAPayment": "Janji donasi bukan pembayaran. Dana hanya berpindah jika kampanye mencapai targetnya, dan sampai saat itu UTXO ditahan dan tidak termasuk dana yang dapat Anda belanjakan.",
+      "dappActions": "Selama janji donasi masih terbuka, tindakan dApp dari dompet ini bisa gagal, karena dompet tidak akan menandatangani pembelanjaan UTXO yang dijanjikan. Gunakan dompet terpisah untuk janji donasi jika Anda rutin memakai dApp.",
+      "dappActionsDetail": "Ini berlaku untuk WalletConnect dan WizardConnect, di mana dApp menyusun transaksinya sendiri dan bisa memilih UTXO yang dijanjikan. CashConnect tidak terpengaruh: di sana dompet yang memilih UTXO, dan mengecualikan UTXO yang dijanjikan.",
+      "otherDevices": "UTXO hanya ditahan di aplikasi ini. Jangan membelanjakan dari dompet ini di perangkat lain atau di perangkat lunak dompet lain selama janji donasi masih terbuka, karena itu dapat membatalkan janji donasi Anda.",
+      "otherDevicesDetail": "Dompet lain tidak dapat mengetahui bahwa UTXO tersebut ditahan, sehingga bisa memilihnya untuk pembayaran biasa. Kampanye kemudian tidak dapat lagi memakai janji donasi Anda yang sudah ditandatangani, dan dompet ini hanya akan melihat bahwa UTXO itu hilang, bukan alasannya. Jika Anda memakai frasa pemulihan ini di aplikasi dompet lain, bekukan atau reservasi UTXO yang sama di sana juga, yang didukung oleh sebagian besar dompet."
+    },
+    "review": {
+      "title": "Info janji donasi",
+      "noCampaignIdentity": "Permintaan janji donasi tidak memuat nama, deskripsi, atau domain kampanye.",
+      "recipient": "Penerima",
+      "campaignTotal": "Target kampanye: {amount}",
+      "yourPledge": "Janji donasi Anda: {amount} {fiat} ({share}% dari target)",
+      "alreadyExpired": "(sudah berakhir)",
+      "ownAddressRecipient": "Salah satu alamat penerima milik dompet ini."
+    },
+    "signedPledge": {
+      "title": "Janji donasi Anda yang ditandatangani",
+      "instructions": "Salin ini dan tempel di halaman kampanye untuk menyelesaikan janji donasi Anda. Dompet ini tidak mengirim apa pun ke kampanye.",
+      "copy": "Salin janji donasi",
+      "detail": "Kampanye tidak dapat memakai janji donasi Anda sampai Anda menempelkan ini di halamannya. Dompet ini tidak pernah mengirimkannya untuk Anda.",
+      "detailNote": "Sampai Anda melakukannya, UTXO tetap ditahan dan tidak mendukung apa pun. Batalkan janji donasi untuk melepaskannya."
+    },
+    "pledges": {
+      "title": "Janji donasi Anda",
+      "empty": "Tidak ada janji donasi dari dompet ini.",
+      "recipientCount": "ke {count} penerima | ke {count} penerima",
+      "status": {
+        "open": "UTXO ditahan untuk janji donasi ini",
+        "expired": "Kampanye berakhir, UTXO masih ditahan"
+      },
+      "cannotConfirm": "Dompet tidak dapat memastikan bahwa janji donasi diterima oleh kampanye.",
+      "cannotConfirmDetail": "Catatan ini adalah apa yang Anda lakukan di sini, bukan apa yang dipegang kampanye. Dompet tidak pernah menghubungi kampanye, jadi tidak ada cara untuk mengetahui apakah janji donasi Anda diterima.",
+      "cannotConfirmRecovery": "Jika janji donasi tidak diterima, batalkan untuk melepaskan UTXO."
+    },
+    "confirm": {
+      "title": "Siapkan janji donasi ini?",
+      "message": "Ini mengirim {amount} ke diri Anda sendiri sekarang, dan mengecualikan UTXO tersebut dari setiap pembayaran yang dibuat aplikasi ini sampai kampanye selesai atau Anda membatalkan. UTXO hanya ditahan di aplikasi ini.",
+      "button": "Siapkan janji donasi"
+    },
+    "cancel": {
+      "title": "Batalkan janji donasi ini?",
+      "message": "Ini membelanjakan UTXO yang dijanjikan kembali ke dompet Anda, sehingga janji donasi yang ditandatangani yang dipegang kampanye menjadi tidak dapat dipakai.",
+      "button": "Batalkan janji donasi",
+      "cancelling": "Membatalkan...",
+      "sending": "Membatalkan janji donasi...",
+      "done": "Janji donasi dibatalkan dan UTXO dilepaskan",
+      "doneTitle": "Janji donasi dibatalkan"
+    },
+    "alerts": {
+      "pledgePrepared": "UTXO janji donasi telah disiapkan. Salin janji donasi yang ditandatangani di bawah ke halaman kampanye.",
+      "pledgePreparedTitle": "Janji donasi disiapkan"
+    },
+    "errors": {
+      "emptyTemplate": "Tidak ada permintaan janji donasi yang ditempel",
+      "templateNotBase64Json": "Ini tidak tampak seperti permintaan janji donasi dari halaman kampanye",
+      "invalidTemplate": "Permintaan janji donasi tidak valid",
+      "invalidOutputAddress": "Permintaan janji donasi berisi alamat penerima yang tidak valid: {address}",
+      "pledgeUtxoHasToken": "UTXO janji donasi membawa token, yang akan terbakar oleh transaksi kampanye",
+      "pledgeUtxoWrongValue": "Nilai UTXO janji donasi tidak sesuai dengan jumlah donasi",
+      "signingFailed": "Gagal menandatangani janji donasi",
+      "noBroadcastTxid": "Transaksi persiapan telah dikirim tetapi tidak mengembalikan id transaksi",
+      "noPrivateKey": "Tidak ada kunci privat untuk alamat janji donasi",
+      "campaignExpired": "Kampanye ini sudah berakhir",
+      "notEnoughSpendable": "BCH yang dapat dibelanjakan tidak cukup untuk janji donasi ini"
+    },
+    "whatIsAPledge": "Dompet membayar dirinya sendiri sejumlah janji donasi dalam transaksinya sendiri, menahan UTXO tersebut, dan menandatanganinya untuk para penerima kampanye. Tanda tangan tetap valid ketika kampanye menambahkan pemberi janji lain, sehingga UTXO hanya berpindah setelah cukup banyak orang berjanji.",
+    "whatIsAPledgeNote": "Transaksi persiapan itu adalah transaksi sungguhan dengan biayanya sendiri, yang dibayar terlepas dari apakah kampanye pernah terpenuhi."
+  },
+  "identities": {
+    "title": "Identitas",
+    "description": "Identitas yang dipegang atau dipantau dompet ini.",
+    "modes": {
+      "identities": "Identitas",
+      "existing": "Tambah yang ada",
+      "create": "Tambah baru"
+    },
+    "learn": {
+      "link": "Pelajari",
+      "back": "Kembali ke identitas",
+      "title": "Identitas di Bitcoin Cash",
+      "whatLead": "Apa itu identitas.",
+      "what": "Cara untuk memublikasikan informasi tentang sesuatu di Bitcoin Cash, seperti nama dan ikonnya, sehingga siapa pun dapat memeriksa bahwa informasi itu berasal dari siapa pun yang mengendalikan identitas tersebut. Standarnya adalah Bitcoin Cash Metadata Registries (BCMR). Ada satu identitas per kategori token, dan hal selain token juga dapat memiliki identitas.",
+      "holdingLead": "Apa artinya memegang identitas.",
+      "holding": "Kendali atas identitas adalah satu UTXO, bukan akun: output 0 dari transaksi terbaru identitas tersebut, yaitu authhead. Rantai transaksi berjalan maju dari authbase, dan id transaksi authbase adalah id permanen identitas; untuk token, itu adalah id kategori.",
+      "custodyLead": "Apa yang dilakukan dompet ini dengan identitas yang dipegangnya.",
+      "custody": "UTXO identitas dijauhkan dari pengiriman biasa, beserta cadangan token fungible yang ada di dalamnya. Membelanjakannya dengan sengaja adalah cara identitas dipindahkan atau metadatanya diperbarui; metadata itu sendiri adalah file yang di-hosting dan dirujuk rantai melalui hash. Identitas yang tidak dipegang dompet ini dapat ditambahkan sebagai pantauan saja: Anda dapat melihat informasinya, tetapi tidak dapat memperbaruinya.",
+      "readMoreLead": "Baca selengkapnya.",
+      "readMore": "Standar BCMR selengkapnya: {registries}. Identitas yang disimpan di balik AuthKey mengikuti standar AuthGuard, yang diterapkan oleh {studio}.",
+      "registriesLink": "metadata registries di cashtokens.org",
+      "chainUtxo": "UTXO identitas",
+      "chainCaption": "Setiap transaksi membelanjakan output 0 dari transaksi sebelumnya, dan yang terakhir belum dibelanjakan adalah UTXO identitas.",
+      "chainToggle": "Cara kerja rantai"
+    },
+    "authbaseLabel": "Authbase / id token:",
+    "resolving": "Mencari di mana identitas-identitas ini dipegang",
+    "empty": "Belum ada identitas yang terdaftar. Identitas yang dibuat dompet ini ditemukan dengan sendirinya; identitas yang Anda pegang atau ingin diikuti ditambahkan melalui authbase-nya di {link}.",
+    "emptyLink": "Tambah yang ada",
+    "detected": {
+      "foundAutomatically": "ditemukan otomatis",
+      "foundAutomaticallyHelp": "Kunci dompet ini membuat identitas ini atau memublikasikan metadatanya, sehingga identitas ini ditemukan di riwayat dompet ini sendiri dan UTXO-nya kini ditahan dari pemilihan koin. Hapus dari daftar jika Anda tidak menginginkannya.",
+      "foundViaKeyHelp": "Ditemukan karena dompet ini memegang AuthKey identitas ini. AuthKey dijauhkan dari pemilihan koin, sehingga tidak ada pengiriman biasa dari aplikasi ini yang dapat membelanjakannya.",
+      "allFoundAutomatically": "semua ditemukan otomatis",
+      "allFoundAutomaticallyHelp": "Kunci dompet ini membuat identitas-identitas ini atau memublikasikan metadatanya, atau dompet ini memegang AuthKey yang mengendalikannya. UTXO identitasnya, atau AuthKey yang mengendalikannya, ditahan dari pengiriman biasa; hapus salah satunya dari daftar jika Anda tidak menginginkannya."
+    },
+    "ownedCount": "{count} identitas dimiliki dan dikelola oleh dompet ini | {count} identitas dimiliki dan dikelola oleh dompet ini",
+    "watchedHeader": "{count} identitas hanya dipantau, tidak dipegang oleh dompet ini | {count} identitas hanya dipantau, tidak dipegang oleh dompet ini",
+    "follow": {
+      "header": "{count} identitas yang diikuti dari token di dompet ini | {count} identitas yang diikuti dari token di dompet ini",
+      "resolving": "Mencari identitas token di dompet ini",
+      "searchPlaceholder": "Cari identitas...",
+      "noMatch": "Tidak ada identitas yang cocok dengan pencarian"
+    },
+    "unnamedIdentity": "Identitas tanpa nama",
+    "authheadLabel": "UTXO identitas:",
+    "authheadAmount": "Berisi {amount}",
+    "status": {
+      "held": "Dipegang oleh dompet ini",
+      "notHeld": "Hanya dipantau",
+      "unresolved": "Tidak dapat mencari identitas ini",
+      "heldViaKey": "Dipegang melalui AuthKey",
+      "burned": "Dibakar"
+    },
+    "statusHelp": {
+      "held": "Dompet ini memegang UTXO identitas ini, sehingga dapat memperbarui metadatanya. UTXO dijauhkan dari pemilihan koin, sehingga tidak ada pengiriman biasa dari aplikasi ini yang dapat membelanjakannya, dan aplikasi yang terhubung juga tidak dapat membelanjakannya kecuali diizinkan di opsi pengguna. Perangkat lunak lain dengan seed yang sama masih bisa.",
+      "notHeld": "Identitas ini tidak dipegang oleh dompet ini, jadi dompet hanya memantaunya: publikasinya ditampilkan, tetapi untuk memperbaruinya diperlukan pihak yang memegangnya.",
+      "unresolved": "Lokasi identitas ini dipegang tidak dapat dicari, jadi saat ini tidak diketahui. Apa pun yang ditahan untuknya tetap ditahan sampai ada jawaban.",
+      "heldViaKey": "UTXO identitas ini dikunci dalam covenant, dan dompet ini memegang AuthKey yang membukanya. Itu adalah kendali atas identitas tanpa UTXO-nya, jadi AuthKey-lah yang dijauhkan dari pemilihan koin.",
+      "burned": "Output 0 identitas ini adalah OP_RETURN, yang tidak dapat dibelanjakan oleh apa pun: siapa pun yang memegang identitas ini telah mengakhirinya. Publikasi terakhirnya tetap berlaku dan tidak ada pembaruan yang dapat menyusul."
+    },
+    "reserve": {
+      "supply": "Pasokan cadangan: {amount}",
+      "mintingNft": "Dicadangkan: NFT minting, yang membuat NFT baru dari kategori ini",
+      "nft": "Dicadangkan: NFT dari kategori ini",
+      "errors": {
+        "invalidAmount": "Masukkan jumlah yang valid.",
+        "overReserve": "Itu melebihi isi cadangan.",
+        "overBalance": "Itu melebihi jumlah token ini yang dapat dibelanjakan dompet ini."
+      },
+      "issue": {
+        "action": "terbitkan dari cadangan",
+        "hint": "Pindahkan token dari cadangan ke peredaran. Cadangan berisi {amount}.",
+        "amountPlaceholder": "Jumlah yang diterbitkan",
+        "destinationPlaceholder": "Alamat token tujuan penerbitan",
+        "button": "Terbitkan",
+        "issuingButton": "Menerbitkan...",
+        "confirmTitle": "Terbitkan dari cadangan?",
+        "confirmMessage": "{amount} keluar dari cadangan dan dikirim ke {address}, masuk ke peredaran.",
+        "confirmButton": "Terbitkan",
+        "done": "Diterbitkan dari cadangan ke {address}",
+        "doneTitle": "Diterbitkan dari cadangan"
+      },
+      "add": {
+        "action": "Tambah ke cadangan",
+        "hint": "Pindahkan token yang dipegang dompet ini kembali ke cadangan, keluar dari peredaran.",
+        "amountPlaceholder": "Jumlah yang ditambahkan",
+        "button": "Tambah ke cadangan",
+        "addingButton": "Menambahkan...",
+        "confirmTitle": "Tambah ke cadangan?",
+        "confirmMessage": "{amount} masuk ke cadangan pada identitas dan keluar dari peredaran.",
+        "confirmButton": "Tambah",
+        "done": "Ditambahkan ke cadangan",
+        "doneTitle": "Ditambahkan ke cadangan"
+      },
+      "tokenListLink": "Tampilkan di daftar token",
+      "supplyOpenEnded": "Pasokan cadangan: tanpa batas",
+      "genesisSupply": "Pasokan genesis: {amount}",
+      "genesisSupplyOpenEnded": "Pasokan genesis: tanpa batas",
+      "openEndedHelp": "Genesis mencetak {max} unit dasar, jumlah terbesar yang dapat dimiliki sebuah kategori, yang oleh standar AuthGuard diartikan sebagai pasokan tanpa batas atas. Yang telah keluar dari cadangan adalah yang telah diterbitkan sejauh ini.",
+      "issued": "Pasokan diterbitkan: {amount}"
+    },
+    "key": {
+      "action": "pindahkan AuthKey",
+      "guardHelp": "UTXO identitas berada di alamat covenant ini, bukan di dompet Anda. Covenant hanya melepaskannya kepada siapa pun yang menunjukkan AuthKey, yaitu NFT yang dipegang dompet ini.",
+      "manageHint": "Identitas ini dijaga, jadi pembaruan metadata dan pemindahan pasokannya dilakukan melalui alat yang menyusun transaksi covenant. Cashonize menandatanganinya saat terhubung.",
+      "manageOnStudio": "Kelola di CashTokens Studio",
+      "hint": "AuthKey adalah NFT biasa dan berpindah seperti NFT lainnya. Siapa pun yang memegangnya mengendalikan setiap identitas yang dijaganya.",
+      "destinationPlaceholder": "Alamat token tujuan AuthKey",
+      "button": "Pindahkan AuthKey",
+      "transferringButton": "Memindahkan...",
+      "confirmTitle": "Pindahkan AuthKey ini?",
+      "confirmMessage": "Kendali atas {count} identitas yang dijaga AuthKey ini berpindah ke {address}. Ini tidak dapat dibatalkan. | Kendali atas {count} identitas yang dijaga AuthKey ini berpindah ke {address}. Ini tidak dapat dibatalkan.",
+      "confirmButton": "Pindahkan AuthKey",
+      "done": "AuthKey dipindahkan ke {address}",
+      "doneTitle": "AuthKey dipindahkan",
+      "what": "AuthKey adalah NFT biasa di dompet ini, dan memegangnya berarti mengendalikan identitas ini: covenant hanya melepaskan UTXO identitas kepada siapa pun yang menunjukkan AuthKey.",
+      "viewInTokenList": "lihat AuthKey di daftar token",
+      "categoryLabel": "AuthKey:"
+    },
+    "publication": {
+      "title": "Publikasi metadata terbaru",
+      "none": "Identitas ini belum pernah memublikasikan metadata.",
+      "checking": "memeriksa...",
+      "hash": "Hash yang dipublikasikan:",
+      "driftedPrompt": "Registry di salah satu lokasi ini tidak lagi sesuai dengan yang dipublikasikan. {link}",
+      "driftedLink": "Publikasikan konten saat ini",
+      "status": {
+        "verified": "metadata sinkron",
+        "changed": "berubah sejak publikasi",
+        "changedIpfs": "tidak sesuai dengan hash yang dipublikasikan",
+        "unreachable": "tidak merespons",
+        "restricted": "gateway terbatas"
+      },
+      "statusHelp": {
+        "verified": "File yang disajikan di sini memiliki hash yang persis sama dengan yang dipublikasikan identitas ini di rantai.",
+        "changed": "File yang disajikan di sini bukan yang dipublikasikan di rantai. Tinjau dan publikasikan ulang, agar pemegang melihat apa yang Anda sajikan.",
+        "changedNote": "Jika Anda tidak mengubah file tersebut, periksa hosting Anda: ada pihak lain yang merespons atas namanya.",
+        "unreachable": "Lokasi ini tidak merespons. Pemegang yang mengambil metadata dari sini tidak melihat apa pun, jadi periksa apakah hosting atau pin IPFS telah kedaluwarsa.",
+        "restricted": "Gateway ini hanya melayani aplikasinya sendiri dan menjawab pihak lain dengan error, sehingga tidak ada pemegang yang dapat mengambil metadata di sini. Masalahnya bukan pada file itu sendiri; lokasi lain dapat menyajikannya."
+      },
+      "unconfirmed": "belum dikonfirmasi",
+      "summary": {
+        "verified": "metadata sinkron",
+        "changed": "berubah sejak publikasi",
+        "unreachable": "tidak dapat mengambil metadata",
+        "restricted": "tidak ada lokasi publik"
+      }
+    },
+    "history": {
+      "title": "Riwayat identitas ini",
+      "loading": "Membaca riwayat identitas...",
+      "madeHere": "dibuat oleh dompet ini",
+      "openEndedSupply": "pasokan tanpa batas",
+      "publishedToo": "metadata dipublikasikan",
+      "viewTransaction": "Lihat transaksi",
+      "reserveUp": "{amount} masuk ke cadangan",
+      "reserveDown": "{amount} keluar dari cadangan",
+      "kind": {
+        "authbase": "Authbase / pra-genesis",
+        "authbaseNoGenesis": "Authbase",
+        "genesis": "Genesis",
+        "publication": "Pembaruan metadata",
+        "transfer": "Dipindahkan",
+        "operation": "Diperbarui",
+        "mint": "Dicetak",
+        "issued": "Diterbitkan",
+        "reserved": "Dicadangkan",
+        "burned": "Dibakar"
+      },
+      "minted": "{count} NFT | {count} NFT",
+      "action": "riwayat",
+      "actionCount": "riwayat ({count})"
+    },
+    "publish": {
+      "action": "publikasikan metadata",
+      "locationsHint": "Domain, URL HTTPS lengkap, atau CID IPFS. Setiap lokasi harus menyajikan file yang sama.",
+      "uriPlaceholder": "example.com atau ipfs://baf...",
+      "publishedAs": "Dipublikasikan sebagai {published}, diambil dari {url}",
+      "fetchedFrom": "Diambil dari {url}",
+      "addLocation": "tambah lokasi lain",
+      "removeLocation": "hapus",
+      "bytesLeft": "Sisa {bytes} byte di penunjuk on-chain",
+      "button": "Verifikasi dan publikasikan",
+      "publishingButton": "Memublikasikan...",
+      "done": "Pembaruan metadata telah dipublikasikan",
+      "doneTitle": "Metadata dipublikasikan",
+      "fields": {
+        "name": "Nama",
+        "symbol": "Simbol",
+        "decimals": "Desimal",
+        "icon": "Ikon"
+      },
+      "confirm": {
+        "title": "Publikasikan pembaruan metadata ini?",
+        "message": "Memublikasikan hash {hash} di:",
+        "changed": "{field}: {from} menjadi {to}",
+        "empty": "(tidak ada)",
+        "droppedSnapshots": "Peringatan: file baru menghapus {count} snapshot dari riwayat identitas ini. | Peringatan: file baru menghapus {count} snapshot dari riwayat identitas ini.",
+        "sameFile": "Peringatan: ini adalah file yang sudah dipublikasikan, jadi pemegang tidak melihat hal baru. Publikasikan ulang hanya untuk mengubah lokasinya.",
+        "button": "Publikasikan"
+      },
+      "errors": {
+        "noUris": "Masukkan setidaknya satu lokasi untuk registry.",
+        "tooLarge": "Lokasi-lokasi ini tidak muat dalam satu output publikasi. Hapus salah satu atau gunakan lokasi yang lebih pendek.",
+        "unreachable": "Tidak dapat mengambil registry di {uri}.",
+        "unsupportedLocation": "{uri} bukan lokasi HTTPS atau ipfs://. Hanya lokasi tersebut yang dapat dipublikasikan.",
+        "mirrorMismatch": "{uri} menyajikan konten yang berbeda dari lokasi pertama. Setiap lokasi harus menyajikan file yang sama.",
+        "noIdentity": "Registry tersebut tidak mendeskripsikan identitas ini. Periksa apakah file menyebutkan authbase identitas ini."
+      },
+      "steps": {
+        "author": "Tulis JSON registry dengan {generator}.",
+        "host": "Hosting di domain Anda sendiri atau di IPFS.",
+        "publish": "Masukkan lokasi hosting-nya di bawah, dan dompet ini memverifikasinya lalu memublikasikan penunjuknya.",
+        "authorAdvanced": "Tulis JSON registry dengan {generator}: aktifkan mode lanjutannya dan matikan sakelar token, sehingga snapshot memuat nama, deskripsi, dan tautan, tanpa bagian token."
+      },
+      "generatorHelp": "Generator adalah alat Cashonize yang menuliskan file metadata untuk Anda; spesifikasinya menyebutnya registry. Anda juga dapat menulisnya sendiri berdasarkan {schema}. Bagaimanapun, dompet ini mengambil file tersebut, menghitung hash-nya persis seperti yang disajikan, dan memeriksa bahwa file menyebutkan identitas ini.",
+      "generatorHelpSchema": "skema BCMR",
+      "examplesLink": "contoh registry"
+    },
+    "add": {
+      "label": "Tambahkan identitas melalui authbase-nya. Identitas yang dikendalikan dompet ini dikelola dari sini; yang lain hanya dipantau.",
+      "heldLead": "Dipegang:",
+      "held": "dompet ini mengendalikan identitas dan dapat memublikasikan metadatanya atau memindahkannya. UTXO yang mengendalikannya dijauhkan dari pengiriman biasa, sehingga pembayaran dari aplikasi ini tidak dapat memindahkannya secara tidak sengaja. Perangkat lunak lain dengan seed yang sama masih bisa.",
+      "watchedLead": "Dipantau:",
+      "watched": "dompet lain memegangnya, sehingga dompet ini dapat menampilkan metadata dan riwayatnya tetapi tidak dapat memperbaruinya.",
+      "keyNote": "Identitas yang disimpan dalam covenant AuthGuard juga ditambahkan melalui id-nya sendiri. Dompet akan menentukan AuthKey mana yang membukanya, dan apakah AuthKey itu ada di sini.",
+      "authbaseLead": "Authbase:",
+      "authbase": "transaksi yang membuat identitas. Untuk token, itu adalah id tokennya.",
+      "lead": "Menerima identitas yang dipindahkan kepada Anda, atau ingin mengikutinya?",
+      "placeholder": "Authbase atau id token",
+      "button": "Tambah identitas",
+      "addingButton": "Menambahkan...",
+      "found": {
+        "title": "Identitas ditemukan",
+        "guarded": "{name}: disimpan dalam covenant AuthGuard.",
+        "held": "{name}: dipegang oleh dompet ini. UTXO-nya akan ditahan dari pengiriman.",
+        "watched": "{name}: tidak dipegang oleh dompet ini. Identitas ini akan dipantau; tidak ada yang ditahan.",
+        "keyHeld": "AuthKey ada di dompet ini dan akan ditahan; siapa pun yang memegangnya mengendalikan apa yang dijaganya.",
+        "keyWatched": "AuthKey tidak ada di dompet ini: hanya dipantau.",
+        "button": "Tambah"
+      },
+      "errors": {
+        "nothingFound": "Tidak ada yang ditemukan untuk authbase tersebut: server Chaingraph tidak mengenal transaksi dengan id itu, dan tidak ada AuthKey yang menjaga apa pun. Periksa id-nya, atau server di pengaturan."
+      }
+    },
+    "create": {
+      "pick": "Id transaksi UTXO menjadi id permanen identitas, dan BCH-nya tetap bersama identitas selama identitas itu dipegang, jadi sebaiknya UTXO yang kecil.",
+      "prepareMessage": "Ini mengirim {amount} ke diri Anda sendiri sekarang, sehingga identitas memiliki UTXO baru di output 0. Jumlahnya tetap milik Anda; hanya biayanya yang terpakai.",
+      "pickedId": "Id identitas / authbase:",
+      "steps": {
+        "pick": "pilih UTXO yang menjadi id identitas",
+        "add": "tambahkan ke identitas Anda"
+      },
+      "button": "Tambah identitas",
+      "creatingButton": "Menambahkan...",
+      "confirmTitle": "Tambahkan UTXO ini sebagai identitas?",
+      "confirmMessage": "{outpoint} menjadi UTXO identitas, ditahan dari pemilihan koin beserta {amount}-nya. Id transaksinya menjadi id permanen identitas. Identitas ini hanya terdaftar di perangkat ini: di perangkat lain, atau setelah pemulihan, tambahkan lagi melalui id-nya.",
+      "confirmButton": "Tambah",
+      "doneTitle": "Identitas ditambahkan",
+      "tokenPointer": "{link}: transaksi yang membuatnya sekaligus membuat identitasnya.",
+      "tokenPointerLink": "Gunakan alat Buat token",
+      "lead": "Akan menulis dan meng-hosting registry-nya sendiri?",
+      "outcome": "Menambahkan akan mencantumkan identitas di antara yang dimiliki dompet ini dan menjauhkan UTXO-nya dari pengiriman biasa. Identitas ini tidak bernama sampai registry yang menamainya dipublikasikan, yang dipandu melalui kartunya.",
+      "registryLead": "Registry:",
+      "registry": "file JSON yang menamai identitas, ditulis dengan {generator} dalam mode lanjutannya atau secara manual berdasarkan {schema}, dengan {examples} sebagai titik awal, dan di-hosting di domain yang Anda kendalikan atau di IPFS.",
+      "registryNote": "Dalam mode lanjutan, sakelar token mematikan bagian token, yang tidak boleh dimiliki identitas yang bukan token, sehingga tersisa nama, deskripsi, dan tautan.",
+      "newLead": "Membuat identitas baru untuk dApp, sistem kontrak, atau organisasi?",
+      "newWhat": "Ini menambahkan identitas tanpa nama ke daftar identitas Anda. Setelah itu Anda memublikasikan metadatanya dari sana.",
+      "caution": "Hampir belum ada identitas seperti ini dan sedikit yang membacanya, jadi pastikan Anda tahu apa yang Anda inginkan sebelum membuatnya.",
+      "tokenLead": "Membuat token?",
+      "cautionLead": "Fitur lanjutan:"
+    },
+    "transfer": {
+      "hint": "UTXO identitas dikirim ke tujuan, menyerahkan wewenang untuk memperbarui metadata identitas ini. Untuk memindahkannya ke CashTokens Studio, buat AuthKey di sana dan pindahkan ke alamat guard yang ditampilkan untuk AuthKey tersebut.",
+      "destinationPlaceholder": "Alamat tujuan pemindahan identitas",
+      "button": "Pindahkan identitas",
+      "transferringButton": "Memindahkan...",
+      "confirmTitle": "Pindahkan identitas ini?",
+      "confirmMessage": "UTXO identitas ({amount}) dikirim ke {address}, menyerahkan wewenang untuk memperbarui metadata identitas ini. Ini tidak dapat dibatalkan.",
+      "confirmButton": "Pindahkan",
+      "done": "Identitas dipindahkan ke {address}",
+      "doneTitle": "Identitas dipindahkan",
+      "action": "pindahkan",
+      "carriedLabel": "Yang dibawanya ({carries})",
+      "carriedStays": "Tetap di dompet ini",
+      "carriedGoes": "Ikut bersama identitas",
+      "confirmMessageKeep": "UTXO identitas ({amount}) dikirim ke {address}, menyerahkan wewenang untuk memperbarui metadata identitas ini. Yang dibawanya ({carries}) tetap di dompet ini. Ini tidak dapat dibatalkan.",
+      "confirmMessageAlong": "UTXO identitas ({amount}) dikirim ke {address} bersama yang dibawanya ({carries}), menyerahkan wewenang untuk memperbarui metadata identitas ini. Ini tidak dapat dibatalkan."
+    },
+    "remove": {
+      "title": "Hapus dari daftar ini?",
+      "message": "Identitas dihapus dari daftar ini. Tambahkan kembali melalui authbase-nya.",
+      "messageHeld": "Identitas dihapus dari daftar ini dan UTXO-nya tidak lagi dijauhkan dari pemilihan koin, sehingga pengiriman biasa berikutnya dapat membelanjakannya dan menyerahkan identitas kepada siapa pun penerima pengiriman tersebut. Dompet ini tidak akan menahannya lagi dengan sendirinya; tambahkan kembali melalui authbase-nya.",
+      "button": "Hapus"
+    },
+    "errors": {
+      "invalidCategory": "Itu bukan id transaksi. Tempel authbase 64 karakter, id token, atau kategori AuthKey.",
+      "alreadyListed": "Identitas tersebut sudah ada di daftar."
+    },
+    "established": {
+      "since": "Didirikan {year}"
+    },
+    "openCheckFailed": "Tidak dapat mencari identitas dompet ini: {reason} Identitas yang dipegangnya mungkin belum ditahan. Muat ulang, atau periksa server Chaingraph di pengaturan.",
+    "chaingraphNotConfigured": "Tidak ada server Chaingraph yang diatur untuk {network}, jadi identitas dicari melalui electrum, satu langkah per tautan rantai, yang memakan waktu lebih lama untuk rantai yang panjang. Server dapat diatur di pengaturan lanjutan.",
+    "electrum": {
+      "transactionNotFound": "Server electrum tidak memiliki transaksi dengan id tersebut.",
+      "unsupportedScript": "Script output identitas bukan alamat, jadi electrum tidak dapat memastikan apakah output itu sudah dibelanjakan.",
+      "chainTooLong": "Rantai lebih panjang dari {links} tautan yang diikuti pencarian electrum.",
+      "spenderNotFound": "Server electrum melaporkan output identitas sudah dibelanjakan tetapi tidak menyebutkan transaksi yang membelanjakannya.",
+      "unresolved": "Rantai tidak diikuti sampai ujungnya melalui electrum: rantai lebih panjang dari {links} tautan yang diikuti pencarian, atau ada langkah yang gagal. Atur server Chaingraph di pengaturan lanjutan."
+    },
+    "unresolvedHint": "Muat ulang, atau periksa server Chaingraph di pengaturan.",
+    "found": {
+      "title": "Identitas token ditemukan di dompet ini | Identitas token ditemukan di dompet ini",
+      "titleArrived": "Identitas token yang Anda pantau telah tiba | {count} identitas token yang Anda pantau telah tiba",
+      "capability": "Dompet ini dapat memperbarui nama dan ikon token. | Dompet ini dapat memperbarui nama dan ikonnya.",
+      "capabilityWithSupply": "Dompet ini dapat memperbarui nama, ikon, dan pasokan yang belum diterbitkan dari token.",
+      "mintingNft": "NFT minting",
+      "nft": "NFT",
+      "created": "dibuat {date}",
+      "heldBackCoin": "UTXO identitasnya dijauhkan dari pengiriman normal dari aplikasi ini, sehingga tidak ada yang membelanjakannya secara tidak sengaja di sini, dan cadangan token di dalamnya ditampilkan sebagai ditahan di daftar token. Dompet lain dengan seed yang sama masih dapat membelanjakannya. | UTXO identitasnya dijauhkan dari pengiriman normal dari aplikasi ini, sehingga tidak ada yang membelanjakannya secara tidak sengaja di sini, dan cadangan token di dalamnya ditampilkan sebagai ditahan di daftar token. Dompet lain dengan seed yang sama masih dapat membelanjakannya.",
+      "heldBackKey": "AuthKey-nya dijauhkan dari pengiriman normal dari aplikasi ini, sehingga tidak ada yang membelanjakannya secara tidak sengaja di sini. Dompet lain dengan seed yang sama masih dapat membelanjakannya. | AuthKey-nya dijauhkan dari pengiriman normal dari aplikasi ini, sehingga tidak ada yang membelanjakannya secara tidak sengaja di sini. Dompet lain dengan seed yang sama masih dapat membelanjakannya.",
+      "heldBackMixed": "UTXO identitasnya, atau AuthKey yang mengendalikannya, dijauhkan dari pengiriman normal dari aplikasi ini, sehingga tidak ada yang membelanjakannya secara tidak sengaja di sini, dan cadangan token di dalamnya ditampilkan sebagai ditahan di daftar token. Dompet lain dengan seed yang sama masih dapat membelanjakannya.",
+      "view": "Lihat identitas token",
+      "authKey": "AuthKey"
+    },
+    "locationLabel": "Di alamat:",
+    "locationScriptLabel": "Dikunci oleh script:"
+  },
+  "dappActivity": {
+    "title": "Aktivitas dApp",
+    "empty": "Belum ada yang ditandatangani untuk dApp",
+    "toast": {
+      "sent": "{dappName}: transaksi dikirim",
+      "signed": "{dappName}: transaksi ditandatangani dan dikembalikan ke dApp",
+      "messageSigned": "{dappName}: pesan ditandatangani"
+    },
+    "outcome": {
+      "sent": "Terkirim",
+      "signed": "Ditandatangani untuk disiarkan oleh dApp",
+      "broadcastFailed": "Penyiaran gagal",
+      "messageSigned": "Pesan ditandatangani"
+    },
+    "notSeenOnChain": "belum ada di riwayat",
+    "showMore": "Tampilkan lebih banyak",
+    "clear": "Hapus aktivitas",
+    "clearTitle": "Hapus aktivitas dApp",
+    "clearMessage": "Ini menghapus catatan tentang apa yang ditandatangani dompet ini untuk dApp. Riwayat kemudian tidak lagi menunjukkan untuk dApp mana sebuah transaksi dibuat, dan pencariannya tidak lagi menemukannya berdasarkan dApp atau permintaan. Transaksinya sendiri tetap ada di riwayat."
+  },
+  "dappRequestError": {
+    "title": "Permintaan dApp tidak valid",
+    "okButton": "OK"
+  }
+}

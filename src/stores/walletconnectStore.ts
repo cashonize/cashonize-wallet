@@ -23,6 +23,7 @@ import WC2TransactionRequest from 'src/components/walletconnect/WC2TransactionRe
 import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageRequest.vue'
 import type { WcSignMessageRequest, WcSignTransactionRequest } from "@bch-wc2/interfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
+import { useAppLockStore } from 'src/stores/appLockStore';
 import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
@@ -383,6 +384,26 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
           await web3wallet.value?.respondSessionRequest({ topic, response });
           return
         }
+        // Auto-approve covers messages too: a session trusted to spend unseen is trusted to sign.
+        // Not while the app is locked: the request then waits in its dialog for the unlock
+        if (!useAppLockStore().locked && settingsStore.isAutoApproveValid(topic)) {
+          try {
+            await signMessageWC(event)
+          } catch (error) {
+            // answered like a failed sign from the dialog, so the session's queue is not left blocked
+            console.error('Failed to sign message:', error);
+            Notify.create({
+              color: "negative",
+              message: error instanceof Error ? error.message : t('walletConnect.notifications.failedToSignMessage'),
+            });
+            void rejectRequest(event);
+            return;
+          }
+          if (settingsStore.getAutoApproveState(topic)?.mode === "count") {
+            settingsStore.decrementAutoApproveRequest(topic);
+          }
+          return;
+        }
         const handle = Dialog.create({
           component: WC2SignMessageRequest,
           componentProps: {
@@ -446,8 +467,21 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         // Auto-approve early return. Not for an identity operation: auto-approve was granted for
         // ordinary spends, and a held back coin is spent only in front of the user.
         const touchesIdentity = arrivalCheck.returning.length > 0;
-        if (!touchesIdentity && settingsStore.isAutoApproveValid(topic)) {
-          await signTransactionWC(event)
+        // nor while the app is locked: the request then waits in its dialog for the unlock
+        const locked = useAppLockStore().locked;
+        if (!touchesIdentity && !locked && settingsStore.isAutoApproveValid(topic)) {
+          try {
+            await signTransactionWC(event)
+          } catch (error) {
+            // answered like a failed sign from the dialog, so the session's queue is not left blocked
+            console.error('Failed to sign transaction:', error);
+            Notify.create({
+              color: "negative",
+              message: error instanceof Error ? error.message : t('walletConnect.notifications.failedToSignTransaction'),
+            });
+            void rejectRequest(event);
+            return;
+          }
           // Decrement request count if applicable
           if (settingsStore.getAutoApproveState(topic)?.mode === "count") {
             settingsStore.decrementAutoApproveRequest(topic);
@@ -513,7 +547,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   }
   function isValidSignTransactionRequest(transactionRequestWC: WalletKitTypes.SessionRequest) {
     // payload sent by the dapp over walletconnect
-    const wcSignTransactionParams = transactionRequestWC.params.request.params
+    const wcSignTransactionParams: unknown = transactionRequestWC.params.request.params
     // the wcSignTransactionParams is from an untrusted source, so we validate the schema with zod
     // Strict schema mirrors the WC2-BCH spec exactly; loose schema tolerates known dapp deviations (e.g. FundMe.cash).
     const schema = settingsStore.strictWcSchema ? StrictEncodedWcTransactionObjSchema : LooseEncodedWcTransactionObjSchema;
@@ -551,7 +585,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
 
   async function signTransactionWC(transactionRequestWC: WalletKitTypes.SessionRequest) {
     // isValidSignTransactionRequest has checked the params already when this function is called
-    const wcSignTransactionParams = transactionRequestWC.params.request.params
+    const wcSignTransactionParams: unknown = transactionRequestWC.params.request.params
     // parse as extended JSON to handle Uint8Array and BigInt
     const wcTransactionObj = parseExtendedJson(JSON.stringify(wcSignTransactionParams)) as WcSignTransactionRequest;
     const { id, topic } = transactionRequestWC;
@@ -618,7 +652,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   function isValidSignMessageRequest(signMessageRequestWC: WalletKitTypes.SessionRequest) {
     try{
       // payload sent by the dapp over walletconnect
-      const wcSignMessageParams = signMessageRequestWC.params.request.params
+      const wcSignMessageParams: unknown = signMessageRequestWC.params.request.params
       // the wcSignMessageParams is from an untrusted source, so perform basic validation
       WcMessageObjSchema.parse(wcSignMessageParams);
       return true

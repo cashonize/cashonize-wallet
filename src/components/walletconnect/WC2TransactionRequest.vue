@@ -5,6 +5,7 @@
   import { useStore } from 'src/stores/store'
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import type { IdentityCarry, ReturningIdentity } from 'src/utils/dapp/reservedInputs'
+  import { formatDecimal, formatFixed } from 'src/utils/numberFormat'
   import { convertToCurrency, formatFiatAmount, formatNumber, formatTokenAmountWithSymbol, sanitizeUrl } from 'src/utils/utils'
   import { useUnverifiedTokenMetadata } from 'src/utils/unverifiedTokenMetadata'
   import { useSettingsStore } from 'src/stores/settingsStore';
@@ -14,6 +15,7 @@
   import { scriptDisplay, summarizeDappTransaction } from 'src/utils/dapp/txSummary';
   import TokenIcon from '../general/TokenIcon.vue';
   import { useI18n } from 'vue-i18n'
+  import { useAppLockStore } from 'src/stores/appLockStore'
   const store = useStore()
   const settingsStore = useSettingsStore()
   const { t } = useI18n()
@@ -37,6 +39,11 @@
   ])
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 
+  // signing is a spend, so the app lock's PIN is asked first; backing out leaves the request open
+  async function approve() {
+    if (await useAppLockStore().confirmPin()) onDialogOK()
+  }
+
   const requestParams = props.transactionRequest;
   const { transaction:wcTransactionItem, sourceOutputs } = requestParams;
 
@@ -52,7 +59,7 @@
       const bchAmount = numberAmount * (10 ** -8)
       return `${formatNumber(bchAmount, 8)} BCH`
     } else {
-      return `${numberAmount} sat`
+      return `${formatDecimal(numberAmount)} sat`
     }
   };
 
@@ -71,7 +78,7 @@
   const paysExcessiveFee = transactionFee > BigInt(transactionSize * excessiveFeeRate);
   // below the relay fee the exact rate is what matters, and a single decimal would round
   // a rate like 0.96 up to a reassuring 1.0
-  const feeRateText = transactionFeeRate < minRelayFeeRate ? transactionFeeRate.toFixed(2) : transactionFeeRate.toFixed(1);
+  const feeRateText = formatFixed(transactionFeeRate, transactionFeeRate < minRelayFeeRate ? 2 : 1);
 
   // Fetch metadata for all tokens in the transaction (stored locally, not in global store),
   // including tokens on third-party inputs/outputs which only show in the full transaction details
@@ -316,7 +323,7 @@
         </div>
 
         <div class="wc-modal-bottom-buttons">
-          <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" @click="onDialogOK">
+          <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" @click="approve()">
           <input type="button" :value="t('walletConnect.transactionRequest.cancelButton')" @click="onDialogCancel" v-close-popup>
         </div>
       </fieldset>

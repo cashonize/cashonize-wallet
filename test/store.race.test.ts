@@ -188,6 +188,35 @@ describe('network switch race conditions', () => {
     metadataDeferred.resolve({})
     await init
   })
+
+  // what a token amount on the wallet page waits for: without it a token no registry knows waits forever
+  it('marks a token answered once its lookup lands, with or without metadata, and not for a wallet since closed', async () => {
+    vi.mocked(mockTokenListFromUtxos).mockReturnValue([{ category: 'held', nfts: [] }] as never)
+    const heldLookup = createDeferred<Record<string, unknown>>()
+    const historyLookup = createDeferred<Record<string, unknown>>()
+    vi.mocked(mockFetchTokenMetadataFromIndexer)
+      .mockReturnValueOnce(heldLookup.promise as never)
+      .mockReturnValueOnce(historyLookup.promise as never)
+    const wallet = createMockWallet()
+    wallet.getHistory.mockResolvedValue([{ txid: 'tx', tokenAmountChanges: [{ category: 'spent', amount: -5n }] }])
+
+    const store = useStore()
+    await store.setWallet(wallet as never)
+    const init = store.initializeWallet()
+    await flushAsyncWork()
+    expect([...store.answeredMetadataCategories]).toEqual([])
+
+    historyLookup.resolve({})
+    await flushAsyncWork()
+    expect([...store.answeredMetadataCategories]).toEqual(['spent'])
+
+    await store.resetWalletState()
+    expect([...store.answeredMetadataCategories]).toEqual([])
+    heldLookup.resolve({})
+    await init
+    await flushAsyncWork()
+    expect([...store.answeredMetadataCategories]).toEqual([])
+  })
 })
 
 describe('partial history loading', () => {

@@ -38,8 +38,8 @@
   })
 
   // The wallet view is kept alive, so navigating away detaches this dom and returning re-inserts
-  // it, which restarts every css animation. Drop the class on the way out so the intro does not
-  // replay on every visit; a preset change made while away still sets it again before we return.
+  // it, which restarts every css animation. Drop the class on the way out, so whether a return
+  // replays the intro is the parent's call; a preset change made while away sets it again too.
   onDeactivated(() => { playing.value = false })
 
   function animate() {

@@ -60,6 +60,17 @@ body.dark {
      deliberately stronger than the subtle lightGrey control outlines */
   --color-strongOutline: #d2d6dd;
 }
+/* The dim theme: the dark one on a slate grey instead of black, with softer text and outlines.
+   It only swaps the colours, so every dark mode rule below holds for it as well. */
+body.dark.dim {
+  --bg-color: #22272e;
+  --bg-secondary-color: #2d333b;
+  --font-color: #dbe2ea;
+  --color-grey: #adbac7;
+  --color-darkGrey: #dfe5ec;
+  --color-lightGrey: #414851;
+  --color-strongOutline: #768390;
+}
 /* Dark form controls: chota sets no input background (browser default white),
    give them proper dark surfaces instead */
 body.dark input:not([type="checkbox"], [type="radio"], [type="submit"], [type="color"], [type="button"], [type="reset"]),
@@ -228,6 +239,17 @@ body.dark .qr-code {
 .qr-code:active {
   transform: scale(0.97);
 }
+/* the quiet button that opens a qr code over the whole screen, placed by the view that has it */
+button.enlarge-qr {
+  margin: 0;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--color-grey);
+}
+button.enlarge-qr:hover {
+  color: var(--font-color);
+}
 .depositAddr,
 .category {
   overflow-wrap: anywhere;
@@ -239,14 +261,8 @@ body.dark .qr-code {
 }
 .sendCurrencyInput {
   position: relative;
-  width: 50%;
+  flex: 1;
   margin-left: 5px;
-}
-.fillInMaxBch {
-  margin-left: 5px;
-}
-.fillInMaxBchSmallScreen {
-  display: none;
 }
 .input-icon {
   position: absolute;
@@ -278,7 +294,69 @@ input[type='number'] {
 .item {
   margin: 10px;
 }
-/* the arrows that switch between the wallet's addresses, on the wallet page and the address list:
+/* a bar where text is still loading, in the place and line the text will take */
+.placeholder-bar {
+  display: inline-block;
+  height: 0.6em;
+  border-radius: 0.3em;
+  background-color: var(--surface-strong);
+  vertical-align: middle;
+  animation: placeholderBarPulse 1.4s ease-in-out infinite;
+}
+@keyframes placeholderBarPulse {
+  50% { opacity: 0.4; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .placeholder-bar {
+    animation: none;
+  }
+}
+/* a token amount of a transaction, with the token's icon, where the direction mark is used */
+.token-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--surface-line-strong);
+  background-color: var(--surface-subtle);
+  border-radius: 14px;
+  padding: 2px 10px 2px 4px;
+  font-size: 0.85em;
+}
+
+.chip-symbol {
+  word-break: break-word;
+}
+/* the round direction mark of a transaction, in the history and in the wallet page's recent activity */
+.tx-direction {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tx-direction.received {
+  background-color: rgba(10, 193, 143, 0.15);
+  color: var(--color-primary);
+}
+
+.tx-direction.sent {
+  background-color: var(--surface-strong);
+  color: var(--color-grey);
+}
+
+.tx-direction.combined {
+  background-color: rgba(74, 144, 217, 0.15);
+  color: #4a90d9;
+}
+
+.tx-direction.pending {
+  background-color: rgba(230, 162, 60, 0.18);
+  color: #e6a23c;
+}
+/* the arrows that switch between an address's two forms, in the address list's code dialog:
    an icon rather than the ⇄ character, which each platform's fallback font draws differently.
    Mirrored with a 2D scaleX rather than rotateY(180deg): a 3D transform can leave the icon on its
    own compositing layer, resampled and soft. */
@@ -473,7 +551,7 @@ body.dark .identity-card {
    yet has no minimum width, so it would grow back a few px on load and push the text over */
 .tokenIcon {
   flex-shrink: 0;
-  margin-right: 10px;
+  margin-right: 14px;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -578,6 +656,10 @@ body.dark .identity-card {
 .actionBar :first-of-type {
   margin-left: 0;
 }
+/* the token's name, the card's title */
+.tokenTitle {
+  font-weight: 600;
+}
 .tokenAction {
   margin-top: 10px;
   margin-bottom: 4px;
@@ -585,6 +667,17 @@ body.dark .identity-card {
 .sendTokenAmount {
   display: flex;
   width: 50%;
+}
+.sendTokenRow {
+  display: flex;
+  align-items: center;
+}
+/* starts at the left edge of the amount field above it, which sits half the gap between the two
+   fields past the middle */
+.sendTokenRowValue {
+  width: 50%;
+  margin-left: auto;
+  padding-left: 8px;
 }
 .showChildNfts {
   position: relative;
@@ -732,9 +825,6 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
     flex: 1;
     min-width: 140px;
   }
-  .fillInMaxBch {
-    padding: 1rem 1.5rem;
-  }
   .actionBar span {
     margin: 0 10px;
   }
@@ -753,18 +843,10 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
     width: 100%;
     gap: 0.5rem;
   }
-}
-@media only screen and (max-width: 420px) {
-  /* the max button no longer fits next to the amount inputs, hide it and
-     show the max button next to the send button instead */
-  .fillInMaxBch {
-    display: none;
-  }
-  .fillInMaxBchSmallScreen {
-    display: inline-block;
-    margin-top: 8px;
-    margin-right: 8px;
-    padding: 1rem 1.5rem;
+  .sendTokenRowValue {
+    width: auto;
+    margin-left: 12px;
+    padding-left: 0;
   }
 }
 /* Quasar dialog styling */

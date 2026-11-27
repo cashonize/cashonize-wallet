@@ -9,6 +9,7 @@
   import { useIdentitiesStore } from 'src/stores/identitiesStore'
   import { useWindowSize, useSearchShortcut } from 'src/utils/composables'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
+  import { readTypedAmount } from 'src/utils/numberFormat'
   import { CurrencySymbols } from 'src/interfaces/interfaces'
 
   const store = useStore()
@@ -75,12 +76,12 @@
   const valueFilterInput = ref(localStorage.getItem("tokenValueFilter") ?? '');
   // The active threshold, derived from the input field (null = filter off)
   const tokenValueFilter = computed(() => {
-    const parsedValueFilter = Number(valueFilterInput.value);
-    if (Number.isFinite(parsedValueFilter) && parsedValueFilter > 0) return parsedValueFilter;
-    return null;
+    const typedValue = readTypedAmount(valueFilterInput.value);
+    if ('problem' in typedValue || !(Number(typedValue.amount) > 0)) return null;
+    return Number(typedValue.amount);
   });
   watch(valueFilterInput, () => {
-    if (tokenValueFilter.value) localStorage.setItem("tokenValueFilter", tokenValueFilter.value.toString());
+    if (tokenValueFilter.value) localStorage.setItem("tokenValueFilter", valueFilterInput.value);
     else localStorage.removeItem("tokenValueFilter");
   });
 
@@ -177,7 +178,7 @@
       </div>
       <div class="option-item" v-if="valueFilterAvailable">
         <label for="valueFilter">{{ t('tokens.valueFilterLabel') }}</label>
-        <input id="valueFilter" type="number" min="0" step="any" class="value-filter-input" v-model="valueFilterInput">
+        <input id="valueFilter" type="text" inputmode="decimal" class="value-filter-input" v-model="valueFilterInput">
         <span>{{ CurrencySymbols[settingsStore.currency] }}</span>
       </div>
     </div>

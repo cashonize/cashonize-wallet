@@ -3,7 +3,7 @@ import globals from 'globals'
 import pluginVue from 'eslint-plugin-vue'
 // @ts-ignore: look into the types for this
 import pluginQuasar from '@quasar/app-vite/eslint'
-import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
+import { configureVueProject, defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 
 // These QSelect and QChatMessage props render their content as HTML, the same injection as
 // v-html but out of vue/no-v-html's sight. The rules match the attribute as written, so both
@@ -13,6 +13,10 @@ const quasarHtmlProps = [
   'label-html', 'labelHtml', 'name-html', 'nameHtml',
   'text-html', 'textHtml', 'stamp-html', 'stampHtml',
 ]
+
+// The preset turns the no-unsafe-* rules off by default, for Vue code typed with fallback anys.
+// Untyped data flowing into typed code unnoticed is the bug class they catch, so they stay on.
+configureVueProject({ allowComponentTypeUnsafety: false })
 
 export default defineConfigWithVueTs(
   {
@@ -95,6 +99,15 @@ export default defineConfigWithVueTs(
         { allowTernary: true } // Allow function calls and other expressions in ternaries
       ],
 
+      // a union switch must handle every member, unless it has a default branch
+      '@typescript-eslint/switch-exhaustiveness-check': ['error', { considerDefaultExhaustiveForUnions: true }],
+      '@typescript-eslint/no-unnecessary-template-expression': 'error',
+      // components declare what they use and use what they declare
+      'vue/no-unused-properties': 'error',
+      'vue/no-unused-refs': 'error',
+      'vue/no-unused-emit-declarations': 'error',
+      'vue/require-explicit-emits': 'error',
+
       // A wallet renders untrusted text (token metadata, dApp metadata, labels) next to its keys,
       // so markup only enters the DOM through an explicit, reviewed exception.
       'vue/no-v-html': 'error',
@@ -148,6 +161,19 @@ export default defineConfigWithVueTs(
           message: 'Build DOM nodes instead of writing HTML into the document.',
         },
       ],
+    }
+  },
+
+  {
+    // vitest types its asymmetric matchers (expect.any, expect.stringContaining) as any, and tests
+    // read raw storage, so tests keep the preset's exception for untyped values
+    files: ['test/**'],
+    rules: {
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
     }
   },
 

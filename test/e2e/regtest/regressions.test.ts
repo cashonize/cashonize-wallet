@@ -4,7 +4,7 @@
 import { expect, test } from '@playwright/test'
 import { SECOND_ELECTRUM_SERVER, createToken, fund, randomAddress, rpc } from './chain'
 import { dropNextBroadcast, proxyStats } from './proxy'
-import { addWallet, broadcastTxid, depositAddress, errorNotification, expectBalance, openRegtestWallet, switchChipnetServer, tokenDepositAddress } from './app'
+import { addWallet, broadcastTxid, confirmIfAsked, depositAddress, errorNotification, expectBalance, openRegtestWallet, openSendForm, switchChipnetServer, tokenDepositAddress } from './app'
 
 test.use({ colorScheme: 'light' })
 
@@ -16,7 +16,7 @@ test('transfer all moves every asset of an HD wallet in its consecutive sends', 
   for (let i = 0; i < 3; i++) await createToken(await tokenDepositAddress(page), { amount: 100n })
   await expectBalance(page, '0.002')
 
-  await page.locator('nav img[src*="settings"]').click()
+  await page.locator('nav').getByLabel('Menu').click()
   await page.getByText('Wallet tools').click()
   await page.getByText('Transfer All Assets').first().click()
   await page.getByPlaceholder('Token address to transfer everything to').fill(randomAddress('p2pkhWithTokens'))
@@ -38,10 +38,11 @@ test('a send whose connection dropped after the broadcast left is reported sent'
   await expectBalance(page, '0.001')
 
   await dropNextBroadcast()
+  await openSendForm(page)
   await page.locator('input[name="addressInput"]').fill(randomAddress())
   await page.locator('input[name="currencyInput"]').fill('0.0004')
   await page.locator('input.primaryButton[type="button"]').click()
-  await page.locator('.q-dialog:visible').getByRole('button', { name: 'Confirm' }).click()
+  await confirmIfAsked(page)
 
   // the node has it
   await expect.poll(async () => (await rpc<string[]>('getrawmempool')).length, { timeout: 30_000 }).toBe(1)

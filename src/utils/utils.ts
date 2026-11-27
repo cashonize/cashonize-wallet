@@ -5,6 +5,7 @@ import { libraryNetwork, type AppNetwork } from "src/utils/wallet/networks"
 import type { BcmrTokenMetadata, TokenList, TokenDataFT, TokenDataNFT, CurrencyShortNames, DateFormat, WalletType } from "../interfaces/interfaces"
 import { type Ref, watch, type WatchStopHandle } from "vue";
 import { i18n } from 'src/boot/i18n'
+import { decimalMark, formatDecimal, parseTypedAmount, readTypedAmount, toTypedAmount, typedAmountMessage } from "src/utils/numberFormat"
 const { t } = i18n.global
 
 export function copyToClipboard(copyText:string|undefined){
@@ -180,32 +181,16 @@ export function formatTimestamp(timestamp: number | undefined, dateFormat: DateF
   return short ? dateStr : `${dateStr} ${time}`;
 }
 
-// A typed amount takes a dot as its only separator, in every language: a comma is refused rather than
-// dropped, since a decimal comma read as grouping turns "0,5" into 5. Machine formats are dot anyway.
-function validateTokenAmountString(tokenAmount: string, decimals: number){
-  if (tokenAmount.includes(',')) throw new Error(t('common.errors.commaInAmount'));
-  if (!/^\d*\.?\d*$/.test(tokenAmount)) throw new Error(t('tokenItem.errors.invalidNumberFormat'));
-
-  // Validate if the input can be converted to a number
-  const number = parseFloat(tokenAmount);
-  if (isNaN(number) || number <= 0) throw new Error(t('tokenItem.errors.enterValidAmount'));
-
-  // check number of decimal places
-  const decimalPart = tokenAmount.split('.')[1];
-  const decimalPlaces = decimalPart ? decimalPart.length : 0;
-  const validInput = decimalPlaces <= decimals
-  if(!validInput && !decimals) throw new Error(t('tokenItem.errors.noDecimalsAllowed'));
-  if(!validInput) throw new Error(t('tokenItem.errors.maxDecimalsAllowed', { decimals }));
-}
-
-// Parses a user-entered token amount into base units.
+// Parses a user-entered token amount into base units, read as every typed amount is (readTypedAmount).
 // Throws a localized error on invalid input; uses string math instead of
 // float multiplication so large amounts don't lose precision.
 export function parseTokenAmountToBigInt(input: string, decimals: number): bigint {
-  const sanitizedInput = input.trim();
-  validateTokenAmountString(sanitizedInput, decimals);
-  const [integerPart = '', fractionalPart = ''] = sanitizedInput.split('.');
-  return BigInt(integerPart + fractionalPart.padEnd(decimals, '0'));
+  const amount = parseTypedAmount(input, decimals === 0);
+  const [integerPart = '', fractionalPart = ''] = amount.split('.');
+  if (fractionalPart.length > decimals) throw new Error(t('tokenItem.errors.maxDecimalsAllowed', { decimals }));
+  const baseUnits = BigInt(integerPart + fractionalPart.padEnd(decimals, '0'));
+  if (baseUnits <= 0n) throw new Error(t('tokenItem.errors.enterValidAmount'));
+  return baseUnits;
 }
 
 // Inverse of parseTokenAmountToBigInt: turns base units back into a whole-token amount
@@ -220,13 +205,14 @@ export function formatTokenAmountFromBigInt(baseUnits: bigint, decimals: number)
   return fractionalPart ? `${wholePart}.${fractionalPart}` : `${wholePart}`;
 }
 
-// The same grouped for reading, the way the token list shows its amounts: a reserve is often billions
+// The same grouped for reading in the user's number format, the way the token list shows its amounts:
+// a reserve is often billions. Put together from the digit string, so no digit is lost to a float.
 export function formatTokenAmount(baseUnits: bigint, decimals: number | undefined): string {
   // the sign is put back here: grouping a whole part of "-0" through BigInt would lose it
   if (baseUnits < 0n) return `-${formatTokenAmount(-baseUnits, decimals)}`;
   const [whole, fraction] = formatTokenAmountFromBigInt(baseUnits, decimals ?? 0).split('.');
-  const grouped = BigInt(whole ?? '0').toLocaleString('en-US');
-  return fraction ? `${grouped}.${fraction}` : grouped;
+  const grouped = formatDecimal(BigInt(whole ?? '0'));
+  return fraction ? `${grouped}${decimalMark()}${fraction}` : grouped;
 }
 
 // An amount always says what it counts, since a bare number reads as satoshis or as NFTs just as
@@ -262,29 +248,41 @@ export function convertToCurrency(satAmount: bigint, exchangeRate:number) {
 }
 
 export function formatFiatAmount(amount: number, currency: keyof typeof CurrencyShortNames): string {
-  return amount.toLocaleString('en', { style: "currency", currency });
+  return formatDecimal(amount, { style: "currency", currency });
 }
 
-// Formats with thousands separators, trailing zeros are stripped (no need to show them in the UI).
+// Formats in the user's number format, trailing zeros are stripped (no need to show them in the UI).
 export function formatNumber(value: number, maxDecimals: number): string {
-  return value.toLocaleString("en-US", { maximumFractionDigits: maxDecimals });
+  return formatDecimal(value, { maximumFractionDigits: maxDecimals });
 }
 
 export function satsToBch(satoshis: bigint | number) {
   return Number(satoshis) / 100_000_000;
 };
 
-// The send form's number input in the user's unit, as satoshis, or undefined when it is not a positive
-// amount the unit can express. BCH goes through its 8-decimal string, not a float product.
-export function sendAmountToSatoshis(amount: number, unit: 'bch' | 'sat'): bigint | undefined {
-  if (!Number.isFinite(amount) || amount <= 0) return undefined;
-  if (unit === 'sat') return Number.isSafeInteger(amount) ? BigInt(amount) : undefined;
-  if (amount > 21_000_000) return undefined;
-  const fixed = amount.toFixed(8);
-  // an amount with more than 8 decimals does not survive the round trip
-  if (Number(fixed) !== amount) return undefined;
-  const [whole = '', fraction = ''] = fixed.split('.');
-  return BigInt(whole) * 100_000_000n + BigInt(fraction);
+// A typed BCH amount in the user's unit as satoshis, or the localized reason it is not a positive amount
+// the unit can express; string math, as for token amounts
+export function readTypedSatoshis(text: string, unit: 'bch' | 'sat'): { satoshis: bigint } | { error: string } {
+  const read = readTypedAmount(text, unit === 'sat');
+  if ('problem' in read) return { error: typedAmountMessage(read.problem) };
+  const [whole = '', fraction = ''] = read.amount.split('.');
+  if (fraction.length > 8) return { error: t('wallet.errors.invalidAmount') };
+  const satoshis = BigInt(whole + fraction.padEnd(unit === 'sat' ? 0 : 8, '0'));
+  if (satoshis <= 0n || satoshis > 21_000_000n * 100_000_000n) return { error: t('wallet.errors.invalidAmount') };
+  return { satoshis };
+}
+
+// What stands in for an amount while balances are hidden
+export const hiddenAmount = "••••";
+
+// The reverse, for an amount the app fills into a BCH field
+export function satoshisToTypedAmount(satoshis: bigint, unit: 'bch' | 'sat'): string {
+  return toTypedAmount(formatTokenAmountFromBigInt(satoshis, unit === 'sat' ? 0 : 8));
+}
+
+// A fiat value the app fills into a fiat field, to the cent
+export function fiatToTypedAmount(value: number): string {
+  return toTypedAmount(String(Number(value.toFixed(2))));
 }
 
 // An amount with its unit, for a network's own name for the coin
@@ -303,6 +301,12 @@ export function truncateHash(hash: string, head = 16, tail = 8): string {
   return `${hash.slice(0, head)}...${hash.slice(-tail)}`;
 }
 
+// Without the prefix, which is the same for every address of a wallet
+export function truncateAddressBody(address: string): string {
+  const body = address.split(':')[1] ?? address;
+  return body.slice(0, 6) + '...' + body.slice(-6);
+}
+
 // The same hash shorter on a narrow screen, the way the token items shorten a category
 export function truncateHashForWidth(hash: string, windowWidth: number): string {
   if (windowWidth < 390) return truncateHash(hash, 8, 4);
@@ -311,7 +315,7 @@ export function truncateHashForWidth(hash: string, windowWidth: number): string 
 }
 
 export function formatBchAmount(satoshis: number, signed = false, maxDecimals = 5): string {
-  const amount = (satoshis / 100_000_000).toLocaleString("en-US", { minimumFractionDigits: 5, maximumFractionDigits: maxDecimals });
+  const amount = formatDecimal(satoshis / 100_000_000, { minimumFractionDigits: 5, maximumFractionDigits: maxDecimals });
   return signed && satoshis > 0 ? `+${amount}` : amount;
 }
 
@@ -397,11 +401,11 @@ export function getBalanceFromUtxos(utxos: Utxo[]) {
   return balanceSats
 }
 
-export function parseExtendedJson(jsonString: string){
+export function parseExtendedJson(jsonString: string): unknown {
   const uint8ArrayRegex = /^<Uint8Array: 0x(?<hex>[0-9a-f]*)>$/u;
   const bigIntRegex = /^<bigint: (?<bigint>-?[0-9]+)n>$/;
 
-  return JSON.parse(jsonString, (_key, value) => {
+  return JSON.parse(jsonString, (_key, value: unknown) => {
     if (typeof value === "string") {
       const bigintMatch = value.match(bigIntRegex);
       if (bigintMatch?.groups?.bigint !== undefined) {

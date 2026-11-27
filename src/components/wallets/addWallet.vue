@@ -1,0 +1,230 @@
+<script setup lang="ts">
+  import { devNetworks } from 'src/utils/wallet/networks'
+  import { ref, computed, onActivated, onDeactivated } from "vue"
+  import { useQuasar } from 'quasar'
+  import { useStore } from 'src/stores/store'
+  import { createNewWallet as createWallet, importWallet as importWalletUtil, createNewHDWallet, importHDWallet, suggestNextWalletName, walletNameTaken } from 'src/utils/wallet/walletUtils'
+  import type { DerivationPathType } from 'src/utils/wallet/walletUtils'
+  import seedPhraseInput from '../general/seedPhraseInput.vue'
+  import derivationPathSelect from '../general/derivationPathSelect.vue'
+  import { useI18n } from 'vue-i18n'
+  const store = useStore()
+  const $q = useQuasar()
+  const { t } = useI18n()
+
+  // Step: 1 = name, 2 = choose type (create exits here), 3 = import details (import only)
+  const step = ref<1 | 2 | 3>(1);
+  const walletName = ref('');
+  const seedPhrase = ref('');
+  const seedPhraseValid = ref(false);
+  const selectedDerivationPath = ref<DerivationPathType>("standard");
+  const walletType = ref<'single' | 'hd'>('hd');
+
+  const effectiveWalletName = computed(() => walletName.value.trim());
+
+  // Prefill a suggested name like "wallet 2", or "test wallet" for a development wallet, so users
+  // don't have to invent one. Suggested each time the view opens: the network may differ, and the
+  // last suggestion may since have been taken.
+  onActivated(async () => {
+    const shownName = walletName.value;
+    const suggestedName = await suggestNextWalletName(store.addWalletNetwork);
+    // a name typed while the suggestion was being worked out is kept
+    if (walletName.value === shownName) walletName.value = suggestedName;
+  });
+
+  // This view is kept alive, so leaving it is what has to clear the seed phrase: reopening Add
+  // wallet later in the session comes back to the import step with it still on screen
+  onDeactivated(() => {
+    step.value = 1;
+    store.addWalletNetwork = 'mainnet';
+    seedPhrase.value = '';
+    seedPhraseValid.value = false;
+  });
+
+  // Let users replace the prefilled name by just starting to type
+  function selectNameOnFocus(event: Event) {
+    (event.target as HTMLInputElement).select();
+  }
+
+  async function proceedToStep2() {
+    const name = walletName.value.trim();
+    if (!name) {
+      $q.notify({
+        message: t('addWallet.walletName.emptyError'),
+        icon: 'warning',
+        color: "grey-7"
+      });
+      return;
+    }
+    if (await walletNameTaken(name)) {
+      $q.notify({
+        message: t('addWallet.walletName.existsError', { name }),
+        icon: 'warning',
+        color: "grey-7"
+      });
+      return;
+    }
+    step.value = 2;
+  }
+
+  // Defensive: block concurrent create/import (double-click, key auto-repeat) — a second
+  // concurrent call could race the async existence check and generate a second seed
+  const isCreating = ref(false);
+
+  async function createNewWallet() {
+    if (isCreating.value) return;
+    isCreating.value = true;
+    try {
+      const createFn = walletType.value === 'hd' ? createNewHDWallet : createWallet;
+      const result = await createFn(walletName.value, store.addWalletNetwork);
+      if (result.success) {
+        store.changeView(1);
+      } else {
+        $q.notify({
+          message: result.message,
+          icon: 'warning',
+          color: result.isUserError ? "grey-7" : "red"
+        });
+      }
+    } finally {
+      isCreating.value = false;
+    }
+  }
+
+  async function importWallet() {
+    if (isCreating.value) return;
+    isCreating.value = true;
+    try {
+      const importFn = walletType.value === 'hd' ? importHDWallet : importWalletUtil;
+      const result = await importFn({
+        name: walletName.value,
+        seedPhrase: seedPhrase.value,
+        seedPhraseValid: seedPhraseValid.value,
+        derivationPath: selectedDerivationPath.value,
+        network: store.addWalletNetwork
+      });
+      if (result.success) {
+        // Clear seed phrase from memory (defense in depth)
+        seedPhrase.value = '';
+        store.changeView(1);
+      } else {
+        $q.notify({
+          message: result.message,
+          icon: 'warning',
+          color: result.isUserError ? "grey-7" : "red"
+        });
+      }
+    } finally {
+      isCreating.value = false;
+    }
+  }
+</script>
+
+<template>
+  <fieldset class="item">
+    <legend>{{ t('addWallet.title') }}</legend>
+    <!-- opened for a development wallet: the test network it is made on, and only on -->
+    <div v-if="store.addWalletNetwork !== 'mainnet'" style="margin-bottom: 15px;">
+      <label for="addWalletNetwork">{{ t('addWallet.networkLabel') }}</label>
+      <select id="addWalletNetwork" v-model="store.addWalletNetwork" :disabled="step !== 1" style="max-width: 300px;">
+        <option v-for="network in devNetworks" :key="network" :value="network">{{ network }}</option>
+      </select>
+      <div style="font-size: smaller; color: grey; margin-top: 5px;">
+        {{ t('addWallet.onNetwork', { network: store.addWalletNetwork }) }}
+      </div>
+    </div>
+
+    <div v-if="step === 1">
+      <div style="margin-bottom: 20px;">
+        <label for="walletName" style="display: block; margin-bottom: 8px;">{{ t('addWallet.walletName.label') }}</label>
+        <input
+          v-model="walletName"
+          type="text"
+          id="walletName"
+          :placeholder="t('addWallet.walletName.placeholder')"
+          style="width: 100%; max-width: 300px; padding: 8px;"
+          @focus="selectNameOnFocus"
+        >
+        <div style="font-size: smaller; color: grey; margin-top: 5px;">
+          {{ t('onboarding.walletName.tip') }}
+        </div>
+      </div>
+      <input
+        @click="proceedToStep2()"
+        class="button primary"
+        type="button"
+        :value="t('addWallet.continueButton')"
+        style="margin-bottom: 15px;"
+      >
+    </div>
+
+    <div v-else-if="step === 2">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="step = 1">
+        {{ t('addWallet.backButton') }}
+      </div>
+      <div style="margin-bottom: 20px;">
+        {{ t('addWallet.creating') }} <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
+      </div>
+      <div style="margin-bottom: 5px;">
+        <label style="display: block; margin-bottom: 8px;">{{ t('onboarding.walletType.label') }}</label>
+        <select v-model="walletType" style="padding: 8px; min-width: 200px;">
+          <option value="hd">{{ t('onboarding.walletType.hd') }}</option>
+          <option value="single">{{ t('onboarding.walletType.single') }}</option>
+        </select>
+        <div style="margin-top: 5px;">
+          {{ walletType === 'hd' ? t('onboarding.walletType.hdDescription') : t('onboarding.walletType.singleDescription') }}
+        </div>
+      </div>
+      <div style="margin-top:10px; margin-bottom: 15px;">
+        <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
+          {{ t('addWallet.createNew.hint') }}
+        </div>
+        <input
+          @click="createNewWallet()"
+          class="button primary"
+          type="button"
+          :value="t('addWallet.createNew.button')"
+          :disabled="isCreating"
+          style="margin-bottom: 15px;"
+        >
+        <div style="font-size: smaller; color: grey; margin-bottom: 10px;">
+          {{ t('addWallet.importExisting.hint') }}
+        </div>
+        <input
+          @click="step = 3"
+          class="button"
+          type="button"
+          :value="t('addWallet.importExisting.button')"
+        >
+      </div>
+    </div>
+
+    <div v-else-if="step === 3">
+      <div style="margin-bottom: 15px; cursor: pointer;" @click="step = 2">
+        {{ t('addWallet.backButton') }}
+      </div>
+      <div style="margin-bottom: 10px;">
+        {{ t('addWallet.importing') }} <span class="wallet-name-styled">{{ effectiveWalletName }}</span>
+        <span v-if="walletType === 'single'"> as single address wallet</span>
+      </div>
+      <div v-if="walletType === 'single'" style="margin-bottom: 10px; font-size: smaller; color: grey;">
+        {{ t('addWallet.singleAddressNote') }}
+      </div>
+      <div style="margin-bottom: 15px;">
+        <seedPhraseInput v-model="seedPhrase" @validity="(valid) => seedPhraseValid = valid" />
+        <div style="margin-top: 15px;">
+          <derivationPathSelect v-model="selectedDerivationPath" :seed-phrase="seedPhrase" :seed-phrase-valid="seedPhraseValid" :wallet-type="walletType" :network="store.addWalletNetwork" />
+        </div>
+        <input
+          @click="importWallet()"
+          class="button primary"
+          type="button"
+          style="margin-top: 15px; margin-bottom: 15px;"
+          :value="t('addWallet.importButton')"
+          :disabled="isCreating"
+        >
+      </div>
+    </div>
+  </fieldset>
+</template>
+

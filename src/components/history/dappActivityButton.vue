@@ -85,7 +85,7 @@
                 <span :class="{ failed: entry.outcome === 'broadcastFailed' }">
                   {{ t(`dappActivity.outcome.${entry.outcome}`) }}<template v-if="entry.outcome === 'signed' && !isOnChain(entry)">, {{ t('dappActivity.notSeenOnChain') }}</template>
                 </span>
-                <a v-if="entry.txid && isOnChain(entry)" :href="store.explorerUrl + `/${entry.txid}`" target="_blank" rel="noopener" class="activity-txid">
+                <a v-if="entry.txid && isOnChain(entry)" :href="store.explorerTxUrl(entry.txid)" target="_blank" rel="noopener" class="activity-txid">
                   {{ shortTxid(entry.txid) }}
                 </a>
                 <span v-else-if="entry.txid" class="activity-txid" style="cursor: pointer;" @click="copyToClipboard(entry.txid)">
