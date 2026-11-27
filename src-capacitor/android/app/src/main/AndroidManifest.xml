@@ -35,22 +35,14 @@
             </intent-filter>
 
         </activity>
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
-        </provider>
     </application>
 
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- The camera only scans QR codes: without this line the permission declares it required -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <!-- Without it the WebView never tracks connectivity: navigator.onLine stays true and the online event never fires -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- The fingerprint or face prompt of the app lock -->
