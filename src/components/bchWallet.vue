@@ -128,10 +128,11 @@
         </q-list>
       </q-menu>
     </legend>
-    <div class="portfolioLink" role="button" @click="store.changeView(12)">
+    <!-- named by a label too: on a phone the pill shows only its icon -->
+    <button type="button" class="portfolioLink plain-button" :aria-label="t('portfolio.title')" @click="store.changeView(12)">
       <portfolioIcon :sizePx="20" />
       <span>{{ t('portfolio.title') }}</span>
-    </div>
+    </button>
     <div class="balance">
       <!-- The two amounts are the switch that hides what the wallet holds, and no wider than they
            are: the room beside them is not. The eye says so on hover, and for a moment after a
