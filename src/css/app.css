@@ -83,6 +83,10 @@ body.dark select {
   color: #fff;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40' fill='%23a8b2c3'><polygon points='0,0 60,0 30,40'/></svg>");
 }
+/* the browser draws a date input's calendar icon and its picker, dark only when told the scheme is */
+body.dark input[type="date"] {
+  color-scheme: dark;
+}
 body.dark ::placeholder {
   color: #e7e9ea;
 }
