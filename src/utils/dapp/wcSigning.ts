@@ -4,9 +4,40 @@ import {
   encodeTransaction,
   decodeTransaction,
   encodeDataPush,
+  secp256k1,
 } from "@bitauth/libauth"
+import { HDWallet } from "@cashonize/bch-wallet-lib";
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
+import type { WalletType } from "src/interfaces/interfaces";
+import { i18n } from "src/boot/i18n";
 import { signInput } from "./signInput";
+const { t } = i18n.global
+
+// The key of the address the dapp was given at pairing, refused when the wallet does not have it:
+// a wrong record of whose session this is must not sign with another wallet's key. Branches on
+// instanceof, not the wallet-type setting, which a switch can leave out of step.
+export function sessionSigningKeys(wallet: WalletType, sessionAddress: string | undefined) {
+  if (!sessionAddress) throw new Error(t('walletConnect.errors.noAddressForSession'));
+  if (wallet instanceof HDWallet) {
+    const cacheEntry = wallet.walletCache.get(sessionAddress);
+    if (!cacheEntry) throw new Error(t('walletConnect.errors.addressNotInHdCache', { address: sessionAddress }));
+    if (!cacheEntry.privateKey) throw new Error(t('walletConnect.errors.noPrivateKeyForAddress'));
+    const pubkeyCompressed = secp256k1.compressPublicKey(cacheEntry.publicKey);
+    if (typeof pubkeyCompressed === 'string') throw new Error(t('walletConnect.errors.failedToCompressPublicKey'));
+    return {
+      privateKey: cacheEntry.privateKey,
+      pubkeyCompressed,
+      publicKeyHash: cacheEntry.publicKeyHash,
+    };
+  }
+  if (!wallet.hasAddress(sessionAddress)) throw new Error(t('walletConnect.errors.sessionAddressNotInWallet', { address: sessionAddress }));
+  if (!wallet.privateKey || !wallet.publicKeyCompressed) throw new Error(t('walletConnect.errors.noPrivateKeyForAddress'));
+  return {
+    privateKey: wallet.privateKey,
+    pubkeyCompressed: wallet.publicKeyCompressed,
+    publicKeyHash: wallet.publicKeyHash,
+  };
+}
 
 export function createSignedWcTransaction(
   wcTransactionObj: WcSignTransactionRequest,

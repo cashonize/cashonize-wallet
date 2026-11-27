@@ -381,7 +381,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     }
     const requestManager = manager;
     const exchangeRate = await currentExchangeRate(settingsStore.currency, () => mainStore.exchangeRate);
-    // a switch during the fetch emptied the queue, but this request was already taken off it
+    // a switch during the fetch: the request was the left wallet's, and stop() dropped the rest of its queue
     if (manager !== requestManager) return;
     if (exchangeRate === undefined) {
       Notify.create({ color: "negative", message: t('common.errors.exchangeRateUnavailable') });
@@ -485,8 +485,8 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       }
     }
     if (request.transaction.broadcast) {
-      // The transaction is out whether or not the dapp hears of it: a switch during the broadcast
-      // closed the session, and the answer then fails without making this a failed signing
+      // Logged before answering: the transaction is out even when the answer fails, as it does
+      // after a switch closed the session
       notifyDappActivity({ ...activity, outcome: 'sent' }, signingWallet);
       await signingManager.sendSignResponse(connectionId, request.sequence, signedTransactionHex).catch(console.error);
       return;

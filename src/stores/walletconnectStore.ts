@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { Core } from '@walletconnect/core'
 import { WalletKit, type WalletKitTypes, type IWalletKit } from '@reown/walletkit'
 import type { SessionTypes } from '@walletconnect/types'
-import { BroadcastTimeoutError, HDWallet, SignedMessage } from "@cashonize/bch-wallet-lib";
+import { BroadcastTimeoutError, SignedMessage } from "@cashonize/bch-wallet-lib";
 import type { WalletType } from "src/interfaces/interfaces";
 import { appNetworkOf, dappsAvailableOn, type AppNetwork } from "src/utils/wallet/networks";
 import { useStore } from "./store"
@@ -12,7 +12,6 @@ import {
   hexToBin,
   binToHex,
   sha256,
-  secp256k1,
   encodeLockingBytecodeP2pkh,
   decodeTransaction,
   decodeTransactionUnsafe
@@ -25,7 +24,7 @@ import WC2SignMessageRequest from 'src/components/walletconnect/WCSignMessageReq
 import type { WcSignMessageRequest, WcSignTransactionRequest } from "@bch-wc2/interfaces"
 import { useSettingsStore } from 'src/stores/settingsStore';
 import { useAppLockStore } from 'src/stores/appLockStore';
-import { createSignedWcTransaction } from "src/utils/dapp/wcSigning"
+import { createSignedWcTransaction, sessionSigningKeys } from "src/utils/dapp/wcSigning"
 import WC2SessionRequestDialog from "src/components/walletconnect/WC2SessionRequestDialog.vue"
 import WC2AddressSelectDialog from "src/components/walletconnect/WC2AddressSelectDialog.vue"
 import { displayBroadcastError } from "src/utils/wallet/broadcastErrors"
@@ -33,7 +32,7 @@ import type { ReservedInputsCheck } from "src/utils/dapp/reservedInputs"
 import { reportDappRefusal } from "src/utils/txHelpers"
 import { WcMessageObjSchema, LooseEncodedWcTransactionObjSchema, StrictEncodedWcTransactionObjSchema, describeSchemaError } from "src/utils/zodValidation"
 import { reportInvalidDappRequest } from "src/utils/dapp/invalidRequest"
-import { parseSessionWalletKey, removeSessionWallet, sessionTopicsOfWallet, sessionWalletKey, sessionWalletOf, setSessionWallet } from "src/utils/dapp/wcSessionWallets"
+import { parseSessionWalletKey, removeSessionWallet, sessionTopicsOfWallet, sessionWalletKeyOf, sessionWalletOf, sessionsOfWallet, setSessionWallet } from "src/utils/dapp/wcSessionWallets"
 import { walletConnectProjectId, walletConnectMetadata } from "./constants"
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
@@ -56,15 +55,8 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   const activeSessions = computed(() => {
     const wallet = mainStore._wallet;
     if (!allSessions.value || !wallet) return undefined;
-    const walletKey = walletKeyOf(wallet);
-    return Object.fromEntries(
-      Object.entries(allSessions.value).filter(([topic]) => sessionWalletOf(topic) === walletKey)
-    );
+    return sessionsOfWallet(allSessions.value, wallet);
   });
-  // From the wallet itself rather than the store's wallet name, which a switch changes first
-  function walletKeyOf(wallet: WalletType) {
-    return sessionWalletKey(appNetworkOf(wallet.network), wallet.name);
-  }
   const web3wallet = ref(undefined as undefined | IWalletKit);
   // Kept from the first call on, so WalletKit is set up once: a call made while it still
   // initializes waits for the same init rather than registering every handler a second time
@@ -289,7 +281,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         id: sessionProposal.id,
         namespaces: namespaces,
       });
-      if (session) setSessionWallet(session.topic, walletKeyOf(wallet));
+      if (session) setSessionWallet(session.topic, sessionWalletKeyOf(wallet));
       allSessions.value = web3wallet.value?.getActiveSessions();
     } catch (error) {
       console.log("Error in approveSession", error)
@@ -325,8 +317,8 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     removeSessionWallet(sessionId);
     allSessions.value = web3wallet.value?.getActiveSessions();
   }
-  // For a wallet that is deleted, on every network, or one that stops being what its sessions
-  // were approved with, on that network: whatever takes its name must not inherit them
+  // For a wallet deleted (every network), converted to HD or losing its chipnet copy (that
+  // network): nothing under its name may inherit its sessions
   async function endSessionsOfWallet(walletName: string, network?: AppNetwork) {
     await Promise.allSettled(sessionTopicsOfWallet(walletName, network).map(topic => deleteSession(topic)));
   }
@@ -341,34 +333,6 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
   // Read the first connected address (used for signing)
   function getSessionAddress(topic: string): string | undefined {
     return getSessionAddresses(topic)[0];
-  }
-  // Get signing key material for the session's connected address, from the wallet the request
-  // was taken for. Branches on the wallet object itself (not wallet-type metadata) so a
-  // desync during wallet switching can never yield mismatched key material.
-  function getSessionSigningInfo(topic: string, wallet: WalletType) {
-    const sessionAddress = getSessionAddress(topic);
-    if (!sessionAddress) throw new Error(t('walletConnect.errors.noAddressForSession'));
-    if (wallet instanceof HDWallet) {
-      const cacheEntry = wallet.walletCache.get(sessionAddress);
-      if (!cacheEntry) throw new Error(t('walletConnect.errors.addressNotInHdCache', { address: sessionAddress }));
-      if (!cacheEntry.privateKey) throw new Error(t('walletConnect.errors.noPrivateKeyForAddress'));
-      const pubkeyCompressed = secp256k1.compressPublicKey(cacheEntry.publicKey);
-      if (typeof pubkeyCompressed === 'string') throw new Error(t('walletConnect.errors.failedToCompressPublicKey'));
-      return {
-        privateKey: cacheEntry.privateKey,
-        pubkeyCompressed,
-        publicKeyHash: cacheEntry.publicKeyHash,
-      };
-    }
-    // The session's wallet is a record of this app's; the key is checked against the address the
-    // dapp was given, as the HD cache lookup above does
-    if (!wallet.hasAddress(sessionAddress)) throw new Error(t('walletConnect.errors.sessionAddressNotInWallet', { address: sessionAddress }));
-    if (!wallet.privateKey || !wallet.publicKeyCompressed) throw new Error(t('walletConnect.errors.noPrivateKeyForAddress'));
-    return {
-      privateKey: wallet.privateKey,
-      pubkeyCompressed: wallet.publicKeyCompressed,
-      publicKeyHash: wallet.publicKeyHash,
-    };
   }
   // Poll for queued cancellation requests that bypass the normal event queue
   function startPollingForCancellationRequest() {
@@ -392,15 +356,13 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
       console.error("Error looking for or processing WC cancellation requests:", e);
     }
   }
-  // The wallet a signing request is served from: the one its session was approved with, and only
-  // while it is the wallet open. The caller holds it for the whole request, so nothing after a
-  // dialog reads whichever wallet is active by then. Any other request is refused, and the user
-  // told which wallet it was for.
+  // Refuses the request unless its session's wallet is the one open. The caller holds the wallet
+  // returned for the whole request, so nothing after a dialog reads whichever is active by then.
   async function walletForRequest(event: WalletKitTypes.SessionRequest): Promise<WalletType | undefined> {
     const { topic, id } = event;
     const wallet = mainStore._wallet;
     const sessionWallet = sessionWalletOf(topic);
-    if (wallet && sessionWallet === walletKeyOf(wallet)) return wallet;
+    if (wallet && sessionWallet === sessionWalletKeyOf(wallet)) return wallet;
     const message = 'The wallet this session was approved with is not the one open in Cashonize';
     const response = { id, jsonrpc: '2.0', error: { message, code: 4100 } };
     await web3wallet.value?.respondSessionRequest({ topic, response });
@@ -668,7 +630,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
       await web3wallet.value?.respondSessionRequest({ topic, response });
       return;
     }
-    const { privateKey, pubkeyCompressed, publicKeyHash } = getSessionSigningInfo(topic, wallet);
+    const { privateKey, pubkeyCompressed, publicKeyHash } = sessionSigningKeys(wallet, getSessionAddress(topic));
     const walletLockingBytecode = encodeLockingBytecodeP2pkh(publicKeyHash);
     const walletLockingBytecodeHex = binToHex(walletLockingBytecode);
     const encodedTransaction = createSignedWcTransaction(
@@ -737,8 +699,7 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const wcSignMessageParams = signMessageRequestWC.params.request.params as WcSignMessageRequest
     const message = wcSignMessageParams.message;
     const { id, topic } = signMessageRequestWC;
-    // Get the address connected to this session and resolve the correct private key
-    const { privateKey } = getSessionSigningInfo(topic, wallet);
+    const { privateKey } = sessionSigningKeys(wallet, getSessionAddress(topic));
     const signedMessage = SignedMessage.sign(message, privateKey);
     const response = { id, jsonrpc: '2.0', result: signedMessage.signature };
     await web3wallet.value?.respondSessionRequest({ topic, response });

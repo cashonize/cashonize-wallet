@@ -31,7 +31,7 @@ WalletKit and its `Core` are not per wallet, and cannot simply be made so:
 So the app sets WalletKit up once (`initweb3wallet`), every wallet's sessions sit in that one
 instance, and the wallet is fixed per request instead of per instance.
 
-Two consequences of the single instance:
+One consequence of the single instance:
 
 - The sign client has one session request queue for all sessions and hands out the next request
   only once the current one is answered. A request for a wallet that is not open is therefore
@@ -48,7 +48,7 @@ Two consequences of the single instance:
    activity log entry all come from it. Signing is refused when it is no longer the wallet open,
    since the reserved-inputs check reads the open wallet's reservations.
 3. The key is checked against the address the dApp was given at pairing, through the HD address
-   cache or `hasAddress`. The record decides what is listed and served; this check is what keeps a
+   cache or `hasAddress` (`sessionSigningKeys` in `utils/dapp/wcSigning.ts`). The record decides what is listed and served; this check is what keeps a
    wrong record from signing with another wallet's key.
 4. `bch_getAddresses` is answered from the session's own accounts, whichever wallet is open.
 

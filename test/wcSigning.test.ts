@@ -1,9 +1,9 @@
 import { parseExtendedJson } from "../src/utils/utils";
 import { cashNinjaJsonString0, cashNinjaJsonString1, cauldronWithdrawJsonString } from "./fixtures/wcFixtures";
-import { createSignedWcTransaction } from "../src/utils/dapp/wcSigning";
+import { createSignedWcTransaction, sessionSigningKeys } from "../src/utils/dapp/wcSigning";
 import { encodeLockingBytecodeP2pkh, binToHex, hexToBin, decodeTransaction, createVirtualMachineBch } from "@bitauth/libauth"
 import type { WcSignTransactionRequest } from "@bch-wc2/interfaces";
-import { DefaultProvider, Wallet } from "@cashonize/bch-wallet-lib";
+import { DefaultProvider, HDWallet, Wallet } from "@cashonize/bch-wallet-lib";
 
 // const throwAwayTestKey = generatePrivateKey()
 // const throwAwayTestKeyWif = encodePrivateKeyWif(throwAwayTestKey, "mainnet")
@@ -75,3 +75,29 @@ describe('test createSignedWcTransaction', () => {
     expect(unlockingBytecode[65]).toBe(0x61);
   })
 })
+describe("the key a WalletConnect session signs with", () => {
+  const otherAddress = "bitcoincash:qr6m7j9njldwwzlg9v7v53unlr4jkmx6eylep8ekg2";
+
+  it("is the single-address wallet's own, for a session on its address", () => {
+    const keys = sessionSigningKeys(throwAwayWallet, throwAwayWallet.getDepositAddress());
+    expect(keys.privateKey).toEqual(throwAwayWallet.privateKey);
+    expect(keys.publicKeyHash).toEqual(throwAwayWallet.publicKeyHash);
+  });
+
+  it("is refused to a single-address wallet for a session on another wallet's address", () => {
+    expect(() => sessionSigningKeys(throwAwayWallet, otherAddress)).toThrow(otherAddress);
+  });
+
+  it("is refused for a session that names no address", () => {
+    expect(() => sessionSigningKeys(throwAwayWallet, undefined)).toThrow("No address found for session");
+  });
+
+  it("is the key of the session's address in an HD wallet, and refused for an address it does not have", () => {
+    const { privateKey, publicKeyCompressed: publicKey, publicKeyHash } = throwAwayWallet;
+    const cache = new Map([[throwAwayWallet.getDepositAddress(), { privateKey, publicKey, publicKeyHash }]]);
+    const hdWallet = Object.assign(Object.create(HDWallet.prototype) as HDWallet, { walletCache: cache });
+
+    expect(sessionSigningKeys(hdWallet, throwAwayWallet.getDepositAddress()).privateKey).toEqual(privateKey);
+    expect(() => sessionSigningKeys(hdWallet, otherAddress)).toThrow(otherAddress);
+  });
+});
