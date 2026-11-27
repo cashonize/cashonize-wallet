@@ -52,9 +52,16 @@
     ].filter(section => section.facts.length)
   })
 
-  const safeWebUrl = computed(() => props.webUrl ? sanitizeUrl(props.webUrl) : undefined)
+  const httpsWebUrl = computed(() => props.webUrl ? sanitizeUrl(props.webUrl) : undefined)
+  // A host on the web is dot-separated names ending in a top-level domain. A single word is a
+  // registry's typo, or a device on the user's own network, and neither is linked; nor is an IP address.
+  const webHostPattern = /^([a-z0-9-]+\.)+([a-z]{2,}|xn--[a-z0-9-]+)$/
+  const safeWebUrl = computed(() => {
+    if (!httpsWebUrl.value || !webHostPattern.test(new URL(httpsWebUrl.value).hostname)) return undefined
+    return httpsWebUrl.value
+  })
   // the link is shown as the address it leads to, in full but for the scheme: on x.com the path is the profile
-  const webAddress = computed(() => safeWebUrl.value?.replace(/^https:\/\//, '').replace(/\/$/, ''))
+  const webAddress = computed(() => httpsWebUrl.value?.replace(/^https:\/\//, '').replace(/\/$/, ''))
   // A plain http address is an old website rather than an abuse of the link, so it is shown to
   // read and copy, but not linked: the apps open only https, and the page can be altered on its way
   const httpWebUrl = computed(() => {
@@ -86,6 +93,9 @@
         <dt>{{ t('tokenItem.info.website') }}</dt>
         <dd>
           <a v-if="safeWebUrl" :href="safeWebUrl" target="_blank">{{ webAddress }}</a>
+          <template v-else-if="httpsWebUrl">
+            {{ webAddress }} <span class="infoNote">{{ t('tokenItem.info.notWebAddress') }}</span>
+          </template>
           <template v-else-if="httpWebUrl">
             {{ httpWebUrl }} <span class="infoNote">{{ t('tokenItem.info.notHttps') }}</span>
           </template>

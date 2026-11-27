@@ -348,6 +348,7 @@
       "decimals": "Desimal",
       "website": "Situs web",
       "notHttps": "bukan tautan aman (https)",
+      "notWebAddress": "bukan alamat web yang valid",
       "type": "Jenis",
       "commitment": "Commitment",
       "seeDetailsOnExplorer": "Lihat di TokenExplorer",

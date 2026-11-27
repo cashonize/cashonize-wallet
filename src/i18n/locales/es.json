@@ -348,6 +348,7 @@
       "decimals": "Decimales",
       "website": "Sitio web",
       "notHttps": "no es un enlace seguro (https)",
+      "notWebAddress": "no es una dirección web válida",
       "type": "Tipo",
       "commitment": "Commitment",
       "seeDetailsOnExplorer": "Ver en TokenExplorer",

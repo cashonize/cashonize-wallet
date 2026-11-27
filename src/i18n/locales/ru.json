@@ -348,6 +348,7 @@
       "decimals": "Десятичные знаки",
       "website": "Сайт",
       "notHttps": "не защищённая (https) ссылка",
+      "notWebAddress": "недействительный веб-адрес",
       "type": "Тип",
       "commitment": "Commitment",
       "seeDetailsOnExplorer": "Открыть в TokenExplorer",
