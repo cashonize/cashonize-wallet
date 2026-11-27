@@ -63,3 +63,9 @@ overrides:
 # (src-electron has its own allowBuilds for electron's binary download.)
 allowBuilds:
   '@parcel/watcher': true
+
+# The manager can only end a session by telling the dApp it was disconnected. The patch adds
+# closeAll(), over the library's own close-without-message path, so a wallet switch can leave
+# the sessions for the switch back. Remove once the library has a public equivalent.
+patchedDependencies:
+  '@wizardconnect/wallet@0.2.4': patches/@wizardconnect__wallet@0.2.4.patch

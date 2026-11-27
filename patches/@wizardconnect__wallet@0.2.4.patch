@@ -1,0 +1,36 @@
+diff --git a/dist/wallet-connection-manager.d.ts b/dist/wallet-connection-manager.d.ts
+index 11f670198f30d19f7d6c71a55cc34ba4925494c2..f20651b055ed9ed0094dee5ea0ef3605cba1d0f3 100644
+--- a/dist/wallet-connection-manager.d.ts
++++ b/dist/wallet-connection-manager.d.ts
+@@ -54,6 +54,11 @@ export declare class WalletConnectionManager extends EventEmitter<WalletConnecti
+      * Disconnect all connections.
+      */
+     disconnectAll(): void;
++    /**
++     * Close all connections without the UserDisconnect message, for sessions that
++     * connect() resumes later: the dapp keeps the pairing and sees the wallet as away.
++     */
++    closeAll(): void;
+     private doDisconnect;
+     /**
+      * Get all connection states (for UI/Redux).
+diff --git a/dist/wallet-connection-manager.js b/dist/wallet-connection-manager.js
+index d19dcc22e5d715f7953113f1e6e5da437c550ad4..4a7f5eda1a7264e4ce7cf68b527b9721c91a8c79 100644
+--- a/dist/wallet-connection-manager.js
++++ b/dist/wallet-connection-manager.js
+@@ -117,6 +117,15 @@ export class WalletConnectionManager extends EventEmitter {
+             this.doDisconnect(id, true);
+         }
+     }
++    /**
++     * Close all connections without the UserDisconnect message, for sessions that
++     * connect() resumes later: the dapp keeps the pairing and sees the wallet as away.
++     */
++    closeAll() {
++        for (const id of [...this.connections.keys()]) {
++            this.doDisconnect(id, false);
++        }
++    }
+     doDisconnect(connectionId, sendMessage) {
+         const conn = this.connections.get(connectionId);
+         if (!conn)

@@ -631,8 +631,12 @@ export const useStore = defineStore('store', () => {
     txNotes.value = saveTxNote(network.value, wallet.value.name, txid, note);
   }
 
-  function recordDappActivity(entry: Omit<DappActivityEntry, 'time'>) {
-    dappActivity.value = appendDappActivity(network.value, wallet.value.name, { time: Date.now(), ...entry });
+  // Logged for the wallet that signed, which a switch during the broadcast leaves no longer open
+  function recordDappActivity(entry: Omit<DappActivityEntry, 'time'>, signingWallet: WalletType = wallet.value) {
+    const activity = appendDappActivity(appNetworkOf(signingWallet.network), signingWallet.name, { time: Date.now(), ...entry });
+    // by name and network: a wallet left and opened again meanwhile is another object
+    const openWallet = _wallet.value;
+    if (openWallet?.name === signingWallet.name && openWallet.network === signingWallet.network) dappActivity.value = activity;
   }
   function markDappActivitySeen() {
     dappActivitySeenAt.value = Date.now();
@@ -1183,6 +1187,7 @@ export const useStore = defineStore('store', () => {
     removePledges(walletName);
     removeIdentityData(walletName);
     removeWizardConnectSessions(walletName);
+    await useWalletconnectStore().endSessionsOfWallet(walletName);
     settingsStore.clearWalletSettings(walletName);
     // Refresh the available wallets list
     await refreshAvailableWallets();
@@ -1215,6 +1220,8 @@ export const useStore = defineStore('store', () => {
         if (!await openActiveWalletOn('mainnet', true)) return false;
       }
       await removeEmptyChipnetCopy(walletName, checkedChipnetId);
+      // not shown under any wallet once the copy is gone, so they could not be ended by hand
+      await useWalletconnectStore().endSessionsOfWallet(walletName, 'chipnet');
     } finally {
       removingChipnetCopy.value = false;
       await refreshAvailableWallets();
@@ -1227,19 +1234,11 @@ export const useStore = defineStore('store', () => {
       const walletconnectStore = useWalletconnectStore()
       const walletKitReady = walletconnectStore.initweb3wallet();
 
-      // Setup network change callback to disconnect all sessions. Registered before the init is
-      // awaited, so a switch while WalletKit still initializes also ends the sessions it restores.
-      networkChangeCallbacks.push(async () => {
-        await walletKitReady;
-        const sessions = walletconnectStore.web3wallet?.getActiveSessions();
-        if(!sessions) return
-
-        // deleteSession instead of raw disconnectSession so a single zombie session can't throw
-        // and abort disconnecting the remaining sessions; all at once, so a stale relay costs
-        // the switch one deleteSession timeout rather than one per session
-        await Promise.allSettled(
-          Object.values(sessions).map(session => walletconnectStore.deleteSession(session.topic))
-        );
+      // The sessions stay across a switch: each is listed and served only while its own wallet is
+      // open. What a switch ends is a request waiting in its dialog.
+      networkChangeCallbacks.push(() => {
+        walletconnectStore.dismissPendingRequest();
+        return Promise.resolve();
       });
       await walletKitReady;
     } catch (error) {
@@ -1306,7 +1305,7 @@ export const useStore = defineStore('store', () => {
       // Start the wizardconnect service (no-op for single-address wallets).
       wizardconnectStore.start();
 
-      // Setup network change callback to disconnect all sessions.
+      // A switch closes the sessions and keeps them saved, for start() to resume on the switch back
       networkChangeCallbacks.push(() => {
         wizardconnectStore.stop();
         return Promise.resolve();

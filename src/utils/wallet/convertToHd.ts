@@ -19,7 +19,8 @@ let converting = false;
 // Converts the active single-address wallet, as checked before the user confirmed, into the HD
 // wallet on the same seed and reopens it, so its state resets and HD discovery runs. The HD wallet's
 // CashConnect identity key is another one, so the CashConnect sessions are ended first: they could
-// not continue. Reopening resets the dApp connections, which ends the WalletConnect sessions too.
+// not continue. The WalletConnect sessions are ended once it is converted: they name the single
+// address, and are kept for a wallet under this name otherwise.
 async function convertActiveWalletToHd(walletName: string, network: AppNetwork, checkedSeedId: string): Promise<WalletOperationResult> {
   if (converting) return makeError(t('walletUtils.errors.conversionRunning'), true);
   const store = useStore();
@@ -52,6 +53,7 @@ async function convertActiveWalletToHd(walletName: string, network: AppNetwork, 
     const result = await storeSeedWalletAsHd(walletName, network, checkedSeedId);
     if (!result.success) return result;
     rowWritten = true;
+    await useWalletconnectStore().endSessionsOfWallet(walletName, network);
     // also sets the wallet type from the stored id
     const hdWallet = await store.loadExistingWallet(walletName, network);
     // another wallet opened meanwhile stays open; this one opens as HD whenever it is opened next

@@ -492,7 +492,8 @@
     "noActiveSessions": "No sessions currently active.",
     "errors": {
       "invalidUri": "Invalid WalletConnect, CashConnect or WizardConnect URI",
-      "notValidUri": "Not a valid WalletConnect, CashConnect or WizardConnect URI"
+      "notValidUri": "Not a valid WalletConnect, CashConnect or WizardConnect URI",
+      "walletSwitched": "The wallet was switched while this request was open, so it was not approved."
     },
     "wizardConnectNeedsHd": {
       "title": "WizardConnect needs an HD wallet",
@@ -1541,13 +1542,16 @@
       "noAddressForSession": "No address found for session",
       "addressNotInHdCache": "Address not found in HD wallet cache: {address}",
       "noPrivateKeyForAddress": "No private key available for address (watch-only wallet)",
+      "sessionAddressNotInWallet": "The session's address is not in this wallet: {address}",
       "failedToCompressPublicKey": "Failed to compress public key"
     },
     "notifications": {
       "failedToSignMessage": "Failed to sign message",
       "failedToSignTransaction": "Failed to sign transaction",
       "sendingTransaction": "Sending transaction...",
-      "requestExpired": "Request expired, please return to {dappName} if you would like to retry"
+      "requestExpired": "Request expired, please return to {dappName} if you would like to retry",
+      "requestForOtherWallet": "{dappName} sent a request for the wallet \"{walletName}\". Switch to that wallet to answer it.",
+      "requestForOtherNetwork": "{dappName} sent a request for this wallet on {network}. Switch to {network} to answer it."
     }
   },
   "wizardConnect": {

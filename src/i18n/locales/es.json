@@ -492,7 +492,8 @@
     "noActiveSessions": "No hay sesiones activas actualmente.",
     "errors": {
       "invalidUri": "URI de WalletConnect, CashConnect o WizardConnect inválida",
-      "notValidUri": "No es una URI válida de WalletConnect, CashConnect o WizardConnect"
+      "notValidUri": "No es una URI válida de WalletConnect, CashConnect o WizardConnect",
+      "walletSwitched": "Se cambió de billetera mientras esta solicitud estaba abierta, por lo que no se aprobó."
     },
     "wizardConnectNeedsHd": {
       "title": "WizardConnect necesita una billetera HD",
@@ -1541,13 +1542,16 @@
       "noAddressForSession": "No se encontró dirección para la sesión",
       "addressNotInHdCache": "Dirección no encontrada en la caché de la billetera HD: {address}",
       "noPrivateKeyForAddress": "No hay clave privada disponible para la dirección (billetera de solo lectura)",
+      "sessionAddressNotInWallet": "La dirección de la sesión no está en esta billetera: {address}",
       "failedToCompressPublicKey": "Error al comprimir la clave pública"
     },
     "notifications": {
       "failedToSignMessage": "Error al firmar el mensaje",
       "failedToSignTransaction": "Error al firmar la transacción",
       "sendingTransaction": "Enviando transacción...",
-      "requestExpired": "Solicitud expirada, por favor regrese a {dappName} para reintentar"
+      "requestExpired": "Solicitud expirada, por favor regrese a {dappName} para reintentar",
+      "requestForOtherWallet": "{dappName} envió una solicitud para la billetera «{walletName}». Cambia a esa billetera para responderla.",
+      "requestForOtherNetwork": "{dappName} envió una solicitud para esta billetera en {network}. Cambia a {network} para responderla."
     }
   },
   "wizardConnect": {

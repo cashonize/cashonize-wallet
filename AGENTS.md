@@ -68,7 +68,7 @@ The wallet functionality is powered by `bch-wallet-lib`, continued from mainnet-
 
 ### Persistent Storage
 - **IndexedDB** belongs to the libraries: bch-wallet-lib keeps wallet key material there (see Multi-Wallet Support) along with its electrum-history and HD-address caches, and WalletConnect keeps its session state there.
-- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, the dApp activity log, address marks, labels and freezes, reserved outpoints, flipstarter pledges, the identity lists (listed, dismissed, unseen, watched at the last complete resolve), WizardConnect session URIs, the few transactions identity detection and the portfolio read, so an open decodes only what is new), and a TTL cache of fetched metadata (`cachedFetch`).
+- **localStorage** holds everything the app persists itself: all settings (one key each), the active wallet name and network, per-wallet-per-network private data (transaction notes, the dApp activity log, address marks, labels and freezes, reserved outpoints, flipstarter pledges, the identity lists (listed, dismissed, unseen, watched at the last complete resolve), WizardConnect session URIs, the wallet each WalletConnect session was approved with, the few transactions identity detection and the portfolio read, so an open decodes only what is new), and a TTL cache of fetched metadata (`cachedFetch`).
 
 ### Direct IndexedDB Access
 Wallet ids, deletes and pruning the cached keys of deleted wallets go through the library (`utils/wallet/dbUtils.ts`). The settings menu's cache-size and delete-all flows are still raw IndexedDB, and there we have to keep matching the library's versions, store names and key formats, and mistakes fail silently: opening a database that does not exist yet creates it, and the library finding it already there never runs its own setup.
@@ -93,6 +93,9 @@ CashConnect communicates over a Nostr relay (default `wss://nostr.infra.cash`). 
 
 ### WizardConnect
 WizardConnect connects HD wallets to dApps over Nostr relays (`wiz:` URIs); the transport is fully encapsulated in @wizardconnect/core, so no separate nostr dependencies are needed. The wallet shares chain-level xpubs (receive/change/defi) so dApps derive addresses locally; the only interactive request is transaction signing, which MUST use `SIGHASH_ALL | SIGHASH_UTXOS | SIGHASH_FORKID` (see `wizSigning.ts`). The sign dialog marks the wallet's own inputs and outputs through the request's paths, since the wallet tracks the receive and change chains only. HD wallets only; single-address wallets get a clear error on pairing.
+
+### dApp Sessions and Wallet Switches
+A dApp session belongs to the wallet and network it was paired with, and is kept across a wallet switch: it is served only while that wallet is open, and resumes when the wallet is opened again. WalletConnect is the odd one out, since WalletKit is one instance for the whole app (its `Core` is a singleton), so the app records each session's wallet itself and fixes the wallet per request rather than per instance. How each protocol does it, and the limits: `docs/dapp-sessions.md`.
 
 ### Token Metadata (BCMR)
 BCMR (Bitcoin Cash Metadata Registries) is the metadata standard for authchain identities on BCH, tokens being the common case; the rest is under Authchain Identities. Spec: https://github.com/bitjson/chip-bcmr

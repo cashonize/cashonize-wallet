@@ -492,7 +492,8 @@
     "noActiveSessions": "Tidak ada sesi yang aktif saat ini.",
     "errors": {
       "invalidUri": "URI WalletConnect, CashConnect atau WizardConnect tidak valid",
-      "notValidUri": "Bukan URI WalletConnect, CashConnect atau WizardConnect yang valid"
+      "notValidUri": "Bukan URI WalletConnect, CashConnect atau WizardConnect yang valid",
+      "walletSwitched": "Dompet diganti saat permintaan ini masih terbuka, sehingga tidak disetujui."
     },
     "wizardConnectNeedsHd": {
       "title": "WizardConnect memerlukan dompet HD",
@@ -1541,13 +1542,16 @@
       "noAddressForSession": "Tidak ditemukan alamat untuk sesi",
       "addressNotInHdCache": "Alamat tidak ditemukan di cache dompet HD: {address}",
       "noPrivateKeyForAddress": "Tidak ada kunci privat untuk alamat ini (dompet khusus-pantau)",
+      "sessionAddressNotInWallet": "Alamat sesi tidak ada di dompet ini: {address}",
       "failedToCompressPublicKey": "Gagal mengompresi kunci publik"
     },
     "notifications": {
       "failedToSignMessage": "Gagal menandatangani pesan",
       "failedToSignTransaction": "Gagal menandatangani transaksi",
       "sendingTransaction": "Mengirim transaksi...",
-      "requestExpired": "Permintaan kedaluwarsa, silakan kembali ke {dappName} jika Anda ingin mencoba lagi"
+      "requestExpired": "Permintaan kedaluwarsa, silakan kembali ke {dappName} jika Anda ingin mencoba lagi",
+      "requestForOtherWallet": "{dappName} mengirim permintaan untuk dompet \"{walletName}\". Beralihlah ke dompet itu untuk menjawabnya.",
+      "requestForOtherNetwork": "{dappName} mengirim permintaan untuk dompet ini di {network}. Beralihlah ke {network} untuk menjawabnya."
     }
   },
   "wizardConnect": {

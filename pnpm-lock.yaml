@@ -22,6 +22,9 @@ overrides:
   '@wizardconnect/core': 0.2.10
   '@noble/curves@1': 1.9.7
 
+patchedDependencies:
+  '@wizardconnect/wallet@0.2.4': c39ffcac1aade7310e594b63bf3a5e55723b3c170e3a31072f5a9406e516784f
+
 importers:
 
   .:
@@ -58,7 +61,7 @@ importers:
         version: 0.2.10(typescript@6.0.3)
       '@wizardconnect/wallet':
         specifier: 0.2.4
-        version: 0.2.4(typescript@6.0.3)
+        version: 0.2.4(patch_hash=c39ffcac1aade7310e594b63bf3a5e55723b3c170e3a31072f5a9406e516784f)(typescript@6.0.3)
       pinia:
         specifier: ^4.1.0
         version: 4.1.0(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.46(typescript@6.0.3))
@@ -3547,7 +3550,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@wizardconnect/wallet@0.2.4(typescript@6.0.3)':
+  '@wizardconnect/wallet@0.2.4(patch_hash=c39ffcac1aade7310e594b63bf3a5e55723b3c170e3a31072f5a9406e516784f)(typescript@6.0.3)':
     dependencies:
       '@bitauth/libauth': 3.1.0-next.8
       '@wizardconnect/core': 0.2.10(typescript@6.0.3)

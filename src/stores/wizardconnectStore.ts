@@ -44,7 +44,7 @@ import WC2TransactionRequest from "src/components/walletconnect/WC2TransactionRe
 import WizPairingDialog from "src/components/wizardconnect/WizPairingDialog.vue";
 import { notifyDappActivity } from "src/utils/dapp/notifyDappActivity";
 import { i18n } from "src/boot/i18n";
-import { appNetworks, dappsAvailableOn } from "src/utils/wallet/networks";
+import { appNetworkOf, appNetworks, dappsAvailableOn } from "src/utils/wallet/networks";
 const { t } = i18n.global;
 const settingsStore = useSettingsStore();
 
@@ -139,6 +139,8 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   // and holding key material in reactive state would spread it through devtools/watchers.
   let manager: WalletConnectionManager | undefined;
   let hdNodes: WizHdNodes | undefined;
+  // The wallet the manager was started for, which a signed transaction is broadcast from
+  let startedWallet: HDWallet | undefined;
   // Track the approval dialog so it can be closed when the dapp cancels the request
   let pendingDialog: { connectionId: string; sequence: number; handle: ReturnType<typeof Dialog.create> } | null = null;
   let requestQueue: { connectionId: string; request: WizSignTransactionRequest }[] = [];
@@ -159,6 +161,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     // attempts get a clear error in pair().
     if (!(wallet instanceof HDWallet)) return;
     hdNodes = deriveWizHdNodes(wallet);
+    startedWallet = wallet;
     const newManager = new WalletConnectionManager(createWizAdapter(hdNodes));
     newManager.on("connectionsChanged", refreshConnections);
     newManager.on("connectionStatusChanged", refreshConnections);
@@ -172,7 +175,8 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     newManager.on("signCancelled", handleSignCancelled);
     newManager.on("remoteDisconnect", handleRemoteDisconnect);
     manager = newManager;
-    sessionStorageKey = `${mainStore.network}:${mainStore.activeWalletName}`;
+    // from the wallet the keys are derived from, not the store's wallet name, which a switch changes first
+    sessionStorageKey = `${appNetworkOf(wallet.network)}:${wallet.name}`;
     // Restore persisted sessions: reconnecting with the same URI re-derives the same
     // relay identity, so the dapp recognizes the wallet after an app reload
     for (const wizUri of getSavedUris()) {
@@ -185,28 +189,33 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
     refreshConnections();
   }
 
-  function stop() {
+  // Closes the sessions without telling the dapps and keeps their saved URIs, so the next start()
+  // for this wallet and network resumes them, as it does after an app reload. With endSessions
+  // the dapps are told and the URIs forgotten.
+  function stop({ endSessions = false } = {}) {
     if (!manager) return;
     // Clear our reference first (mirrors the CashConnect stop() work-around): resetWalletState
     // fires callbacks without awaiting each other, so start() must see a clean slate.
     const prevManager = manager;
     manager = undefined;
     hdNodes = undefined;
+    startedWallet = undefined;
+    // a request still waiting is not answered: the dapp sends it again once the session resumes
     requestQueue = [];
     cancelledRequests.clear();
     pendingDialog?.handle.hide();
     pendingDialog = null;
-    // Sessions don't survive a wallet/network switch (same behavior as WC/CC), so
-    // also drop the persisted URIs — otherwise the next app start would silently
-    // reconnect sessions the dapp was just told are disconnected.
-    for (const conn of Object.values(prevManager.getConnections())) {
-      removeSavedUri(conn.uri);
+    if (endSessions) {
+      for (const conn of Object.values(prevManager.getConnections())) {
+        removeSavedUri(conn.uri);
+      }
     }
     sessionStorageKey = undefined;
     // Remove listeners before disconnecting so the deferred cleanup events
     // (sent after the courtesy disconnect message settles) don't mutate fresh state
     prevManager.removeAllListeners();
-    prevManager.disconnectAll();
+    if (endSessions) prevManager.disconnectAll();
+    else prevManager.closeAll();
     connections.value = {};
   }
 
@@ -215,7 +224,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   // whose courtesy disconnect message is still being published when this returns.
   function forgetAllSessions(): boolean {
     const hadConnections = Object.keys(manager?.getConnections() ?? {}).length > 0;
-    stop();
+    stop({ endSessions: true });
     localStorage.removeItem(WIZ_URIS_STORAGE_KEY);
     localStorage.removeItem(WIZ_DAPP_INFO_STORAGE_KEY);
     savedDappInfo.value = {};
@@ -230,6 +239,7 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       if (!(mainStore.wallet instanceof HDWallet)) throw new Error(t('wizardConnect.errors.hdWalletRequired'));
       throw new Error(t('wizardConnect.errors.notInitialized'));
     }
+    const pairingManager = manager;
     const trimmedUri = wizUri.trim();
     try {
       // validate the URI shape (accepts both the standard and QR-alphanumeric forms)
@@ -248,6 +258,8 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
         .onDismiss(() => resolve(false));
     });
     if (!approved) return;
+    // the consent was to share the xpubs of the wallet open when it was asked
+    if (manager !== pairingManager) throw new Error(t('dapp.errors.walletSwitched'));
     manager.connect(trimmedUri);
     addSavedUri(trimmedUri);
     refreshConnections();
@@ -367,7 +379,10 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
       void showNextSignRequest();
       return;
     }
+    const requestManager = manager;
     const exchangeRate = await currentExchangeRate(settingsStore.currency, () => mainStore.exchangeRate);
+    // a switch during the fetch emptied the queue, but this request was already taken off it
+    if (manager !== requestManager) return;
     if (exchangeRate === undefined) {
       Notify.create({ color: "negative", message: t('common.errors.exchangeRateUnavailable') });
       manager.sendSignError(connectionId, request.sequence, 'Transaction signing request aborted with error: exchange rate unavailable').catch(console.error);
@@ -411,6 +426,8 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
         manager?.sendSignError(connectionId, request.sequence, 'User rejected the transaction').catch(console.error);
       })
       .onDismiss(() => {
+        // fires after the closing transition: a dialog closed by stop() may find the next one up
+        if (pendingDialog?.handle !== handle) return;
         pendingDialog = null;
         void showNextSignRequest();
       });
@@ -418,7 +435,11 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
   }
 
   async function signWizTransaction(connectionId: string, request: WizSignTransactionRequest) {
-    if (!manager || !hdNodes) throw new Error(t('wizardConnect.errors.notInitialized'));
+    if (!manager || !hdNodes || !startedWallet) throw new Error(t('wizardConnect.errors.notInitialized'));
+    // Held for the whole request: a wallet switch during the broadcast replaces them, and the
+    // transaction and its answer belong to the wallet and session that signed
+    const signingManager = manager;
+    const signingWallet = startedWallet;
     // Checked again here rather than only on arrival: the sign dialog holds the request open for
     // as long as the user takes, and a coin can be reserved while it is up.
     const signingCheck = reservedInputsCheck(request);
@@ -447,24 +468,31 @@ export const useWizardconnectStore = defineStore("wizardconnectStore", () => {
           color: 'grey-5',
           timeout: 750
         });
-        await mainStore.wallet.submitTransaction(hexToBin(signedTransactionHex));
+        await signingWallet.submitTransaction(hexToBin(signedTransactionHex));
       } catch (error) {
         // the dapp still gets the node's own words below, only the user sees them classified
         const started = mainStore.currentInitializationToken();
         displayBroadcastError(error, (transaction) => mainStore.broadcastAgain(transaction, started, () => {
-          notifyDappActivity({ ...activity, outcome: 'sent' });
+          notifyDappActivity({ ...activity, outcome: 'sent' }, signingWallet);
         }));
-        notifyDappActivity({ ...activity, outcome: 'broadcastFailed' });
+        notifyDappActivity({ ...activity, outcome: 'broadcastFailed' }, signingWallet);
         const errorMessage = typeof error == 'string' ? error : ((error instanceof Error) ? error.message : t('wizardConnect.errors.errorSendingTransaction'));
         // one whose outcome is unknown may have gone out, and its message names the txid to look up
         let signError = 'Transaction failed to send: ' + errorMessage;
         if (error instanceof BroadcastTimeoutError) signError = 'Transaction outcome unknown, it may have been sent: ' + errorMessage;
-        await manager.sendSignError(connectionId, request.sequence, signError);
+        await signingManager.sendSignError(connectionId, request.sequence, signError);
         return;
       }
     }
-    await manager.sendSignResponse(connectionId, request.sequence, signedTransactionHex);
-    notifyDappActivity({ ...activity, outcome: request.transaction.broadcast ? 'sent' : 'signed' });
+    if (request.transaction.broadcast) {
+      // The transaction is out whether or not the dapp hears of it: a switch during the broadcast
+      // closed the session, and the answer then fails without making this a failed signing
+      notifyDappActivity({ ...activity, outcome: 'sent' }, signingWallet);
+      await signingManager.sendSignResponse(connectionId, request.sequence, signedTransactionHex).catch(console.error);
+      return;
+    }
+    await signingManager.sendSignResponse(connectionId, request.sequence, signedTransactionHex);
+    notifyDappActivity({ ...activity, outcome: 'signed' }, signingWallet);
   }
 
   function dappNameForConnection(connectionId: string): string {

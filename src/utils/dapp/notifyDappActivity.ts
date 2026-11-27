@@ -5,12 +5,14 @@
 import { Notify } from 'quasar'
 import { useStore } from 'src/stores/store'
 import type { DappActivityEntry } from 'src/utils/dapp/dappActivity'
+import type { WalletType } from 'src/interfaces/interfaces'
 import { i18n } from 'src/boot/i18n'
 const { t } = i18n.global
 
-export function notifyDappActivity(entry: Omit<DappActivityEntry, 'time'>) {
+// The wallet is the one the request was served from, when the caller held one across an await
+export function notifyDappActivity(entry: Omit<DappActivityEntry, 'time'>, wallet?: WalletType) {
   const store = useStore();
-  store.recordDappActivity(entry);
+  store.recordDappActivity(entry, wallet);
   if (entry.outcome === 'broadcastFailed') return;
   Notify.create({
     type: 'positive',
