@@ -8,6 +8,7 @@
   import { CurrencyShortNames } from 'src/interfaces/interfaces'
   import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
   import { formatFixed } from 'src/utils/numberFormat'
+  import { ringChartSize, ringPercent, ringSegmentPath } from 'src/utils/ringChart'
   import { formatFiatAmount, formatNumber, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
@@ -28,11 +29,12 @@
 
   // number of individually colored chart segments, all further assets group into 'Other'
   const MAX_SEGMENTS = 4
-  // gap between chart segments, in percent of the circle
-  const SEGMENT_GAP = 0.4
-  // smallest arc a segment is drawn at, in percent of the circle, so that tiny
-  // holdings stay visible; capped to the segment's own share when that is smaller
-  const MIN_SEGMENT_LENGTH = 0.4
+  // Width of the gap between chart segments, in pixels. Three is the least that leaves a pixel of
+  // pure background in a slanted gap on a standard-density screen.
+  const SEGMENT_GAP = 3
+  // smallest arc a segment is drawn at, in percent of the circle: a thinner one is a hairline
+  // against its neighbour and reads as a blurred edge, not as a holding
+  const MIN_SEGMENT_LENGTH = 1
 
   // Chart colors: BCH always keeps the brand green; token segments prefer their
   // icon's dominant color and fall back to the fixed palette when the icon has no
@@ -708,12 +710,16 @@
     return formatFixed(share * 100, 1) + '%'
   }
 
-  function formatBchValue(bchValue: number) {
+  function formatBchValue(bchValue: number, maxDecimals = 5) {
     if (effectiveUnit.value === 'currency' && store.exchangeRate !== undefined) {
       return formatFiatAmount(bchValue * store.exchangeRate, settingsStore.currency)
     }
-    return formatNumber(bchValue, 5) + ' ' + bchUnitName.value
+    return formatNumber(bchValue, maxDecimals) + ' ' + bchUnitName.value
   }
+
+  // the chart's centre line: a decimal fewer than the rows, and set smaller when it would not fit
+  // inside the ring at full size
+  const totalDisplay = computed(() => formatBchValue(totalBchValue.value ?? 0, 4))
 
   // Custom hover tooltip for the chart, positioned relative to the donut wrapper
   const donutWrapRef = ref<HTMLElement | null>(null)
@@ -732,14 +738,25 @@
     tooltipPosition.value = { x: event.clientX - wrapRect.left, y: event.clientY - wrapRect.top }
   }
 
-  // Chart segments as stroke-dasharray fractions of a circle with circumference 100.
+  // Chart segments as slices of a circle of 100, each drawn as its own shape.
   // Drawn in display-list order so the slices visually map to the rows, with the
-  // 'Other' bucket (tokens beyond the individually colored ones) at the end
+  // 'Other' bucket (tokens beyond the individually colored ones) at the end.
+  // Positions that share a name and a color draw as one arc where the first of them is listed:
+  // five keycards as five slivers of one green read as a smear, not as five positions.
   const chartSegments = computed(() => {
     const total = totalBchValue.value
     if (!assets.value || !total) return []
 
-    const segments: { label: string, bchValue: number, color: string }[] = []
+    const segments: { label: string, bchValue: number, color: string, count: number }[] = []
+    const addPosition = (label: string, bchValue: number, color: string) => {
+      const sameKind = segments.find(segment => segment.label === label && segment.color === color)
+      if (!sameKind) {
+        segments.push({ label, bchValue, color, count: 1 })
+        return
+      }
+      sameKind.bchValue += bchValue
+      sameKind.count++
+    }
     let otherValue = 0
     for (const row of displayRows.value) {
       if (row.kind === 'asset') {
@@ -749,40 +766,44 @@
         const hasOwnSegment = row.index < MAX_SEGMENTS
           && (row.index === 0 || assetShare(row.value) >= SMALL_SHARE_THRESHOLD)
         if (hasOwnSegment) {
-          segments.push({ label: row.asset.name, bchValue: row.asset.bchValue, color: segmentColorAt(row.index) })
+          segments.push({ label: row.asset.name, bchValue: row.asset.bchValue, color: segmentColorAt(row.index), count: 1 })
         } else {
           otherValue += row.asset.bchValue
         }
       } else if (row.kind === 'pool' && row.value > 0) {
-        segments.push({ label: row.pool.name, bchValue: row.value, color: POOL_COLOR })
+        addPosition(row.pool.name, row.value, POOL_COLOR)
       } else if (row.kind === 'keycard' && row.value > 0) {
-        segments.push({ label: row.keycard.name, bchValue: row.value, color: keycardColor.value })
+        addPosition(row.keycard.name, row.value, keycardColor.value)
       } else if (row.kind === 'badgers' && row.value > 0) {
-        segments.push({ label: t('portfolio.badgersStake'), bchValue: row.value, color: BADGERS_COLOR })
+        addPosition(t('portfolio.badgersStake'), row.value, BADGERS_COLOR)
       } else if (row.kind === 'hodl' && row.value > 0) {
-        segments.push({ label: t('portfolio.hodlContract'), bchValue: row.value, color: HODL_COLOR })
+        addPosition(t('portfolio.hodlContract'), row.value, HODL_COLOR)
       } else if (row.kind === 'loan' && row.value > 0) {
-        segments.push({ label: row.loan.name, bchValue: row.value, color: LOAN_COLOR })
+        addPosition(row.loan.name, row.value, LOAN_COLOR)
       } else if (row.kind === 'staking' && includeStaking.value && row.value > 0) {
-        segments.push({ label: row.receipt.name, bchValue: row.value, color: STAKING_COLOR })
+        addPosition(row.receipt.name, row.value, STAKING_COLOR)
       }
     }
-    if (otherValue > 0) segments.push({ label: t('portfolio.other'), bchValue: otherValue, color: otherColor.value })
+    if (otherValue > 0) segments.push({ label: t('portfolio.other'), bchValue: otherValue, color: otherColor.value, count: 1 })
 
     const shown = segments.filter(segment => segment.bchValue > 0)
     const gap = shown.length > 1 ? SEGMENT_GAP : 0
+    // Every slice has room for its smallest arc and the gap beside it. What the small ones are
+    // given comes off the largest, where it does not show; the tooltip keeps the true share.
+    const minSlice = MIN_SEGMENT_LENGTH + ringPercent(gap)
+    const slices = shown.map(segment => Math.max((segment.bchValue / total) * 100, minSlice))
+    const largest = slices.indexOf(Math.max(...slices))
+    const given = slices.reduce((sum, slice) => sum + slice, 0) - 100
+    slices[largest] = Math.max(slices[largest]! - given, minSlice)
     let cumulative = 0
-    return shown.map(segment => {
-      const length = (segment.bchValue / total) * 100
+    return shown.map((segment, index) => {
+      const slice = slices[index]!
       const result = {
         ...segment,
         share: segment.bchValue / total,
-        // never draw an arc longer than the share it owns, a sliver smaller than the
-        // minimum would otherwise run past its slice and paint over the next segment
-        dashLength: Math.min(Math.max(length - gap, MIN_SEGMENT_LENGTH), length),
-        dashOffset: -cumulative
+        path: ringSegmentPath(cumulative, cumulative + slice, gap)
       }
-      cumulative += length
+      cumulative += slice
       return result
     })
   })
@@ -834,22 +855,17 @@
 
     <template v-else>
       <div class="donut-wrap" ref="donutWrapRef">
-        <svg viewBox="0 0 42 42" aria-hidden="true">
-          <g transform="rotate(-90 21 21)" fill="none" stroke-width="4.5">
-            <circle
-              v-for="(segment, index) in chartSegments"
-              :key="index"
-              cx="21" cy="21" r="15.9155"
-              pathLength="100"
-              stroke="currentColor"
-              :class="{ hovered: hoveredSegmentIndex === index }"
-              :style="{ color: segment.color }"
-              :stroke-dasharray="`${segment.dashLength} ${100 - segment.dashLength}`"
-              :stroke-dashoffset="segment.dashOffset"
-              @mousemove="moveSegmentTooltip($event, index)"
-              @mouseleave="hoveredSegmentIndex = null"
-            />
-          </g>
+        <svg :viewBox="`0 0 ${ringChartSize} ${ringChartSize}`" aria-hidden="true">
+          <path
+            v-for="(segment, index) in chartSegments"
+            :key="index"
+            :d="segment.path"
+            fill="currentColor"
+            :class="{ hovered: hoveredSegmentIndex === index }"
+            :style="{ color: segment.color }"
+            @mousemove="moveSegmentTooltip($event, index)"
+            @mouseleave="hoveredSegmentIndex = null"
+          />
         </svg>
         <div
           v-if="hoveredSegment"
@@ -858,13 +874,13 @@
         >
           <div class="chart-tooltip-title">
             <span class="chart-tooltip-dot" :style="{ backgroundColor: hoveredSegment.color }"></span>
-            {{ hoveredSegment.label }}
+            {{ hoveredSegment.label }}<template v-if="hoveredSegment.count > 1"> ×{{ hoveredSegment.count }}</template>
           </div>
           <div>{{ formatBchValue(hoveredSegment.bchValue) }} ({{ formatShare(hoveredSegment.share) }})</div>
         </div>
         <div class="donut-center">
           <div class="donut-center-label">{{ t('portfolio.totalValue') }}</div>
-          <div class="donut-center-amount">{{ formatBchValue(totalBchValue ?? 0) }}</div>
+          <div class="donut-center-amount" :class="{ long: totalDisplay.length > 11 }">{{ totalDisplay }}</div>
         </div>
       </div>
       <!-- hodl locks count towards the total, so the total says while they may still arrive -->
@@ -1095,7 +1111,7 @@ body.dark .unit-toggle button:not(.active) {
 
 .donut-wrap {
   position: relative;
-  width: min(260px, 70vw);
+  width: min(261px, 70vw);
   margin: 10px auto 20px;
 }
 .donut-center {
@@ -1112,16 +1128,21 @@ body.dark .unit-toggle button:not(.active) {
   color: grey;
 }
 .donut-center-amount {
-  font-size: 1.25em;
+  font-size: 1.6em;
   font-weight: 600;
+  line-height: 1.3;
+}
+.donut-center-amount.long {
+  font-size: 1.25em;
 }
 
-/* hovered slice thickens slightly as feedback */
-.donut-wrap svg circle {
-  transition: stroke-width 0.15s;
+/* The other slices dim under a hovered one. Not a slice that grows: its edge would move out from
+   under the pointer, and it would flicker between hovered and not. */
+.donut-wrap svg path {
+  transition: opacity 0.15s;
 }
-.donut-wrap svg circle.hovered {
-  stroke-width: 5.2;
+.donut-wrap svg:has(path.hovered) path:not(.hovered) {
+  opacity: 0.45;
 }
 
 /* cursor-following tooltip, styled like the app's info popups */
