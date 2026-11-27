@@ -602,6 +602,12 @@
     "cancel": "Batal"
   },
   "backupWallet": {
+    "reminder": {
+      "title": "Dompet ini belum dicadangkan",
+      "text": "Tuliskan frasa pemulihannya: hanya dengan itu dana Anda bisa dipulihkan jika perangkat ini atau datanya hilang.",
+      "backupNow": "Cadangkan sekarang",
+      "later": "Ingatkan saya nanti"
+    },
     "currentWallet": "Dompet saat ini:",
     "seedPhrase": {
       "title": "Frasa pemulihan dompet",

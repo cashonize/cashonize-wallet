@@ -602,6 +602,12 @@
     "cancel": "Cancelar"
   },
   "backupWallet": {
+    "reminder": {
+      "title": "Esta billetera no está respaldada",
+      "text": "Anota su frase semilla: es la única forma de recuperar tus fondos si este dispositivo o sus datos se pierden.",
+      "backupNow": "Respaldar ahora",
+      "later": "Recordármelo más tarde"
+    },
     "currentWallet": "Billetera actual:",
     "seedPhrase": {
       "title": "Frase semilla de la billetera",

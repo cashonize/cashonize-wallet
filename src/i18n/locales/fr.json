@@ -602,6 +602,12 @@
     "cancel": "Annuler"
   },
   "backupWallet": {
+    "reminder": {
+      "title": "Ce portefeuille n'est pas sauvegardé",
+      "text": "Notez sa phrase de récupération : c'est le seul moyen de retrouver vos fonds si cet appareil ou ses données sont perdus.",
+      "backupNow": "Sauvegarder maintenant",
+      "later": "Me le rappeler plus tard"
+    },
     "currentWallet": "Portefeuille actuel :",
     "seedPhrase": {
       "title": "Phrase de récupération du portefeuille",

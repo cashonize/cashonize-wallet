@@ -189,6 +189,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   interface WalletMetadata {
     createdAt?: string; // ISO date string
     walletType?: 'single' | 'hd';
+    // until when (ms) the wallet page's backup reminder stays hidden after "remind me later"
+    backupReminderSnoozedUntil?: number;
   }
   const walletMetadata = ref<Record<string, WalletMetadata>>({})
 
@@ -636,6 +638,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
   }
 
+  function snoozeBackupReminder(walletName: string, until: number) {
+    if (!walletMetadata.value[walletName]) {
+      walletMetadata.value[walletName] = {};
+    }
+    walletMetadata.value[walletName].backupReminderSnoozedUntil = until;
+    localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
+  }
+
   function clearWalletMetadata(walletName: string) {
     delete walletMetadata.value[walletName];
     localStorage.setItem("walletMetadata", JSON.stringify(walletMetadata.value));
@@ -701,6 +711,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     setBackupStatus,
     clearBackupStatus,
     getWalletMetadata,
+    snoozeBackupReminder,
     setWalletCreatedAt,
     getWalletType,
     setWalletType,

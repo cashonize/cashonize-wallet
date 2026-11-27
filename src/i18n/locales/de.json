@@ -602,6 +602,12 @@
     "cancel": "Abbrechen"
   },
   "backupWallet": {
+    "reminder": {
+      "title": "Diese Wallet ist nicht gesichert",
+      "text": "Schreibe ihre Seed-Phrase auf: Nur damit kommst du wieder an dein Guthaben, wenn dieses Gerät oder seine Daten verloren gehen.",
+      "backupNow": "Jetzt sichern",
+      "later": "Später erinnern"
+    },
     "currentWallet": "Aktuelles Wallet:",
     "seedPhrase": {
       "title": "Wallet seed phrase",
