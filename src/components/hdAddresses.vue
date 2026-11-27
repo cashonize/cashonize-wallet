@@ -364,6 +364,10 @@
                 <q-icon name="more_vert" size="22px" />
                 <q-menu anchor="bottom right" self="top right" @before-hide="menuClosedAt = Date.now()">
                   <q-list dense class="address-menu">
+                    <q-item v-if="row.txCount > 0" clickable v-close-popup @click="openHistory(row)">
+                      <q-item-section side><q-icon name="history" size="20px" /></q-item-section>
+                      <q-item-section>{{ t('hdAddresses.showHistory') }}</q-item-section>
+                    </q-item>
                     <q-item clickable v-close-popup @click="openLabelDialog(row)">
                       <q-item-section side><q-icon name="edit" size="20px" /></q-item-section>
                       <q-item-section>{{ t('addressManagement.editLabel') }}</q-item-section>
@@ -389,14 +393,6 @@
               </span>
               <span class="qr-button" @click.stop="openQrDialog(row)">
                 <q-icon name="qr_code_2" size="22px" />
-              </span>
-              <!-- an address marked used or pinned can have no transactions yet, it keeps the slot
-                   when others in its group have a history, so the qr buttons stay in one column -->
-              <span v-if="row.txCount > 0" class="history-button" :title="t('hdAddresses.showHistory')" @click.stop="openHistory(row)">
-                <q-icon name="history" size="22px" />
-              </span>
-              <span v-else-if="group.rows.some(other => other.txCount > 0)" class="history-button" style="visibility: hidden;">
-                <q-icon name="history" size="22px" />
               </span>
             </div>
           </div>
@@ -633,7 +629,6 @@
 }
 
 .qr-button,
-.history-button,
 .tokens-button,
 .menu-button {
   display: inline-flex;
@@ -642,7 +637,6 @@
 }
 
 .qr-button:hover,
-.history-button:hover,
 .tokens-button:hover,
 .menu-button:hover {
   opacity: 1;
