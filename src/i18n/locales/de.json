@@ -527,7 +527,7 @@
     "showBalance": "Guthaben nach der Transaktion anzeigen",
     "exportCsv": "CSV exportieren",
     "exportFailed": "CSV-Export fehlgeschlagen",
-    "searchPlaceholder": "Token, Adresse oder Tx-ID suchen...",
+    "searchPlaceholder": "Historie durchsuchen...",
     "noMatch": "Keine Transaktionen passen zum Filter",
     "sent": "Gesendet",
     "received": "Empfangen",

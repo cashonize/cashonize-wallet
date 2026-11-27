@@ -527,7 +527,7 @@
     "showBalance": "Show balance after transaction",
     "exportCsv": "Export CSV",
     "exportFailed": "CSV export failed",
-    "searchPlaceholder": "Search token, address or tx id...",
+    "searchPlaceholder": "Search history...",
     "noMatch": "No transactions match filter",
     "sent": "Sent",
     "received": "Received",

@@ -527,7 +527,7 @@
     "showBalance": "Tampilkan saldo setelah transaksi",
     "exportCsv": "Ekspor CSV",
     "exportFailed": "Ekspor CSV gagal",
-    "searchPlaceholder": "Cari token, alamat atau id tx...",
+    "searchPlaceholder": "Cari di riwayat...",
     "noMatch": "Tidak ada transaksi yang cocok dengan filter",
     "sent": "Terkirim",
     "received": "Diterima",

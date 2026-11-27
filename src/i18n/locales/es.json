@@ -527,7 +527,7 @@
     "showBalance": "Mostrar saldo después de la transacción",
     "exportCsv": "Exportar CSV",
     "exportFailed": "Error al exportar CSV",
-    "searchPlaceholder": "Buscar token, dirección o id de tx...",
+    "searchPlaceholder": "Buscar en el historial...",
     "noMatch": "Ninguna transacción coincide con el filtro",
     "sent": "Enviado",
     "received": "Recibido",
