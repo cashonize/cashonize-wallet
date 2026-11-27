@@ -1507,6 +1507,9 @@
     "sessionSettings": {
       "title": "Kelola Sesi",
       "enableAutoApprovals": "Aktifkan Persetujuan Otomatis",
+      "autoApprovalsHint": "Permintaan tanda tangan transaksi dan pesan dari dApp ini ditandatangani tanpa bertanya",
+      "autoApprovalsTrustHint": "Aktifkan hanya untuk dApp yang Anda percayai, setelah memeriksa ulang domain situs webnya",
+      "autoApprovalsLockedHint": "Tidak saat aplikasi terkunci: permintaan yang masuk saat itu menunggu persetujuan Anda setelah kunci dibuka",
       "forever": "Selamanya",
       "for": "Untuk",
       "requests": "permintaan",

@@ -380,6 +380,26 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
           await web3wallet.value?.respondSessionRequest({ topic, response });
           return
         }
+        // Auto-approve covers messages too: a session trusted to spend unseen is trusted to sign.
+        // Not while the app is locked: the request then waits in its dialog for the unlock
+        if (!useAppLockStore().locked && settingsStore.isAutoApproveValid(topic)) {
+          try {
+            await signMessageWC(event)
+          } catch (error) {
+            // answered like a failed sign from the dialog, so the session's queue is not left blocked
+            console.error('Failed to sign message:', error);
+            Notify.create({
+              color: "negative",
+              message: error instanceof Error ? error.message : t('walletConnect.notifications.failedToSignMessage'),
+            });
+            void rejectRequest(event);
+            return;
+          }
+          if (settingsStore.getAutoApproveState(topic)?.mode === "count") {
+            settingsStore.decrementAutoApproveRequest(topic);
+          }
+          return;
+        }
         const handle = Dialog.create({
           component: WC2SignMessageRequest,
           componentProps: {
@@ -446,7 +466,18 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
         // nor while the app is locked: the request then waits in its dialog for the unlock
         const locked = useAppLockStore().locked;
         if (!touchesIdentity && !locked && settingsStore.isAutoApproveValid(topic)) {
-          await signTransactionWC(event)
+          try {
+            await signTransactionWC(event)
+          } catch (error) {
+            // answered like a failed sign from the dialog, so the session's queue is not left blocked
+            console.error('Failed to sign transaction:', error);
+            Notify.create({
+              color: "negative",
+              message: error instanceof Error ? error.message : t('walletConnect.notifications.failedToSignTransaction'),
+            });
+            void rejectRequest(event);
+            return;
+          }
           // Decrement request count if applicable
           if (settingsStore.getAutoApproveState(topic)?.mode === "count") {
             settingsStore.decrementAutoApproveRequest(topic);

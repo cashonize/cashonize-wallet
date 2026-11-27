@@ -1507,6 +1507,9 @@
     "sessionSettings": {
       "title": "Manage Session",
       "enableAutoApprovals": "Enable Auto-Approvals",
+      "autoApprovalsHint": "Transaction and message signing requests from this dApp are signed without asking",
+      "autoApprovalsTrustHint": "Only enable this for a dApp you trust, after double-checking the website's domain",
+      "autoApprovalsLockedHint": "Not while the app is locked: a request arriving then waits for your approval after the unlock",
       "forever": "Forever",
       "for": "For",
       "requests": "requests",

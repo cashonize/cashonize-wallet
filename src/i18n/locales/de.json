@@ -1507,6 +1507,9 @@
     "sessionSettings": {
       "title": "Sitzung verwalten",
       "enableAutoApprovals": "Auto-Genehmigungen aktivieren",
+      "autoApprovalsHint": "Anfragen dieser dApp zum Signieren von Transaktionen und Nachrichten werden ohne Rückfrage signiert",
+      "autoApprovalsTrustHint": "Aktiviere dies nur für eine dApp, der du vertraust, und prüfe vorher die Domain der Website genau",
+      "autoApprovalsLockedHint": "Nicht, solange die App gesperrt ist: Eine Anfrage, die dann eintrifft, wartet nach dem Entsperren auf deine Bestätigung",
       "forever": "Dauerhaft",
       "for": "Für",
       "requests": "Anfragen",

@@ -1507,6 +1507,9 @@
     "sessionSettings": {
       "title": "Gérer la session",
       "enableAutoApprovals": "Activer les approbations automatiques",
+      "autoApprovalsHint": "Les demandes de signature de transactions et de messages de cette dApp sont signées sans confirmation",
+      "autoApprovalsTrustHint": "N'activez ceci que pour une dApp de confiance, après avoir bien vérifié le domaine du site web",
+      "autoApprovalsLockedHint": "Pas tant que l'application est verrouillée : une demande reçue à ce moment attend votre approbation après le déverrouillage",
       "forever": "Pour toujours",
       "for": "Pour",
       "requests": "requêtes",

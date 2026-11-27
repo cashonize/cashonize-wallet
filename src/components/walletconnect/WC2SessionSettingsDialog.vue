@@ -2,10 +2,13 @@
   import { ref, watch, onMounted, toRefs } from 'vue';
   import { type DappMetadata } from 'src/interfaces/interfaces';
   import { useSettingsStore } from 'src/stores/settingsStore';
+  import { useAppLockStore } from 'src/stores/appLockStore';
+  import InfoPopup from 'src/components/general/InfoPopup.vue';
   import { useWindowSize } from 'src/utils/composables'
   import { sanitizeUrl } from 'src/utils/utils'
   import { useI18n } from 'vue-i18n'
   const settingsStore = useSettingsStore()
+  const appLockStore = useAppLockStore()
   const { width } = useWindowSize();
   const isMobilePhone = width.value < 480
   const { t } = useI18n()
@@ -114,6 +117,13 @@
           <div>
             {{ t('walletConnect.sessionSettings.enableAutoApprovals') }}
             <q-toggle v-model="enableAutoApprovals" @update:model-value="toggleRadioButtons" dense />
+            <div class="auto-approve-hint">
+              {{ t('walletConnect.sessionSettings.autoApprovalsHint') }}
+              <InfoPopup>
+                <div>{{ t('walletConnect.sessionSettings.autoApprovalsTrustHint') }}</div>
+                <div v-if="appLockStore.enabled" class="info-popup-note">{{ t('walletConnect.sessionSettings.autoApprovalsLockedHint') }}</div>
+              </InfoPopup>
+            </div>
           </div>
 
           <label class="radio-option">
@@ -156,6 +166,11 @@
   }
   .radio-option input[type="number"] {
     width: 60px;
+  }
+  .auto-approve-hint {
+    color: #888;
+    font-size: 13px;
+    margin-top: 4px;
   }
   .connected-address {
     color: #888;

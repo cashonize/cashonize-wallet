@@ -1507,6 +1507,9 @@
     "sessionSettings": {
       "title": "Administrar sesión",
       "enableAutoApprovals": "Habilitar aprobaciones automáticas",
+      "autoApprovalsHint": "Las solicitudes de firma de transacciones y mensajes de esta dApp se firman sin preguntar",
+      "autoApprovalsTrustHint": "Actívalo solo para una dApp en la que confíes, tras comprobar bien el dominio del sitio web",
+      "autoApprovalsLockedHint": "No mientras la app está bloqueada: una solicitud que llegue entonces espera tu aprobación tras el desbloqueo",
       "forever": "Para siempre",
       "for": "Por",
       "requests": "solicitudes",
