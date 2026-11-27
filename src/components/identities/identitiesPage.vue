@@ -189,13 +189,13 @@
     }
     await runAction('add', async () => {
       if (requested) pendingWatch.value = requested;
+      // the lookup is judged against this wallet's coins, so it is not listed in another
+      const started = store.currentInitializationToken();
       const category = (requested ?? categoryInput.value).trim().toLowerCase();
       if (!/^[0-9a-f]{64}$/i.test(category)) throw new Error(t('identities.errors.invalidCategory'));
       if (identitiesStore.identityCategories.includes(category)) throw new Error(t('identities.errors.alreadyListed'));
       // fetched before the lookup, which reads the key an identity that adopted a guard names there
       await fetchMetadata(category);
-      // the lookup judged against this wallet's coins, so it is not listed in another
-      const started = store.currentInitializationToken();
       const found = await identitiesStore.inspectCategory(category);
       if (store.walletSwitchedSince(started)) return;
       if (found.status === 'unresolved') throw new Error(t('identities.add.errors.nothingFound'));
@@ -222,8 +222,9 @@
           summary.join('\n'),
           t('identities.add.found.button')
         );
-        if (!confirmed || store.walletSwitchedSince(started)) return;
+        if (!confirmed) return;
       }
+      if (store.walletSwitchedSince(started)) return;
       await identitiesStore.addIdentity(found.category, found);
       pendingWatch.value = undefined;
       identitiesStore.checkPublications([found.category]).catch(displayAndLogError);
