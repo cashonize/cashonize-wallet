@@ -19,6 +19,7 @@
   import { confirmSend, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import BackRow from './general/BackRow.vue';
   import TokenIcon from './general/TokenIcon.vue';
+  import TokenFiatValue from './general/TokenFiatValue.vue';
   import TokenSelectDialog from './general/tokenSelectDialog.vue';
   import QrCodeDialog from './qr/qrCodeScanDialog.vue';
   import QrScanButton from './qr/qrScanButton.vue';
@@ -344,29 +345,30 @@
     </div>
     <div style="display: flex; gap: 0.5rem;">
       <input
-        v-model="destinationAddr" @input="parseAddrParams()" name="addressInput"
+        v-model="destinationAddr" @input="parseAddrParams()" name="addressInput" autocomplete="off"
         :placeholder="selectedCategory ? t('tokenItem.sendTokens.addressPlaceholder') : t('wallet.addressPlaceholder')"
       >
       <QrScanButton @click="showQrCodeDialog = true" />
     </div>
     <span v-if="selectedCategory" class="sendAmountGroup">
       <span style="position: relative; width: 100%;">
-        <input v-model="tokenSendAmount" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="tokenAmountInput">
+        <input v-model="tokenSendAmount" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="tokenAmountInput" autocomplete="off">
         <i class="input-icon" style="width: min-content; padding-right: 15px;">{{ tokenSymbol }}</i>
       </span>
     </span>
     <span v-else class="sendAmountGroup">
       <span style="position: relative; flex: 1;">
-        <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="currencyInput">
+        <input v-model="bchSendAmount" @input="setCurrencyAmount()" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="currencyInput" autocomplete="off">
         <i class="input-icon">{{ bchDisplayUnit }}</i>
       </span>
       <span class="sendCurrencyInput">
-        <input v-model="currencySendAmount" @input="setBchAmount()" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="bchAmountInput">
+        <input v-model="currencySendAmount" @input="setBchAmount()" type="text" inputmode="decimal" :placeholder="t('wallet.amountPlaceholder')" name="bchAmountInput" autocomplete="off">
         <i class="input-icon">
           {{`${currencyDisplayShortName} ${CurrencySymbols[settingsStore.currency]}`}}
         </i>
       </span>
     </span>
+    <TokenFiatValue v-if="selectedCategory" :category="selectedCategory" :typed-amount="tokenSendAmount" class="sendTokenValue" />
     <template v-if="!selectedCategory">
       <div v-if="'satoshis' in typedBch && typedBch.satoshis > (store.maxAmountToSend ?? 0n)" style="color: red;">{{ t('wallet.notEnoughBch') }}</div>
       <div v-if="currencyError" style="color: red;">{{ currencyError }}</div>
@@ -388,6 +390,13 @@
 </template>
 
 <style scoped>
+/* its own gap above, like the row of what is available, which then follows it closely */
+.sendTokenValue {
+  margin-top: 8px;
+}
+.sendTokenValue + .availableRow {
+  margin-top: 2px;
+}
 /* same treatment as the token row of the receive page */
 .selectedAsset {
   display: flex;

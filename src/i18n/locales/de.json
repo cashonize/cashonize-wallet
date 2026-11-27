@@ -222,6 +222,7 @@
       "notCashaddress": "Keine cashaddress im aktuellen Netzwerk",
       "legacyAddress": "Legacy-Adressen sehen genauso aus wie Bitcoin-Adressen (BTC). CashAddr ist das Standard-Adressformat bei BCH. Wenn du sicher bist, dass es eine BCH-Adresse ist, wandle sie mit dem Adresskonverter in den Wallet-Werkzeugen um."
     },
+    "tokenValueAtCauldron": "Wert zum Cauldron-Preis:",
     "reservedBalance": "Zurückgehalten: {amount}",
     "hideBalances": "Guthaben ausblenden",
     "showBalances": "Guthaben anzeigen",
@@ -1256,8 +1257,8 @@
         }
       },
       "twoAddresses": {
-        "question": "Warum zeigt die Wallet-Seite zwei Adressen, und welche gebe ich weiter?",
-        "answer": "Es sind zwei Formen derselben Adresse. Schau genau hin: Nur das erste und die letzten acht Zeichen unterscheiden sich. Beide zeigen auf dieselbe Stelle in der Blockchain, mit denselben Schlüsseln dahinter. Die Token-Adresse (beginnt mit z) zeigt dem Absender, dass dein Wallet CashTokens unterstützt; gib sie jedem, der dir Tokens oder NFTs schickt. Für reines BCH gib immer die normale Adresse (beginnt mit q) weiter: Börsen und Wallets ohne Token-Unterstützung akzeptieren nur diese Form. Der QR-Code zeigt eine der beiden; der Wechsel-Button daneben schaltet auf die andere um."
+        "question": "Empfangen hat eine BCH- und eine Token-Adresse. Welche gebe ich weiter?",
+        "answer": "Es sind zwei Formen derselben Adresse. Schau genau hin: Nur das erste und die letzten acht Zeichen unterscheiden sich. Beide zeigen auf dieselbe Stelle in der Blockchain, mit denselben Schlüsseln dahinter. Die Token-Adresse (beginnt mit z) zeigt dem Absender, dass dein Wallet CashTokens unterstützt; gib sie jedem, der dir Tokens oder NFTs schickt. Für reines BCH gib immer die normale Adresse (beginnt mit q) weiter: Börsen und Wallets ohne Token-Unterstützung akzeptieren nur diese Form. Empfangen öffnet mit der BCH-Adresse; der Umschalter „Tokens“ darüber zeigt die Token-Adresse."
       },
       "addressChanged": {
         "question": "Meine Empfangsadresse hat sich geändert. Funktioniert die bereits weitergegebene noch?",
@@ -1274,6 +1275,10 @@
       "imposterToken": {
         "question": "Wie erkenne ich einen gefälschten Token?",
         "answer": "Jeder kann einen Token erstellen und ihm beliebigen Namen und Icon geben; ein bekannter Name oder ein bekanntes Logo beweist also nichts. Was einen Token eindeutig macht, ist seine Token-ID, die sich nicht kopieren lässt. Vergleiche die Token-ID, die das Wallet anzeigt, mit der einer vertrauenswürdigen Quelle außerhalb des Wallets, etwa der offiziellen Website des Herausgebers. Ein Token ohne Namen oder Bild ist nicht allein deshalb gefälscht: Sein Ersteller hat lediglich keine Metadaten veröffentlicht."
+      },
+      "tokenValue": {
+        "question": "Warum wird für meinen Token kein Wert angezeigt?",
+        "answer": "Token-Werte stammen von Cauldron, der wichtigsten Börse für CashTokens: Einen offiziellen Preis gibt es nicht. Ein Wert wird nur im Mainnet angezeigt, und nur wenn die Cauldron-Pools des Tokens zusammen mindestens 1 BCH halten, denn der Preis eines kleineren Marktes lässt sich leicht bewegen. Der Wert ist eine Schätzung zum aktuellen Pool-Preis; ein Verkauf kann weniger bringen, vor allem bei einem großen Betrag. Die Werte lassen sich in den Token-Einstellungen ausschalten."
       },
       "utxos": {
         "question": "Was ist ein UTXO, und warum bittet mich eine dApp zu konsolidieren?",
@@ -1621,7 +1626,7 @@
       "confirmPaymentsHint": "Zeigt Betrag und Adresse zur letzten Kontrolle, nachdem du auf Senden geklickt hast. Empfohlen, da eine Zahlung nicht rückgängig gemacht werden kann.",
       "showCauldronSwap": "Cauldron Swap-Button anzeigen",
       "showCauldronFTValue": "Fiat-Wert in der Token-Liste anzeigen",
-      "showCauldronFTValueHint": "Zeigt den Fiat-Wert im Token-Tab für fungible Tokens mit mindestens 1 BCH kombinierter Liquidität über die Cauldron-DEX-Pools",
+      "showCauldronFTValueHint": "Zeigt den Fiat-Wert im Token-Tab und beim Senden für fungible Tokens mit mindestens 1 BCH kombinierter Liquidität über die Cauldron-DEX-Pools",
       "showCauldronFTValuePortfolioNote": "Die Portfolio-Ansicht zeigt Token-Werte immer an",
       "enableTokenBurn": "Schaltfläche zum Verbrennen bei Tokens anzeigen",
       "identitiesHeading": "Identitäten (Erweitert)",

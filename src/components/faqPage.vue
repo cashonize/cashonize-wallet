@@ -3,6 +3,7 @@
   // tool that solves it. Not a manual: general crypto questions are left to the wider web.
   import BackRow from 'src/components/general/BackRow.vue'
   import { useStore } from 'src/stores/store'
+  import { menuSectionViewBase } from 'src/stores/constants'
   import { useI18n } from 'vue-i18n'
 
   const store = useStore()
@@ -21,6 +22,7 @@
     { id: 'bchForTokens' },
     { id: 'tokenSupport', tool: { view: 20, label: 'settings.menu.addressConverter' } },
     { id: 'imposterToken' },
+    { id: 'tokenValue', tool: { view: menuSectionViewBase + 7, label: 'settings.menu.tokenSettings' } },
     { id: 'utxos', tool: { view: 7, label: 'settings.menu.utxoManagement' } },
   ]
 </script>

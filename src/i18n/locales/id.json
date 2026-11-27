@@ -222,6 +222,7 @@
       "notCashaddress": "Bukan cashaddress di jaringan saat ini",
       "legacyAddress": "Alamat legacy terlihat sama dengan alamat Bitcoin (BTC). CashAddr adalah format alamat standar di BCH. Jika Anda yakin ini alamat BCH, konversikan dengan Konverter Alamat di Alat dompet."
     },
+    "tokenValueAtCauldron": "Nilai pada harga Cauldron:",
     "reservedBalance": "Ditahan: {amount}",
     "hideBalances": "Sembunyikan saldo",
     "showBalances": "Tampilkan saldo",
@@ -1256,8 +1257,8 @@
         }
       },
       "twoAddresses": {
-        "question": "Mengapa halaman dompet menampilkan dua alamat, dan mana yang saya berikan?",
-        "answer": "Keduanya adalah dua bentuk dari alamat yang sama. Jika diperhatikan, hanya karakter pertama dan delapan karakter terakhir yang berbeda: keduanya menunjuk ke tempat yang sama di blockchain, dengan kunci yang sama di baliknya. Alamat token (diawali z) memberi tahu pengirim bahwa dompet Anda mendukung CashTokens, jadi berikan alamat itu kepada siapa pun yang mengirim token atau NFT. Untuk BCH biasa, selalu berikan alamat biasa (diawali q): bursa dan dompet tanpa dukungan token hanya menerima bentuk itu. Kode QR menampilkan salah satunya; tombol tukar di sebelahnya menggantinya ke yang lain."
+        "question": "Terima memiliki alamat BCH dan alamat token. Mana yang saya berikan?",
+        "answer": "Keduanya adalah dua bentuk dari alamat yang sama. Jika diperhatikan, hanya karakter pertama dan delapan karakter terakhir yang berbeda: keduanya menunjuk ke tempat yang sama di blockchain, dengan kunci yang sama di baliknya. Alamat token (diawali z) memberi tahu pengirim bahwa dompet Anda mendukung CashTokens, jadi berikan alamat itu kepada siapa pun yang mengirim token atau NFT. Untuk BCH biasa, selalu berikan alamat biasa (diawali q): bursa dan dompet tanpa dukungan token hanya menerima bentuk itu. Terima terbuka pada alamat BCH; pilihan \"Token\" di atasnya menampilkan alamat token."
       },
       "addressChanged": {
         "question": "Alamat penerimaan saya berubah. Apakah alamat yang sudah saya bagikan masih berfungsi?",
@@ -1274,6 +1275,10 @@
       "imposterToken": {
         "question": "Bagaimana cara mengenali token tiruan?",
         "answer": "Siapa pun bisa membuat token dan memberinya nama serta ikon apa saja, jadi nama atau logo yang dikenal tidak membuktikan apa pun. Yang mengidentifikasi sebuah token adalah id tokennya, yang tidak bisa ditiru. Bandingkan id token yang ditampilkan dompet dengan id dari sumber tepercaya di luar dompet, misalnya situs web resmi penerbitnya. Token tanpa nama atau gambar tidak palsu hanya karena itu: pembuatnya hanya tidak menerbitkan metadata."
+      },
+      "tokenValue": {
+        "question": "Mengapa token saya tidak menampilkan nilai?",
+        "answer": "Nilai token berasal dari Cauldron, bursa utama untuk CashTokens: tidak ada harga resmi. Nilai hanya ditampilkan di mainnet, dan hanya jika pool Cauldron token tersebut secara gabungan berisi setidaknya 1 BCH, karena harga pasar yang lebih kecil mudah digerakkan. Nilai tersebut adalah perkiraan pada harga pool saat ini, dan hasil penjualan bisa lebih rendah, terutama untuk jumlah besar. Nilai ini dapat dimatikan di pengaturan token."
       },
       "utxos": {
         "question": "Apa itu UTXO, dan mengapa dApp meminta saya melakukan konsolidasi?",
@@ -1621,7 +1626,7 @@
       "confirmPaymentsHint": "Menampilkan jumlah dan alamat untuk pemeriksaan terakhir setelah Anda mengklik kirim. Disarankan, karena pembayaran tidak dapat dibatalkan.",
       "showCauldronSwap": "Tampilkan Tombol Swap Cauldron",
       "showCauldronFTValue": "Tampilkan nilai fiat di daftar token",
-      "showCauldronFTValueHint": "Tampilkan nilai fiat di tab Token untuk token fungible dengan likuiditas gabungan minimal 1 BCH di seluruh pool Cauldron DEX",
+      "showCauldronFTValueHint": "Tampilkan nilai fiat di tab Token dan saat mengirim, untuk token fungible dengan likuiditas gabungan minimal 1 BCH di seluruh pool Cauldron DEX",
       "showCauldronFTValuePortfolioNote": "Tampilan portofolio selalu menampilkan nilai token",
       "enableTokenBurn": "Tampilkan tombol bakar pada token",
       "identitiesHeading": "Identitas (Lanjutan)",

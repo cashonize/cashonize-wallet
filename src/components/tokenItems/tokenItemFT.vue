@@ -3,6 +3,7 @@
   import QrCodeDialog from '../qr/qrCodeScanDialog.vue';
   import QrScanButton from '../qr/qrScanButton.vue';
   import TokenIcon from '../general/TokenIcon.vue';
+  import TokenFiatValue from '../general/TokenFiatValue.vue';
   import tokenInfoPanel from './tokenInfoPanel.vue'
   import type { TokenDataFT, TokenActionType } from "src/interfaces/interfaces"
   import { copyToClipboard, formatFiatAmount, parseTokenAmountToBigInt, formatTokenAmountFromBigInt, formatTokenAmount, hiddenAmount } from 'src/utils/utils';
@@ -15,7 +16,7 @@
   import { sendFungibleTokens } from 'src/utils/payments/sendFungibleTokens'
   import { confirmDialog, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
   import { displayAndLogError } from 'src/utils/errorHandling'
-  import { calculateTokenFiatValue } from 'src/utils/defi/cauldronApi'
+  import { shownTokenFiatValue } from 'src/utils/defi/tokenFiatValue'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -70,10 +71,7 @@
 
   // Fiat value of fungible token holdings using Cauldron DEX price data, at the store's BCH rate
   const holdingsFiatValue = computed(() => {
-    if (!settingsStore.showCauldronFTValue || store.network !== 'mainnet') return null;
-    const poolPriceData = store.cauldronPrices?.[tokenData.value.category];
-    if (!poolPriceData?.hasSufficientLiquidity || store.exchangeRate === undefined) return null;
-    return calculateTokenFiatValue(holding.value, poolPriceData, store.exchangeRate);
+    return shownTokenFiatValue(tokenData.value.category, holding.value);
   });
 
   // Fungible token specific functionality
@@ -241,13 +239,13 @@
           <div class="inputGroup">
             <div class="addressInputFtSend">
               <span style="width: 100%; position: relative;">
-                <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
+                <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" autocomplete="off" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
               </span>
               <QrScanButton @click="showQrCodeDialog = true" />
             </div>
             <div class="sendTokenAmount">
               <span style="width: 100%; position: relative;">
-                <input v-model="tokenSendAmount" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountPlaceholder')" name="tokenAmountInput">
+                <input v-model="tokenSendAmount" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountPlaceholder')" name="tokenAmountInput" autocomplete="off">
                 <i class="input-icon" style="width: min-content; padding-right: 15px;">
                   {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
                 </i>
@@ -255,13 +253,17 @@
               <button @click="maxTokenAmount(true)">{{ t('tokenItem.actions.max') }}</button>
             </div>
           </div>
-          <input @click="sendTokens()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendTokens.sendingButton') : t('tokenItem.sendTokens.sendButton')" :disabled="activeAction !== null">
+          <!-- the value sits beside the button, under the amount it is the value of, so the button stays where it is -->
+          <div class="sendTokenRow">
+            <input @click="sendTokens()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendTokens.sendingButton') : t('tokenItem.sendTokens.sendButton')" :disabled="activeAction !== null">
+            <TokenFiatValue :category="tokenData.category" :typed-amount="tokenSendAmount" class="sendTokenRowValue" />
+          </div>
         </div>
         <div v-if="displayBurnFungibles" class="tokenAction">
           <div>{{ t('tokenItem.burn.description') }}</div>
           <div style="display: flex">
             <span style="width: 50%; position: relative; display: flex;">
-              <input v-model="burnAmountFTs" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountTokensPlaceholder')" name="tokenAmountInput">
+              <input v-model="burnAmountFTs" inputmode="decimal" :placeholder="t('tokenItem.sendTokens.amountTokensPlaceholder')" name="tokenAmountInput" autocomplete="off">
               <i class="input-icon" style="width: min-content; padding-right: 15px;">
                 {{ tokenMetaData?.token?.symbol ?? t('tokenItem.tokens') }}
               </i>

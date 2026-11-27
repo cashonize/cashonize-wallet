@@ -274,7 +274,7 @@
           {{ t('tokenItem.sendNft.title') }}
           <div class="inputGroup">
             <div class="addressInputNftSend">
-              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
+              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" autocomplete="off" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
               <QrScanButton @click="showQrCodeDialog = true" />
             </div>
             <input @click="sendNft()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendNft.sendingButton') : t('tokenItem.sendNft.sendButton')" :disabled="activeAction !== null">

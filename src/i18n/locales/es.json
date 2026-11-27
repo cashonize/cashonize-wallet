@@ -222,6 +222,7 @@
       "notCashaddress": "No es una cashaddress en la red actual",
       "legacyAddress": "Las direcciones legacy se ven igual que las direcciones de Bitcoin (BTC). CashAddr es el formato de dirección estándar en BCH. Si estás seguro de que es una dirección BCH, conviértela con el conversor de direcciones en las herramientas de billetera."
     },
+    "tokenValueAtCauldron": "Valor al precio de Cauldron:",
     "reservedBalance": "Retenido: {amount}",
     "hideBalances": "Ocultar saldos",
     "showBalances": "Mostrar saldos",
@@ -1256,8 +1257,8 @@
         }
       },
       "twoAddresses": {
-        "question": "¿Por qué la página de la billetera muestra dos direcciones y cuál debo dar?",
-        "answer": "Son dos formas de la misma dirección. Si te fijas, solo cambian el primer carácter y los ocho últimos: ambas apuntan al mismo lugar de la blockchain, con las mismas claves detrás. La dirección de token (empieza por z) indica al remitente que tu billetera admite CashTokens, así que dásela a quien te envíe tokens o NFT. Para BCH normal da siempre la normal (empieza por q): los exchanges y las billeteras sin soporte de tokens solo aceptan esa forma. El código QR muestra una de las dos; el botón de cambio que tiene al lado lo pasa a la otra."
+        "question": "Recibir tiene una dirección de BCH y una de token. ¿Cuál debo dar?",
+        "answer": "Son dos formas de la misma dirección. Si te fijas, solo cambian el primer carácter y los ocho últimos: ambas apuntan al mismo lugar de la blockchain, con las mismas claves detrás. La dirección de token (empieza por z) indica al remitente que tu billetera admite CashTokens, así que dásela a quien te envíe tokens o NFT. Para BCH normal da siempre la normal (empieza por q): los exchanges y las billeteras sin soporte de tokens solo aceptan esa forma. Recibir se abre con la dirección de BCH; el selector «Tokens» que tiene encima muestra la dirección de token."
       },
       "addressChanged": {
         "question": "Mi dirección de recepción cambió. ¿Sigue funcionando la que ya compartí?",
@@ -1274,6 +1275,10 @@
       "imposterToken": {
         "question": "¿Cómo detecto un token impostor?",
         "answer": "Cualquiera puede crear un token y ponerle el nombre y el icono que quiera, así que un nombre o logotipo conocido no prueba nada. Lo que identifica a un token es su id de token, que no se puede copiar. Compara el id de token que muestra la billetera con el de una fuente de confianza fuera de la billetera, como el sitio web oficial del emisor. Un token sin nombre ni imagen no es falso solo por eso: su creador simplemente no publicó metadatos."
+      },
+      "tokenValue": {
+        "question": "¿Por qué mi token no muestra ningún valor?",
+        "answer": "Los valores de los tokens vienen de Cauldron, el principal exchange de CashTokens: no existe un precio oficial. Solo se muestra un valor en mainnet, y solo cuando los pools de Cauldron del token suman al menos 1 BCH, porque el precio de un mercado más pequeño es fácil de mover. El valor es una estimación al precio actual del pool, y al vender se puede obtener menos, sobre todo con una cantidad grande. Los valores se pueden desactivar en la configuración de tokens."
       },
       "utxos": {
         "question": "¿Qué es un UTXO y por qué una dApp me pide consolidar?",
@@ -1621,7 +1626,7 @@
       "confirmPaymentsHint": "Muestra el importe y la dirección para una última comprobación después de hacer clic en enviar. Recomendado, ya que un pago no se puede deshacer.",
       "showCauldronSwap": "Mostrar botón de Cauldron Swap",
       "showCauldronFTValue": "Mostrar valor en fiat en la lista de tokens",
-      "showCauldronFTValueHint": "Muestra el valor en fiat en la pestaña Tokens para tokens fungibles con al menos 1 BCH de liquidez combinada en los pools de Cauldron DEX",
+      "showCauldronFTValueHint": "Muestra el valor en fiat en la pestaña Tokens y al enviar, para tokens fungibles con al menos 1 BCH de liquidez combinada en los pools de Cauldron DEX",
       "showCauldronFTValuePortfolioNote": "La vista de portafolio siempre muestra los valores de los tokens",
       "enableTokenBurn": "Mostrar el botón de quemar en los tokens",
       "identitiesHeading": "Identidades (avanzado)",

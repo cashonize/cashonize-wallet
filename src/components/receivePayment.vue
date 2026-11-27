@@ -390,7 +390,7 @@
                 type="text"
                 inputmode="decimal"
                 :placeholder="t('requestPayment.amountPlaceholder')"
-                name="bchAmountInput"
+                name="bchAmountInput" autocomplete="off"
               >
               <i class="input-icon">{{ bchDisplayUnit }}</i>
             </span>
@@ -402,7 +402,7 @@
                 type="text"
                 inputmode="decimal"
                 :placeholder="t('requestPayment.amountPlaceholder')"
-                name="currencyInput"
+                name="currencyInput" autocomplete="off"
               >
               <select v-model="requestCurrency" class="currencySelect" :aria-label="t('settings.localization.currency')">
                 <option v-for="currency in currencies" :key="currency" :value="currency">
@@ -424,7 +424,7 @@
                 inputmode="decimal"
                 :disabled="!selectedCategory"
                 :placeholder="t('requestPayment.amountPlaceholder')"
-                name="tokenAmountInput"
+                name="tokenAmountInput" autocomplete="off"
               >
               <i v-if="tokenSymbol" class="input-icon">{{ tokenSymbol }}</i>
             </span>

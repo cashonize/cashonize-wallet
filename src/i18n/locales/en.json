@@ -222,6 +222,7 @@
       "notCashaddress": "Not a cashaddress on current network",
       "legacyAddress": "Legacy addresses look the same as Bitcoin (BTC) addresses. CashAddr is the standard address format on BCH. If you are sure this is a BCH address, convert it with the Address Converter in Wallet tools."
     },
+    "tokenValueAtCauldron": "Value at Cauldron's price:",
     "reservedBalance": "Held back: {amount}",
     "hideBalances": "Hide balances",
     "showBalances": "Show balances",
@@ -1256,8 +1257,8 @@
         }
       },
       "twoAddresses": {
-        "question": "Why does the wallet page show two addresses, and which one do I give people?",
-        "answer": "They are two forms of the same address. Look closely and only the first character and the last eight differ: both point to the same place on the blockchain, with the same keys behind it. The token address (starting with z) tells the sender your wallet supports CashTokens, so give that one to anyone sending tokens or NFTs. For plain BCH, always give the regular one (starting with q): exchanges and wallets without token support only accept that form. The QR code shows one of the two; the switch button next to it flips it to the other."
+        "question": "Receive has a BCH and a token address. Which one do I give people?",
+        "answer": "They are two forms of the same address. Look closely and only the first character and the last eight differ: both point to the same place on the blockchain, with the same keys behind it. The token address (starting with z) tells the sender your wallet supports CashTokens, so give that one to anyone sending tokens or NFTs. For plain BCH, always give the regular one (starting with q): exchanges and wallets without token support only accept that form. Receive opens on the BCH address; the Tokens switch above it shows the token address."
       },
       "addressChanged": {
         "question": "My receive address changed. Does the one I already shared still work?",
@@ -1274,6 +1275,10 @@
       "imposterToken": {
         "question": "How do I spot an imposter token?",
         "answer": "Anyone can create a token and give it any name and icon, so a familiar name or logo proves nothing. What identifies a token is its token id, which cannot be copied. Compare the token id the wallet shows with the one on a source you trust outside the wallet, such as the issuer's official website. A token with no name or picture is not fake for that reason alone: its creator just published no metadata."
+      },
+      "tokenValue": {
+        "question": "Why does my token show no value?",
+        "answer": "Token values come from Cauldron, the main exchange for CashTokens: there is no official price. A value is shown only on mainnet, and only when the token's Cauldron pools hold at least 1 BCH together, because the price of a smaller market is easy to move. The value is an estimate at the current pool price, and selling can bring less, especially for a large amount. The values can be turned off in the token settings."
       },
       "utxos": {
         "question": "What is a UTXO, and why does a dApp ask me to consolidate?",
@@ -1621,7 +1626,7 @@
       "confirmPaymentsHint": "Shows the amount and address for a final check after you click send. Recommended, since a payment can't be undone.",
       "showCauldronSwap": "Show Cauldron Swap Button",
       "showCauldronFTValue": "Show fiat value in the tokens list",
-      "showCauldronFTValueHint": "Display fiat value on the Tokens tab for fungible tokens with at least 1 BCH combined liquidity across Cauldron DEX pools",
+      "showCauldronFTValueHint": "Display fiat value on the Tokens tab and when sending, for fungible tokens with at least 1 BCH combined liquidity across Cauldron DEX pools",
       "showCauldronFTValuePortfolioNote": "The portfolio view always shows token values",
       "enableTokenBurn": "Show the burn button on tokens",
       "identitiesHeading": "Identities (Advanced)",

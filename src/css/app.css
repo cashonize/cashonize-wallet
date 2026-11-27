@@ -668,6 +668,17 @@ body.dark .identity-card {
   display: flex;
   width: 50%;
 }
+.sendTokenRow {
+  display: flex;
+  align-items: center;
+}
+/* starts at the left edge of the amount field above it, which sits half the gap between the two
+   fields past the middle */
+.sendTokenRowValue {
+  width: 50%;
+  margin-left: auto;
+  padding-left: 8px;
+}
 .showChildNfts {
   position: relative;
   align-self: flex-start;
@@ -831,6 +842,11 @@ body.dark .q-toggle--dense .q-toggle__inner:not(.q-toggle__inner--truthy) .q-tog
     margin-top: 4px;
     width: 100%;
     gap: 0.5rem;
+  }
+  .sendTokenRowValue {
+    width: auto;
+    margin-left: 12px;
+    padding-left: 0;
   }
 }
 /* Quasar dialog styling */

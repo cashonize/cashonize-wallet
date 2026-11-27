@@ -222,6 +222,7 @@
       "notCashaddress": "Não é um cashaddress na rede atual",
       "legacyAddress": "Endereços legacy são iguais a endereços de Bitcoin (BTC). CashAddr é o formato de endereço padrão no BCH. Se você tem certeza de que é um endereço BCH, converta-o com o conversor de endereços nas ferramentas da carteira."
     },
+    "tokenValueAtCauldron": "Valor no preço da Cauldron:",
     "reservedBalance": "Retido: {amount}",
     "hideBalances": "Ocultar saldos",
     "showBalances": "Mostrar saldos",
@@ -1256,8 +1257,8 @@
         }
       },
       "twoAddresses": {
-        "question": "Por que a página da carteira mostra dois endereços, e qual devo passar?",
-        "answer": "São duas formas do mesmo endereço. Olhando de perto, só o primeiro caractere e os oito últimos mudam: os dois apontam para o mesmo lugar na blockchain, com as mesmas chaves por trás. O endereço de token (começa com z) mostra a quem envia que sua carteira aceita CashTokens, então passe esse a quem for enviar tokens ou NFTs. Para BCH comum, passe sempre o normal (começa com q): exchanges e carteiras sem suporte a tokens só aceitam essa forma. O código QR mostra um dos dois; o botão de troca ao lado alterna para o outro."
+        "question": "Receber tem um endereço de BCH e um de token. Qual devo passar?",
+        "answer": "São duas formas do mesmo endereço. Olhando de perto, só o primeiro caractere e os oito últimos mudam: os dois apontam para o mesmo lugar na blockchain, com as mesmas chaves por trás. O endereço de token (começa com z) mostra a quem envia que sua carteira aceita CashTokens, então passe esse a quem for enviar tokens ou NFTs. Para BCH comum, passe sempre o normal (começa com q): exchanges e carteiras sem suporte a tokens só aceitam essa forma. Receber abre no endereço de BCH; o seletor \"Tokens\" acima dele mostra o endereço de token."
       },
       "addressChanged": {
         "question": "Meu endereço de recebimento mudou. O que já compartilhei ainda funciona?",
@@ -1274,6 +1275,10 @@
       "imposterToken": {
         "question": "Como identifico um token impostor?",
         "answer": "Qualquer pessoa pode criar um token e dar a ele qualquer nome e ícone, então um nome ou logotipo conhecido não prova nada. O que identifica um token é o seu id de token, que não pode ser copiado. Compare o id de token que a carteira mostra com o de uma fonte confiável fora da carteira, como o site oficial do emissor. Um token sem nome nem imagem não é falso só por isso: o criador apenas não publicou metadados."
+      },
+      "tokenValue": {
+        "question": "Por que meu token não mostra nenhum valor?",
+        "answer": "Os valores dos tokens vêm da Cauldron, a principal exchange de CashTokens: não existe um preço oficial. Um valor só é mostrado na mainnet, e só quando os pools do token na Cauldron somam pelo menos 1 BCH, porque o preço de um mercado menor é fácil de mover. O valor é uma estimativa no preço atual do pool, e uma venda pode render menos, principalmente com uma quantia grande. Os valores podem ser desativados nas configurações de tokens."
       },
       "utxos": {
         "question": "O que é um UTXO, e por que uma dApp pede para consolidar?",
@@ -1621,7 +1626,7 @@
       "confirmPaymentsHint": "Mostra o valor e o endereço para uma última conferência após clicar em enviar. Recomendado, pois um pagamento não pode ser desfeito.",
       "showCauldronSwap": "Mostrar botão de Swap do Cauldron",
       "showCauldronFTValue": "Mostrar valor em fiat na lista de tokens",
-      "showCauldronFTValueHint": "Exibe o valor em fiat na aba Tokens para tokens fungíveis com pelo menos 1 BCH de liquidez combinada nos pools da Cauldron DEX",
+      "showCauldronFTValueHint": "Exibe o valor em fiat na aba Tokens e ao enviar, para tokens fungíveis com pelo menos 1 BCH de liquidez combinada nos pools da Cauldron DEX",
       "showCauldronFTValuePortfolioNote": "A visão de portfólio sempre mostra os valores dos tokens",
       "enableTokenBurn": "Mostrar o botão de queimar nos tokens",
       "identitiesHeading": "Identidades (avançado)",

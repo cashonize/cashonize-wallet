@@ -5,7 +5,8 @@ import { TokenSendRequest } from '@cashonize/bch-wallet-lib'
 import { useStore } from 'src/stores/store'
 import { useSettingsStore } from 'src/stores/settingsStore'
 import type { TokenDataFT } from 'src/interfaces/interfaces'
-import { parseTokenAmountToBigInt, formatTokenAmount } from 'src/utils/utils'
+import { parseTokenAmountToBigInt, formatTokenAmount, formatFiatAmount } from 'src/utils/utils'
+import { shownTokenFiatValue } from 'src/utils/defi/tokenFiatValue'
 import { validateTokenRecipientAddress } from 'src/utils/payments/recipientAddress'
 import { confirmSend, notifySending, handleTransactionBroadcastSuccess } from 'src/utils/txHelpers'
 import { i18n } from 'src/boot/i18n'
@@ -36,10 +37,12 @@ export async function sendFungibleTokens(category: string, destination: string, 
   const spendableAmount = sendableFungibleTokens().find(tokenData => tokenData.category === category)?.amount ?? 0n;
   if(amountTokensInt > spendableAmount) throw new Error(t('tokenItem.errors.insufficientBalance'));
 
+  const fiatValue = shownTokenFiatValue(category, amountTokensInt);
   const sendInfo = {
     recipient,
     amount: amountSentFormatted,
     unit: tokenMetaData?.token?.symbol ?? category.slice(0, 8),
+    fiat: fiatValue === null ? undefined : formatFiatAmount(fiatValue, settingsStore.currency),
     token: { category, iconUrl: store.tokenIconUrl(category) },
   }
   // confirm payment if setting is enabled

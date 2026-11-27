@@ -552,7 +552,7 @@
           {{ t('tokenItem.sendNft.title') }}
           <div class="inputGroup">
             <div class="addressInputNftSend">
-              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
+              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" autocomplete="off" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
               <QrScanButton @click="showQrCodeDialog = true" />
             </div>
             <input @click="sendNft()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.sendNft.sendingButton') : t('tokenItem.sendNft.sendButton')" :disabled="activeAction !== null">
@@ -562,7 +562,7 @@
           {{ selectedNftCount === tokenData.nfts?.length ? t('tokenItem.batchTransfer.titleAll', { count: selectedNftCount }) : t('tokenItem.batchTransfer.titleSelected', { count: selectedNftCount }) }}
           <div class="inputGroup">
             <div class="addressInputNftSend">
-              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
+              <input v-model="destinationAddr" @input="parseAddrParams()" name="tokenAddress" autocomplete="off" :placeholder="t('tokenItem.sendTokens.addressPlaceholder')">
               <QrScanButton @click="showQrCodeDialog = true" />
             </div>
             <input @click="sendBatchNfts()" type="button" class="primaryButton" :value="activeAction === 'sending' ? t('tokenItem.batchTransfer.transferringButton') : t('tokenItem.batchTransfer.transferButton')" :disabled="activeAction !== null">
