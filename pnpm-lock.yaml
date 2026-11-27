@@ -130,14 +130,14 @@ importers:
         specifier: ^17.14.0
         version: 17.14.0
       gql.tada:
-        specifier: ^1.11.4
-        version: 1.11.4(graphql@17.0.2)(typescript@6.0.3)
+        specifier: ^1.11.5
+        version: 1.11.5(graphql@17.0.2)(typescript@6.0.3)
       jiti:
         specifier: ^2.7.0
         version: 2.7.0
       rollup-plugin-visualizer:
-        specifier: ^7.1.3
-        version: 7.1.3(rolldown@1.2.19)
+        specifier: ^7.3.0
+        version: 7.3.0(rolldown@1.2.19)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -148,8 +148,8 @@ importers:
         specifier: ^3.3.14
         version: 3.3.14(typescript@6.0.3)
       ws:
-        specifier: ^8.22.2
-        version: 8.22.2
+        specifier: ^8.23.0
+        version: 8.23.0
 
 packages:
 
@@ -300,8 +300,8 @@ packages:
     resolution: {integrity: sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  '@gql.tada/cli-utils@1.9.4':
-    resolution: {integrity: sha512-xQ9M+2Xxjxhz9IJi+7IMU/aOsEtuSiSNb4OgDMBUC/8AcSpo2vDtx71Aodsaif4qSwuTb0YFVfDwC+ESqiZSHg==}
+  '@gql.tada/cli-utils@1.9.5':
+    resolution: {integrity: sha512-v/bp+YtSrN9SqekDIGYwvbUQjeh0OQcVcVQVdQ2+uT22ljlyfOP0I/Atl1l1S/CtQtkbMQblQ0c7xtnwWZnG1w==}
     peerDependencies:
       '@0no-co/graphqlsp': ^1.16.0
       '@gql.tada/svelte-support': 1.0.3
@@ -316,6 +316,12 @@ packages:
 
   '@gql.tada/internal@1.2.2':
     resolution: {integrity: sha512-4lZcElPP6MC8Ct8KN70LR2WQsHjbAsyAmTGG09VsOPhx738UFIYaL0S1XiI2pqq2tj/sDs/y3b9jvKoWGL7iuQ==}
+    peerDependencies:
+      graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
+      typescript: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
+
+  '@gql.tada/internal@1.3.0':
+    resolution: {integrity: sha512-PDxUsI+EVBZlD1orBYuyQ9aDDOB0InQSskATFTfloVID4+BMTvk1HLOW/X12sOftR3rw+0XSdt3uVT7A756Jvg==}
     peerDependencies:
       graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
       typescript: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -1380,8 +1386,8 @@ packages:
     resolution: {integrity: sha512-UtdkTVyAJePQv0J2M9Xe4L0ruNSDV314XiIJsADI2Zf40bcdAonE/D/OhAU8AT99oij9mhLByb+NvA3QWZYgCg==}
     engines: {node: '>=18'}
 
-  gql.tada@1.11.4:
-    resolution: {integrity: sha512-UQnhJUhSM0MV8cpcgjci/7ET8LnmHx9o9FtZqU4sH+ILiBVG5rnfXJzNdzTN+Y7MuCz6Pp3XE/VPEVqmO969jw==}
+  gql.tada@1.11.5:
+    resolution: {integrity: sha512-O9Wa+tvXnuocp5P/m/1RvPPV71weLq2KgmoYP4GzBwxxHB8QsrTdz9fWyBey89Phpzbi9hmy8AqyV9dO36sq/A==}
     hasBin: true
     peerDependencies:
       typescript: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -1491,6 +1497,9 @@ packages:
 
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
+
+  jsonc-parser@3.3.1:
+    resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
 
   jsonfile@6.2.1:
     resolution: {integrity: sha512-zwOTdL3rFQ/lRdBnntKVOX6k5cKJwEc1HdilT71BWEu7J41gXIB2MRp+vxduPSwZJPWBxEzv4yH1wYLJGUHX4Q==}
@@ -1827,8 +1836,8 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  rollup-plugin-visualizer@7.1.3:
-    resolution: {integrity: sha512-P7G0p9RowDd0ahXXBtx4MOHlSVzclyW5pDeZ2Z0HensWSI9vJdu2bqdZDsD375g+0AxND8VJzWYuKD9yH38etw==}
+  rollup-plugin-visualizer@7.3.0:
+    resolution: {integrity: sha512-m0NuTHu7vRzNVEQexWaj8BqXNBl9Jhj2OGbD7zW5qfXzxMAEUH/nlyIjcpfwchk3gbD1dTBq0Z18AjTWm9Feow==}
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -2021,10 +2030,6 @@ packages:
   source-map@0.6.1:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
-
-  source-map@0.8.0:
-    resolution: {integrity: sha512-d8EqvL+k/SOXCreS/SUzg2ciyHqBBLcN/yuRjFsbvVhHTE2pgei7oAhmPM7kWFbkX6OSMQfUq4KbkF3au9lhYQ==}
-    engines: {node: '>= 12'}
 
   split2@4.2.0:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
@@ -2388,8 +2393,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.22.2:
-    resolution: {integrity: sha512-/rEZ2ejown2N5gxVTHUu9bVVC7ttu0/Tgzf5hbTOixR3Fs7mbbXgn2DbdbcKgJOmpQMtrIUWivtYuVMnp/W/yA==}
+  ws@8.23.0:
+    resolution: {integrity: sha512-wCkmX8QMOrKjgO8HW2WyDbTSGeqkocxgDzS9iR79rEAexty6/2qzilx3Ag8Tqf9ykop3irLKle0MtVn5qjVnoQ==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -2548,12 +2553,12 @@ snapshots:
     dependencies:
       '@electrum-cash/debug-logs': 1.0.0
       '@electrum-cash/socket': 4.2.0
-      '@monsterbitar/isomorphic-ws': 5.3.1(ws@8.22.2)
+      '@monsterbitar/isomorphic-ws': 5.3.1(ws@8.23.0)
       '@types/ws': 8.18.2
       async-mutex: 0.5.0
       eventemitter3: 5.0.4
       lossless-json: 4.3.0
-      ws: 8.22.2
+      ws: 8.23.0
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -2609,10 +2614,10 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
-  '@gql.tada/cli-utils@1.9.4(@0no-co/graphqlsp@1.17.5(graphql@17.0.2)(typescript@6.0.3))(graphql@17.0.2)(typescript@6.0.3)':
+  '@gql.tada/cli-utils@1.9.5(@0no-co/graphqlsp@1.17.5(graphql@17.0.2)(typescript@6.0.3))(graphql@17.0.2)(typescript@6.0.3)':
     dependencies:
       '@0no-co/graphqlsp': 1.17.5(graphql@17.0.2)(typescript@6.0.3)
-      '@gql.tada/internal': 1.2.2(graphql@17.0.2)(typescript@6.0.3)
+      '@gql.tada/internal': 1.3.0(graphql@17.0.2)(typescript@6.0.3)
       graphql: 17.0.2
       typescript: 6.0.3
 
@@ -2620,6 +2625,13 @@ snapshots:
     dependencies:
       '@0no-co/graphql.web': 1.3.4(graphql@17.0.2)
       graphql: 17.0.2
+      typescript: 6.0.3
+
+  '@gql.tada/internal@1.3.0(graphql@17.0.2)(typescript@6.0.3)':
+    dependencies:
+      '@0no-co/graphql.web': 1.3.4(graphql@17.0.2)
+      graphql: 17.0.2
+      jsonc-parser: 3.3.1
       typescript: 6.0.3
 
   '@humanfs/core@0.19.2':
@@ -2685,9 +2697,9 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@monsterbitar/isomorphic-ws@5.3.1(ws@8.22.2)':
+  '@monsterbitar/isomorphic-ws@5.3.1(ws@8.23.0)':
     dependencies:
-      ws: 8.22.2
+      ws: 8.23.0
 
   '@msgpack/msgpack@3.1.3': {}
 
@@ -3526,10 +3538,10 @@ snapshots:
       '@bch-wc2/interfaces': 0.0.8(@bitauth/libauth@3.1.0-next.8)
       '@bitauth/libauth': 3.1.0-next.8
       eventemitter3: 5.0.4
-      isomorphic-ws: 5.0.0(ws@8.22.2)
+      isomorphic-ws: 5.0.0(ws@8.23.0)
       lossless-json: 4.3.0
       nostr-tools: 2.23.9(typescript@6.0.3)
-      ws: 8.22.2
+      ws: 8.23.0
     transitivePeerDependencies:
       - bufferutil
       - typescript
@@ -3885,12 +3897,12 @@ snapshots:
 
   globals@17.14.0: {}
 
-  gql.tada@1.11.4(graphql@17.0.2)(typescript@6.0.3):
+  gql.tada@1.11.5(graphql@17.0.2)(typescript@6.0.3):
     dependencies:
       '@0no-co/graphql.web': 1.3.4(graphql@17.0.2)
       '@0no-co/graphqlsp': 1.17.5(graphql@17.0.2)(typescript@6.0.3)
-      '@gql.tada/cli-utils': 1.9.4(@0no-co/graphqlsp@1.17.5(graphql@17.0.2)(typescript@6.0.3))(graphql@17.0.2)(typescript@6.0.3)
-      '@gql.tada/internal': 1.2.2(graphql@17.0.2)(typescript@6.0.3)
+      '@gql.tada/cli-utils': 1.9.5(@0no-co/graphqlsp@1.17.5(graphql@17.0.2)(typescript@6.0.3))(graphql@17.0.2)(typescript@6.0.3)
+      '@gql.tada/internal': 1.3.0(graphql@17.0.2)(typescript@6.0.3)
       typescript: 6.0.3
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
@@ -3961,9 +3973,9 @@ snapshots:
 
   isobject@3.0.1: {}
 
-  isomorphic-ws@5.0.0(ws@8.22.2):
+  isomorphic-ws@5.0.0(ws@8.23.0):
     dependencies:
-      ws: 8.22.2
+      ws: 8.23.0
 
   jiti@2.7.0: {}
 
@@ -3972,6 +3984,8 @@ snapshots:
   json-schema-traverse@0.4.1: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
+
+  jsonc-parser@3.3.1: {}
 
   jsonfile@6.2.1:
     dependencies:
@@ -4303,11 +4317,11 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.2.19
       '@rolldown/binding-win32-x64-msvc': 1.2.19
 
-  rollup-plugin-visualizer@7.1.3(rolldown@1.2.19):
+  rollup-plugin-visualizer@7.3.0(rolldown@1.2.19):
     dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
       open: 11.0.4
       picomatch: 4.0.7
-      source-map: 0.8.0
       yargs: 18.2.0
     optionalDependencies:
       rolldown: 1.2.19
@@ -4452,8 +4466,6 @@ snapshots:
       source-map: 0.6.1
 
   source-map@0.6.1: {}
-
-  source-map@0.8.0: {}
 
   split2@4.2.0: {}
 
@@ -4688,7 +4700,7 @@ snapshots:
 
   ws@7.5.13: {}
 
-  ws@8.22.2: {}
+  ws@8.23.0: {}
 
   wsl-utils@1.0.1:
     dependencies:
