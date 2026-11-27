@@ -240,6 +240,7 @@
     "checkingHodlContracts": "Buscando contratos hodl",
     "checkingTapswapListings": "Buscando anúncios no TapSwap",
     "smallBalances": "Saldos pequenos ({count})",
+    "groupCount": "{count} posições",
     "tapswapListings": "Anúncios no TapSwap ({count})",
     "askingPrice": "Preço pedido",
     "manageListings": "Gerencie seus anúncios em {link}.",

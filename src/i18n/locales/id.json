@@ -240,6 +240,7 @@
     "checkingHodlContracts": "Memeriksa kontrak hodl",
     "checkingTapswapListings": "Memeriksa listing TapSwap",
     "smallBalances": "Saldo kecil ({count})",
+    "groupCount": "{count} posisi",
     "tapswapListings": "Listing TapSwap ({count})",
     "askingPrice": "Harga jual",
     "manageListings": "Kelola listing Anda di {link}.",

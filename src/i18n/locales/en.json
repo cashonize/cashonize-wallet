@@ -240,6 +240,7 @@
     "checkingHodlContracts": "Checking for hodl contracts",
     "checkingTapswapListings": "Checking for TapSwap listings",
     "smallBalances": "Small balances ({count})",
+    "groupCount": "{count} positions",
     "tapswapListings": "TapSwap listings ({count})",
     "askingPrice": "Asking price",
     "manageListings": "Manage your listings on {link}.",

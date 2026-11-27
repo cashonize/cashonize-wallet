@@ -11,6 +11,7 @@
   import { ringChartSize, ringPercent, ringSegmentPath } from 'src/utils/ringChart'
   import { formatFiatAmount, formatNumber, formatReadableDate, formatTimeUntil, formatTokenAmount, gatewayUrl, satsToBch } from 'src/utils/utils'
   import { EMERALD_DAO_CATEGORY, parseEmeraldKeycard } from 'src/utils/defi/emeraldDao'
+  import { BADGERCOIN_CATEGORY } from 'src/utils/defi/badgersStake'
   import type { TapswapListing } from 'src/utils/defi/tapswapListings'
   import { LOCKTIME_TIMESTAMP_THRESHOLD } from 'src/utils/defi/hodlContracts'
   import { extractDominantIconColor, colorDistance, clampColorLightness } from 'src/utils/icons/iconColorUtils'
@@ -396,6 +397,76 @@
     )
   })
 
+  // What the chart and the list call a position, and the color both give it. Positions that share
+  // both are one kind: one arc in the chart, one group in the list.
+  type PositionRow = Exclude<DisplayRow, AssetRow>
+  function positionLabel(row: PositionRow) {
+    if (row.kind === 'pool') return row.pool.name
+    if (row.kind === 'keycard') return row.keycard.name
+    if (row.kind === 'badgers') return t('portfolio.badgersStake')
+    if (row.kind === 'hodl') return t('portfolio.hodlContract')
+    if (row.kind === 'loan') return row.loan.name
+    return row.receipt.name
+  }
+  function positionColor(row: PositionRow) {
+    if (row.kind === 'pool') return POOL_COLOR
+    if (row.kind === 'keycard') return keycardColor.value
+    if (row.kind === 'badgers') return BADGERS_COLOR
+    if (row.kind === 'hodl') return HODL_COLOR
+    if (row.kind === 'loan') return LOAN_COLOR
+    return STAKING_COLOR
+  }
+  // the token whose icon stands for the kind, none for BCH itself
+  function positionIconCategory(row: PositionRow) {
+    if (row.kind === 'pool') return row.pool.category
+    if (row.kind === 'keycard') return EMERALD_DAO_CATEGORY
+    if (row.kind === 'badgers') return BADGERCOIN_CATEGORY
+    if (row.kind === 'hodl') return undefined
+    if (row.kind === 'loan') return row.loan.category
+    return row.receipt.category
+  }
+
+  // The main list as entries: a row on its own, or the positions of one kind under a header with
+  // their sum, sorted by that sum. Stakes left out of the total stay loose rows, with no sum to show.
+  interface ListEntry {
+    key: string, rows: DisplayRow[], value: number
+    group?: { label: string, color: string, iconCategory: string | undefined }
+  }
+  const mainEntries = computed<ListEntry[]>(() => {
+    const entries: ListEntry[] = []
+    const groups = new Map<string, ListEntry>()
+    for (const row of mainRows.value) {
+      const grouped = row.kind !== 'asset' && (row.kind !== 'staking' || includeStaking.value)
+      if (!grouped) {
+        entries.push({ key: rowKey(row), rows: [row], value: row.value })
+        continue
+      }
+      const label = positionLabel(row)
+      const key = `${row.kind}:${label}`
+      const group = groups.get(key)
+      if (group) {
+        group.rows.push(row)
+        group.value += row.value
+        continue
+      }
+      const entry: ListEntry = { key, rows: [row], value: row.value, group: { label, color: positionColor(row), iconCategory: positionIconCategory(row) } }
+      groups.set(key, entry)
+      entries.push(entry)
+    }
+    // a kind with one position is that position's row, as before
+    for (const entry of entries) if (entry.rows.length === 1) delete entry.group
+    return entries.sort((a, b) => b.value - a.value)
+  })
+  // a long group starts folded to its header, so it does not push the rest off the page
+  const MAX_OPEN_GROUP = 3
+  const groupsOpened = ref<Record<string, boolean>>({})
+  function isGroupOpen(entry: ListEntry) {
+    return groupsOpened.value[entry.key] ?? entry.rows.length <= MAX_OPEN_GROUP
+  }
+  function toggleGroup(entry: ListEntry) {
+    groupsOpened.value[entry.key] = !isGroupOpen(entry)
+  }
+
   function rowKey(row: DisplayRow) {
     if (row.kind === 'asset') return row.asset.category ?? 'bch'
     if (row.kind === 'pool') return row.pool.id
@@ -739,9 +810,9 @@
   }
 
   // Chart segments as slices of a circle of 100, each drawn as its own shape.
-  // Drawn in display-list order so the slices visually map to the rows, with the
+  // Drawn in the list's order so the slices visually map to its entries, with the
   // 'Other' bucket (tokens beyond the individually colored ones) at the end.
-  // Positions that share a name and a color draw as one arc where the first of them is listed:
+  // Positions that share a name and a color draw as one arc, as they are one group in the list:
   // five keycards as five slivers of one green read as a smear, not as five positions.
   const chartSegments = computed(() => {
     const total = totalBchValue.value
@@ -758,7 +829,7 @@
       sameKind.count++
     }
     let otherValue = 0
-    for (const row of displayRows.value) {
+    for (const row of [...mainEntries.value.flatMap(entry => entry.rows), ...smallAssetRows.value]) {
       if (row.kind === 'asset') {
         // an asset gets its own slice only when it shows in the main list (BCH
         // always, tokens above the small-balance threshold) and is within the
@@ -770,18 +841,8 @@
         } else {
           otherValue += row.asset.bchValue
         }
-      } else if (row.kind === 'pool' && row.value > 0) {
-        addPosition(row.pool.name, row.value, POOL_COLOR)
-      } else if (row.kind === 'keycard' && row.value > 0) {
-        addPosition(row.keycard.name, row.value, keycardColor.value)
-      } else if (row.kind === 'badgers' && row.value > 0) {
-        addPosition(t('portfolio.badgersStake'), row.value, BADGERS_COLOR)
-      } else if (row.kind === 'hodl' && row.value > 0) {
-        addPosition(t('portfolio.hodlContract'), row.value, HODL_COLOR)
-      } else if (row.kind === 'loan' && row.value > 0) {
-        addPosition(row.loan.name, row.value, LOAN_COLOR)
-      } else if (row.kind === 'staking' && includeStaking.value && row.value > 0) {
-        addPosition(row.receipt.name, row.value, STAKING_COLOR)
+      } else if (row.value > 0 && (row.kind !== 'staking' || includeStaking.value)) {
+        addPosition(positionLabel(row), row.value, positionColor(row))
       }
     }
     if (otherValue > 0) segments.push({ label: t('portfolio.other'), bchValue: otherValue, color: otherColor.value, count: 1 })
@@ -896,77 +957,108 @@
       </div>
 
       <div class="asset-list">
-        <template v-for="row in mainRows" :key="rowKey(row)">
-          <div v-if="row.kind === 'asset'" class="asset-row">
-            <span class="dot" :style="{ color: segmentColorAt(row.index) }"></span>
-            <img v-if="!row.asset.category" src="images/bch-icon.svg" class="bch-icon">
+        <div v-for="entry in mainEntries" :key="entry.key" class="asset-entry">
+          <div
+            v-if="entry.group" class="asset-row group-header" :class="{ folded: !isGroupOpen(entry) }"
+            role="button" :aria-expanded="isGroupOpen(entry)" @click="toggleGroup(entry)"
+          >
+            <span class="dot" :style="{ color: entry.group.color }"></span>
             <TokenIcon
-              v-else
-              :token-id="row.asset.category"
-              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(row.asset.category) : undefined"
+              v-if="entry.group.iconCategory"
+              :token-id="entry.group.iconCategory"
+              :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(entry.group.iconCategory) : undefined"
               :size="32"
             />
+            <img v-else src="images/bch-icon.svg" class="bch-icon">
             <div class="asset-name">
-              <div>{{ row.asset.name }}</div>
-              <div class="sub">{{ row.asset.amountDisplay }} {{ row.asset.symbol }}</div>
+              <div>
+                {{ entry.group.label }}
+                <q-icon name="expand_more" size="20px" class="chevron group-chevron" :class="{ open: isGroupOpen(entry) }" />
+              </div>
+              <div class="sub">{{ t('portfolio.groupCount', { count: entry.rows.length }) }}</div>
             </div>
             <div class="asset-value">
-              <div>{{ formatBchValue(row.asset.bchValue) }}</div>
-              <div class="sub">{{ formatShare(assetShare(row.asset.bchValue)) }}</div>
+              <div>{{ formatBchValue(entry.value) }}</div>
+              <div class="sub">{{ formatShare(assetShare(entry.value)) }}</div>
             </div>
           </div>
-          <cauldronPoolItem
-            v-else-if="row.kind === 'pool'"
-            :category="row.pool.category"
-            :name="row.pool.name"
-            :dot-color="POOL_COLOR"
-            :bch-display="row.pool.bchDisplay"
-            :token-display="row.pool.tokenDisplay"
-            :value-display="formatBchValue(row.pool.bchValue)"
-            :share-display="row.pool.bchValue > 0 ? formatShare(assetShare(row.pool.bchValue)) : undefined"
-          />
-          <emeraldKeycardItem
-            v-else-if="row.kind === 'keycard'"
-            :name="row.keycard.name"
-            :dot-color="keycardColor"
-            :serial="row.keycard.serial"
-            :value-display="formatBchValue(row.keycard.bchValue)"
-            :share-display="row.keycard.bchValue > 0 ? formatShare(assetShare(row.keycard.bchValue)) : undefined"
-          />
-          <badgerLocksItem
-            v-else-if="row.kind === 'badgers'"
-            :dot-color="BADGERS_COLOR"
-            :unlock-display="lockUnlockDisplay(row.lock)"
-            :value-display="formatBchValue(row.value)"
-            :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
-          />
-          <hodlLockItem
-            v-else-if="row.kind === 'hodl'"
-            :dot-color="HODL_COLOR"
-            :bch-display="formatNumber(row.value, 5) + ' ' + bchUnitName"
-            :unlock="hodlUnlockDisplay(row.lock)"
-            :value-display="formatBchValue(row.value)"
-            :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
-          />
-          <loanKeyItem
-            v-else-if="row.kind === 'loan'"
-            :category="row.loan.category"
-            :name="row.loan.name"
-            :dot-color="LOAN_COLOR"
-            :state="loanState(row.loan.utxo)"
-            :net-value-display="loanNetDisplay(row.loan.utxo)"
-            :share-display="loanShareDisplay(row.loan.utxo)"
-          />
-          <stakingReceiptItem
-            v-else
-            :category="row.receipt.category"
-            :name="row.receipt.name"
-            :dot-color="includeStaking ? STAKING_COLOR : undefined"
-            :state="stakingState(row.receipt.utxo)"
-            :estimated-value-display="stakingValueDisplay(row.receipt.utxo)"
-            :share-display="stakingShareDisplay(row.receipt.utxo)"
-          />
-        </template>
+          <div
+            v-if="!entry.group || isGroupOpen(entry)" class="entry-rows" :class="{ 'group-rows': entry.group }"
+            :style="entry.group ? { borderLeftColor: entry.group.color } : undefined"
+          >
+            <template v-for="row in entry.rows" :key="rowKey(row)">
+              <div v-if="row.kind === 'asset'" class="asset-row">
+                <span class="dot" :style="{ color: segmentColorAt(row.index) }"></span>
+                <img v-if="!row.asset.category" src="images/bch-icon.svg" class="bch-icon">
+                <TokenIcon
+                  v-else
+                  :token-id="row.asset.category"
+                  :icon-url="!settingsStore.disableTokenIcons ? store.tokenIconUrl(row.asset.category) : undefined"
+                  :size="32"
+                />
+                <div class="asset-name">
+                  <div>{{ row.asset.name }}</div>
+                  <div class="sub">{{ row.asset.amountDisplay }} {{ row.asset.symbol }}</div>
+                </div>
+                <div class="asset-value">
+                  <div>{{ formatBchValue(row.asset.bchValue) }}</div>
+                  <div class="sub">{{ formatShare(assetShare(row.asset.bchValue)) }}</div>
+                </div>
+              </div>
+              <cauldronPoolItem
+                v-else-if="row.kind === 'pool'"
+                :category="row.pool.category"
+                :name="row.pool.name"
+                :dot-color="POOL_COLOR"
+                :bch-display="row.pool.bchDisplay"
+                :token-display="row.pool.tokenDisplay"
+                :value-display="formatBchValue(row.pool.bchValue)"
+                :share-display="row.pool.bchValue > 0 ? formatShare(assetShare(row.pool.bchValue)) : undefined"
+              />
+              <emeraldKeycardItem
+                v-else-if="row.kind === 'keycard'"
+                :name="row.keycard.name"
+                :dot-color="keycardColor"
+                :serial="row.keycard.serial"
+                :value-display="formatBchValue(row.keycard.bchValue)"
+                :share-display="row.keycard.bchValue > 0 ? formatShare(assetShare(row.keycard.bchValue)) : undefined"
+              />
+              <badgerLocksItem
+                v-else-if="row.kind === 'badgers'"
+                :dot-color="BADGERS_COLOR"
+                :unlock-display="lockUnlockDisplay(row.lock)"
+                :value-display="formatBchValue(row.value)"
+                :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
+              />
+              <hodlLockItem
+                v-else-if="row.kind === 'hodl'"
+                :dot-color="HODL_COLOR"
+                :bch-display="formatNumber(row.value, 5) + ' ' + bchUnitName"
+                :unlock="hodlUnlockDisplay(row.lock)"
+                :value-display="formatBchValue(row.value)"
+                :share-display="row.value > 0 ? formatShare(assetShare(row.value)) : undefined"
+              />
+              <loanKeyItem
+                v-else-if="row.kind === 'loan'"
+                :category="row.loan.category"
+                :name="row.loan.name"
+                :dot-color="LOAN_COLOR"
+                :state="loanState(row.loan.utxo)"
+                :net-value-display="loanNetDisplay(row.loan.utxo)"
+                :share-display="loanShareDisplay(row.loan.utxo)"
+              />
+              <stakingReceiptItem
+                v-else
+                :category="row.receipt.category"
+                :name="row.receipt.name"
+                :dot-color="includeStaking ? STAKING_COLOR : undefined"
+                :state="stakingState(row.receipt.utxo)"
+                :estimated-value-display="stakingValueDisplay(row.receipt.utxo)"
+                :share-display="stakingShareDisplay(row.receipt.utxo)"
+              />
+            </template>
+          </div>
+        </div>
       </div>
 
       <template v-if="smallAssetRows.length">
@@ -1187,8 +1279,24 @@ body.dark .unit-toggle button:not(.active) {
   padding: 8px 0;
   border-bottom: 1px solid rgba(128, 128, 128, 0.15);
 }
-.asset-list :deep(.asset-row:last-child) {
+.asset-list > .asset-row:last-child,
+.asset-list > .asset-entry:last-child > .entry-rows > .asset-row:last-child,
+.asset-list > .asset-entry:last-child > .group-header.folded {
   border-bottom: none;
+}
+/* the positions of one kind under their header: set in from it, along a line in the kind's color
+   that starts under the header's dot */
+.group-header {
+  cursor: pointer;
+  user-select: none;
+}
+.group-chevron {
+  opacity: 0.6;
+}
+.group-rows {
+  margin-left: 5px;
+  padding-left: 15px;
+  border-left: 2px solid transparent;
 }
 .asset-list :deep(.dot) {
   width: 10px;

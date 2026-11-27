@@ -240,6 +240,7 @@
     "checkingHodlContracts": "Поиск hodl-контрактов",
     "checkingTapswapListings": "Поиск объявлений TapSwap",
     "smallBalances": "Небольшие балансы ({count})",
+    "groupCount": "Позиций: {count}",
     "tapswapListings": "Объявления TapSwap ({count})",
     "askingPrice": "Запрашиваемая цена",
     "manageListings": "Управляйте своими объявлениями на {link}.",

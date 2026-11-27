@@ -240,6 +240,7 @@
     "checkingHodlContracts": "Suche nach Hodl-Verträgen",
     "checkingTapswapListings": "Suche nach TapSwap-Angeboten",
     "smallBalances": "Kleine Beträge ({count})",
+    "groupCount": "{count} Positionen",
     "tapswapListings": "TapSwap-Angebote ({count})",
     "askingPrice": "Verkaufspreis",
     "manageListings": "Verwalte deine Angebote auf {link}.",
