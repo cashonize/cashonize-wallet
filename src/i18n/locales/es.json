@@ -1558,8 +1558,8 @@
       "failedToSignTransaction": "Error al firmar la transacción",
       "sendingTransaction": "Enviando transacción...",
       "requestExpired": "Solicitud expirada, por favor regrese a {dappName} para reintentar",
-      "requestForOtherWallet": "{dappName} envió una solicitud para la billetera «{walletName}». Cambia a esa billetera para responderla.",
-      "requestForOtherNetwork": "{dappName} envió una solicitud para esta billetera en {network}. Cambia a {network} para responderla."
+      "requestForOtherWallet": "{dappName} envió una solicitud para la billetera «{walletName}», que fue rechazada. Cambia a esa billetera e inténtalo de nuevo en la dApp.",
+      "requestForOtherNetwork": "{dappName} envió una solicitud para esta billetera en {network}, que fue rechazada. Cambia a {network} e inténtalo de nuevo en la dApp."
     }
   },
   "wizardConnect": {

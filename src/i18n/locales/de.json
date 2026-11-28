@@ -1558,8 +1558,8 @@
       "failedToSignTransaction": "Transaktion konnte nicht signiert werden",
       "sendingTransaction": "Transaktion wird gesendet...",
       "requestExpired": "Anfrage abgelaufen, bitte kehren Sie zu {dappName} zurück, um es erneut zu versuchen",
-      "requestForOtherWallet": "{dappName} hat eine Anfrage für das Wallet „{walletName}“ gesendet. Wechsle zu diesem Wallet, um sie zu beantworten.",
-      "requestForOtherNetwork": "{dappName} hat eine Anfrage für dieses Wallet auf {network} gesendet. Wechsle zu {network}, um sie zu beantworten."
+      "requestForOtherWallet": "{dappName} hat eine Anfrage für das Wallet „{walletName}“ gesendet, die abgelehnt wurde. Wechsle zu diesem Wallet und versuche es in der dApp erneut.",
+      "requestForOtherNetwork": "{dappName} hat eine Anfrage für dieses Wallet auf {network} gesendet, die abgelehnt wurde. Wechsle zu {network} und versuche es in der dApp erneut."
     }
   },
   "wizardConnect": {

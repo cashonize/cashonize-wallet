@@ -1558,8 +1558,8 @@
       "failedToSignTransaction": "Gagal menandatangani transaksi",
       "sendingTransaction": "Mengirim transaksi...",
       "requestExpired": "Permintaan kedaluwarsa, silakan kembali ke {dappName} jika Anda ingin mencoba lagi",
-      "requestForOtherWallet": "{dappName} mengirim permintaan untuk dompet \"{walletName}\". Beralihlah ke dompet itu untuk menjawabnya.",
-      "requestForOtherNetwork": "{dappName} mengirim permintaan untuk dompet ini di {network}. Beralihlah ke {network} untuk menjawabnya."
+      "requestForOtherWallet": "{dappName} mengirim permintaan untuk dompet \"{walletName}\", yang ditolak. Beralihlah ke dompet itu dan coba lagi di dApp.",
+      "requestForOtherNetwork": "{dappName} mengirim permintaan untuk dompet ini di {network}, yang ditolak. Beralihlah ke {network} dan coba lagi di dApp."
     }
   },
   "wizardConnect": {

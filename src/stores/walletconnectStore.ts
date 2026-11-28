@@ -371,7 +371,15 @@ export const useWalletconnectStore = defineStore("walletconnectStore", () => {
     const { dappName } = dappForTopic(topic);
     let notice = t('walletConnect.notifications.requestForOtherWallet', { dappName, walletName });
     if (walletName === wallet.name) notice = t('walletConnect.notifications.requestForOtherNetwork', { dappName, network });
-    Notify.create({ message: notice, icon: 'warning', color: 'orange' });
+    // Stays until closed: the user is in the dapp when it arrives, and a toast would be gone by
+    // the time they look. Repeats of one notice count up on it rather than stacking.
+    Notify.create({
+      message: notice,
+      icon: 'warning',
+      color: 'orange',
+      timeout: 0,
+      actions: [{ icon: 'close', color: 'white', round: true }],
+    });
   }
   // Wallet connect dialog functionality
   async function wcRequest(event: WalletKitTypes.SessionRequest) {

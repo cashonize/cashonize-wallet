@@ -1558,8 +1558,8 @@
       "failedToSignTransaction": "Échec de la signature de la transaction",
       "sendingTransaction": "Envoi de la transaction...",
       "requestExpired": "Requête expirée, veuillez retourner à {dappName} pour réessayer",
-      "requestForOtherWallet": "{dappName} a envoyé une demande pour le portefeuille « {walletName} ». Passez à ce portefeuille pour y répondre.",
-      "requestForOtherNetwork": "{dappName} a envoyé une demande pour ce portefeuille sur {network}. Passez à {network} pour y répondre."
+      "requestForOtherWallet": "{dappName} a envoyé une demande pour le portefeuille « {walletName} », qui a été refusée. Passez à ce portefeuille et réessayez dans la dApp.",
+      "requestForOtherNetwork": "{dappName} a envoyé une demande pour ce portefeuille sur {network}, qui a été refusée. Passez à {network} et réessayez dans la dApp."
     }
   },
   "wizardConnect": {

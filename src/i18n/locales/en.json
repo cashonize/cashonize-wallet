@@ -1558,8 +1558,8 @@
       "failedToSignTransaction": "Failed to sign transaction",
       "sendingTransaction": "Sending transaction...",
       "requestExpired": "Request expired, please return to {dappName} if you would like to retry",
-      "requestForOtherWallet": "{dappName} sent a request for the wallet \"{walletName}\". Switch to that wallet to answer it.",
-      "requestForOtherNetwork": "{dappName} sent a request for this wallet on {network}. Switch to {network} to answer it."
+      "requestForOtherWallet": "{dappName} sent a request for the wallet \"{walletName}\", which was declined. Switch to that wallet and try again in the dApp.",
+      "requestForOtherNetwork": "{dappName} sent a request for this wallet on {network}, which was declined. Switch to {network} and try again in the dApp."
     }
   },
   "wizardConnect": {

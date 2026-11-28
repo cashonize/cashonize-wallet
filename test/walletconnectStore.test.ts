@@ -103,6 +103,8 @@ describe('WalletConnect sessions of several wallets', () => {
     const notice = vi.mocked(Notify.create).mock.calls[0]![0] as { message: string }
     expect(notice.message).toContain('Cauldron')
     expect(notice.message).toContain('"nfts"')
+    // the request is not held for the switch, and the notice must not read as if it were
+    expect(notice.message).toContain('declined')
   })
 
   it('refuses a session of the same wallet on another network, the tied chipnet copy', async () => {

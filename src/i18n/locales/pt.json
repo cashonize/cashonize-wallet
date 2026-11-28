@@ -1558,8 +1558,8 @@
       "failedToSignTransaction": "Falha ao assinar transação",
       "sendingTransaction": "Enviando transação...",
       "requestExpired": "Requisição expirou, retorne ao {dappName} se deseja tentar novamente",
-      "requestForOtherWallet": "{dappName} enviou um pedido para a carteira \"{walletName}\". Mude para essa carteira para responder.",
-      "requestForOtherNetwork": "{dappName} enviou um pedido para esta carteira em {network}. Mude para {network} para responder."
+      "requestForOtherWallet": "{dappName} enviou um pedido para a carteira \"{walletName}\", que foi recusado. Mude para essa carteira e tente novamente no dApp.",
+      "requestForOtherNetwork": "{dappName} enviou um pedido para esta carteira em {network}, que foi recusado. Mude para {network} e tente novamente no dApp."
     }
   },
   "wizardConnect": {

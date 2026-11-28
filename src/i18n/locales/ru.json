@@ -1558,8 +1558,8 @@
       "failedToSignTransaction": "Не удалось подписать транзакцию",
       "sendingTransaction": "Отправка транзакции...",
       "requestExpired": "Срок запроса истёк. Вернитесь в {dappName}, если хотите повторить",
-      "requestForOtherWallet": "{dappName} отправил запрос для кошелька «{walletName}». Переключитесь на этот кошелёк, чтобы ответить.",
-      "requestForOtherNetwork": "{dappName} отправил запрос для этого кошелька в сети {network}. Переключитесь на {network}, чтобы ответить."
+      "requestForOtherWallet": "{dappName} отправил запрос для кошелька «{walletName}», и он был отклонён. Переключитесь на этот кошелёк и повторите попытку в dApp.",
+      "requestForOtherNetwork": "{dappName} отправил запрос для этого кошелька в сети {network}, и он был отклонён. Переключитесь на {network} и повторите попытку в dApp."
     }
   },
   "wizardConnect": {
