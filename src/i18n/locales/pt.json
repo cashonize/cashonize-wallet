@@ -2224,5 +2224,19 @@
   "dappRequestError": {
     "title": "Pedido de dApp inválido",
     "okButton": "OK"
+  },
+  "androidBackupNotice": {
+    "title": "Backup do Android",
+    "lead": "Versões anteriores do Cashonize para Android permitiam que os dados da sua carteira, incluindo a frase semente, fossem copiados para o backup automático do Google do seu telefone, se você o tiver ativado. Esta versão impede isso, mas uma cópia já feita permanece lá.",
+    "action": "Se você não quer sua frase semente no seu backup do Google, talvez precise agir. Veja abaixo.",
+    "backedUpQuestion": "Minha frase semente está em um backup do Google?",
+    "backedUpAnswer": "Somente se o backup do Google estiver ativado no seu telefone; o Cashonize não tem como saber. No Android 9 e posteriores esse backup é criptografado com o seu bloqueio de tela.",
+    "removeQuestion": "Como removo o backup antigo?",
+    "removeAnswer": "Atualizar não o remove. Na maioria dos telefones, a única forma é excluir todo o backup do seu telefone na sua conta do Google, o que remove o backup de todos os apps.",
+    "releaseNotes": "Ver os passos nas notas da versão",
+    "newWalletQuestion": "Por que uma nova carteira também resolve?",
+    "newWalletAnswer": "O backup antigo contém apenas a frase semente antiga. Uma nova carteira recebe uma nova frase semente que nunca entrou em um backup. Depois de enviar tudo para ela, a frase semente antiga não protege mais nada.",
+    "dismiss": "Entendi",
+    "later": "Lembrar mais tarde"
   }
 }

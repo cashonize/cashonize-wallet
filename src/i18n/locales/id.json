@@ -2224,5 +2224,19 @@
   "dappRequestError": {
     "title": "Permintaan dApp tidak valid",
     "okButton": "OK"
+  },
+  "androidBackupNotice": {
+    "title": "Perubahan cadangan Android",
+    "lead": "Versi Cashonize untuk Android sebelumnya mengizinkan data dompet Anda, termasuk frasa pemulihan, disalin ke cadangan otomatis Google di ponsel Anda, jika Anda mengaktifkannya. Versi ini menghentikannya, tetapi salinan yang sudah dibuat tetap ada di sana.",
+    "action": "Jika Anda tidak ingin frasa pemulihan Anda ada di cadangan Google, Anda mungkin perlu bertindak. Lihat di bawah.",
+    "backedUpQuestion": "Apakah frasa pemulihan saya ada di cadangan Google?",
+    "backedUpAnswer": "Hanya jika pencadangan Google aktif di ponsel Anda; Cashonize tidak dapat mengetahuinya. Di Android 9 dan yang lebih baru, cadangan itu dienkripsi dengan kunci layar Anda.",
+    "removeQuestion": "Bagaimana cara menghapus cadangan lama?",
+    "removeAnswer": "Pembaruan tidak menghapusnya. Di sebagian besar ponsel, satu-satunya cara adalah menghapus seluruh cadangan ponsel di akun Google Anda, yang menghapus cadangan semua aplikasi.",
+    "releaseNotes": "Lihat langkah-langkahnya di catatan rilis",
+    "newWalletQuestion": "Mengapa dompet baru juga bisa?",
+    "newWalletAnswer": "Cadangan lama hanya berisi frasa pemulihan lama. Dompet baru mendapat frasa pemulihan baru yang tidak pernah dicadangkan. Setelah Anda mengirim semuanya ke sana, frasa pemulihan lama tidak lagi melindungi apa pun.",
+    "dismiss": "Mengerti",
+    "later": "Ingatkan saya nanti"
   }
 }

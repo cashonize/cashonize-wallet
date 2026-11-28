@@ -41,6 +41,8 @@
   import { useSettingsStore } from 'src/stores/settingsStore'
   import { Dialog } from 'quasar'
   import IdentitiesFoundDialog from 'src/components/general/identitiesFoundDialog.vue'
+  import AndroidBackupNoticeDialog from 'src/components/general/androidBackupNoticeDialog.vue'
+  import { takeAndroidBackupNotice, dismissAndroidBackupNotice } from 'src/utils/androidBackupNotice'
   const store = useStore()
   const identitiesStore = useIdentitiesStore()
   const settingsStore = useSettingsStore()
@@ -157,6 +159,10 @@
     void store.initializeWallet();
     // Refresh the list of available wallets
     void store.refreshAvailableWallets();
+  }
+
+  if (import.meta.env.QUASAR_CAPACITOR_MODE && takeAndroidBackupNotice(walletExists, Date.now())) {
+    Dialog.create({ component: AndroidBackupNoticeDialog }).onOk(() => dismissAndroidBackupNotice());
   }
   // If no wallet exists, displayView stays undefined and onboarding is shown
   

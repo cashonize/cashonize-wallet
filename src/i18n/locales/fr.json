@@ -2224,5 +2224,19 @@
   "dappRequestError": {
     "title": "Requête dApp invalide",
     "okButton": "OK"
+  },
+  "androidBackupNotice": {
+    "title": "Sauvegarde Android",
+    "lead": "Les versions précédentes de Cashonize pour Android permettaient que les données de votre portefeuille, y compris la phrase de récupération, soient copiées dans la sauvegarde automatique Google de votre téléphone, si vous l'avez activée. Cette version y met fin, mais une copie déjà faite y reste.",
+    "action": "Si vous ne voulez pas de votre phrase de récupération dans votre sauvegarde Google, vous devrez peut-être agir. Voir ci-dessous.",
+    "backedUpQuestion": "Ma phrase de récupération est-elle dans une sauvegarde Google ?",
+    "backedUpAnswer": "Seulement si la sauvegarde Google est activée sur votre téléphone ; Cashonize ne peut pas le savoir. À partir d'Android 9, cette sauvegarde est chiffrée avec votre verrouillage d'écran.",
+    "removeQuestion": "Comment supprimer l'ancienne sauvegarde ?",
+    "removeAnswer": "La mise à jour ne la supprime pas. Sur la plupart des téléphones, le seul moyen est de supprimer toute la sauvegarde de votre téléphone dans votre compte Google, ce qui supprime la sauvegarde de toutes les applications.",
+    "releaseNotes": "Voir les étapes dans les notes de version",
+    "newWalletQuestion": "Pourquoi un nouveau portefeuille fonctionne-t-il aussi ?",
+    "newWalletAnswer": "L'ancienne sauvegarde ne contient que l'ancienne phrase de récupération. Un nouveau portefeuille reçoit une nouvelle phrase de récupération qui n'a jamais été sauvegardée. Une fois que vous y avez tout envoyé, l'ancienne phrase ne protège plus rien.",
+    "dismiss": "Compris",
+    "later": "Me le rappeler plus tard"
   }
 }

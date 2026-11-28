@@ -2224,5 +2224,19 @@
   "dappRequestError": {
     "title": "Invalid dApp request",
     "okButton": "OK"
+  },
+  "androidBackupNotice": {
+    "title": "Android backup change",
+    "lead": "Earlier versions of Cashonize for Android allowed your wallet data, including the seed phrase, to be copied into your phone's automatic Google backup, if you have that turned on. This version stops that, but a copy already made stays there.",
+    "action": "If you do not want your seed phrase in your Google backup, you may need to act. See below.",
+    "backedUpQuestion": "Is my seed phrase in a Google backup?",
+    "backedUpAnswer": "Only if Google backup is turned on for your phone; Cashonize cannot tell. On Android 9 and newer that backup is encrypted with your screen lock.",
+    "removeQuestion": "How do I remove the old backup?",
+    "removeAnswer": "Updating does not remove it. On most phones the only way is to delete your phone's whole backup in your Google account, which removes every app's backup.",
+    "releaseNotes": "See the steps in the release notes",
+    "newWalletQuestion": "Why does a new wallet also work?",
+    "newWalletAnswer": "The old backup holds only the old seed phrase. A new wallet gets a new seed phrase that was never backed up. Once you have sent everything to it, the old seed phrase guards nothing.",
+    "dismiss": "Got it",
+    "later": "Remind me later"
   }
 }

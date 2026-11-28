@@ -2224,5 +2224,19 @@
   "dappRequestError": {
     "title": "Solicitud de dApp no válida",
     "okButton": "OK"
+  },
+  "androidBackupNotice": {
+    "title": "Copia de seguridad de Android",
+    "lead": "Las versiones anteriores de Cashonize para Android permitían que los datos de tu billetera, incluida la frase semilla, se copiaran en la copia de seguridad automática de Google de tu teléfono, si la tienes activada. Esta versión lo impide, pero una copia ya hecha permanece allí.",
+    "action": "Si no quieres tu frase semilla en tu copia de seguridad de Google, puede que tengas que actuar. Más información abajo.",
+    "backedUpQuestion": "¿Está mi frase semilla en una copia de Google?",
+    "backedUpAnswer": "Solo si la copia de seguridad de Google está activada en tu teléfono; Cashonize no puede saberlo. En Android 9 y posteriores esa copia está cifrada con tu bloqueo de pantalla.",
+    "removeQuestion": "¿Cómo elimino la copia antigua?",
+    "removeAnswer": "Actualizar no la elimina. En la mayoría de los teléfonos la única forma es borrar toda la copia de seguridad de tu teléfono en tu cuenta de Google, lo que elimina la copia de todas las apps.",
+    "releaseNotes": "Ver los pasos en las notas de la versión",
+    "newWalletQuestion": "¿Por qué también sirve una billetera nueva?",
+    "newWalletAnswer": "La copia antigua solo contiene la frase semilla antigua. Una billetera nueva recibe una frase semilla nueva que nunca se copió. Cuando lo hayas enviado todo a ella, la frase semilla antigua ya no protege nada.",
+    "dismiss": "Entendido",
+    "later": "Recordármelo más tarde"
   }
 }
