@@ -12,10 +12,12 @@ const windowBackground = registerPlugin<WindowBackgroundPlugin>('WindowBackgroun
 // icons and the window colour behind them (WindowBackgroundPlugin.java)
 export default defineBoot(({ store }) => {
   const settingsStore = useSettingsStore(store)
-  watch(() => [settingsStore.themeMode, settingsStore.darkMode], async () => {
-    const style = settingsStore.darkMode ? SystemBarsStyle.Dark : SystemBarsStyle.Light
-    // setStyle repaints the window in the phone theme's colour, so ours goes on after it
-    await SystemBars.setStyle({ style })
+  watch([() => settingsStore.darkMode, () => settingsStore.themeMode], async ([darkMode], [previousDarkMode]) => {
+    // setStyle repaints the window in the phone theme's colour until setColor lands: a flash, so
+    // it is skipped when the icons stay as they are (dark to dim)
+    if (darkMode !== previousDarkMode) {
+      await SystemBars.setStyle({ style: darkMode ? SystemBarsStyle.Dark : SystemBarsStyle.Light })
+    }
     const color = getComputedStyle(document.body).getPropertyValue('--bg-color').trim()
     await windowBackground.setColor({ color })
   }, { immediate: true })
